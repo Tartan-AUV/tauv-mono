@@ -1,0 +1,4 @@
+[submodule "uuv-simulator"]
+	path = uuv-simulator
+	url = https://github.com/Tartan-AUV/uuv-simulator.git
+	branch = master
