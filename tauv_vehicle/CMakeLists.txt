@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
         roslaunch
         sensor_msgs
         tf
+        phidgets_imu
+        imu_filter_madgwick
 )
 
 ## System dependencies are found with CMake's conventions
@@ -108,13 +110,16 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-        #  LIBRARIES tauv_vehicle
+        INCLUDE_DIRS src
+#  LIBRARIES tauv_vehicle
         CATKIN_DEPENDS
         roscpp
         std_msgs
         image_transport
         sensor_msgs
         tf
+        phidgets_imu
+        imu_filter_madgwick
 #  DEPENDS system_lib
 )
 
@@ -125,7 +130,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-        include
+        src
         ${catkin_INCLUDE_DIRS}
 )
 
