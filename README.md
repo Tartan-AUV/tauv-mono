@@ -36,7 +36,6 @@ Or (if you use zsh):
 ### To build your ROS project:
 
     cd path/to/catkin_ws
-    catkin build vortex_msgs
     catkin build
 
 ## Dependencies
