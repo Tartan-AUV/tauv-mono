@@ -4,9 +4,6 @@ import roslib
 import time
 import cv2 as cv2
 from pynput import keyboard
-import sys
-import atexit
-import curses
 
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Image
@@ -18,9 +15,10 @@ from sensor_msgs.msg import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-class UserControl:
+class UserController:
     def __init__(self):
-        self.gain = [30, 30, 60, 20, 20, 8]       
+        self.gain = [30, 30, 60, 20, 20, 8]      
+        rospy.init_node('user_controller', anonymous=True) 
         self.pub = rospy.Publisher("/manta/thruster_manager/input", Wrench, queue_size=1)
         listener = keyboard.Listener(
             on_press=self.on_press,
@@ -88,18 +86,3 @@ class UserControl:
         self.get_input()
         self.send_thrust()
         time.sleep(0.01)
-
-def shutdownHandler():
-    curses.endwin()
-
-def main():
-    stdscr = curses.initscr()
-    curses.noecho()
-    atexit.register(shutdownHandler)
-    rospy.init_node('user_control', anonymous=True)
-    uc = UserControl()
-    while(not rospy.is_shutdown()):
-        uc.spin()
-
-if __name__ == "__main__":
-    main()

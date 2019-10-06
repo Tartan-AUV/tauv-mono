@@ -4,7 +4,7 @@
   <version>0.6.1</version>
   <description>The TAUV Common package.</description>
 
-  <maintainer email="Musa.Marcusso@de.bosch.com">Musa Morena Marcusso Manhaes</maintainer>
+  <maintainer email="mdesoto@andrew.cmu.edu">Matthew de Soto</maintainer>
   <maintainer email="sebastian.scherer2@de.bosch.com">Sebastian Scherer</maintainer>
   <maintainer email="LuizRicardo.Douat@de.bosch.com">Luiz Ricardo Douat</maintainer>
 
