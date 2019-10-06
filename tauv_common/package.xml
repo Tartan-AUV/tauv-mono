@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>manta_thruster_manager</name>
+  <name>tauv_common</name>
   <version>0.6.1</version>
-  <description>The thruster manager package</description>
+  <description>The TAUV Common package.</description>
 
   <maintainer email="Musa.Marcusso@de.bosch.com">Musa Morena Marcusso Manhaes</maintainer>
   <maintainer email="sebastian.scherer2@de.bosch.com">Sebastian Scherer</maintainer>

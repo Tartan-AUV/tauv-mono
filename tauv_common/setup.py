@@ -20,7 +20,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['uuv_thrusters', 'uuv_thrusters.models'],
+    packages=['thruster_managers', 'thruster_managers.models'],
     package_dir={'': 'src'},
     requires=['rospy']
 )

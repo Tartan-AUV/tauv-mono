@@ -22,9 +22,9 @@ from os.path import isdir, join
 from copy import deepcopy
 import yaml
 import tf2_ros
-from uuv_thrusters import ThrusterManager
+from thruster_managers import ThrusterManager
 from geometry_msgs.msg import Wrench, WrenchStamped
-from manta_thruster_manager.srv import *
+from tauv_common.srv import *
 
 
 class ThrusterAllocatorNode(ThrusterManager):
