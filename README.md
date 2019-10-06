@@ -19,11 +19,11 @@ http://wiki.ros.org/melodic/Installation/Ubuntu
 Your folder structure should look something like this:
 
     - catkin_ws/
-	- src/
-		- TAUV_ROS_Packages/
-			- tauv_common
-			- tauv_mission
-			- tauv_vehicle
+        - src/
+	        - TAUV_ROS_Packages/
+	            - tauv_common
+	            - tauv_mission
+	            - tauv_vehicle
 
 ### Add this to your bashrc (or zshrc), or run it every boot:
 
