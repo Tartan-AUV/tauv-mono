@@ -4,6 +4,9 @@ import roslib
 import time
 import cv2 as cv2
 from pynput import keyboard
+import sys
+import atexit
+import curses
 
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Image
@@ -86,3 +89,14 @@ class UserController:
         self.get_input()
         self.send_thrust()
         time.sleep(0.01)
+
+def shutdownHandler():
+    curses.endwin()
+
+def main():
+    stdscr = curses.initscr()
+    curses.noecho()
+    atexit.register(shutdownHandler)
+    uc = UserController()
+    while(not rospy.is_shutdown()):
+        uc.spin()
