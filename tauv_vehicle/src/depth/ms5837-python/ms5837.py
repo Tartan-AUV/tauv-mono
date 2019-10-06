@@ -63,6 +63,7 @@ class MS5837(object):
         self._temperature = 0
         self._D1 = 0
         self._D2 = 0
+        self.msl = 101300
 
     def init(self):
         if self._bus is None:
@@ -144,11 +145,14 @@ class MS5837(object):
 
     # Depth relative to MSL pressure in given fluid density
     def depth(self):
-        return (self.pressure(UNITS_Pa)-101300)/(self._fluidDensity*9.80665)
+        return (self.pressure(UNITS_Pa)-self.msl)/(self._fluidDensity*9.80665)
 
     # Altitude relative to MSL pressure
     def altitude(self):
         return (1-pow((self.pressure()/1013.25),.190284))*145366.45*.3048
+
+    def zero_depth(self):
+        self.msl = self.pressure()
 
     # Cribbed from datasheet
     def _calculate(self):
