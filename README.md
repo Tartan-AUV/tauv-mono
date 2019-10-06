@@ -14,16 +14,18 @@ http://wiki.ros.org/melodic/Installation/Ubuntu
     cd ~ # or wherever else you want software to live
     mkdir -p catkin_ws/src
     cd catkin_ws/src
-    git clone https://github.com/Tartan-AUV/TAUV-ROS-Packages
+    git clone --recurse-submodules https://github.com/Tartan-AUV/TAUV-ROS-Packages
     
 Your folder structure should look something like this:
 
     - catkin_ws/
-        - src/
-	        - TAUV_ROS_Packages/
-	            - tauv_common
-	            - tauv_mission
-	            - tauv_vehicle
+      - src/
+        - TAUV_ROS_Packages/
+          - tauv_common
+          - tauv_mission
+          - tauv_vehicle
+          - uuv_simulator
+
 
 ### Add this to your bashrc (or zshrc), or run it every boot:
 
@@ -35,7 +37,7 @@ Or (if you use zsh):
 ### To build your ROS project:
 
     cd path/to/catkin_ws
-    catkin_make
+    catkin build
 
 ## Dependencies
 
@@ -59,3 +61,6 @@ This is where controls code and driver code lives. Abstracts the vehicle from th
 
 ## tauv_commander
 This is the package for the operator interface. TODO.
+
+## uuv-simulator
+This is the package that handles the simulator.
