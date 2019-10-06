@@ -32,11 +32,11 @@
   -->
   <arg name="reset_tam" default="false"/>
   <!-- Output folder to store the TAM.yaml and thruster_manager.yaml files -->
-  <arg name="output_dir" default="$(find tauv_common)/config"/>
+  <arg name="output_dir" default="$(find tauv_common)/models/manta_config"/>
   <!-- Thruster manager configuration file path -->
-  <arg name="config_file" default="$(find tauv_common)/config/thruster_manager.yaml"/>
+  <arg name="config_file" default="$(find tauv_common)/models/manta_config/thruster_manager.yaml"/>
   <!-- Thruster allocation matrix file path -->
-  <arg name="tam_file" default="$(find tauv_common)/config/TAM.yaml"/>
+  <arg name="tam_file" default="$(find tauv_common)/models/manta_config/TAM.yaml"/>
 
   <group ns="$(arg uuv_name)">
     <rosparam file="$(arg config_file)" command="load"/>
