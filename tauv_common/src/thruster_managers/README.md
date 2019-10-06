@@ -10,4 +10,4 @@ This directory contains the thruster managers and thruster allocators.
 * `/manta/thruster_manager/input` The force and torque to apply to the vessel.
 
 ## Vehicle Config Files
-Config files for each vessels' thruster configuration are located in tauv_common/models/{vehicle_name}_config/.
+Config files for each vessels' thruster configuration are located in tauv_common/models/{vehicle_name}/
