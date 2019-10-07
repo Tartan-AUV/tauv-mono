@@ -29,6 +29,7 @@ public:
     ImuCalibrator();
     void imu_data_callback(const sensor_msgs::Imu::ConstPtr& msg);
     void autolevel_service_callback();
+    void zero_heading_service_callback();
 
 protected:
     void load_axis_map();
@@ -44,6 +45,7 @@ protected:
     tf::Matrix3x3 _reorient_mat; // matrix to reorient vectors to REP 105
     tf::Transform _reorient; // Transformation to reorient vectors to REP 105
     tf::Transform _autolevel; // Transformation to correct for autolevel. (applied after reorientation matrix)
+    tf::Transform _zero_heading; // Transformation relative to true north. (applied after autolevel)
 
     std::vector<int> _axis_map; // map from new axes to imu. 0,1,2 = x,y,z respectively.
 
@@ -53,6 +55,8 @@ protected:
 
     int _autolevel_samples = -1; // set this to take n samples for autoleveling
     tf::Quaternion _autolevel_quaternion;
+    int _zero_heading_samples = -1; // set this to take n samples for autoleveling
+    tf::Quaternion _zero_heading_quaternion;
 };
 
 

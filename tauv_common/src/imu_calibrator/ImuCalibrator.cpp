@@ -11,6 +11,8 @@
 #include <tf/LinearMath/Matrix3x3.h>
 #include <tf/LinearMath/Quaternion.h>
 #include <geometry_msgs/Quaternion.h>
+#include <geometry_msgs/Vector3.h>
+#include <tf/transform_datatypes.h>
 #include <fstream>
 #include <cmath>
 
@@ -30,17 +32,49 @@ ImuCalibrator::ImuCalibrator() : _nh() {
 void ImuCalibrator::imu_data_callback(const sensor_msgs::Imu::ConstPtr& msg) {
     sensor_msgs::Imu new_msg = *msg;
 
-    Geometry_msgs::Quaternion ori_geom = msg.orientation;
-    tf::Quaternion ori = msg.orientation;
+    geometry_msgs::Quaternion ori_geom = new_msg.orientation;
+    geometry_msgs::Vector3 ang_geom = new_msg.angular_velocity;
+    geometry_msgs::Vector3 acc_geom = new_msg.linear_acceleration;
+
+    tf::Quaternion ori_reo_raw = _reorient * tf::Quaternion(ori_geom.x, ori_geom.y, ori_geom.z, ori_geom.w);
+    tf::Vector3 ang_reo_raw = _reorient * tf::Vector3(ang_geom.x, ang_geom.y, ang_geom.z);
+    tf::Vector3 acc_reo_raw = _reorient * tf::Vector3(acc_geom.x, acc_geom.y, acc_geom.z);
 
 
-    if (_autolevel_samples > -1) {
+    if (_autolevel_samples > 0) {
         _autolevel_samples--;
-        _autolevel_quaternion
+        _autolevel_quaternion += ori_reo_raw;
+    }
+    if (_autolevel_samples == 0) {
+        // zero out the z rotation from the quaternion:
+        _autolevel_quaternion[2] = 0;
+        _autolevel_quaternion.normalize();
+
+        _autolevel = tf::Transform(_autolevel_quaternion);
+        _autolevel_samples = -1;
     }
 
-    if (_autolevel_samples == 0) {
+    tf::Quaternion ori_reo = _autolevel * ori_reo_raw;
+    tf::Vector3 ang_reo = _autolevel * ang_reo_raw;
+    tf::Vector3 acc_reo = _autolevel * acc_reo_raw;
+
+    if (_zero_heading_samples > 0) {
+        _zero_heading_samples--;
+        _zero_heading_quaternion += ori_reo;
     }
+    if (_zero_heading_samples == 0) {
+        _zero_heading_quaternion[0] = 0;
+        _zero_heading_quaternion[1] = 0;
+        _zero_heading_quaternion.normalize();
+
+        _zero_heading = tf::Transform(_zero_heading_quaternion);
+        _zero_heading_samples = -1;
+    }
+
+    quaternionTFToMsg(ori_reo, new_msg.orientation);
+    vector3TFToMsg(ang_reo, new_msg.angular_velocity);
+    vector3TFToMsg(acc_reo, new_msg.linear_acceleration);
+
     _imu_pub.publish(new_msg);
 }
 
@@ -48,6 +82,12 @@ void ImuCalibrator::autolevel_service_callback() {
     _autolevel_quaternion = tf::Quaternion(0,0,0,0);
     _autolevel_samples = 20;
 }
+
+void ImuCalibrator::zero_heading_service_callback() {
+    _zero_heading_quaternion = tf::Quaternion(0,0,0,0);
+    _zero_heading_samples = 20;
+}
+
 
 void ImuCalibrator::load_axis_map() {
     _axis_map = load_yaml_array<int>(AXIS_MAP_PARAM, 3);

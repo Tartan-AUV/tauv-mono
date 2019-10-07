@@ -4,10 +4,11 @@ project(tauv_common)
 add_compile_options(-Wall -Werror -std=c++11)
 
 find_package(catkin REQUIRED COMPONENTS
-  std_msgs 
-  message_generation
-  sensor_msgs
-  tf
+    std_msgs
+    message_generation
+    sensor_msgs
+    geometry_msgs
+    tf
   )
 find_package(yaml-cpp REQUIRED)
 
@@ -15,27 +16,29 @@ catkin_python_setup()
 
 ## Generate services in the 'srv' folder
 add_service_files(
-  FILES
-  GetThrusterCurve.srv
-  ThrusterManagerInfo.srv
-  SetThrusterManagerConfig.srv
-  GetThrusterManagerConfig.srv
+    FILES
+    GetThrusterCurve.srv
+    ThrusterManagerInfo.srv
+    SetThrusterManagerConfig.srv
+    GetThrusterManagerConfig.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
-  DEPENDENCIES
-  std_msgs
-  sensor_msgs
+    DEPENDENCIES
+    std_msgs
+    sensor_msgs
+    geometry_msgs
 )
 
 catkin_package(CATKIN_DEPENDS
-  message_runtime
-  std_msgs
-  roscpp
-  rospy
-  sensor_msgs
-  tf
+    message_runtime
+    std_msgs
+    roscpp
+    rospy
+    sensor_msgs
+    geometry_msgs
+    tf
   )
 
 include_directories(
