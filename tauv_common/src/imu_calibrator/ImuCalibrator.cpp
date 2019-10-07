@@ -9,20 +9,44 @@
 #include <exception>
 #include <tf/LinearMath/Transform.h>
 #include <tf/LinearMath/Matrix3x3.h>
+#include <tf/LinearMath/Quaternion.h>
+#include <geometry_msgs/Quaternion.h>
 #include <fstream>
 #include <cmath>
 
-ImuCalibrator::ImuCalibrator() : _nh("~") {
+ImuCalibrator::ImuCalibrator() : _nh() {
     load_axis_map();
     load_autolevel_matrix();
+
+    std::string data_input_topic;
+    if (!_nh.getParam(IMU_DATA_TOPIC_PARAM, data_input_topic))
+    {
+        throw std::runtime_error("No param defined for imu data in topic!");
+    }
+    _imu_sub = _nh.subscribe(data_input_topic, 10, &ImuCalibrator::imu_data_callback, this);
+    _imu_pub = _nh.advertise<sensor_msgs::Imu>(IMU_DATA_OUTPUT_TOPIC, true);
 }
 
-void ImuCalibrator::imu_data_callback() {
+void ImuCalibrator::imu_data_callback(const sensor_msgs::Imu::ConstPtr& msg) {
+    sensor_msgs::Imu new_msg = *msg;
 
+    Geometry_msgs::Quaternion ori_geom = msg.orientation;
+    tf::Quaternion ori = msg.orientation;
+
+
+    if (_autolevel_samples > -1) {
+        _autolevel_samples--;
+        _autolevel_quaternion
+    }
+
+    if (_autolevel_samples == 0) {
+    }
+    _imu_pub.publish(new_msg);
 }
 
 void ImuCalibrator::autolevel_service_callback() {
-
+    _autolevel_quaternion = tf::Quaternion(0,0,0,0);
+    _autolevel_samples = 20;
 }
 
 void ImuCalibrator::load_axis_map() {

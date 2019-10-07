@@ -16,15 +16,18 @@
 #include <sensor_msgs/Imu.h>
 #include <std_msgs/Header.h>
 #include <tf/LinearMath/Transform.h>
+#include <tf/LinearMath/Quaternion.h>
 
 #define NODE_NAME "imu_calibrator"
 #define AXIS_MAP_PARAM "axis_map"
 #define AUTOLEVEL_MAT_PARAM "autolevel_matrix"
+#define IMU_DATA_TOPIC_PARAM "imu_data_topic"
+#define IMU_DATA_OUTPUT_TOPIC "data"
 
 class ImuCalibrator {
 public:
     ImuCalibrator();
-    void imu_data_callback();
+    void imu_data_callback(const sensor_msgs::Imu::ConstPtr& msg);
     void autolevel_service_callback();
 
 protected:
@@ -47,6 +50,9 @@ protected:
     ros::NodeHandle _nh;
     ros::Subscriber _imu_sub;
     ros::Publisher _imu_pub;
+
+    int _autolevel_samples = -1; // set this to take n samples for autoleveling
+    tf::Quaternion _autolevel_quaternion;
 };
 
 
