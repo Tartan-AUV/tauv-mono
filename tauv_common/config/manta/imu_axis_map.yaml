@@ -1,5 +1,7 @@
-# Axis map defines mappings from world axes to imu axes. (See REP 105)
+# Axis map defines mappings from world axes to imu axes.
 # eg: axis_map[i] = j means that axis i in the robot frame is axis j in the IMU.
-# frames are x,y,z.
+# Frames are x,y,z according to REP 105. (x forward, y left, z up)
 # If an axis is reversed, you can negate that entry on the axis map.
+# Valid axis_maps contain only integers in [-2,2], and contain one of each axis.
+
 axis_map: [ 1, 0, -2 ]

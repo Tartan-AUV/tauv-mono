@@ -27,20 +27,22 @@ void ImuCalibrator::autolevel_service_callback() {
 
 void ImuCalibrator::load_axis_map() {
     _axis_map = load_yaml_array<int>(AXIS_MAP_PARAM, 3);
-    auto reorient_mat = tf::Matrix3x3();
     for (int i = 0; i < 3; i++) {
         if (std::abs(_axis_map[i]) > 2) {
             throw std::runtime_error("Error: Invalid axis map. Values must be -2,-1,0,1,2 only");
         }
         int val = _axis_map[i];
-        reorient_mat[i][std::abs(val)] = (int)((val >= 0) - (val < 0));
+        _reorient_mat[i][std::abs(val)] = (int)((val >= 0) - (val < 0));
     }
 
+    std::cout << "Calculated reorientation matrix: \n";
     for (int r = 0; r < 3; r++) {
         for (int c = 0; c < 3; c++) {
-            std::cout << reorient_mat[r][c] << "\n";
+            std::cout << _reorient_mat[r][c] << "\n";
         }
     }
+
+    _reorient = tf::Transform(_reorient_mat);
 }
 
 void ImuCalibrator::load_autolevel_matrix() {

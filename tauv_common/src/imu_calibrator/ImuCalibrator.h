@@ -38,8 +38,9 @@ protected:
     template <class T>
     void write_yaml_array(std::string param, std::vector<T> vec);
 
-    tf::Transform _reorient; // matrix to reorient vectors to REP 105
-    tf::Transform _autolevel; // matrix to correct for autolevel. (applied after reorientation matrix)
+    tf::Matrix3x3 _reorient_mat; // matrix to reorient vectors to REP 105
+    tf::Transform _reorient; // Transformation to reorient vectors to REP 105
+    tf::Transform _autolevel; // Transformation to correct for autolevel. (applied after reorientation matrix)
 
     std::vector<int> _axis_map; // map from new axes to imu. 0,1,2 = x,y,z respectively.
 
