@@ -35,11 +35,26 @@ void ImuCalibrator::imu_data_callback(const sensor_msgs::Imu::ConstPtr& msg) {
     geometry_msgs::Quaternion ori_geom = new_msg.orientation;
     geometry_msgs::Vector3 ang_geom = new_msg.angular_velocity;
     geometry_msgs::Vector3 acc_geom = new_msg.linear_acceleration;
+    tf::Quaternion ori_raw;
+    tf::Vector3 ang_raw;
+    tf::Vector3 acc_raw;
 
-    tf::Quaternion ori_reo_raw = _reorient * tf::Quaternion(ori_geom.x, ori_geom.y, ori_geom.z, ori_geom.w);
-    tf::Vector3 ang_reo_raw = _reorient * tf::Vector3(ang_geom.x, ang_geom.y, ang_geom.z);
-    tf::Vector3 acc_reo_raw = _reorient * tf::Vector3(acc_geom.x, acc_geom.y, acc_geom.z);
+    quaternionMsgToTF(ori_geom, ori_raw);
+    vector3MsgToTF(ang_geom, ang_raw);
+    vector3MsgToTF(acc_geom, acc_raw);
 
+    //std::cout << "----------------------------\n";
+
+    //std::cout << "reorient matrix: ";
+    //print_matrix3x3(_reorient.getBasis());
+    //std::cout << "acc raw: ";
+    //print_vector3(ang_raw);
+    tf::Quaternion ori_reo_raw = _reorient * ori_raw;
+    ori_reo_raw.normalize();
+    tf::Vector3 ang_reo_raw = _reorient * ang_raw;
+    tf::Vector3 acc_reo_raw = _reorient * acc_raw;
+    //std::cout << "acc reoriented: ";
+    //print_vector3(ang_reo_raw);
 
     if (_autolevel_samples > 0) {
         _autolevel_samples--;
@@ -55,6 +70,7 @@ void ImuCalibrator::imu_data_callback(const sensor_msgs::Imu::ConstPtr& msg) {
     }
 
     tf::Quaternion ori_reo = _autolevel * ori_reo_raw;
+    ori_reo.normalize();
     tf::Vector3 ang_reo = _autolevel * ang_reo_raw;
     tf::Vector3 acc_reo = _autolevel * acc_reo_raw;
 
@@ -91,12 +107,13 @@ void ImuCalibrator::zero_heading_service_callback() {
 
 void ImuCalibrator::load_axis_map() {
     _axis_map = load_yaml_array<int>(AXIS_MAP_PARAM, 3);
+    _reorient_mat = tf::Matrix3x3(0,0,0,0,0,0,0,0,0);
     for (int i = 0; i < 3; i++) {
-        if (std::abs(_axis_map[i]) > 2) {
-            throw std::runtime_error("Error: Invalid axis map. Values must be -2,-1,0,1,2 only");
+        if (std::abs(_axis_map[i]) > 3 || std::abs(_axis_map[i]) < 1) {
+            throw std::runtime_error("Error: Invalid axis map. Values must be -3,-2,-1,1,2,3 only");
         }
         int val = _axis_map[i];
-        _reorient_mat[i][std::abs(val)] = (int)((val >= 0) - (val < 0));
+        _reorient_mat[i][std::abs(val)-1] = (double)(val/std::abs(val));
     }
 
     std::cout << "Calculated reorientation matrix: \n";
@@ -220,6 +237,24 @@ void ImuCalibrator::write_yaml_array(std::string param, std::vector<T> vec) {
     std::ofstream fout(path);
     fout << out.c_str();
     fout.close();
+}
+
+void ImuCalibrator::print_matrix3x3(tf::Matrix3x3 mat) {
+    std::cout << "-Mat: \n";
+    for (int r = 0; r < 3; r++) {
+        for (int c = 0; c < 3; c++) {
+            std::cout << mat[r][c] << ", ";
+        }
+        std::cout << "\n";
+    }
+}
+
+void ImuCalibrator::print_vector3(tf::Vector3 vec) {
+    std::cout << "-Vec: \n";
+    for (int i = 0; i < 3; i++) {
+        std::cout << vec[i] << ", ";
+    }
+    std::cout << "\n";
 }
 
 int main(int argc, char** argv) {

@@ -17,6 +17,8 @@
 #include <std_msgs/Header.h>
 #include <tf/LinearMath/Transform.h>
 #include <tf/LinearMath/Quaternion.h>
+#include <tf/LinearMath/Vector3.h>
+#include <tf/LinearMath/Matrix3x3.h>
 
 #define NODE_NAME "imu_calibrator"
 #define AXIS_MAP_PARAM "axis_map"
@@ -57,6 +59,9 @@ protected:
     tf::Quaternion _autolevel_quaternion;
     int _zero_heading_samples = -1; // set this to take n samples for autoleveling
     tf::Quaternion _zero_heading_quaternion;
+
+    void print_matrix3x3(tf::Matrix3x3 mat);
+    void print_vector3(tf::Vector3 vec);
 };
 
 
