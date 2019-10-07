@@ -9,7 +9,7 @@ thruster_manager:
   update_rate: 50 
 
   ##################################################
-  # Options to set the thruster models below
+  # Options to set the thruster config below
   ##################################################
 
   # 1) If all thrusters have the same model (as described in the vehicle's robot description)
@@ -36,8 +36,8 @@ thruster_manager:
   #   input: [0, 1, 2, 3]
   #   output: [0, 1, 2, 3]
 
-  # 2) If the vehicle has thrusters with different models, you can list the
-  #    models descriptions. Beware to set the list where the index in list
+  # 2) If the vehicle has thrusters with different config, you can list the
+  #    config descriptions. Beware to set the list where the index in list
   #    matches the thruster ID
   # conversion_fcn:
   #   - proportional

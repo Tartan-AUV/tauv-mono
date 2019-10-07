@@ -212,6 +212,8 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+# Macros for declaring ros nodes and libraries
+include(cmake/ros-node.cmake)
 include(cmake/cppcheck.cmake)
 include(cmake/clang-format.cmake)
 include(cmake/pylint.cmake)

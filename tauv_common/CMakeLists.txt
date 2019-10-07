@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(tauv_common)
 
+add_compile_options(-Wall -Werror -std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS
   std_msgs 
-  message_generation)
+  message_generation
+  sensor_msgs
+  tf
+  )
+find_package(yaml-cpp REQUIRED)
 
 catkin_python_setup()
 
@@ -20,9 +26,22 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
+  sensor_msgs
 )
 
-catkin_package(CATKIN_DEPENDS message_runtime)
+catkin_package(CATKIN_DEPENDS
+  message_runtime
+  std_msgs
+  roscpp
+  rospy
+  sensor_msgs
+  tf
+  )
+
+include_directories(
+        src
+        ${catkin_INCLUDE_DIRS}
+)
 
 catkin_install_python(PROGRAMS scripts/thruster_allocator.py
                       DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
@@ -30,3 +49,14 @@ catkin_install_python(PROGRAMS scripts/thruster_allocator.py
 install(DIRECTORY launch config
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
         PATTERN "*~" EXCLUDE)
+
+# Macros for declaring ros nodes and libraries
+include(cmake/ros-node.cmake)
+include(cmake/cppcheck.cmake)
+include(cmake/clang-format.cmake)
+include(cmake/pylint.cmake)
+
+# define nodes here
+add_subdirectory(src/imu_calibrator)
+
+

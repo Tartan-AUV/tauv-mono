@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Name of the robot model  -->
+  <arg name="model_name" default="manta"/>
+
+  <!-- Input file to load the axis map for the IMU from -->
+  <arg name="axis_map" default="$(find tauv_common)/config/$(arg model_name)/imu_axis_map.yaml"/>
+
+  <!-- Output file to store the IMU autolevel matrix in -->
+  <arg name="autolevel_matrix" default="$(find tauv_common)/config/$(arg model_name)/imu_autolevel_matrix.yaml"/>
+
+  <node pkg="tauv_common"
+        type="imu_calibrator"
+        name="imu_calibrator"
+        output="screen"
+        ns="imu_calibrated">
+    <rosparam param="axis_map" subst_value="true">
+      $(arg axis_map)
+    </rosparam>
+    <rosparam param="autolevel_matrix" subst_value="true">
+      $(arg autolevel_matrix)
+    </rosparam>
+  </node>
+</launch>

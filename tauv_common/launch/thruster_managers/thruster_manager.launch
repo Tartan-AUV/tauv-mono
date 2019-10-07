@@ -3,7 +3,7 @@
   <!-- Name of the robot model  -->
   <arg name="model_name" default="manta"/>
   <!-- Namespace of the robot in the simulation (it can be different from the original model name) -->
-  <arg name="uuv_name" default="$(arg model_name)"/>
+  <arg name="uuv_name" default="auv"/>
   <!-- Name of the base link -->
   <arg name="base_link" default="base_link" />
   <!--
@@ -32,11 +32,11 @@
   -->
   <arg name="reset_tam" default="false"/>
   <!-- Output folder to store the TAM.yaml and thruster_manager.yaml files -->
-  <arg name="output_dir" default="$(find tauv_common)/models/manta"/>
+  <arg name="output_dir" default="$(find tauv_common)/config/$(arg model_name)"/>
   <!-- Thruster manager configuration file path -->
-  <arg name="config_file" default="$(find tauv_common)/models/manta/thruster_manager.yaml"/>
+  <arg name="config_file" default="$(find tauv_common)/config/$(arg model_name)/thruster_manager.yaml"/>
   <!-- Thruster allocation matrix file path -->
-  <arg name="tam_file" default="$(find tauv_common)/models/manta/TAM.yaml"/>
+  <arg name="tam_file" default="$(find tauv_common)/config/$(arg model_name)/TAM.yaml"/>
 
   <group ns="$(arg uuv_name)">
     <rosparam file="$(arg config_file)" command="load"/>
