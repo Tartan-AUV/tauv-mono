@@ -60,6 +60,6 @@ include(cmake/clang-format.cmake)
 include(cmake/pylint.cmake)
 
 # define nodes here
-add_subdirectory(src/imu_calibrator)
+# eg: add_subdirectory(src/imu_calibrator)
 
 
