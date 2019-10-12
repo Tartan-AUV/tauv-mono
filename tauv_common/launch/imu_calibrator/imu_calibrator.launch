@@ -10,7 +10,7 @@
     <arg name="autolevel_matrix" default="$(find tauv_common)/config/$(arg model_name)/imu_autolevel_matrix.yaml"/>
 
     <!-- Topic to listen for IMU data on -->
-    <arg name="imu_data_topic" default="/inertial/imu/data"/>
+    <arg name="imu_data_topic" default="/manta/imu"/>
 
     <group ns="inertial/imu_calibrated">
         <rosparam param="axis_map" subst_value="true">
