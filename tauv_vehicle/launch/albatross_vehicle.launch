@@ -1,0 +1,6 @@
+<!-- Albatross vehicle launch file -->
+
+<launch>
+  <include file="$(find tauv_vehicle)/launch/inertial/phidgets-imu.launch"/>
+  <include file="$(find tauv_vehicle)/launch/depth/depth-sensor.launch"/>
+</launch>
