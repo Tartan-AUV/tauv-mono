@@ -30,13 +30,15 @@
     The TAM.yaml file will be store in the folder defined by the following
     argument output_dir
   -->
+  <arg name="model_path" default="$(find tauv_config)/$(arg model_name)_description"/>
+
   <arg name="reset_tam" default="false"/>
   <!-- Output folder to store the TAM.yaml and thruster_manager.yaml files -->
-  <arg name="output_dir" default="$(find tauv_common)/config/$(arg model_name)"/>
+  <arg name="output_dir" default="$(arg model_path)"/>
   <!-- Thruster manager configuration file path -->
-  <arg name="config_file" default="$(find tauv_common)/config/$(arg model_name)/thruster_manager.yaml"/>
+  <arg name="config_file" default="$(arg model_path)/thruster_manager.yaml"/>
   <!-- Thruster allocation matrix file path -->
-  <arg name="tam_file" default="$(find tauv_common)/config/$(arg model_name)/TAM.yaml"/>
+  <arg name="tam_file" default="$(arg model_path)/TAM.yaml"/>
 
   <group ns="$(arg uuv_name)">
     <rosparam file="$(arg config_file)" command="load"/>

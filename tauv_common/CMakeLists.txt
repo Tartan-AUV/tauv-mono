@@ -39,6 +39,7 @@ catkin_package(CATKIN_DEPENDS
     sensor_msgs
     geometry_msgs
     tf
+    tauv_config
   )
 
 include_directories(
