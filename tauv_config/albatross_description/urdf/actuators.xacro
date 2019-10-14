@@ -50,10 +50,10 @@
   <!-- Back thrusters -->
 
   <xacro:thruster_macro namespace="${namespace}" thruster_id="3"> <!-- lat back left-->
-    <origin xyz="-0.20506 0.20506 0" rpy="${0*d2r} ${0*d2r} ${45*d2r}"/>
+    <origin xyz="-0.20506 0.20506 0" rpy="${0*d2r} ${0*d2r} ${-135*d2r}"/>
   </xacro:thruster_macro>
   <xacro:thruster_macro namespace="${namespace}" thruster_id="2"> <!-- lat back right -->
-    <origin xyz="-0.20506 -0.20506 0" rpy="${0*d2r} ${0*d2r} ${-45*d2r}"/>
+    <origin xyz="-0.20506 -0.20506 0" rpy="${0*d2r} ${0*d2r} ${135*d2r}"/>
   </xacro:thruster_macro>
 
   <!-- reminder: REP 103. x,y,z are forward, left, up. rpy are rotation about those axes -->

@@ -13,7 +13,7 @@ support_real_hardware: true
 maestro_thrusters: true
 maestro_tty: /dev/hello
 maestro_thruster_channels:  [0, 1, 2, 3, 4, 5, 6, 7]
-maestro_inverted_thrusters: [0, 0, 0, 0, 0, 0, 0, 0]
+maestro_inverted_thrusters: [1, 1, 1, 0, 0, 1, 0, 1]
 maestro_servos: false
 maestro_servo_channels: [8, 9, 10, 11]
 thruster_timeout_s: 1.0

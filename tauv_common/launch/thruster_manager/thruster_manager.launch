@@ -32,7 +32,7 @@
     The TAM.yaml file will be store in the folder defined by the following
     argument output_dir
   -->
-  <arg name="reset_tam" default="true"/>
+  <arg name="reset_tam" default="false"/>
   <!-- Output folder to store the TAM.yaml and thruster_manager.yaml files -->
   <arg name="output_dir" default="$(arg config_pkg)"/>
   <!-- Thruster manager configuration file path -->

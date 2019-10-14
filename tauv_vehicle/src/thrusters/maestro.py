@@ -36,10 +36,8 @@ class Maestro:
         # Open the command port
         try:
             self.usb = serial.Serial(ttyStr)
-            self.init = True
         except:
-            # raise ValueError("Could not find Maestro servo controller! Is it connected and configured as dual port?")
-            self.init = False
+            raise ValueError("Could not find Maestro servo controller! Is it connected and configured as dual port?")
         # Command lead-in and device number are sent for each Pololu serial command.
         self.PololuCmd = chr(0xaa) + chr(device)
         # Track target position for each servo. The function isMoving() will
@@ -49,11 +47,11 @@ class Maestro:
         # Servo minimum and maximum targets can be restricted to protect components.
         self.Mins = [0] * 24
         self.Maxs = [10000] * 24
+        self.init = True
 
-    # Cleanup by closing USB serial port
+# Cleanup by closing USB serial port
     def close(self):
         if not self.init:
-            #print("Maestro not connected!")
             return False
         self.usb.close()
         return True
@@ -62,7 +60,6 @@ class Maestro:
     def sendCmd(self, cmd):
         cmdStr = self.PololuCmd + cmd
         if not self.init:
-            #print("Maestro not connected!")
             return False
 
         if PY2:

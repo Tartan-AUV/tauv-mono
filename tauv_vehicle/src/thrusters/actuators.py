@@ -68,7 +68,7 @@ class ActuatorController:
                     cmd = self.speed_to_pwm(self.thruster_command[channel], channel)
                     commands[channel] = cmd
                     self.maestro.setTarget(cmd, channel)
-                #print(commands)
+                print(commands)
 
             r.sleep()
 
