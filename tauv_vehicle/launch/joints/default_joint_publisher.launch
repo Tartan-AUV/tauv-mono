@@ -1,0 +1,6 @@
+<launch>
+    <arg name="model_name" default="albatross"/>
+    <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_pub" ns="$(arg model_name)">
+        <!--<remap from="robot_description" to="$(arg model_name)/robot_description" /> -->
+    </node>
+</launch>

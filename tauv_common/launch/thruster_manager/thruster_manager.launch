@@ -5,7 +5,7 @@
   <!-- path to config package  -->
   <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
   <!-- Namespace of the robot in the simulation (it can be different from the original model name) -->
-  <arg name="uuv_name" default="auv"/>
+  <arg name="uuv_name" default="$(arg model_name)"/>
   <!-- Name of the base link -->
   <arg name="base_link" default="base_link" />
   <!--

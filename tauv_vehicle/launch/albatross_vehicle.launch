@@ -3,4 +3,7 @@
 <launch>
   <include file="$(find tauv_vehicle)/launch/inertial/phidgets-imu.launch"/>
   <include file="$(find tauv_vehicle)/launch/depth/depth-sensor.launch"/>
+  <include file="$(find tauv_vehicle)/launch/joints/default_joint_publisher.launch">
+    <arg name="model_name" value="albatross"/>
+  </include>
 </launch>

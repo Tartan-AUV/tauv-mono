@@ -5,4 +5,4 @@
     <arg name="model_name" value="albatross"/>
     <arg name="simulated" value="true"/>
   </include>
-</launch
+</launch>

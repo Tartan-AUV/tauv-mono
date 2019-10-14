@@ -4,7 +4,6 @@ from sensor_msgs.msg import Temperature
 from std_msgs.msg import Float64
 from std_msgs.msg import Header
 from ms5837lib import ms5837
-from time import sleep
 
 pub = rospy.Publisher('depth', Float64, queue_size=10)
 pub = rospy.Publisher('temperature', Temperature, queue_size=10)
