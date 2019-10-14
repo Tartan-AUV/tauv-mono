@@ -2,12 +2,13 @@ import time
 import serial
 from sys import version_info
 
-PY2 = version_info[0] == 2   #Running Python 2.x?
+PY2 = version_info[0] == 2  # Running Python 2.x?
+
 
 #
-#---------------------------
+# ---------------------------
 # Maestro Servo Controller
-#---------------------------
+# ---------------------------
 #
 # Support for the Pololu Maestro line of servo controllers
 #
@@ -29,12 +30,14 @@ class Maestro:
     # assumes.  If two or more controllers are connected to different serial
     # ports, or you are using a Windows OS, you can provide the tty port.  For
     # example, '/dev/ttyACM2' or for Windows, something like 'COM3'.
-    def __init__(self,ttyStr='/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Micro_Maestro_6-Servo_Controller_00251776-if00',device=0x0c):
+    def __init__(self,
+                 ttyStr='/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Micro_Maestro_6-Servo_Controller_00251776-if00',
+                 device=0x0c):
         # Open the command port
         try:
             self.usb = serial.Serial(ttyStr)
             self.init = True
-        except serial.serialutil.SerialException:
+        except:
             print("Could not find Maestro servo controller! Is it connected and configured as dual port?")
             self.init = False
         # Command lead-in and device number are sent for each Pololu serial command.
@@ -65,7 +68,7 @@ class Maestro:
         if PY2:
             self.usb.write(cmdStr)
         else:
-            self.usb.write(bytes(cmdStr,'latin-1'))
+            self.usb.write(bytes(cmdStr, 'latin-1'))
 
     # Set channels min and max value range.  Use this as a safety to protect
     # from accidentally moving outside known safe parameters. A setting of 0
@@ -101,8 +104,8 @@ class Maestro:
         if self.Maxs[chan] > 0 and target > self.Maxs[chan]:
             target = self.Maxs[chan]
         #
-        lsb = target & 0x7f #7 bits for least significant byte
-        msb = (target >> 7) & 0x7f #shift 7 and take next 7 bits for msb
+        lsb = target & 0x7f  # 7 bits for least significant byte
+        msb = (target >> 7) & 0x7f  # shift 7 and take next 7 bits for msb
         cmd = chr(0x04) + chr(chan) + chr(lsb) + chr(msb)
         self.sendCmd(cmd)
         # Record Target value
@@ -114,8 +117,8 @@ class Maestro:
     # of 1 will take 1 minute, and a speed of 60 would take 1 second.
     # Speed of 0 is unrestricted.
     def setSpeed(self, chan, speed):
-        lsb = speed & 0x7f #7 bits for least significant byte
-        msb = (speed >> 7) & 0x7f #shift 7 and take next 7 bits for msb
+        lsb = speed & 0x7f  # 7 bits for least significant byte
+        msb = (speed >> 7) & 0x7f  # shift 7 and take next 7 bits for msb
         cmd = chr(0x07) + chr(chan) + chr(lsb) + chr(msb)
         self.sendCmd(cmd)
 
@@ -124,8 +127,8 @@ class Maestro:
     # Valid values are from 0 to 255. 0=unrestricted, 1 is slowest start.
     # A value of 1 will take the servo about 3s to move between 1ms to 2ms range.
     def setAccel(self, chan, accel):
-        lsb = accel & 0x7f #7 bits for least significant byte
-        msb = (accel >> 7) & 0x7f #shift 7 and take next 7 bits for msb
+        lsb = accel & 0x7f  # 7 bits for least significant byte
+        msb = (accel >> 7) & 0x7f  # shift 7 and take next 7 bits for msb
         cmd = chr(0x09) + chr(chan) + chr(lsb) + chr(msb)
         self.sendCmd(cmd)
 
@@ -180,6 +183,7 @@ class Maestro:
     def stopScript(self):
         cmd = chr(0x24)
         self.sendCmd(cmd)
+
 
 if __name__ == '__main__':
     servo = Controller()

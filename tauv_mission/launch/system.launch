@@ -30,8 +30,8 @@
   <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
   <arg name="model_config" default="$(arg config_pkg)/vehicle_params.yaml"/>
 
-  <!-- Load the configuration  -->
-  <rosparam file="$(arg model_config)" command="load"/>
+  <!-- Load the vehicle configuration  -->
+  <rosparam file="$(arg model_config)" command="load" ns="vehicle_params"/>
 
   <!-- =======================  -->
   <!--      Launch Vehicle      -->
@@ -52,7 +52,10 @@
   <!-- =======================  -->
 
   <!-- Launch the exception server:  -->
+  <!-- TODO: write exception server -->
+
   <!-- Launch the watchdog:  -->
+  <!-- TODO: write watchdog node -->
 
   <!-- Luanch robot state publisher using URDFs, and upload to simulator if necessary:  -->
   <include file="$(arg config_pkg)/launch/upload.launch">

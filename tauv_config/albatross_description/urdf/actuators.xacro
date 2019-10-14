@@ -17,7 +17,7 @@
       thruster_id="${thruster_id}"
       mesh_filename="${prop_mesh_file_cw}"
       dyn_time_constant="0.2"     
-      rotor_constant="0.000004">  
+      rotor_constant="40.0">
       <xacro:insert_block name="origin"/>
     </xacro:thruster_module_first_order_basic_fcn_macro>
   </xacro:macro>

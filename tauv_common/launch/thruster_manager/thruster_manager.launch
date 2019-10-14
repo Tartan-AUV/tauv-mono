@@ -53,7 +53,7 @@
 
     <group if="$(arg reset_tam)">
       <node pkg="tauv_common"
-            type="thruster_allocator.py"
+            type="thruster_allocator"
             name="thruster_allocator"
             output="screen">
         <!-- Output directory to store the thruster allocation matrix -->
@@ -65,7 +65,7 @@
 
     <group unless="$(arg reset_tam)">
       <node pkg="tauv_common"
-            type="thruster_allocator.py"
+            type="thruster_allocator"
             name="thruster_allocator"
             output="screen">
         <!-- Load thruster allocation matrix -->

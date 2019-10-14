@@ -22,7 +22,8 @@ from catkin_pkg.python_setup import generate_distutils_setup
 setup_args = generate_distutils_setup(
     packages=['thruster_managers', 'thruster_managers.models', 'controllers'],
     package_dir={'': 'src'},
-    requires=['rospy']
+    requires=['rospy'],
+    scripts=['scripts/thruster_allocator', 'scripts/user_control']
 )
 
 setup(**setup_args)

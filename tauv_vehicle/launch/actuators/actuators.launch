@@ -1,0 +1,5 @@
+<launch>
+  #### Nodelet manager ######################################################
+  <node pkg="tauv_vehicle" type="actuators" name="actuators"
+    output="screen"/>
+</launch>

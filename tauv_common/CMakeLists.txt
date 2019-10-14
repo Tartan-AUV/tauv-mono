@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
     message_generation
     sensor_msgs
     geometry_msgs
+    message_filters
     tf
   )
 find_package(yaml-cpp REQUIRED)
@@ -40,6 +41,7 @@ catkin_package(CATKIN_DEPENDS
     geometry_msgs
     tf
     tauv_config
+    message_filters
   )
 
 include_directories(
@@ -47,8 +49,8 @@ include_directories(
         ${catkin_INCLUDE_DIRS}
 )
 
-catkin_install_python(PROGRAMS scripts/thruster_allocator.py
-                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#catkin_install_python(PROGRAMS scripts/thruster_allocator
+#                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY launch config
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
