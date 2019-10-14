@@ -22,37 +22,40 @@
     </xacro:thruster_module_first_order_basic_fcn_macro>
   </xacro:macro>
 
-<!-- Top thrusters --> 
 
-  <xacro:thruster_macro namespace="${namespace}" thruster_id="0"> <!-- heave back left prop up-->
-  <origin xyz="-0.12070 0.12070 0" rpy="0 -1.5707963268 0"/>
-  </xacro:thruster_macro>
-  <xacro:thruster_macro namespace="${namespace}" thruster_id="1"> <!-- heave bacl right prop up-->
-    <origin xyz="-0.12070 -0.12070 0" rpy="0 -1.5707963268 0"/>
-  </xacro:thruster_macro>
-  <xacro:thruster_macro namespace="${namespace}" thruster_id="2"> <!-- heave front left prop up-->
-    <origin xyz="0.12070 0.12070 0" rpy="0 -1.5707963268 0"/>
-  </xacro:thruster_macro>
-  <xacro:thruster_macro namespace="${namespace}" thruster_id="3"> <!-- heave front right prop up-->
-    <origin xyz="0.12070 -0.12070 0" rpy="0 -1.5707963268 0"/>
-  </xacro:thruster_macro>
+  <!-- Top thrusters -->
 
- <!-- Front thrusters -->
-
-  <xacro:thruster_macro namespace="${namespace}" thruster_id="6"> <!-- lat front left-->
-    <origin xyz="0.20506 0.20506 0" rpy="${0*d2r} ${0*d2r} ${135*d2r}"/> 
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="7"> <!-- heave back left prop down-->
+  <origin xyz="-0.12070 0.12070 0" rpy="0 1.5707963268 0"/>
   </xacro:thruster_macro>
-  <xacro:thruster_macro namespace="${namespace}" thruster_id="7"> <!-- lat front right -->
-    <origin xyz="0.20506 -0.20506 0" rpy="${0*d2r} ${0*d2r} ${-135*d2r}"/>
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="6"> <!-- heave bacl right prop down-->
+    <origin xyz="-0.12070 -0.12070 0" rpy="0 1.5707963268 0"/>
+  </xacro:thruster_macro>
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="5"> <!-- heave front left prop down-->
+    <origin xyz="0.12070 0.12070 0" rpy="0 1.5707963268 0"/>
+  </xacro:thruster_macro>
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="4"> <!-- heave front right prop down-->
+    <origin xyz="0.12070 -0.12070 0" rpy="0 1.5707963268 0"/>
   </xacro:thruster_macro>
 
- <!-- Back thrusters -->
+  <!-- Front thrusters -->
 
-  <xacro:thruster_macro namespace="${namespace}" thruster_id="4"> <!-- lat back left-->
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="1"> <!-- lat front left-->
+    <origin xyz="0.20506 0.20506 0" rpy="${0*d2r} ${0*d2r} ${-45*d2r}"/>
+  </xacro:thruster_macro>
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="0"> <!-- lat front right -->
+    <origin xyz="0.20506 -0.20506 0" rpy="${0*d2r} ${0*d2r} ${45*d2r}"/>
+  </xacro:thruster_macro>
+
+  <!-- Back thrusters -->
+
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="3"> <!-- lat back left-->
     <origin xyz="-0.20506 0.20506 0" rpy="${0*d2r} ${0*d2r} ${45*d2r}"/>
   </xacro:thruster_macro>
-  <xacro:thruster_macro namespace="${namespace}" thruster_id="5"> <!-- lat back right -->
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="2"> <!-- lat back right -->
     <origin xyz="-0.20506 -0.20506 0" rpy="${0*d2r} ${0*d2r} ${-45*d2r}"/>
   </xacro:thruster_macro>
 
+  <!-- reminder: REP 103. x,y,z are forward, left, up. rpy are rotation about those axes -->
+  <!-- reminder: right hand rule: positive pitch is down, positive yaw is left, positive roll is right -->
 </robot>

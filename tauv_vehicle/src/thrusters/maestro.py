@@ -38,7 +38,7 @@ class Maestro:
             self.usb = serial.Serial(ttyStr)
             self.init = True
         except:
-            print("Could not find Maestro servo controller! Is it connected and configured as dual port?")
+            # raise ValueError("Could not find Maestro servo controller! Is it connected and configured as dual port?")
             self.init = False
         # Command lead-in and device number are sent for each Pololu serial command.
         self.PololuCmd = chr(0xaa) + chr(device)
@@ -53,7 +53,7 @@ class Maestro:
     # Cleanup by closing USB serial port
     def close(self):
         if not self.init:
-            print("Maestro not connected!")
+            #print("Maestro not connected!")
             return False
         self.usb.close()
         return True
@@ -62,7 +62,7 @@ class Maestro:
     def sendCmd(self, cmd):
         cmdStr = self.PololuCmd + cmd
         if not self.init:
-            print("Maestro not connected!")
+            #print("Maestro not connected!")
             return False
 
         if PY2:
