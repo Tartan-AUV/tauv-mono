@@ -1,0 +1,5 @@
+<launch>
+  <node pkg="tf" type="static_transform_publisher" name="base_footprint_broadcaster" args="0 0 0 0 0 0 albatross/base_link albatross/base_footprint 100" />
+  <node pkg="tf" type="static_transform_publisher" name="base_link_rebroadcaster" args="0 0 0 0 0 0 albatross/base_link base_link 100" />
+  <node pkg="tf" type="static_transform_publisher" name="imu_link_rebroadcaster" args="0 0 0 0 0 0 albatross/imu_link imu_link 100" />
+</launch>

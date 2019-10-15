@@ -120,6 +120,7 @@ catkin_package(
         tf
         phidgets_imu
         imu_filter_madgwick
+        imu_transformer
 #  DEPENDS system_lib
 )
 

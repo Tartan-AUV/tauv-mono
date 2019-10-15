@@ -11,7 +11,7 @@ support_real_hardware: true
 # use the channels lists to reorder thrusters and servo channels.
 # inverted thrusters are 0 for forward, 1 for inverted.
 maestro_thrusters: true
-maestro_tty: /dev/hello
+maestro_tty: /dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00272008-if00
 maestro_thruster_channels:  [0, 1, 2, 3, 4, 5, 6, 7]
 maestro_inverted_thrusters: [1, 1, 1, 0, 0, 1, 0, 1]
 maestro_servos: false

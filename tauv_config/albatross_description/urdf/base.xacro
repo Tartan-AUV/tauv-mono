@@ -5,7 +5,7 @@
   <!-- Loading file with sensor macros -->
   <xacro:include filename="$(find uuv_sensor_ros_plugins)/urdf/sensor_snippets.xacro"/>
   <!-- Loading the UUV simulator ROS plugin macros -->
-  <xacro:include filename="$(find uuv_gazebo_ros_plugins)/urdf/snippets.xacro"/>  
+  <xacro:include filename="$(find uuv_gazebo_ros_plugins)/urdf/snippets.xacro"/>
   <!-- Loading vehicle's specific macros -->
   <xacro:include filename="$(find albatross_description)/urdf/snippets.xacro"/>
 
@@ -46,7 +46,7 @@
           <origin xyz="${cog}" rpy="0 0 0"/>
           <inertia
             ixx="${0.503217}" ixy="${0.000204}" ixz="${-0.000526}"
-            iyy="${0.493449}" iyz="${0.000038}" izz="${0.919819}" /> 
+            iyy="${0.493449}" iyz="${0.000038}" izz="${0.919819}" />
         </inertial>
 
         <visual>

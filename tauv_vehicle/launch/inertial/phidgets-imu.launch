@@ -5,18 +5,18 @@
   #### Nodelet manager ######################################################
 
   <node pkg="nodelet" type="nodelet" name="imu_manager"
-    args="manager" output="screen" ns="inertial"/>
+    args="manager" output="screen"/>
 
   #### IMU Driver ###########################################################
 
   <node pkg="nodelet" type="nodelet" name="PhidgetsImuNodelet"
     args="load phidgets_imu/PhidgetsImuNodelet imu_manager"
-    output="screen" ns="inertial">
-
+    output="screen">
     # supported data rates: 4 8 16 24 32 40 ... 1000 (in ms)
     <param name="period" value="4"/>
+    <param name="frame_id" value="albatross/imu_link"/>
 
-    # compass correction params (see http://www.phidgets.com/docs/1044_User_Guide)
+# compass correction params (see http://www.phidgets.com/docs/1044_User_Guide)
     <!-- <param name="cc_mag_field" value="0.52859"/>
          <param name="cc_offset0" value="0.03921"/>
          <param name="cc_offset1" value="0.19441"/>
@@ -36,10 +36,20 @@
 
   <node pkg="nodelet" type="nodelet" name="ImuFilterNodelet"
     args="load imu_filter_madgwick/ImuFilterNodelet imu_manager"
-    output="screen" ns="inertial">
-
+    output="screen">
     <param name="use_mag" value="true"/>
+    <param name="reverse_tf" value="true"/>
+</node>
 
+<!--
+  #### IMU Transformer ######################################################
+  <node pkg="nodelet" type="nodelet" name="ImuTransformerNodelet"
+    args="load imu_transformer/imu_transformer_nodelet imu_manager"
+    output="screen">
+    <remap from="imu_in/data" to="imu/relative/data"/>
+    <remap from="imu_in/mag" to="imu/relative/mag"/>
+    <remap from="imu_out/data" to="imu/data"/>
+    <remap from="imu_out/mag" to="imu/mag"/>
   </node>
-
+  -->
 </launch>

@@ -67,7 +67,8 @@ class ActuatorController:
                 for channel in self.thrusters:
                     cmd = self.speed_to_pwm(self.thruster_command[channel], channel)
                     commands[channel] = cmd
-                    self.maestro.setTarget(cmd, channel)
+                    # command should be in quarter microseconds:
+                    self.maestro.setTarget(cmd*4, channel)
                 print(commands)
 
             r.sleep()
@@ -82,6 +83,7 @@ class ActuatorController:
 
         self.last_thruster_msg = rospy.get_rostime()
 
+    # goes from normalized (-1 to 1) speed to uS pulse width
     def speed_to_pwm(self, cmd, channel):
         if cmd < -1:
             print("Thruster Command out of range!")
