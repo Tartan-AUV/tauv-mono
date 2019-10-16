@@ -44,7 +44,7 @@ class DepthSensor():
 
 
 def main():
-    d = DepthSensor()
     rospy.init_node('depth_sensor')
+    d = DepthSensor()
     d.start()
 

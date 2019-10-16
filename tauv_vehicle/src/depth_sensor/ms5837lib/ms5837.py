@@ -47,7 +47,7 @@ class MS5837(object):
     _MS5837_CONVERT_D1_256   = 0x40
     _MS5837_CONVERT_D2_256   = 0x50
 
-    def __init__(self, model=MODEL_30BA, bus=0):
+    def __init__(self, model, bus):
         self._model = model
         print("Trying to connect to bus {}".format(bus))
 

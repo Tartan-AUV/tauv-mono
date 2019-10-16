@@ -181,6 +181,9 @@ class Maestro:
         cmd = chr(0x24)
         self.sendCmd(cmd)
 
+    def is_init(self):
+        return self.init
+
 
 if __name__ == '__main__':
     servo = Controller()

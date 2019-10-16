@@ -1,5 +1,3 @@
 <launch>
-    <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_pub">
-        <!--<remap from="robot_description" to="$(arg model_name)/robot_description" /> -->
-    </node>
+    <node pkg="joint_state_publisher" type="joint_state_publisher" name="joint_state_pub"/>
 </launch>
