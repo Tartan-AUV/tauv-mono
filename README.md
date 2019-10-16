@@ -1,4 +1,5 @@
 
+
 # TAUV-ROS-Packages
 
 This is the monorepo for all TAUV ROS packages. Each package contains its own ROS nodes or other common code.
@@ -15,7 +16,8 @@ http://wiki.ros.org/melodic/Installation/Ubuntu
     mkdir -p catkin_ws/src
     cd catkin_ws/src
     git clone --recurse-submodules https://github.com/Tartan-AUV/TAUV-ROS-Packages
-    
+    rosdep install --from-paths TAUV-ROS-Packages --ignore-src -r -y
+
 Your folder structure should look something like this:
 
     - catkin_ws/
@@ -25,7 +27,12 @@ Your folder structure should look something like this:
           - tauv_mission
           - tauv_vehicle
           - uuv_simulator
+To update dependencies (eg, after pulling in a large change) run this command again:
 
+    rosdep install --from-paths path/to/TAUV-ROS-Packages --ignore-src -r -y
+If you are using linux mint (or another unsupported OS), you will need to add the following line to your bashrc and source it again, otherwise commands like rosdep won't work. If your distro doesn't use 18.04 as the upstream, you will need to change this to the right upstream os version.
+
+    export ROS_OS_OVERRIDE=ubuntu:18.04:bionic
 
 ### Add this to your bashrc (or zshrc), or run it every boot:
 
