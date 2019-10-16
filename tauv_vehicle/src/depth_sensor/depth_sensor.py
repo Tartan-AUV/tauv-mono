@@ -5,15 +5,10 @@ from std_msgs.msg import Float64
 from std_msgs.msg import Header
 from ms5837lib import ms5837
 
-pub = rospy.Publisher('depth', Float64, queue_size=10)
-pub = rospy.Publisher('temperature', Temperature, queue_size=10)
-rospy.init_node('depth_sensor')
-
-
 class DepthSensor():
     def __init__(self):
         if not rospy.get_param('/vehicle_params/has_depth_sensor'):
-            raise ValueError('''Error: Vehicle does not support depth sensor. 
+            raise ValueError('''Error: Vehicle does not support depth sensor.
          Is the has_depth_sensor rosparam set in the vehicle_params.yaml?
          If not, then don't launch this node! ''')
 
@@ -53,6 +48,3 @@ def main():
     rospy.init_node('depth_sensor')
     d.start()
 
-
-if __name__ == '__main__':
-    main()

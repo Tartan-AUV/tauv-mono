@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+
+# This class listens on each /{model_name}/thruster{n}/input topic and sends the
+# commanded thrust to the thrusters. Thruster n is mapped to the ESC channel
+# according to the thrusters array in the vehicle_params yaml. Ie, input from
+# topic n is sent to the channel thrusters[n].
+#
+# Author: Tom Scherlis 2019
+#
+# TODO: add servo support
+
 from maestro import Maestro
 import rospy
 import message_filters
@@ -7,6 +17,7 @@ from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 
 class ActuatorController:
     def __init__(self):
+        print("starting ActuatorController")
         maestro_tty = rospy.get_param('/vehicle_params/maestro_tty')
 
         self.has_thrusters = rospy.get_param('/vehicle_params/maestro_thrusters')
@@ -17,36 +28,41 @@ class ActuatorController:
             configured to use it for servos or thrusters.''')
 
         self.maestro = Maestro(ttyStr=maestro_tty)
-
         self.thrusters = rospy.get_param('/vehicle_params/maestro_thruster_channels')
         self.servos = rospy.get_param('/vehicle_params/maestro_servo_channels')
-
         self.timeout = rospy.Duration.from_sec(rospy.get_param('/vehicle_params/thruster_timeout_s'))
 
         if self.has_servos:
-            # TODO: figure out a topic for servo messages
+            # TODO: figure out a topic for servo messages and add support
             raise ValueError('Error: Servo support is TODO')
 
         if self.has_thrusters:
             if len(self.thrusters) != 8:
                 raise ValueError('Error: Thruster driver only supports configurations with 8 thrusters')
 
+            # thruster command is a dict mapping from  channel to value
             self.thruster_command = {}
             for channel in self.thrusters:
                 self.thruster_command[channel] = 0
 
+            # thruster_inversions is a dict mapping from channel to -1 or 1
             inversions = rospy.get_param('/vehicle_params/maestro_inverted_thrusters')
             self.thruster_inversions = {}
             for i, val in enumerate(inversions):
                 self.thruster_inversions[self.thrusters[i]] = 1 if val == 0 else -1
 
+            # last thruster message keeps track of the last command, to enforce
+            # timeouts. Timing out will cause the driver to send zeros.
             self.last_thruster_msg = None
 
+            # PWM range can be configured
             self.pwm_reverse = rospy.get_param('/vehicle_params/esc_pwm_reverse')
             self.pwm_forward = rospy.get_param('/vehicle_params/esc_pwm_forwards')
             if self.pwm_reverse > self.pwm_forward:
                 raise ValueError('Reverse PWM must be less than forward PWM')
 
+            # subscribe to each thruster input topic, and combine them in an
+            # approximate time synchronizer.
             topics = []
             subscribers = []
             for i in range(8):
@@ -62,17 +78,18 @@ class ActuatorController:
             if self.has_thrusters:
                 if self.last_thruster_msg is None \
                         or rospy.get_rostime() - self.last_thruster_msg > self.timeout:
+                    # timed out, reset thrusters
                     self.thruster_command = [0] * len(self.thrusters)
-                commands = {}
+
                 for channel in self.thrusters:
                     cmd = self.speed_to_pwm(self.thruster_command[channel], channel)
-                    commands[channel] = cmd
-                    # command should be in quarter microseconds:
+                    # command should be in quarter microseconds
+                    # send command to maestro ESC board
                     self.maestro.setTarget(cmd*4, channel)
-                print(commands)
-
             r.sleep()
 
+    # this callback gets one message from each topic, thanks to the approximate
+    # time synchronizer.
     def thruster_callback(self, t0, t1, t2, t3, t4, t5, t6, t7):
         # TODO: find a good way to support arbitrary numbers of thruster commands
         messages = [t0, t1, t2, t3, t4, t5, t6, t7]
@@ -101,6 +118,3 @@ def main():
     rospy.init_node('actuator_controller')
     a.start()
 
-
-if __name__ == '__main__':
-    main()
