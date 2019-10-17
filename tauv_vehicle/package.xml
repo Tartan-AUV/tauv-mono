@@ -56,6 +56,8 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>roslaunch</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>phidgets_imu</build_depend>
+  <build_depend>imu_filter_madgwick</build_depend>
 
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
@@ -66,6 +68,10 @@
   <run_depend>gscam</run_depend>
   <run_depend>image_proc</run_depend>
   <run_depend>tf</run_depend>
+  <run_depend>phidgets_imu</run_depend>
+  <run_depend>imu_filter_madgwick</run_depend>
+  <run_depend>imu_transformer</run_depend>
+
   <buildtool_depend>catkin</buildtool_depend>
 
 

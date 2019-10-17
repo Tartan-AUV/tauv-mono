@@ -1,0 +1,33 @@
+#################################################
+##     V E H I C L E    H W    C O N F I G     ##
+#################################################
+
+# TODO: check this when launching a vehicle with simulation=false
+support_real_hardware: true
+
+# no support for multiple multiple maestros yet, sorry :(
+# thruster controller setup
+# thruster topics are read from [0,num_thrusters)
+# servo topics are read from [0,num_servos)
+# use the channels lists to reorder thrusters and servo channels.
+# inverted thrusters are 0 for forward, 1 for inverted.
+maestro_thrusters: true
+maestro_tty: /dev/serial/by-id/usb-Pololu_Corporation_Pololu_Mini_Maestro_12-Channel_USB_Servo_Controller_00272008-if00
+maestro_thruster_channels:  [0, 1, 2, 3, 4, 5, 6, 7]
+maestro_inverted_thrusters: [1, 0, 1, 1, 0, 1, 0, 1]
+maestro_servos: false
+maestro_servo_channels: [8, 9, 10, 11]
+thruster_timeout_s: 1.0
+
+# Thruster pwm configuration (in uS). Assumes fully linear interpolation,
+# with midpoint at (forwards-reverse)/2
+esc_pwm_reverse: 1100
+esc_pwm_forwards: 1900
+
+
+# Depth sensor configuration
+# supported depth sensors: [bar30, bar02]
+# TODO configure the i2c bus from here
+has_depth_sensor: true
+depth_sensor: bar30
+

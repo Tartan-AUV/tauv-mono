@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- =======================  -->
+  <!--        Arguments         -->
+  <!-- =======================  -->
+
+  <!-- Name of the robot model  -->
+  <arg name="model_name" default="manta"/>
+
+  <!-- Path to simulator environment launch file  -->
+  <arg name="simulator_environment" default="$(find uuv_descriptions)/launch/robosub_world.launch"/>
+
+  <!-- If simulated is true, launch gazebo simulation. Otherwise, launch the vehicle abstraction  -->
+  <arg name="simulated" default="true"/>
+
+  <!-- Default position (for simulation only)  -->
+  <arg name="x" default="5.0"/>
+  <arg name="y" default="-10.0"/>
+  <arg name="z" default="0.0"/>
+  <arg name="roll" default="0.0"/>
+  <arg name="pitch" default="0.0"/>
+  <arg name="yaw" default="0.0"/>
+
+  <!-- =======================  -->
+  <!--       Load Configs       -->
+  <!-- =======================  -->
+
+  <!-- figure out path to vehicle configurations based on model name  -->
+  <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+  <arg name="model_config" default="$(arg config_pkg)/vehicle_params.yaml"/>
+
+  <!-- Load the vehicle configuration  -->
+  <rosparam file="$(arg model_config)" command="load" ns="vehicle_params"/>
+
+  <!-- =======================  -->
+  <!--      Launch Vehicle      -->
+  <!-- =======================  -->
+
+  <!-- If simulated, upload the vehicle model and the environment model  -->
+  <group if="$(arg simulated)">
+    <include file="$(arg simulator_environment)"/>
+  </group>
+
+  <!-- if not simulated, upload the vehicle model and start the vehicle abstraction  -->
+  <group unless="$(arg simulated)">
+    <include file="$(find tauv_vehicle)/launch/$(arg model_name)_vehicle.launch"/>
+  </group>
+
+  <!-- =======================  -->
+  <!-- Launch abstract systems  -->
+  <!-- =======================  -->
+
+  <!-- Launch the exception server:  -->
+  <!-- TODO: write exception server -->
+
+  <!-- Launch the watchdog:  -->
+  <!-- TODO: write watchdog node -->
+
+  <!-- Luanch robot state publisher using URDFs, and upload to simulator if necessary:  -->
+  <include file="$(arg config_pkg)/launch/upload.launch">
+    <arg name="x" default="$(arg x)"/>
+    <arg name="y" default="$(arg y)"/>
+    <arg name="z" default="$(arg z)"/>
+    <arg name="roll" default="$(arg roll)"/>
+    <arg name="pitch" default="$(arg pitch)"/>
+    <arg name="yaw" default="$(arg yaw)"/>
+  </include>
+
+  <!-- Launch the thruster manager:  -->
+  <include file="$(find tauv_common)/launch/thruster_manager/thruster_manager.launch">
+    <arg name="model_name" default="$(arg model_name)"/>
+    <arg name="config_pkg" default="$(arg config_pkg)"/>
+  </include>
+
+</launch>

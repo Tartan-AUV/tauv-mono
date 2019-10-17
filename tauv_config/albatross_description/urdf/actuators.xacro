@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Adding the thruster units with the macro created in snippets.xacro -->
+    <!--
+    Important:
+        - The thruster IDs must be given as integers and must be unique to each thruster unit
+        - The thruster pose in the <origin> block is relative to the body's center of mass. Be
+          aware that Gazebo does not use the SNAME convention per default.
+    -->
+  <xacro:property name="prop_mesh_file_cw" value="file://$(find albatross_description)/meshes/t200_propccw.dae"/>
+  <xacro:property name="prop_mesh_file_ccw" value="file://$(find albatross_description)/meshes/t200_propcw.dae"/>
+
+  <xacro:macro name="thruster_macro"
+    params="namespace thruster_id *origin">
+    <xacro:thruster_module_first_order_basic_fcn_macro
+      namespace="${namespace}"
+      thruster_id="${thruster_id}"
+      mesh_filename="${prop_mesh_file_cw}"
+      dyn_time_constant="0.2"
+      rotor_constant="40.0">
+      <xacro:insert_block name="origin"/>
+    </xacro:thruster_module_first_order_basic_fcn_macro>
+  </xacro:macro>
+
+
+  <!-- Top thrusters -->
+
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="7"> <!-- heave back left prop down-->
+  <origin xyz="-0.12070 0.12070 0" rpy="0 1.5707963268 0"/>
+  </xacro:thruster_macro>
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="6"> <!-- heave bacl right prop down-->
+    <origin xyz="-0.12070 -0.12070 0" rpy="0 1.5707963268 0"/>
+  </xacro:thruster_macro>
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="5"> <!-- heave front left prop down-->
+    <origin xyz="0.12070 0.12070 0" rpy="0 1.5707963268 0"/>
+  </xacro:thruster_macro>
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="4"> <!-- heave front right prop down-->
+    <origin xyz="0.12070 -0.12070 0" rpy="0 1.5707963268 0"/>
+  </xacro:thruster_macro>
+
+  <!-- Front thrusters -->
+
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="1"> <!-- lat front left-->
+    <origin xyz="0.20506 0.20506 0" rpy="${0*d2r} ${0*d2r} ${-45*d2r}"/>
+  </xacro:thruster_macro>
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="0"> <!-- lat front right -->
+    <origin xyz="0.20506 -0.20506 0" rpy="${0*d2r} ${0*d2r} ${45*d2r}"/>
+  </xacro:thruster_macro>
+
+  <!-- Back thrusters -->
+
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="3"> <!-- lat back left-->
+    <origin xyz="-0.20506 0.20506 0" rpy="${0*d2r} ${0*d2r} ${-135*d2r}"/>
+  </xacro:thruster_macro>
+  <xacro:thruster_macro namespace="${namespace}" thruster_id="2"> <!-- lat back right -->
+    <origin xyz="-0.20506 -0.20506 0" rpy="${0*d2r} ${0*d2r} ${135*d2r}"/>
+  </xacro:thruster_macro>
+
+  <!-- reminder: REP 103. x,y,z are forward, left, up. rpy are rotation about those axes -->
+  <!-- reminder: right hand rule: positive pitch is down, positive yaw is left, positive roll is right -->
+</robot>

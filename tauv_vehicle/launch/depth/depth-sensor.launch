@@ -1,0 +1,5 @@
+<launch>
+  #### Nodelet manager ######################################################
+  <node pkg="tauv_vehicle" type="depth_sensor" name="depth_sensor"
+    output="screen"/>
+</launch>

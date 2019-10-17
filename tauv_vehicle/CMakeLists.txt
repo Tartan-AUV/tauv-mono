@@ -15,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
         roslaunch
         sensor_msgs
         tf
+        phidgets_imu
+        imu_filter_madgwick
 )
 
 ## System dependencies are found with CMake's conventions
@@ -24,7 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -108,13 +110,17 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-        #  LIBRARIES tauv_vehicle
+        INCLUDE_DIRS src
+#  LIBRARIES tauv_vehicle
         CATKIN_DEPENDS
         roscpp
         std_msgs
         image_transport
         sensor_msgs
         tf
+        phidgets_imu
+        imu_filter_madgwick
+        imu_transformer
 #  DEPENDS system_lib
 )
 
@@ -125,7 +131,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-        include
+        src
         ${catkin_INCLUDE_DIRS}
 )
 
@@ -207,6 +213,8 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+# Macros for declaring ros nodes and libraries
+include(cmake/ros-node.cmake)
 include(cmake/cppcheck.cmake)
 include(cmake/clang-format.cmake)
 include(cmake/pylint.cmake)

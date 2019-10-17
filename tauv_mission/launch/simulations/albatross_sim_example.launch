@@ -1,0 +1,8 @@
+<!-- System launch file for running on real Albatross hardware -->
+
+<launch>
+  <include file="$(find tauv_mission)/launch/system.launch">
+    <arg name="model_name" value="albatross"/>
+    <arg name="simulated" value="true"/>
+  </include>
+</launch>

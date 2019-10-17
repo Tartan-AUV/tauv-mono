@@ -60,7 +60,6 @@ class ThrusterAllocatorNode(ThrusterManager):
         self.get_thruster_manager_config_service = rospy.Service(
             'thruster_manager/get_config', GetThrusterManagerConfig,
             self.get_config)
-
         rate = rospy.Rate(self.config['update_rate'])
         while not rospy.is_shutdown():
             if self.config['timeout'] > 0:
@@ -85,7 +84,7 @@ class ThrusterAllocatorNode(ThrusterManager):
         if self.n_thrusters == 0:
             return GetThrusterCurveResponse([], [])
         # TODO Get thruster index, for the case the vehicle has different
-        # models
+        # config
         input_values, thrust_values = self.thrusters[0].get_curve(
             request.min, request.max, request.n_points)
         return GetThrusterCurveResponse(input_values, thrust_values)
