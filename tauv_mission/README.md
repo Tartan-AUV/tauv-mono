@@ -22,4 +22,5 @@ This launchfile takes a good number of arguments in order to determine how to la
   3. If simulated, launch the simulator_environment launchfile. Otherwise, launch the \<model_name\>_vehicle.launch file in tauv_vehicle
   4. Upload vehicle URDFs
   5. Launch the thruster manager
+  
 It might do other things if people add them without updating this documentation >:(
