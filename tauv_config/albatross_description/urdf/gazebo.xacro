@@ -73,7 +73,7 @@
             </linear_damping_forward_speed> -->
             <!--
               The quadratic damping coefficients can be provided as a diagonal (6 elements)
-              or a full matrix (36 coefficients), like the added-mass coefficients above
+             0 or a full matrix (36 coefficients), like the added-mass coefficients above
               Non-linear damping: see p.30 in Berg2012
             -->
             <quadratic_damping>
