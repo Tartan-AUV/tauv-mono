@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
         tf
         phidgets_imu
         imu_filter_madgwick
+        tauv_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -73,12 +74,14 @@ catkin_python_setup()
 #   Action2.action
 # )
 
-## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#        DEPENDENCIES
-#        std_msgs  # Or other packages containing msgs
-#        sensor_msgs
-#)
+# Generate added messages and services with any dependencies listed here
+generate_messages(
+        DEPENDENCIES
+        std_msgs  # Or other packages containing msgs
+        sensor_msgs
+        geometry_msgs
+        tauv_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -121,6 +124,7 @@ catkin_package(
         phidgets_imu
         imu_filter_madgwick
         imu_transformer
+        tauv_msgs
 #  DEPENDS system_lib
 )
 

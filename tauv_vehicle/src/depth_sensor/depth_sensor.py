@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 import rospy
 from sensor_msgs.msg import Temperature
-from std_msgs.msg import Float64
 from std_msgs.msg import Header
+from tauv_msgs.msg import FluidDepth
 from ms5837lib import ms5837
 
 class DepthSensor():
@@ -12,7 +12,7 @@ class DepthSensor():
          Is the has_depth_sensor rosparam set in the vehicle_params.yaml?
          If not, then don't launch this node! ''')
 
-        self.pub_depth = rospy.Publisher('depth', Float64, queue_size=10)
+        self.pub_depth = rospy.Publisher('depth', FluidDepth, queue_size=10)
         self.pub_temp = rospy.Publisher('temperature', Temperature, queue_size=10)
 
         model_name = rospy.get_param('/vehicle_params/depth_sensor')
@@ -34,12 +34,19 @@ class DepthSensor():
         r = rospy.Rate(10)  # 10hz
         while not rospy.is_shutdown():
             self.ms5837.read()
-            self.pub_depth.publish(Float64(self.ms5837.depth()))
+
             tempmsg = Temperature()
             tempmsg.header = Header()
             tempmsg.header.stamp = rospy.Time.now()
             tempmsg.temperature = self.ms5837.temperature()
             self.pub_temp.publish(tempmsg)
+
+            depthmsg = FluidDepth()
+            depthmsg.header = Header()
+            depthmsg.header.stamp = rospy.Time.now()
+            depthmsg.header.frame_id = "odom"
+            depthmsg.depth = self.ms5837.depth()
+            self.pub_depth(depthmsg)
             r.sleep()
 
 
