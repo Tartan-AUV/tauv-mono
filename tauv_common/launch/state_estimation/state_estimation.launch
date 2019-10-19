@@ -1,10 +1,10 @@
 <launch>
     <!-- Name of the robot model  -->
     <arg name="model_name" default="manta"/>
-
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
     <!-- Path to simulator environment launch file  -->
     <arg name="simulator_environment" default="$(find uuv_descriptions)/launch/robosub_world.launch"/>
-    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true">
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" ns="$(arg model_name)">
         <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
 
         <!--  Placeholder for output topic remapping
