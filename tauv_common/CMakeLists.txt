@@ -42,6 +42,7 @@ catkin_package(CATKIN_DEPENDS
     tf
     tauv_config
     message_filters
+    robot_localization
   )
 
 include_directories(
