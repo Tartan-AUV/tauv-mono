@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>tauv_msgs</name>
+  <version>0.6.1</version>
+  <description>The TAUV messages package</description>
+
+  <maintainer email="tomscherlis@gmail.com">Tom Scherlis</maintainer>
+
+  <author email="tomscherlis@gmail.com">Tom Scherlis</author>
+
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>message_runtime</depend>
+
+  <export>
+  </export>
+</package>
