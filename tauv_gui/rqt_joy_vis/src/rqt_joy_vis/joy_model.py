@@ -37,14 +37,18 @@ class JoyModel(QObject):
         self._joySubscriber = rospy.Subscriber('joy', Joy, self.joyCallback)
         self._connectionService = rospy.ServiceProxy('joy_node/connect', JoyConnect)
         self._disconnectionService = rospy.ServiceProxy('joy_node/disconnect', Trigger)
+        self._shutdownService = rospy.ServiceProxy('joy_node/shutdown', Trigger)
 
         self._devname = ""
         self._devpath = "/dev/input/"
 
     def __del__(self):
+        print("deleting joystick visualizer.")
+        self.doDisconnect()
         self._joySubscriber.unregister()
         self._connectionService.close()
         self._disconnectionService.close()
+        self._shutdownService.close()
 
     @Slot()
     def doConnect(self):
@@ -69,6 +73,15 @@ class JoyModel(QObject):
             return
 
         self._disconnectionService()
+
+    def doShutdown(self):
+        try:
+            rospy.wait_for_service("joy_node/shutdown", 0.2)
+        except rospy.ROSException, e:
+            rospy.logerr("Cannot shutdown joystick node! No Joystick Node Running: %s", e)
+            return
+
+        self._shutdownService()
 
     def getDevList(self):
         return [os.path.basename(x) for x in glob.glob(self._devpath + 'js*')]

@@ -5,7 +5,7 @@ import rospkg
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget
-from python_qt_binding.QtCore import Signal, QObject, Slot
+from python_qt_binding.QtCore import Signal, QObject, Slot, Qt
 
 from joy_model import JoyModel
 from axis_widget import AxisWidget
@@ -88,8 +88,22 @@ class JoyVis(Plugin):
         self._joyModel.buttonSignal9.connect(self._widget.btn_10.setChecked)
         self._joyModel.buttonSignal10.connect(self._widget.btn_11.setChecked)
 
+        self._widget.btn_1.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_2.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_3.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_4.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_5.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_6.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_7.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_8.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_9.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_10.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self._widget.btn_11.setAttribute(Qt.WA_TransparentForMouseEvents)
+
         self.refresh_pressed()
         self.updateDevSelection()
+        self._joyModel.doConnect()
+
 
     @Slot(float)
     def trigger_remap_left(self, val):
@@ -110,8 +124,7 @@ class JoyVis(Plugin):
         self._joyModel.changeDev(self._widget.joysticks_list.currentText())
 
     def shutdown_plugin(self):
-        # TODO unregister all publishers here
-        self._joyModel.doDisconnect()
+        print("shutting down joy_vis plugin")
         del self._joyModel
 
     def save_settings(self, plugin_settings, instance_settings):
