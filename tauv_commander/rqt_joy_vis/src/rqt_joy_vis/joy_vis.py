@@ -6,6 +6,9 @@ from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtWidgets import QWidget
 
+from joy_model import JoyModel
+
+
 class JoyVis(Plugin):
 
     def __init__(self, context):
@@ -43,9 +46,11 @@ class JoyVis(Plugin):
         # Add widget to the user interface
         context.add_widget(self._widget)
 
+        self._joyModel = JoyModel()
+
     def shutdown_plugin(self):
         # TODO unregister all publishers here
-        pass
+        del self._joyModel
 
     def save_settings(self, plugin_settings, instance_settings):
         # TODO save intrinsic configuration, usually using:
@@ -57,7 +62,7 @@ class JoyVis(Plugin):
         # v = instance_settings.value(k)
         pass
 
-    #def trigger_configuration(self):
+    # def trigger_configuration(self):
     # Comment in to signal that the plugin has a way to configure
     # This will enable a setting button (gear icon) in each dock widget title bar
     # Usually used to open a modal configuration dialog
