@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rqt_gui
   rqt_gui_py
   joy
+  sensor_msgs
 )
 
 ## System dependencies are found with CMake's conventions

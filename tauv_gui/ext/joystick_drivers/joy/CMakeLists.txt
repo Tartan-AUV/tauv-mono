@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(joy)
 
 # Load catkin and all dependencies required for this package
-set(CATKIN_DEPS roscpp diagnostic_updater sensor_msgs message_generation)
+set(CATKIN_DEPS roscpp diagnostic_updater std_msgs sensor_msgs message_generation)
 find_package(catkin REQUIRED ${CATKIN_DEPS})
 
 add_service_files(
@@ -13,6 +13,7 @@ add_service_files(
 
 generate_messages(
   DEPENDENCIES
+  std_msgs
 )
 
 
@@ -23,8 +24,9 @@ include(CheckIncludeFiles)
 check_include_files(linux/joystick.h HAVE_LINUX_JOYSTICK_H)
 
 if(HAVE_LINUX_JOYSTICK_H)
-  include_directories(msg/cpp ${catkin_INCLUDE_DIRS})
+  include_directories(msg/cpp ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
   add_executable(joy_node src/joy_node.cpp)
+  add_dependencies(joy_node joy_generate_messages_cpp)
   target_link_libraries(joy_node ${catkin_LIBRARIES})
 else(HAVE_LINUX_JOYSTICK_H)
   message("Warning: no <linux/joystick.h>; won't build joy node")

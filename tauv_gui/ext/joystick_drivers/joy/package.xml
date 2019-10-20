@@ -28,6 +28,8 @@
   <depend>sensor_msgs</depend>
   <depend>joystick</depend>
   <depend>message_generation</depend>
+  <depend>std_msgs</depend>
+  <exec_depend>message_runtime</exec_depend>
 
   <test_depend>rosbag</test_depend>
 

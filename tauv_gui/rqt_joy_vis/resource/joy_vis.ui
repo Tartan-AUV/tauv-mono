@@ -11,25 +11,18 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Joystick Visualizer</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QFrame" name="frame">
+    <widget class="QFrame" name="axis_frame">
      <property name="frameShape">
       <enum>QFrame::StyledPanel</enum>
      </property>
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <item>
-       <widget class="QWidget" name="left_stick_widget" native="true"/>
-      </item>
-      <item>
-       <widget class="QWidget" name="right_stick_widget" native="true"/>
-      </item>
-     </layout>
+     <layout class="QHBoxLayout" name="horizontalLayout"/>
     </widget>
    </item>
    <item>
@@ -59,7 +52,7 @@
             <string>2</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -75,7 +68,7 @@
             <string>11</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -91,7 +84,7 @@
             <string>4</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -107,7 +100,7 @@
             <string>8</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -123,7 +116,7 @@
             <string>1</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -139,7 +132,7 @@
             <string>5</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -155,7 +148,7 @@
             <string>3</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -171,7 +164,7 @@
             <string>9</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -187,7 +180,7 @@
             <string>10</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -203,7 +196,7 @@
             <string>7</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
+            <bool>true</bool>
            </property>
            <property name="autoExclusive">
             <bool>false</bool>
@@ -219,41 +212,22 @@
             <string>6</string>
            </property>
            <property name="checkable">
-            <bool>false</bool>
-           </property>
-           <property name="autoExclusive">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="5">
-          <widget class="QRadioButton" name="btn_12">
-           <property name="enabled">
             <bool>true</bool>
            </property>
-           <property name="text">
-            <string>12</string>
-           </property>
-           <property name="checkable">
-            <bool>false</bool>
-           </property>
            <property name="autoExclusive">
             <bool>false</bool>
            </property>
           </widget>
          </item>
-         <item row="0" column="4" rowspan="2" colspan="2">
-          <widget class="QWidget" name="d_pad_widget" native="true"/>
-         </item>
-         <item row="0" column="0" colspan="4">
-          <widget class="QProgressBar" name="left_trigger">
+         <item row="1" column="0" colspan="6">
+          <widget class="QProgressBar" name="right_trigger">
            <property name="value">
             <number>24</number>
            </property>
           </widget>
          </item>
-         <item row="1" column="0" colspan="4">
-          <widget class="QProgressBar" name="right_trigger">
+         <item row="0" column="0" colspan="6">
+          <widget class="QProgressBar" name="left_trigger">
            <property name="value">
             <number>24</number>
            </property>
@@ -282,7 +256,7 @@
        </widget>
       </item>
       <item row="1" column="1">
-       <widget class="QPushButton" name="disconnect_joysticks">
+       <widget class="QPushButton" name="disconnect_joystick">
         <property name="text">
          <string>Disconnect Joystick</string>
         </property>

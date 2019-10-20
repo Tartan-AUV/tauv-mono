@@ -269,11 +269,14 @@ public:
       open_ = false;
       diagnostic_.force_update();
       bool first_fault = true;
-      while (true)
+      while (stay_connected_)
       {
         ros::spinOnce();
         if (!nh_.ok() || !stay_connected_)
-          goto cleanup;
+        {
+            stay_connected_ = false;
+            goto cleanup;
+        }
         joy_fd = open(joy_dev_.c_str(), O_RDONLY);
         if (joy_fd != -1)
         {
@@ -529,7 +532,8 @@ public:
 
         diagnostic_.update();
       } // End of joystick open loop.
-      
+
+      stay_connected_ = false;
       close(ff_fd_);
       close(joy_fd);
       ros::spinOnce();
@@ -541,6 +545,7 @@ public:
 
   cleanup:
     ROS_INFO("joy_node disconnecting.");
+    stay_connected_ = false;
 
     return 0;
   }
@@ -568,6 +573,7 @@ public:
 
   bool srv_callback_connect(joy::JoyConnect::Request& request, joy::JoyConnect::Response& response)
   {
+    ROS_INFO("joystick connection requested.");
     new_dev_ = request.dev;
     stay_connected_ = false;
     start_connection_ = true;
@@ -576,6 +582,7 @@ public:
 
   bool srv_callback_disconnect(std_srvs::Trigger::Request& request, std_srvs::Trigger::Response& response)
   {
+    ROS_INFO("joystick termination requested.");
     stay_connected_ = false;
     response.success = true;
   }
