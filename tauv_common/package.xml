@@ -34,5 +34,6 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>tauv_config</exec_depend>
   <exec_depend>message_filters</exec_depend>
+  <exec_depend>multimaster_fkie</exec_depend>
 
 </package>

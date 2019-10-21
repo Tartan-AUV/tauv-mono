@@ -53,6 +53,7 @@
   <depend>tauv_common</depend>
   <depend>tauv_vehicle</depend>
   <exec_depend>uuv_descriptions</exec_depend>
+  <exec_depend>multimaster_fkie</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
