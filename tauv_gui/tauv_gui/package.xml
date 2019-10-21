@@ -50,6 +50,7 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <depend>joy</depend>
+  <exec_depend>multimaster_fkie</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
