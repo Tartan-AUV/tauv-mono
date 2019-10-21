@@ -1,0 +1,9 @@
+<launch>
+    <group ns="gui">
+        <node name="joystick" pkg="joy" type="joy_node">
+            <param name="deadzone" value="0.1"/>
+            <param name="autorepeat_rate" value="2"/>
+        </node>
+        <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui"/>
+    </group>
+</launch>

@@ -1,0 +1,16 @@
+<library path="src">
+    <class name="joy_vis" type="rqt_joy_vis.joy_vis.JoyVis" base_class_type="rqt_gui_py::Plugin">
+        <description>
+            Select and visualize USB joysticks.
+        </description>
+        <qtgui>
+            <group>
+              <label>Tartan AUV</label>
+                <icon type="theme">folder</icon>
+            </group>
+            <label>Joy Visualizer</label>
+            <icon type="theme">input-gaming</icon>
+            <statustip>Select and visualize USB joysticks</statustip>
+        </qtgui>
+    </class>
+</library>
