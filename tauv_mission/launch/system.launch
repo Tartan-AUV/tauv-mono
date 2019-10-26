@@ -48,7 +48,8 @@
     <node name="master_discovery_vehicle"
           pkg="master_discovery_fkie"
           type="master_discovery">
-      <param name="name" value="tauv_$(arg model_name)_master"/>
+        <param name="name" value="tauv_$(arg model_name)_master"/>
+        <param name="mcast_group" value="224.0.0.1"/>
     </node>
   </group>
 
