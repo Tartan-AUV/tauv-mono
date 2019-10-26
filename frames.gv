@@ -1,0 +1,33 @@
+digraph G {
+"world" -> "world_ned"[label="Broadcaster: /world_ned_frame_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 ( 942.532 sec old)\nBuffer length: 0.000 sec\n"];
+"albatross/base_link" -> "albatross/base_link_ned"[label="Broadcaster: /gazebo\nAverage rate: 500.201 Hz\nMost recent transform: 942.532 ( 0.000 sec old)\nBuffer length: 4.982 sec\n"];
+"albatross/base_link" -> "albatross/camera_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/camera_link" -> "albatross/camera_link_optical"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/dvl_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/dvl_link" -> "albatross/dvl_sonar0_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/dvl_link" -> "albatross/dvl_sonar1_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/dvl_link" -> "albatross/dvl_sonar2_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/dvl_link" -> "albatross/dvl_sonar3_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/gps_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/imu_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/pose_sensor_link_default"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/pressure_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/rpt_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/thruster_0"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/thruster_1"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/thruster_2"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/thruster_3"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/thruster_4"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/thruster_5"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/thruster_6"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/thruster_7"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+"albatross/base_link" -> "albatross/sonar_link"[label="Broadcaster: /albatross/robot_state_publisher\nAverage rate: 10.204 Hz\nMost recent transform: 942.510 ( 0.022 sec old)\nBuffer length: 4.900 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 942.532"[ shape=plaintext ] ;
+ }->"world";
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 942.532"[ shape=plaintext ] ;
+ }->"albatross/base_link";
+}

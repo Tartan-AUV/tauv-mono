@@ -18,11 +18,12 @@ def depth_data_callback(data):
     depth_data = data.data
 
 def main():
-    rospy.init_node("state_estimation")
+    print("INIT ADVAITHS CODE")
+    rospy.init_node('state_estimation')
     rospy.Subscriber("sensors/imu_data", imu_data_callback)
     rospy.Subscriber("sensors/depth_data", depth_data_callback)
     tf_broadcast = tf2_ros.TransformBroadcaster()
-    while not rospy.is_shutdown():
+    rospy.spin()
         ###Prediction Step
 
 
@@ -35,6 +36,7 @@ def main():
         t.header.stamp = rospy.Time.now()
         t.header.frame_id = "odom"
         t.transform.translation.z = -depth_data
+
 
 
 

@@ -8,25 +8,25 @@ two_d_mode: false
 transform_time_offset: 0.0
 transform_timeout: 0.0
 print_diagnostics: true
-debug: false
-debug_out_file: /home/
+debug: true
+debug_out_file: /home/Desktop
 publish_tf: true
 publish_acceleration: true
 
 
 # Frames
 
-odom_frame: odom            # Defaults to "odom" if unspecified
+odom_frame: odom        # Defaults to "odom" if unspecified
 base_link_frame: base_link  # Defaults to "base_link" if unspecified
 world_frame: odom           # Defaults to the value of odom_frame if unspecified
 
 
 # Imu
-imu0: /albatross/sensors/imu/data
+imu0: sensors/imu/data
 imu0_config: [false, false, false, # x, y, z
               false, false, false,  # roll, pitch, yaw
               false, false, false, # vx, vy, vz
-              true,  true,  true,  # vroll, vpitch, vyaw
+              false,  false, false,  # vroll, vpitch, vyaw
               true,  true,  true]  # ax, ay, az
 imu0_nodelay: false
 imu0_differential: false
