@@ -42,15 +42,10 @@
     <include file="$(arg simulator_environment)"/>
   </group>
 
-  <!-- if not simulated, upload the vehicle model and start the vehicle abstraction  -->
+  <!-- if not simulated, upload the vehicle model and start multimaster  -->
   <group unless="$(arg simulated)">
     <include file="$(find tauv_vehicle)/launch/$(arg model_name)_vehicle.launch"/>
-    <node name="master_discovery_vehicle"
-          pkg="master_discovery_fkie"
-          type="master_discovery">
-        <param name="name" value="tauv_$(arg model_name)_master"/>
-        <param name="mcast_group" value="224.0.0.1"/>
-    </node>
+    <include file="$(find tauv_common)/launch/multimaster/multimaster.launch"/>
   </group>
 
   <!-- =======================  -->
