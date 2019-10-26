@@ -5,10 +5,10 @@
             <param name="autorepeat_rate" value="2"/>
         </node>
         <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui"/>
-        <node name="master_discovery_gui"
-              pkg="master_discovery_fkie"
-              type="master_discovery">
-            <param name="name" value="tauv_gui_master"/>
-        </node>
+        <!--<node name="master_discovery_gui"-->
+              <!--pkg="master_discovery_fkie"-->
+              <!--type="master_discovery">-->
+            <!--<param name="name" value="tauv_gui_master"/>-->
+        <!--</node>-->
     </group>
 </launch>
