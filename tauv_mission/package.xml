@@ -52,7 +52,8 @@
   <depend>tauv_config</depend>
   <depend>tauv_common</depend>
   <depend>tauv_vehicle</depend>
-  <exec_depend>uuv_descriptions</exec_depend>
+  <depend>multimaster_fkie</depend>
+  <depend>uuv_descriptions</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
