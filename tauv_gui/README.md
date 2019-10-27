@@ -25,7 +25,7 @@ Once installed, you need to prepare your system to support multimaster, which in
 To avoid doing this by hand, I created a handy script `gui_setup.bash` (or `gui_setup.zsh`) that will do these steps for you. The script only temporarily enables IP forwarding and multicast, so you will have to either run it each time you reboot, or follow a tutorial to permanently enable those settings. (It isn't hard.)
 To run:
 
-    cd catkin_ws/tauv_gui
+    cd tauv-ros-packages/tauv_gui
     ./gui_setup.bash # if your're using bash, otherwise:
     ./gui_setup.zsh # if you use zsh
 
