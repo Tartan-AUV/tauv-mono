@@ -2,7 +2,7 @@
 import rospy
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import Point, Pose, Quaternion, Twist, Vector3
-import geometry_msgs.msg
+from nav_msgs.msg import Odometry
 import tf_conversions
 from tf.transformations import *
 from geometry_msgs.msg import Quaternion
@@ -14,25 +14,31 @@ from tauv_msgs.msg import FluidDepth
 imu_data = Imu()
 depth_data = 0
 
-def imu_data_callback(data):
-    global imu_data
-    imu_data = data
+class Depth_Odom:
+    def __init__(self):
+        self.depth_data = 0.0
+        rospy.Subscriber("sensors/depth", FluidDepth, self.depth_data_callback)
+        self.depth_odom_pub = rospy.Publisher("sensors/depth_odom", Odometry, queue_size=50)
 
-def depth_data_callback(data):
-    global depth_data
-    depth_data = data.data
-    odom_rot = quaternion_from_euler(0, 0, 0)
-    odom = Odometry()
-    odom.header.frame_id = data.header.frame_id
-    odom.pose.pose = Pose(Point(0.0, 0.0, data.depth), Quaternion(*odom_rot))
+    def depth_data_callback(self, data):
+        self.depth_data = data
 
+    def spin(self):
+        odom_rot = quaternion_from_euler(0, 0, 0)
+        odom = Odometry()
+        odom.header.frame_id = "pressure_link"
+        odom.pose.pose = Pose(Point(0.0, 0.0, self.depth_data.depth), Quaternion(*odom_rot)) #figure out why the depth data is throwing an error
+        odom.child_frame_id = "base_link"
+        odom.twist.twist = Twist(Vector3(0,0,0), Vector3(0, 0, 0))
+        self.depth_odom_pub.publish(odom)
 
-        
 def main():
     rospy.init_node('state_estimation')
-    rospy.Subscriber("sensors/imu_data", Imu, imu_data_callback)
-    rospy.Subscriber("sensors/depth_data", FluidDepth, depth_data_callback)
-    depth_odom_pub = rospy.Publisher("sensors/depth_odom", Odometry, queue_size=50)
+    d_odom = Depth_Odom()
+    while not rospy.is_shutdown():
+        d_odom.spin()
+
+
 
 
 

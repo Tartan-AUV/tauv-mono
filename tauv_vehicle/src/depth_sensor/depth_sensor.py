@@ -44,7 +44,7 @@ class DepthSensor():
             depthmsg = FluidDepth()
             depthmsg.header = Header()
             depthmsg.header.stamp = rospy.Time.now()
-            depthmsg.header.frame_id = "odom"
+            depthmsg.header.frame_id = "pressure_link"
             depthmsg.depth = self.ms5837.depth()
             self.pub_depth(depthmsg)
             r.sleep()
