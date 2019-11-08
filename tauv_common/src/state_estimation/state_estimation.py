@@ -16,8 +16,10 @@ depth_data = 0
 
 class Depth_Odom:
     def __init__(self):
-        self.depth_data = 0.0
-        rospy.Subscriber("sensors/depth", FluidDepth, self.depth_data_callback)
+        self.depth_data = FluidDepth()
+        print("creating sub")
+        self.depth_sensor_sub = rospy.Subscriber("albatross/sensors/depth", FluidDepth, self.depth_data_callback)
+        print("creating pub")
         self.depth_odom_pub = rospy.Publisher("sensors/depth_odom", Odometry, queue_size=50)
 
     def depth_data_callback(self, data):
@@ -37,7 +39,6 @@ def main():
     d_odom = Depth_Odom()
     while not rospy.is_shutdown():
         d_odom.spin()
-
 
 
 

@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     message_filters
     tf
+    tauv_msgs
   )
 find_package(yaml-cpp REQUIRED)
 
@@ -30,6 +31,7 @@ generate_messages(
     std_msgs
     sensor_msgs
     geometry_msgs
+    tauv_msgs
 )
 
 catkin_package(CATKIN_DEPENDS
