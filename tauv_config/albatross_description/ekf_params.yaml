@@ -16,21 +16,21 @@ publish_acceleration: true
 
 # Frames
 
-odom_frame: odom        # Defaults to "odom" if unspecified
-base_link_frame: base_link  # Defaults to "base_link" if unspecified
-world_frame: odom           # Defaults to the value of odom_frame if unspecified
+odom_frame: albatross/odom        # Defaults to "odom" if unspecified
+base_link_frame: albatross/base_link  # Defaults to "base_link" if unspecified
+world_frame: albatross/odom           # Defaults to the value of odom_frame if unspecified
 
 
 # Imu
 imu0: sensors/imu/data
 imu0_config: [false, false, false, # x, y, z
-              false, false, false,  # roll, pitch, yaw
-              false, false, false, # vx, vy, vz
-              false,  false, false,  # vroll, vpitch, vyaw
+              true, true, true,  # roll, pitch, yaw
+              true, true, true,  # vx, vy, vz
+              true, true, true,   # vroll, vpitch, vyaw
               true,  true,  true]  # ax, ay, az
 imu0_nodelay: false
 imu0_differential: false
-imu0_relative: false #true
+imu0_relative: true #true
 imu0_queue_size: 10
 #imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
 #imu0_twist_rejection_threshold: 0.8                #

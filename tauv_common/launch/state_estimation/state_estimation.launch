@@ -4,11 +4,11 @@
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
     <!-- Path to simulator environment launch file  -->
     <arg name="simulator_environment" default="$(find uuv_descriptions)/launch/robosub_world.launch"/>
-    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" ns="$(arg model_name)">
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" ns="$(arg model_name)" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
     </node>
 
-    <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" ns="$(arg model_name)">
+    <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" ns="$(arg model_name)" output="screen">
     </node>
 
 </launch>

@@ -160,6 +160,7 @@ class ThrusterAllocatorNode(ThrusterManager):
 def main():
     rospy.init_node('thruster_allocator')
 
+
     try:
         node = ThrusterAllocatorNode()
         rospy.spin()

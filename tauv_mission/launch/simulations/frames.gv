@@ -1,0 +1,4 @@
+digraph G {
+"world" -> "world_ned"[label="Broadcaster: /world_ned_frame_publisher\nAverage rate: 10000.000 Hz\nMost recent transform: 0.000 \nBuffer length: 0.000 sec\n"];
+"odom" -> "base_link"[label="Broadcaster: /albatross/state_estimation\nAverage rate: 159730000.000 Hz\nMost recent transform: 0.000 \nBuffer length: 0.000 sec\n"];
+}
