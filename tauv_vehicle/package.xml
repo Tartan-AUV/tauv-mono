@@ -73,6 +73,8 @@
   <run_depend>imu_filter_madgwick</run_depend>
   <run_depend>imu_transformer</run_depend>
   <run_depend>tauv_msgs</run_depend>
+  <run_depend>libi2c-dev</run_depend>
+  <run_depend>python-smbus</run_depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 

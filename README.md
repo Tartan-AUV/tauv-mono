@@ -10,12 +10,23 @@ This is the monorepo for all TAUV ROS packages. Each package contains its own RO
 http://wiki.ros.org/melodic/Installation/Ubuntu
 (Use the full install, since we need gazebo and stuff)
 
+### Next, make sure to install catkin_tools:
+	sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
+(If you are not on ubuntu, change 'lsb_release -sc' to 'bionic' without quotes)
+	
+	wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
+	sudo apt-get update
+	sudo apt-get install python-catkin-tools
+	
+
 ### These ROS packages should live in your `catkin_ws` folder. To install:
 
     cd ~ # or wherever else you want software to live
     mkdir -p catkin_ws/src
     cd catkin_ws/src
     git clone --recurse-submodules https://github.com/Tartan-AUV/TAUV-ROS-Packages
+    rosdep update
+    sudo apt-get update
     rosdep install --from-paths TAUV-ROS-Packages --ignore-src -r -y
 
 Your folder structure should look something like this:
@@ -29,6 +40,8 @@ Your folder structure should look something like this:
           - uuv_simulator
 To update dependencies (eg, after pulling in a large change) run this command again:
 
+    rosdep update
+    sudo apt-get update
     rosdep install --from-paths path/to/TAUV-ROS-Packages --ignore-src -r -y
 If you are using linux mint (or another unsupported OS), you will need to add the following line to your bashrc and source it again, otherwise commands like rosdep won't work. If your distro doesn't use 18.04 as the upstream, you will need to change this to the right upstream os version.
 
@@ -74,8 +87,8 @@ This is where driver code lives. Abstracts the vehicle from the mission. This pa
 ## tauv_config
 this folder contains one package for each vehicle as well as a tauv_config package that simply declares dependencies on the other packages. Packages relying on vehicle configuration info should depend on the tauv_config package, and use the model_name arg when determining paths to configuration files. Vehicle_description packages contain URDFs, config yamls, thruster allocation matrices (TAMs), meshes for gazebo, and other vehicle-specific info.
 
-## tauv_commander
-This is the package for the operator interface. TODO.
+## tauv_gui
+This is the package for the operator interface. Currently a WIP.
 
 ## uuv-simulator
 This folder contains all of the simulator packages and gazebo plugins necessary to simulate the vehicle. UUV-Simulator depends on the vehicle_description packages to describe gazebo meshes and URDFs including hydrodynamics information.

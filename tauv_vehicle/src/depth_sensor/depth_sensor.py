@@ -46,7 +46,7 @@ class DepthSensor():
             depthmsg.header.stamp = rospy.Time.now()
             depthmsg.header.frame_id = "pressure_link"
             depthmsg.depth = self.ms5837.depth()
-            self.pub_depth(depthmsg)
+            self.pub_depth.publish(depthmsg)
             r.sleep()
 
 
