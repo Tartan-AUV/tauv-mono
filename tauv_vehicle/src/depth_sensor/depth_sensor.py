@@ -25,9 +25,9 @@ class DepthSensor():
          Supported depth sensors are \'bar30\' and \'bar02\', set with the
          depth_sensor tag in the vehicle_params.yaml.''')
 
-        while not self.ms5837.init():
-            rospy.sleep(10)
-            print("Failed to initialize depth sensor, retrying in 10 seconds")
+        while not self.ms5837.init() and not rospy.is_shutdown():
+            rospy.sleep(3)
+            print("Failed to initialize depth sensor, retrying in 3 seconds")
         print("Depth sensor initialized!")
 
     def start(self):

@@ -1,0 +1,5 @@
+<launch>
+    <arg name="model_name" default="manta"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+</launch>

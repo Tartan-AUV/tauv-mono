@@ -16,7 +16,7 @@
     If the timeout is set to -1, the latest received input is always going to
     be redistributed to the thruster units.
   -->
-  <arg name="timeout" default="-1" />
+  <arg name="timeout" default="2" />
   <!--
     In case the TAM.yaml must be generated or updated, you can set this flag to
     true. The thruster allocation matrix is stored in a file because the
