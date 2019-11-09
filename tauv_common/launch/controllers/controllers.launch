@@ -2,4 +2,13 @@
     <arg name="model_name" default="manta"/>
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
+    <arg name="controller_configs" default="$(arg config_pkg)/controllers.yaml"/>
+
+    <group ns="controllers">
+        <rosparam file="$(arg controller_configs)" command="load" ns="configs"/>
+
+        <node name="control_aggregator" pkg="tauv_common" type="control_aggregator"/>
+
+    </group>
+
 </launch>

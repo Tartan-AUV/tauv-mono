@@ -1,0 +1,7 @@
+keyboard:
+  output_topic: keyboard_wrench
+  enable_param: keyboard_enabled
+
+attitude:
+  output_topic: orientation_wrench
+  enable_param: orientation_enabled
