@@ -22,27 +22,27 @@ world_frame: albatross/odom           # Defaults to the value of odom_frame if u
 
 
 # Imu
-imu0: sensors/imu/data
-imu0_config: [false, false, false, # x, y, z
-              true, true, true,  # roll, pitch, yaw
-              true, true, true,  # vx, vy, vz
-              true, true, true,   # vroll, vpitch, vyaw
-              true,  true,  true]  # ax, ay, az
-imu0_nodelay: false
-imu0_differential: false
-imu0_relative: true #true
-imu0_queue_size: 10
-#imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
-#imu0_twist_rejection_threshold: 0.8                #
-#imu0_linear_acceleration_rejection_threshold: 4  #
-
-imu0_remove_gravitational_acceleration: true
+#imu0: sensors/imu/data
+#imu0_config: [false, false, false, # x, y, z
+#              true, true, true,  # roll, pitch, yaw
+#              false, false, false,  # vx, vy, vz
+#              true, true, true,   # vroll, vpitch, vyaw
+#              true,  true,  true]  # ax, ay, az
+#imu0_nodelay: false
+#imu0_differential: false
+#imu0_relative: true #true
+#imu0_queue_size: 10
+##imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
+##imu0_twist_rejection_threshold: 0.8                #
+##imu0_linear_acceleration_rejection_threshold: 4  #
+#
+#imu0_remove_gravitational_acceleration: true
 
 # DVL
-#odom0: /manta/odom
-#odom0_config: [false,  false, false, # x, y, z
+#odom0: /sensors/depth_odom
+#odom0_config: [false,  false, true, # x, y, z
 #               false, false, false,  # roll, pitch, yaw
-#               true, true, true,     # vx, vy, vz
+#               false, false, false,     # vx, vy, vz
 #               false, false, false,   # vroll, vpitch, vyaw
 #               false, false, false]  # ax, ay, az
 #odom0_queue_size: 10
@@ -54,18 +54,18 @@ imu0_remove_gravitational_acceleration: true
 
 
 
-# DVl - pose mesasge (z position)
-#pose0: /manta/pose_z
+# DVl - pose message (z position)
+pose0: /sensors/depth_pose
 
-#pose0_config: [false, false, true, # x, y, z
-#               false, false, false,  # roll, pitch, yaw
-#               false, false, false,   # vx, vy, vz
-#               false, false, false,   # vroll, vpitch, vyaw
-#               false, false, false]  # ax, ay, az
-#pose0_queue_size: 10
-#pose0_nodelay: false
-#pose0_differential: false
-#pose0_relative: false
+pose0_config: [true, true, true, # x, y, z
+               false, false, false,  # roll, pitch, yaw
+               false, false, false,   # vx, vy, vz
+               false, false, false,   # vroll, vpitch, vyaw
+               false, false, false]  # ax, ay, az
+pose0_queue_size: 10
+pose0_nodelay: false
+pose0_differential: false
+pose0_relative: false
 
 
 #twist0: /manta/twist_dvl
