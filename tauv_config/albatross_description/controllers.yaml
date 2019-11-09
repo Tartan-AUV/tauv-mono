@@ -1,7 +1,7 @@
-keyboard:
-  output_topic: keyboard_wrench
-  enable_param: keyboard_enabled
+controllers:
+  -keyboard
+  -attitude
 
-attitude:
-  output_topic: orientation_wrench
-  enable_param: orientation_enabled
+topic_suffix: "_wrench"
+enable_suffix: "_enable"
+output_frame: "base_link"
