@@ -15,28 +15,28 @@ Mover::Mover(ros::NodeHandle &nh)
 
 void Mover::dive(float duration, float speed)
 {
-    geometry_msgs::Twist msg = 
+    geometry_msgs::Twist msg =
         Twist(Vector3(0, 0, speed), Vector3(0, 0, 0));
     publishDuration(msg, duration);
 }
 
 void Mover::forward(float duration, float speed)
 {
-    geometry_msgs::Twist msg = 
+    geometry_msgs::Twist msg =
         Twist(Vector3(speed, 0, 0), Vector3(0, 0, 0));
     publishDuration(msg, duration);
 }
 
 void Mover::strafe(float duration, float speed)
 {
-    geometry_msgs::Twist msg = 
+    geometry_msgs::Twist msg =
         Twist(Vector3(0, speed, 0), Vector3(0, 0, 0));
     publishDuration(msg, duration);
 }
 
 void Mover::turn(float duration, float speed)
 {
-    geometry_msgs::Twist msg = 
+    geometry_msgs::Twist msg =
         Twist(Vector3(0, 0, 0), Vector3(0, 0, speed));
     publishDuration(msg, duration);
 }
