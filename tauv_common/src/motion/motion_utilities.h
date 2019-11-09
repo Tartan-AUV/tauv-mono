@@ -1,5 +1,5 @@
-#ifndef MOTION_UTILITIES_H
-#define MOTION_UTILITIES_H
+#ifndef MOTION_MOTION_UTILITIES_H
+#define MOTION_MOTION_UTILITIES_H
 #include <geometry_msgs/Twist.h>
 #include <ros/ros.h>
 
