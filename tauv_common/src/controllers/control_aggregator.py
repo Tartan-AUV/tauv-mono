@@ -86,9 +86,9 @@ class ControlAggregator:
                 continue
             if self.lastWrench is None:
                 continue
-            # if self.lastTime[c] is None or \
-            #         rospy.Time.now() - self.lastTime[c] > rospy.Duration(self.timeout_s):
-            #     continue
+            if self.lastTime[c] is None or \
+                    rospy.Time.now() - self.lastTime[c] > rospy.Duration(self.timeout_s):
+                continue
             if self.frames[c] == "":
                 continue
 
