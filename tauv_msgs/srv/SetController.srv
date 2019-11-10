@@ -1,5 +1,5 @@
 string name
-bool status
+bool enable
 ---
 bool success
 string message

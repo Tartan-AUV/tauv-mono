@@ -154,7 +154,8 @@ class ThrusterAllocatorNode(ThrusterManager):
             (msg.wrench.torque.x, msg.wrench.torque.y, msg.wrench.torque.z))
 
         # Send the frame ID for the requested wrench
-        self.publish_thrust_forces(force, torque, msg.header.frame_id.split('/')[-1])
+        #self.publish_thrust_forces(force, torque, msg.header.frame_id.split('/')[-1])
+        self.publish_thrust_forces(force, torque)
         self.last_update = rospy.Time.now()
 
 

@@ -5,7 +5,7 @@ thruster_manager:
   thruster_topic_suffix: /input
   thruster_frame_base: thruster_
   max_thrust: 40.0
-  timeout: 2.0
+  timeout: -1
   update_rate: 50 
 
   ##################################################

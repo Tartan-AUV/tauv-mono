@@ -39,9 +39,13 @@
     <origin xyz="0 0 0" rpy="${0} ${90*d2r} ${-90*d2r}"/>
   </xacro:default_imu>
 
-  <!-- Mount a camera  -->
-  <xacro:default_camera namespace="${namespace}" parent_link="${namespace}/base_link" suffix="">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+  <!-- Mount a camera -->
+  <xacro:default_camera namespace="${namespace}" parent_link="${namespace}/base_link" suffix="front">
+    <origin xyz="0.29 0.0 0." rpy="0 0 0"/>
+  </xacro:default_camera>
+
+  <xacro:default_camera namespace="${namespace}" parent_link="${namespace}/base_link" suffix="under">
+    <origin xyz="0.15 0.0 -0.06" rpy="0 ${0.5*pi} 0"/>
   </xacro:default_camera>
 
 </robot>
