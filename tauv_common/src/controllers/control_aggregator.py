@@ -1,6 +1,16 @@
 # control_aggregator.py
 #
+# This node combines the outputs from all the controllers into one resultant wrench.
+# The node will use the frame_id to transform the force/torque wrenches into the output frame.
+# Currently it only supports rotation, and not translation of wrench frames. Support for translated
+# torque wrenches is complex and possibly ambiguous, so it is TODO.
 #
+# This node requires parameters to be set in the "/(model_name)/controllers/configs" namespace.
+# See the launchfile and the controllers.yaml in the vehicle_description for more info on parameterization.
+#
+# You can turn on and off controllers using the "controllerSetEnable" service.
+#
+# Author: Tom Scherlis 2019
 
 
 import rospy
@@ -104,7 +114,7 @@ class ControlAggregator:
             try:
                 (trans, rot) = self.tf.lookupTransform(self.output_frame, self.frames[c], rospy.Time(0))
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
-                # raise exception here!
+                # TODO raise tauv_exception here!
                 print("Failed to find transformation between frames: {}".format(e))
                 continue
 
@@ -137,6 +147,7 @@ class ControlAggregator:
             self.output_frame,
             self.timeout_s))
 
+        # Start publishers at 100Hz and 2Hz respectively:
         rospy.Timer(rospy.Duration(1.0 / 100), self.publishWrench)
         rospy.Timer(rospy.Duration(1.0 / 2), self.publishStatus)
         rospy.spin()
