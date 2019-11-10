@@ -17,8 +17,9 @@ class UserController:
     def __init__(self):
         self.gain = [30, 30, 60, 20, 20, 8]      
         rospy.init_node('keyboard_controller', anonymous=True)
-        self.pub = rospy.Publisher("keyboard_controller/wrench", WrenchStamped, queue_size=1)
-        self.frame = "base_link"
+        self.pub = rospy.Publisher("keyboard/wrench", WrenchStamped, queue_size=1)
+
+        self.output_frame = rospy.get_param("~output_frame")
 
         listener = keyboard.Listener(
             on_press=self.on_press,
@@ -73,13 +74,14 @@ class UserController:
         command = self.vector
         msg = WrenchStamped()
         msg.header = Header()
-        msg.header.stamp = self.outputFrame
-        msg.force.x = command[0]
-        msg.force.y = command[1]
-        msg.force.z = command[2]
-        msg.torque.x = command[3]
-        msg.torque.y = command[4]
-        msg.torque.z = command[5]
+        msg.header.stamp = rospy.Time.now()
+        msg.header.frame_id = self.output_frame
+        msg.wrench.force.x = command[0]
+        msg.wrench.force.y = command[1]
+        msg.wrench.force.z = command[2]
+        msg.wrench.torque.x = command[3]
+        msg.wrench.torque.y = command[4]
+        msg.wrench.torque.z = command[5]
 
         self.pub.publish(msg)
 

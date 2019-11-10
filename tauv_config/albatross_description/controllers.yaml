@@ -1,7 +1,12 @@
-controllers:
-  -keyboard
-  -attitude
 
-topic_suffix: "_wrench"
-enable_suffix: "_enable"
-output_frame: "base_link"
+# List of the controllers available on the vehicle, and default enable status:
+controllers:
+  keyboard:
+    enabled: true
+  attitude:
+    enabled: false
+
+topic_suffix: "/wrench"
+output_frame: "albatross/base_link"
+timeout_s: 1.0
+output_topic: "/albatross/thruster_manager/input_stamped"
