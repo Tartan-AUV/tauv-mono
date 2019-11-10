@@ -8,7 +8,7 @@
 # This node requires parameters to be set in the "/(model_name)/controllers/configs" namespace.
 # See the launchfile and the controllers.yaml in the vehicle_description for more info on parameterization.
 #
-# You can turn on and off controllers using the "controllerSetEnable" service.
+# You can turn on and off controllers using the "controller_set_status" service.
 #
 # Author: Tom Scherlis 2019
 
@@ -50,7 +50,7 @@ class ControlAggregator:
         self.pub = rospy.Publisher(rospy.get_param('configs/output_topic'), WrenchStamped)
         self.statusPub = rospy.Publisher("status", ControllerList)
 
-        self.enableSrv = rospy.Service('controllerSetEnable', SetController, self.setControllerCallback)
+        self.enableSrv = rospy.Service('controller_set_status', SetController, self.setControllerCallback)
 
     def wrenchCallback(self, msg, controller):
         self.lastTime[controller] = msg.header.stamp
