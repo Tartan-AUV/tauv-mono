@@ -7,11 +7,7 @@
     <group ns="$(arg model_name)/controllers">
         <rosparam file="$(arg controller_configs)" command="load" ns="configs"/>
 
-        <node name="keyboard_controller" pkg="tauv_common" type="keyboard_controller" output="screen">
-            <param name="output_frame" value="$(arg model_name)/base_link"/>
-        </node>
         <node name="control_aggregator" pkg="tauv_common" type="control_aggregator" output="screen"/>
-
     </group>
 
 </launch>

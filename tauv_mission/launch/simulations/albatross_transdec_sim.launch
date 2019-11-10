@@ -12,4 +12,4 @@
     <arg name="pitch" default="0.0"/>
     <arg name="yaw" default="0.0"/>
   </include>
-</launch>-1
+</launch>
