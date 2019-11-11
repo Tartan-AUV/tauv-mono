@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+from controllers import control_aggregator
+
+
+if __name__ == "__main__":
+    control_aggregator.main()

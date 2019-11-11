@@ -65,8 +65,9 @@ class ThrusterAllocatorNode(ThrusterManager):
             if self.config['timeout'] > 0:
                 # If a timeout is set, zero the outputs to the thrusters if
                 # there is no command signal for the length of timeout
-                if rospy.Time.now() - self.last_update > self.config['timeout']:
-                    print 'Turning thrusters off - inactive for too long'
+                if rospy.get_rostime() - self.last_update > rospy.Duration(self.config['timeout']):
+                    #TODO: thruster timeout exception
+                    #print 'Turning thrusters off - inactive for too long'
                     if self.thrust is not None:
                         self.thrust.fill(0)
                         self.command_thrusters()
@@ -153,7 +154,8 @@ class ThrusterAllocatorNode(ThrusterManager):
             (msg.wrench.torque.x, msg.wrench.torque.y, msg.wrench.torque.z))
 
         # Send the frame ID for the requested wrench
-        self.publish_thrust_forces(force, torque, msg.header.frame_id.split('/')[-1])
+        #self.publish_thrust_forces(force, torque, msg.header.frame_id.split('/')[-1])
+        self.publish_thrust_forces(force, torque)
         self.last_update = rospy.Time.now()
 
 
