@@ -9,9 +9,10 @@ transform_time_offset: 0.0
 transform_timeout: 0.0
 print_diagnostics: true
 debug: true
-debug_out_file: /home/Desktop
+debug_out_file: /home/Desktop/out_debug.txt
 publish_tf: true
 publish_acceleration: true
+
 
 
 # Frames
@@ -40,7 +41,7 @@ world_frame: albatross/odom           # Defaults to the value of odom_frame if u
 
 # DVL
 #odom0: /sensors/depth_odom
-#odom0_config: [false,  false, true, # x, y, z
+#odom0_config: [false, false, true, # x, y, z
 #               false, false, false,  # roll, pitch, yaw
 #               false, false, false,     # vx, vy, vz
 #               false, false, false,   # vroll, vpitch, vyaw
@@ -58,10 +59,10 @@ world_frame: albatross/odom           # Defaults to the value of odom_frame if u
 pose0: /sensors/depth_pose
 
 pose0_config: [true, true, true, # x, y, z
-               false, false, false,  # roll, pitch, yaw
-               false, false, false,   # vx, vy, vz
-               false, false, false,   # vroll, vpitch, vyaw
-               false, false, false]  # ax, ay, az
+               true, true, true,  # roll, pitch, yaw
+               true, true, true,   # vx, vy, vz
+               true, true, true,   # vroll, vpitch, vyaw
+               true, true, true,]  # ax, ay, az
 pose0_queue_size: 10
 pose0_nodelay: false
 pose0_differential: false
