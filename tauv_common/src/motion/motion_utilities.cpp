@@ -46,24 +46,24 @@ void Mover::turn(second_t duration, meters_per_second_t speed)
     publishDuration(msg, duration);
 }
 
-void Mover::forward(float duration, float speed)
+void Mover::forward(second_t duration, meters_per_second_t speed)
 {
     geometry_msgs::Twist msg =
-        Twist(Vector3(speed, 0, 0), Vector3(0, 0, 0));
+        Twist(Vector3((float)speed, 0, 0), Vector3(0, 0, 0));
     publishDuration(msg, duration);
 }
 
-void Mover::strafe(float duration, float speed)
+void Mover::strafe(second_t duration, meters_per_second_t speed)
 {
     geometry_msgs::Twist msg =
-        Twist(Vector3(0, speed, 0), Vector3(0, 0, 0));
+        Twist(Vector3(0, (float)speed, 0), Vector3(0, 0, 0));
     publishDuration(msg, duration);
 }
 
-void Mover::turn(float duration, float speed)
+void Mover::turn(second_t duration, meters_per_second_t speed)
 {
     geometry_msgs::Twist msg =
-        Twist(Vector3(0, 0, 0), Vector3(0, 0, speed));
+        Twist(Vector3(0, 0, 0), Vector3(0, 0, (float)speed));
     publishDuration(msg, duration);
 }
 
