@@ -27,14 +27,16 @@ class ActuatorController:
             raise ValueError('''Error: maestro node is running, but vehicle is not
             configured to use it for servos or thrusters.''')
 
-        while True:
+        while not rospy.is_shutdown():
             try:
                 self.maestro = Maestro(ttyStr=maestro_tty)
             except:
-                print("Could not configure maestro! Trying again in 10 seconds")
-                rospy.sleep(10)
+                print("Could not configure maestro! Trying again in 3 seconds")
+                rospy.sleep(3)
                 continue
             break
+        if rospy.is_shutdown():
+            return
 
         self.thrusters = rospy.get_param('/vehicle_params/maestro_thruster_channels')
         self.servos = rospy.get_param('/vehicle_params/maestro_servo_channels')

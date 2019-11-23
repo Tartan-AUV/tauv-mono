@@ -132,11 +132,15 @@
       *inertia *origin">
     <!-- IMU link -->
     <link name="${namespace}/imu${imu_suffix}_link">
-      <inertial>                
-        <xacro:insert_block name="inertia" />
-        <mass value="${mass_imu_sensor}" />  <!-- [kg] -->
-        <origin xyz="0 0 0" rpy="0 0 0" />
-      </inertial>
+      <xacro:box_inertial x="0.0001" y="0.0001" z="0.0001" mass="${mass_imu_sensor}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
+      <xacro:no_collision/>
+      <visual>
+        <geometry>
+          <cylinder length="0.000001" radius="0.000001"/>
+        </geometry>
+      </visual>
     </link>
 
     <!-- IMU joint -->

@@ -23,7 +23,10 @@ setup_args = generate_distutils_setup(
     packages=['thruster_managers', 'thruster_managers.models', 'controllers', 'state_estimation'],
     package_dir={'': 'src'},
     requires=['rospy'],
-    scripts=['scripts/thruster_allocator', 'scripts/user_control', 'scripts/state_estimation']
-)
+
+    scripts=['scripts/thruster_allocator',
+             'scripts/keyboard_controller',
+             'scripts/control_aggregator',
+             'scripts/state_estimation']
 
 setup(**setup_args)

@@ -101,6 +101,11 @@
         </geometry>
         <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
       </collision>
+      <visual>
+        <geometry>
+          <cylinder length="0.000001" radius="0.000001"/>
+        </geometry>
+      </visual>
     </link>
 
     <joint name="${namespace}/camera${suffix}_optical_joint" type="revolute">

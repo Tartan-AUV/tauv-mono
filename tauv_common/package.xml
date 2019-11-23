@@ -38,4 +38,6 @@
   <exec_depend>robot_localization</exec_depend>
   <exec_depend>multimaster_fkie</exec_depend>
 
+  <depend>pynput-pip</depend>
+
 </package>

@@ -30,4 +30,3 @@ esc_pwm_forwards: 1900
 # TODO configure the i2c bus from here
 has_depth_sensor: true
 depth_sensor: bar30
-

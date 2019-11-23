@@ -1,35 +1,32 @@
+# keyboard_controller.py
+#
+# Simple controller that publishes a force wrench based on keyboard input
+# Primarily for simulator testing and use as an example controller
+#
 #!/usr/bin/env python
 import rospy
-import roslib
 import time
-import cv2 as cv2
 from pynput import keyboard
-import sys
 import atexit
 import curses
+from geometry_msgs.msg import WrenchStamped
+from std_msgs.msg import Header
 
-from std_msgs.msg import Bool
-from sensor_msgs.msg import Image
-from geometry_msgs.msg import Twist
-from geometry_msgs.msg import Wrench
-from cv_bridge import CvBridge, CvBridgeError
-from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
-from sensor_msgs.msg import Image
-import numpy as np
-import matplotlib.pyplot as plt
 
 class UserController:
     def __init__(self):
         self.gain = [30, 30, 60, 20, 20, 8]      
-        rospy.init_node('user_controller', anonymous=True) 
-        self.pub = rospy.Publisher("/manta/thruster_manager/input", Wrench, queue_size=1)
+        rospy.init_node('keyboard_controller', anonymous=True)
+        self.pub = rospy.Publisher("keyboard/wrench", WrenchStamped, queue_size=1)
+
+        self.output_frame = rospy.get_param("~output_frame")
+
         listener = keyboard.Listener(
             on_press=self.on_press,
             on_release=self.on_release)
         listener.start()
         self.keys = dict()
         self.vector = [0, 0, 0, 0, 0, 0]
-        
 
     def on_press(self, key):
         k = str(key)
@@ -75,13 +72,16 @@ class UserController:
 
     def send_thrust(self):
         command = self.vector
-        msg = Wrench()
-        msg.force.x = command[0]
-        msg.force.y = command[1]
-        msg.force.z = command[2]
-        msg.torque.x = command[3]
-        msg.torque.y = command[4]
-        msg.torque.z = command[5]
+        msg = WrenchStamped()
+        msg.header = Header()
+        msg.header.stamp = rospy.Time.now()
+        msg.header.frame_id = self.output_frame
+        msg.wrench.force.x = command[0]
+        msg.wrench.force.y = command[1]
+        msg.wrench.force.z = command[2]
+        msg.wrench.torque.x = command[3]
+        msg.wrench.torque.y = command[4]
+        msg.wrench.torque.z = command[5]
 
         self.pub.publish(msg)
 
@@ -90,13 +90,15 @@ class UserController:
         self.send_thrust()
         time.sleep(0.01)
 
+
 def shutdownHandler():
     curses.endwin()
+
 
 def main():
     stdscr = curses.initscr()
     curses.noecho()
     atexit.register(shutdownHandler)
     uc = UserController()
-    while(not rospy.is_shutdown()):
+    while not rospy.is_shutdown():
         uc.spin()
