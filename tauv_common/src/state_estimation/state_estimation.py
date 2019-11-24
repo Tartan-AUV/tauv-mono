@@ -20,12 +20,9 @@ class Depth_Odom:
         self.depth_data = 0.0
         self.depth_data_variance = .1
         self.depth_data_frame = ""
-        print("creating sub")
         self.depth_sensor_sub = rospy.Subscriber("sensors/depth", FluidDepth, self.depth_data_callback)
-        print("creating pub")
         self.depth_pose_pub = rospy.Publisher("sensors/depth_pose", PoseWithCovarianceStamped, queue_size=50)
         self.map_broadcaster = tf.TransformBroadcaster()
-        rospy.loginfo("finished init")
 
     def depth_data_callback(self, data):
         self.depth_data = data.depth
@@ -40,14 +37,8 @@ class Depth_Odom:
         pose_msg.pose.pose.position.z = self.depth_data
         pose_msg.pose.covariance[14] = self.depth_data_variance**2
         self.depth_pose_pub.publish(pose_msg)
-        # self.map_broadcaster.sendTransform((0, 0, 0),
-        #                                    quaternion_from_euler(0, 0, 0),
-        #                                    rospy.Time.now(),
-        #                                    "albatross/odom",
-        #                                    "map")
 
 def main():
-    rospy.init_node('state_estimation')
     d_odom = Depth_Odom()
     while not rospy.is_shutdown():
         d_odom.spin()
