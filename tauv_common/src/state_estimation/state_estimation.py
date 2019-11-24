@@ -1,3 +1,14 @@
+# state_estimation.py
+#
+# This node is the starting point for everything related to state estimation.
+# Currently an EKF runs from the ROS Robot Localization package.
+# This node publishes a Pose using the depth sensor data, which is incorporated into the EKF
+# In the future, any processing of Visual Odometry data, or other sensors will pass through here
+#
+#
+# Author: Advaith Sethuraman 2019
+
+
 #!/usr/bin/env python
 import rospy
 from sensor_msgs.msg import Imu

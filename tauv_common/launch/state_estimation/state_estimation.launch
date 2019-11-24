@@ -10,9 +10,6 @@
 
     <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" ns="$(arg model_name)" output="screen">
     </node>
-<!--    <node pkg="tauv_common" type="state_estimation" name="state_estimation_visualizer" clear_params="true" ns="$(arg model_name)" output="screen">-->
-<!--    </node>-->
-
 </launch>
 
 
