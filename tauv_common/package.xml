@@ -35,9 +35,9 @@
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>tauv_config</exec_depend>
   <exec_depend>message_filters</exec_depend>
-  <exec_depend>robot_localization</exec_depend>
   <exec_depend>multimaster_fkie</exec_depend>
 
   <depend>pynput-pip</depend>
+  <depend>robot_localization</depend>
 
 </package>

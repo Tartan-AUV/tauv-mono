@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     geometry_msgs
     message_filters
+    robot_localization
     tf
     tauv_msgs
   )

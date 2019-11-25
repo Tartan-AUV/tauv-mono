@@ -27,6 +27,6 @@ setup_args = generate_distutils_setup(
     scripts=['scripts/thruster_allocator',
              'scripts/keyboard_controller',
              'scripts/control_aggregator',
-             'scripts/state_estimation']
-
+             'scripts/state_estimation'],
+)
 setup(**setup_args)
