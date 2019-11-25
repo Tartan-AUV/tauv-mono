@@ -5,7 +5,7 @@
     <arg name="controller_configs" default="$(arg config_pkg)/controllers.yaml"/>
 
     <group ns="$(arg model_name)/controllers">
-        <rosparam file="$(arg controller_configs)" command="load" ns="configs"/>
+        <rosparam file="$(arg controller_configs)" command="load"/>
 
         <node name="control_aggregator" pkg="tauv_common" type="control_aggregator" output="screen"/>
     </group>

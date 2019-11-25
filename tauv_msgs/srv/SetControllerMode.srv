@@ -1,0 +1,7 @@
+# array order is x,y,z,r,p,y
+bool[] enable_pos_control
+bool[] enable_vel_control
+
+---
+
+bool success

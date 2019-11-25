@@ -25,6 +25,7 @@ setup_args = generate_distutils_setup(
     requires=['rospy'],
     scripts=['scripts/thruster_allocator',
              'scripts/keyboard_controller',
+             'scripts/cascaded_controller',
              'scripts/control_aggregator']
 )
 

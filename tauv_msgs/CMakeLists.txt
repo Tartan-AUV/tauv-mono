@@ -8,6 +8,7 @@ add_message_files(
   FluidDepth.msg
   ControllerList.msg
   ControllerStatus.msg
+  ControllerInput.msg
 )
 
 add_service_files(

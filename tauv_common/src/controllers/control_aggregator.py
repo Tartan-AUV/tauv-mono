@@ -28,11 +28,11 @@ class ControlAggregator:
         self.tf = tf.TransformListener()
 
         # retrieve parameters:
-        self.controllerConfigs = rospy.get_param('configs/controllers')
+        self.controllerConfigs = rospy.get_param('controllers')
         self.controllers = self.controllerConfigs.keys()
-        self.topic_suffix = rospy.get_param('configs/topic_suffix')
-        self.output_frame = rospy.get_param('configs/output_frame')
-        self.timeout_s = rospy.get_param('configs/timeout_s')
+        self.topic_suffix = rospy.get_param('topic_suffix')
+        self.output_frame = rospy.get_param('output_frame')
+        self.timeout_s = rospy.get_param('timeout_s')
 
         # controller statuses:
 
@@ -47,7 +47,7 @@ class ControlAggregator:
             sub = rospy.Subscriber(c + self.topic_suffix, WrenchStamped, self.wrenchCallback, callback_args=c)
             self.subscribers.append(sub)
 
-        self.pub = rospy.Publisher(rospy.get_param('configs/output_topic'), WrenchStamped)
+        self.pub = rospy.Publisher(rospy.get_param('output_topic'), WrenchStamped)
         self.statusPub = rospy.Publisher("status", ControllerList)
 
         self.enableSrv = rospy.Service('controller_set_status', SetController, self.setControllerCallback)
