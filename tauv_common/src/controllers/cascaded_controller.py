@@ -1,3 +1,10 @@
+# This is a piece of shit that should probably be re-written,
+#
+# TODO: don't use the ROS PID controller, it's bulky and makes everything super annoying
+# TODO: Use mass/inertia and acceleration commands instead of just raw torque
+# TODO: Remove the features regarding individual channel pos/vel enabling. It's a major pain and lots of
+#       combinations just aren't feasible to make work.
+
 import rospy
 import tf
 import numpy as np
@@ -18,11 +25,11 @@ class CascadedController:
         model_name = rospy.get_param("model_name")
         self.base_frame = model_name + "/base_link"
         self.stab_frame = model_name + "/base_link_stabilized"
-        self.world_frame = "world"# model_name + "/odom"
+        self.world_frame = "world"  # model_name + "/odom"
         self.vel_avg_interval = rospy.Duration(rospy.get_param("~velocity_averaging_interval"))
 
-        self.enable_pos_control = [False]*6
-        self.enable_vel_control = [False]*6
+        self.enable_pos_control = [False] * 6
+        self.enable_vel_control = [False] * 6
 
         # Local data:
         self.pos_roll_effort = 0
@@ -43,32 +50,27 @@ class CascadedController:
         self.torque_x = 0
         self.torque_y = 0
         self.torque_z = 0
+        self.attitude_target = [0,0,0,1]
 
         # Position publishers:
-        self.pub_pos_roll = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_roll_controller/topic_from_plant"),
-                                            Float64, queue_size=10)
-        self.pub_pos_pitch = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_pitch_controller/topic_from_plant"),
-                                             Float64, queue_size=10)
-        self.pub_pos_yaw = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_yaw_controller/topic_from_plant"),
-                                           Float64, queue_size=10)
         self.pub_pos_x = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_x_controller/topic_from_plant"),
                                          Float64, queue_size=10)
         self.pub_pos_y = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_y_controller/topic_from_plant"),
                                          Float64, queue_size=10)
         self.pub_pos_z = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_z_controller/topic_from_plant"),
                                          Float64, queue_size=10)
-        self.pub_targ_pos_roll = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_roll_controller/setpoint_topic"),
-                                            Float64, queue_size=10)
-        self.pub_targ_pos_pitch = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_pitch_controller/setpoint_topic"),
-                                             Float64, queue_size=10)
-        self.pub_targ_pos_yaw = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_yaw_controller/setpoint_topic"),
-                                           Float64, queue_size=10)
         self.pub_targ_pos_x = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_x_controller/setpoint_topic"),
-                                         Float64, queue_size=10)
+                                              Float64, queue_size=10)
         self.pub_targ_pos_y = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_y_controller/setpoint_topic"),
-                                         Float64, queue_size=10)
+                                              Float64, queue_size=10)
         self.pub_targ_pos_z = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_z_controller/setpoint_topic"),
-                                         Float64, queue_size=10)
+                                              Float64, queue_size=10)
+        self.pub_err_pos_roll = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_roll_controller/error_topic"),
+                                                Float64, queue_size=10)
+        self.pub_err_pos_pitch = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_pitch_controller/error_topic"),
+                                                 Float64, queue_size=10)
+        self.pub_err_pos_yaw = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_yaw_controller/error_topic"),
+                                               Float64, queue_size=10)
 
         # Velocity publishers:
         self.pub_vel_roll = rospy.Publisher("~pids/" + rospy.get_param("~pids/vel_roll_controller/topic_from_plant"),
@@ -84,44 +86,57 @@ class CascadedController:
         self.pub_vel_z = rospy.Publisher("~pids/" + rospy.get_param("~pids/vel_z_controller/topic_from_plant"),
                                          Float64, queue_size=10)
         self.pub_targ_vel_roll = rospy.Publisher("~pids/" + rospy.get_param("~pids/vel_roll_controller/setpoint_topic"),
-                                            Float64, queue_size=10)
-        self.pub_targ_vel_pitch = rospy.Publisher("~pids/" + rospy.get_param("~pids/vel_pitch_controller/setpoint_topic"),
-                                             Float64, queue_size=10)
+                                                 Float64, queue_size=10)
+        self.pub_targ_vel_pitch = rospy.Publisher(
+            "~pids/" + rospy.get_param("~pids/vel_pitch_controller/setpoint_topic"),
+            Float64, queue_size=10)
         self.pub_targ_vel_yaw = rospy.Publisher("~pids/" + rospy.get_param("~pids/vel_yaw_controller/setpoint_topic"),
-                                           Float64, queue_size=10)
+                                                Float64, queue_size=10)
         self.pub_targ_vel_x = rospy.Publisher("~pids/" + rospy.get_param("~pids/vel_x_controller/setpoint_topic"),
-                                         Float64, queue_size=10)
+                                              Float64, queue_size=10)
         self.pub_targ_vel_y = rospy.Publisher("~pids/" + rospy.get_param("~pids/vel_y_controller/setpoint_topic"),
-                                         Float64, queue_size=10)
+                                              Float64, queue_size=10)
         self.pub_targ_vel_z = rospy.Publisher("~pids/" + rospy.get_param("~pids/vel_z_controller/setpoint_topic"),
-                                         Float64, queue_size=10)
+                                              Float64, queue_size=10)
 
         # Position effort subscribers:
-        self.sub_pos_roll_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/pos_roll_controller/topic_from_controller"),
-                                                    Float64, self.callback_pos_roll_effort)
-        self.sub_pos_pitch_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/pos_pitch_controller/topic_from_controller"),
-                                                     Float64, self.callback_pos_pitch_effort)
-        self.sub_pos_yaw_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/pos_yaw_controller/topic_from_controller"),
-                                                   Float64, self.callback_pos_yaw_effort)
-        self.sub_pos_x_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/pos_x_controller/topic_from_controller"),
-                                                 Float64, self.callback_pos_x_effort)
-        self.sub_pos_y_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/pos_y_controller/topic_from_controller"),
-                                                 Float64, self.callback_pos_y_effort)
-        self.sub_pos_z_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/pos_z_controller/topic_from_controller"),
-                                                 Float64, self.callback_pos_z_effort)
+        self.sub_pos_roll_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/pos_roll_controller/topic_from_controller"),
+            Float64, self.callback_pos_roll_effort)
+        self.sub_pos_pitch_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/pos_pitch_controller/topic_from_controller"),
+            Float64, self.callback_pos_pitch_effort)
+        self.sub_pos_yaw_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/pos_yaw_controller/topic_from_controller"),
+            Float64, self.callback_pos_yaw_effort)
+        self.sub_pos_x_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/pos_x_controller/topic_from_controller"),
+            Float64, self.callback_pos_x_effort)
+        self.sub_pos_y_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/pos_y_controller/topic_from_controller"),
+            Float64, self.callback_pos_y_effort)
+        self.sub_pos_z_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/pos_z_controller/topic_from_controller"),
+            Float64, self.callback_pos_z_effort)
         # Velocity effort subscribers:
-        self.sub_vel_roll_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/vel_roll_controller/topic_from_controller"),
-                                                    Float64, self.callback_vel_roll_effort)
-        self.sub_vel_pitch_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/vel_pitch_controller/topic_from_controller"),
-                                                     Float64, self.callback_vel_pitch_effort)
-        self.sub_vel_yaw_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/vel_yaw_controller/topic_from_controller"),
-                                                   Float64, self.callback_vel_yaw_effort)
-        self.sub_vel_x_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/vel_x_controller/topic_from_controller"),
-                                                 Float64, self.callback_vel_x_effort)
-        self.sub_vel_y_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/vel_y_controller/topic_from_controller"),
-                                                 Float64, self.callback_vel_y_effort)
-        self.sub_vel_z_effort = rospy.Subscriber("~pids/" + rospy.get_param("~pids/vel_z_controller/topic_from_controller"),
-                                                 Float64, self.callback_vel_z_effort)
+        self.sub_vel_roll_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/vel_roll_controller/topic_from_controller"),
+            Float64, self.callback_vel_roll_effort)
+        self.sub_vel_pitch_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/vel_pitch_controller/topic_from_controller"),
+            Float64, self.callback_vel_pitch_effort)
+        self.sub_vel_yaw_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/vel_yaw_controller/topic_from_controller"),
+            Float64, self.callback_vel_yaw_effort)
+        self.sub_vel_x_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/vel_x_controller/topic_from_controller"),
+            Float64, self.callback_vel_x_effort)
+        self.sub_vel_y_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/vel_y_controller/topic_from_controller"),
+            Float64, self.callback_vel_y_effort)
+        self.sub_vel_z_effort = rospy.Subscriber(
+            "~pids/" + rospy.get_param("~pids/vel_z_controller/topic_from_controller"),
+            Float64, self.callback_vel_z_effort)
 
         # Reference Subscriber:
         self.sub_ref = rospy.Subscriber("~" + rospy.get_param("~input_topic"), ControllerInput, self.set_ref)
@@ -139,23 +154,43 @@ class CascadedController:
             print("Failed to find transformation between frames: {}".format(e))
             return
 
-        # Convert quaternion to roll,pitch,yaw. (ZYX euler angles)
-        R_pos = stf.Rotation.from_quat(np.array(rot))
-        ypr = R_pos.as_euler("ZYX")
-
         # Publish position state:
         self.pub_pos_x.publish(Float64(pos[0]))
         self.pub_pos_y.publish(Float64(pos[1]))
         self.pub_pos_z.publish(Float64(pos[2]))
-        self.pub_pos_roll.publish(Float64(ypr[2]))
-        self.pub_pos_pitch.publish(Float64(ypr[1]))
-        self.pub_pos_yaw.publish(Float64(ypr[0]))
+        # self.pub_pos_roll.publish(Float64(ypr[2]))
+        # self.pub_pos_pitch.publish(Float64(ypr[1]))
+        # self.pub_pos_yaw.publish(Float64(ypr[0]))
+
+        # Calculate orientation error:
+        R_state = stf.Rotation.from_quat(rot)
+        R_targ = stf.Rotation.from_quat(self.attitude_target)
+
+        # If yaw position control is disabled, zero out target yaw to avoid weird issues
+        # due to non-uniqueness of euler angles. (The sub will try to flip over in weird ways
+        # in order to achieve the target yaw without exerting yaw effort)
+        if not self.enable_pos_control[5]:
+            ypr_state = R_state.as_euler("ZYX")
+            ypr_targ = R_targ.as_euler("ZYX")
+            ypr_state[0] = 0
+            ypr_targ[0] = 0
+            R_state = stf.Rotation.from_euler("ZYX", ypr_state)
+            R_targ = stf.Rotation.from_euler("ZYX", ypr_targ)
+
+        R_diff = np.dot(np.linalg.inv(R_state.as_dcm()), R_targ.as_dcm())
+        ypr = stf.Rotation.from_dcm(R_diff).as_euler("ZYX")
+        self.pub_err_pos_roll.publish(Float64(ypr[2]))
+        self.pub_err_pos_pitch.publish(Float64(ypr[1]))
+        self.pub_err_pos_yaw.publish(Float64(ypr[0]))
+        # print("orientation error: roll: {}, pitch: {}, yaw: {}".format(ypr[2],ypr[1],ypr[0]))
+
 
         # Get Angular velocity state in the inertial frame:
         try:
+            # Note: There is a bug in
             # vel: velocity as x,y,z. ang_vel: angular velocity about x,y,z of odom respectively.
             (vel, ang_vel) = self.tfl.lookupTwistFull(self.base_frame,  # Tracking frame
-                                                      self.base_frame,  # Observation frame
+                                                      self.world_frame,  # Observation frame
                                                       self.world_frame,  # Reference frame
                                                       [0, 0, 0],  # Reference point
                                                       self.base_frame,  # Reference point frame
@@ -208,8 +243,7 @@ class CascadedController:
             f_base[3] += self.pos_roll_effort
         if self.enable_pos_control[4]:
             f_base[4] += self.pos_pitch_effort
-        if self.enable_pos_control[5]:
-            f_base[5] += self.pos_yaw_effort
+        f_base[5] += self.pos_yaw_effort
 
         # Velocity controllers:
         if self.enable_vel_control[0]:
@@ -219,11 +253,13 @@ class CascadedController:
         if self.enable_vel_control[2]:
             f_odom[2] += self.vel_z_effort
         if self.enable_vel_control[3]:
-            f_base[3] += self.vel_roll_effort
+            f_odom[3] += self.vel_roll_effort
         if self.enable_vel_control[4]:
-            f_base[4] += self.vel_pitch_effort
+            f_odom[4] += self.vel_pitch_effort
         if self.enable_vel_control[5]:
-            f_base[5] += self.vel_yaw_effort
+            f_odom[5] += self.vel_yaw_effort
+
+        print(self.vel_yaw_effort)
 
         # Feed-forward torque:
         f_odom[0] += self.torque_x
@@ -247,7 +283,7 @@ class CascadedController:
         force_base = np.dot(R.as_dcm(), np.array(force_odom))
         torque_base = np.dot(R.as_dcm(), np.array(torque_odom))
 
-        print("from_base: {}, from_odom: {}, torque_base: {}".format(f_base, force_base, torque_base))
+        # print("from_base: {}, from_odom: {}, torque_base: {}".format(f_base, force_base, torque_base))
 
         ws = WrenchStamped()
         ws.header = Header()
@@ -266,33 +302,29 @@ class CascadedController:
         self.enable_pos_control = msg.enable_pos_control
         self.enable_vel_control = msg.enable_vel_control
 
-        # Convert quaternion to inertial r,p,y
-        ori = msg.pos_target[3:7]
-        R = stf.Rotation.from_quat(ori)
-        ZYX = R.as_euler("ZYX")
-
         # Publish position setpoints:
         self.pub_targ_pos_x.publish(Float64(msg.pos_target[0]))  # position in x  (odom frame)
         self.pub_targ_pos_y.publish(Float64(msg.pos_target[1]))  # position in y  (odom frame)
         self.pub_targ_pos_z.publish(Float64(msg.pos_target[2]))  # position in z  (odom frame)
-        self.pub_targ_pos_roll.publish(Float64(ZYX[2]))  # inertial roll  (inertial frame)
-        self.pub_targ_pos_pitch.publish(Float64(ZYX[1]))  # inertial pitch (inertial frame)
-        self.pub_targ_pos_yaw.publish(Float64(ZYX[0]))  # inertial yaw   (inertial frame)
+
+        ori = msg.pos_target[3:7]
+        self.attitude_target = ori  # Attitude target in odom frame
 
         # Convert angular velocity setpoints into inertial frame if necessary:
-        if msg.use_inertial_ang_vel:
+        if not msg.use_inertial_ang_vel:
             w = msg.vel_target[3:6]
         else:
             w = msg.vel_target[3:6]
             try:
-                # pos is position in odom, rot is a quaternion representing orientation
-                (pos, rot) = self.tfl.lookupTransform(self.world_frame, self.base_frame, rospy.Time(0))
+                # pos is position in world frame, rot is a quaternion representing orientation
+                (pos, rot) = self.tfl.lookupTransform(self.base_frame, self.world_frame, rospy.Time(0))
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
                 # TODO: set exception here
                 # print("Failed to find transformation between frames: {}".format(e))
                 return
-            R = stf.Rotation.from_quat(rot)
+            R = stf.Rotation.from_quat(rot)  # R_base^world
             w = np.dot(R.as_dcm(), np.array(w))
+        # print(w)
 
         # Publish velocity setpoints
         self.pub_targ_vel_x.publish(Float64(msg.vel_target[0]))  # velocity in x  (odom frame)
@@ -350,6 +382,7 @@ class CascadedController:
     def start(self):
         rospy.Timer(rospy.Duration(1.0 / 100), self.update)
         rospy.spin()
+
 
 def main():
     rospy.init_node('cascaded_controller')

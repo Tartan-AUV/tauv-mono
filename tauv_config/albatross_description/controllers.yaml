@@ -42,43 +42,49 @@ cascaded_controller:
 
   pids:
     pos_roll_controller:
-      Kp: 200
+      Kp: 30
       Kd: 0
-      Ki: 0
-      upper_limit: 10
-      lower_limit: -10
-      windup_limit: 0.5
+      Ki: .5
+      upper_limit: 20
+      lower_limit: -20
+      windup_limit: 20
       topic_from_controller: "pos_roll_effort"
       topic_from_plant: "pos_roll_state"
       setpoint_topic: "pos_roll_setpoint"
+      error_topic: "pos_roll_error"
       node_name: "pos_roll_controller"
-      angle_error: true
+      angle_error: false
+      use_error: true
 
     pos_pitch_controller:
-      Kp: 200
+      Kp: 30
       Kd: 0
-      Ki: 0
-      upper_limit: 10
-      lower_limit: -10
-      windup_limit: 0.5
+      Ki: .5
+      upper_limit: 20
+      lower_limit: -20
+      windup_limit: 20
       topic_from_controller: "pos_pitch_effort"
       topic_from_plant: "pos_pitch_state"
       setpoint_topic: "pos_pitch_setpoint"
+      error_topic: "pos_pitch_error"
       node_name: "pos_pitch_controller"
-      angle_error: true
+      angle_error: false
+      use_error: true
 
     pos_yaw_controller:
       Kp: 5
-      Kd: 0
-      Ki: 0
-      upper_limit: 10
-      lower_limit: -10
+      Kd: 1
+      Ki: 0.1
+      upper_limit: 20
+      lower_limit: -20
       windup_limit: 0.5
       topic_from_controller: "pos_yaw_effort"
       topic_from_plant: "pos_yaw_state"
       setpoint_topic: "pos_yaw_setpoint"
+      error_topic: "pos_yaw_error"
       node_name: "pos_yaw_controller"
-      angle_error: true
+      angle_error: false
+      use_error: true
 
     pos_x_controller:
       Kp: 10
@@ -117,11 +123,11 @@ cascaded_controller:
       node_name: "pos_z_controller"
 
     vel_roll_controller:
-      Kp: 1
+      Kp: 10
       Kd: 0
       Ki: 0
-      upper_limit: 10
-      lower_limit: -10
+      upper_limit: 20
+      lower_limit: -20
       windup_limit: 0.5
       topic_from_controller: "vel_roll_effort"
       topic_from_plant: "vel_roll_state"
@@ -129,11 +135,11 @@ cascaded_controller:
       node_name: "vel_roll_controller"
 
     vel_pitch_controller:
-      Kp: 1
+      Kp: 10
       Kd: 0
       Ki: 0
-      upper_limit: 10
-      lower_limit: -10
+      upper_limit: 20
+      lower_limit: -20
       windup_limit: 0.5
       topic_from_controller: "vel_pitch_effort"
       topic_from_plant: "vel_pitch_state"
@@ -141,11 +147,11 @@ cascaded_controller:
       node_name: "vel_pitch_controller"
 
     vel_yaw_controller:
-      Kp: 1
+      Kp: 10
       Kd: 0
       Ki: 0
-      upper_limit: 10
-      lower_limit: -10
+      upper_limit: 20
+      lower_limit: -20
       windup_limit: 0.5
       topic_from_controller: "vel_yaw_effort"
       topic_from_plant: "vel_yaw_state"

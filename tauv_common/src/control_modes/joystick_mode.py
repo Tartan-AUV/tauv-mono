@@ -38,8 +38,15 @@ class JoystickControlMode:
         self.stab = rospy.get_param("~stab_frame")
 
         # Modes
+
+        self.yaw_modes = ["none",
+                          "absolute",
+                          "rates_pos_offset",
+                          "torque_ff",
+                          "rates_vel"]
+        self.yaw_mode = "none"
         self.autolevel_modes = ["none",
-                                "autolevel",
+                                "absolute",
                                 "rates_vel",
                                 "rates_pos_offset"]
         self.autolevel_mode = "none"
@@ -57,13 +64,6 @@ class JoystickControlMode:
                          "torque_ff_baselink",
                          "torque_ff_stab"]
         self.xy_mode = "none"
-
-        self.yaw_modes = ["none",
-                          "absolute",
-                          "rates_pos_offset",
-                          "torque_ff",
-                          "rates_vel"]
-        self.yaw_mode = "none"
 
         self.joyVals = Joy()
 
@@ -90,6 +90,7 @@ class JoystickControlMode:
         self.add_xy(cmd)
 
     def add_attitude(self, cmd):
+        # Yaw
         self.yaw_pos = 0
         if self.yaw_mode == "rates_pos_offset":
             cmd.enable_pos_control[5] = True
@@ -120,10 +121,13 @@ class JoystickControlMode:
             if self.joyVals.buttons[joybtns["lb"]] == 0:
                 cmd.torque_ff[5] = self.joyVals.axes[joyaxes["rx"]] * np.pi * self.dt * sensitivity
 
-        if self.autolevel_mode == "none":
-            return
+        # If autolevel mode uses position commands, then we don't need to do this since it will be ic
+        if self.yaw_mode in ["rates_pos_offset", "absolute"] and \
+                self.autolevel_mode not in ["rates_pos_offset", "absolute"]:
+            cmd.pos_target[3:7] = stf.Rotation.from_euler("ZYX", [0, 0, self.roll]).as_quat()
 
-        elif self.autolevel_mode == "autolevel":
+        # Autolevel
+        if self.autolevel_mode == "absolute":
             cmd.enable_pos_control[3] = True
             cmd.enable_pos_control[4] = True
 
@@ -147,7 +151,7 @@ class JoystickControlMode:
                 self.pitch = self.joyVals.axes[joyaxes["ry"]] * np.pi * sensitivity
 
             w_base = np.array([self.roll, self.pitch, 0])
-            w_odom = np.dot(self.odom_to_base, w_base)
+            w_odom = np.dot(self.base_to_odom, w_base)
             cmd.vel_target[3] = w_odom[0]
             cmd.vel_target[4] = w_odom[1]
 
@@ -167,6 +171,15 @@ class JoystickControlMode:
             print("Failed to find transformation between frames: {}".format(e))
             return
         self.odom_to_base = stf.Rotation.from_quat(np.array(rot))
+
+        try:
+            # rot is a quaternion representing orientation
+            (pos, rot) = self.tfl.lookupTransform(self.base, self.odom, rospy.Time(0))
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            # TODO: set exception here
+            print("Failed to find transformation between frames: {}".format(e))
+            return
+        self.base_to_odom = stf.Rotation.from_quat(np.array(rot))
 
         try:
             # rot is a quaternion representing orientation
