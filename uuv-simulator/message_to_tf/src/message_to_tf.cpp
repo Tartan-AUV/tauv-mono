@@ -241,7 +241,7 @@ int main(int argc, char** argv) {
   ros::Subscriber sub1, sub2, sub3, sub4;
   int subscribers = 0;
   if (!g_odometry_topic.empty()) {
-      ROS_INFO("YEEEEEEEET: %s",g_odometry_topic.c_str());
+      //ROS_INFO("YEEEEEEEET: %s",g_odometry_topic.c_str());
       sub1 = node.subscribe(g_odometry_topic, 10, &odomCallback);
       subscribers++;
   }

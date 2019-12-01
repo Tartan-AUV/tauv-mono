@@ -238,7 +238,7 @@ class CascadedController:
         torque_odom = f_odom[3:6]
         try:
             # pos is position in odom, rot is a quaternion representing orientation
-            (pos, rot) = self.tfl.lookupTransform(self.world_frame, self.base_frame, rospy.Time(0))
+            (pos, rot) = self.tfl.lookupTransform(self.base_frame, self.world_frame, rospy.Time(0))
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
             # TODO: set exception here
             print("Failed to find transformation between frames: {}".format(e))
@@ -247,7 +247,7 @@ class CascadedController:
         force_base = np.dot(R.as_dcm(), np.array(force_odom))
         torque_base = np.dot(R.as_dcm(), np.array(torque_odom))
 
-        print("f_base: {}, force_base: {}, torque_base: {}".format(f_base, force_base, torque_base))
+        print("from_base: {}, from_odom: {}, torque_base: {}".format(f_base, force_base, torque_base))
 
         ws = WrenchStamped()
         ws.header = Header()
