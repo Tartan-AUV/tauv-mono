@@ -10,7 +10,7 @@ import tf
 import numpy as np
 from scipy.spatial import transform as stf
 
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Bool
 from tauv_msgs.msg import ControllerInput
 from geometry_msgs.msg import WrenchStamped, Wrench
 from std_msgs.msg import Header
@@ -51,6 +51,8 @@ class CascadedController:
         self.torque_y = 0
         self.torque_z = 0
         self.attitude_target = [0,0,0,1]
+
+        self.pub_enable = rospy.Publisher("~pids/enable", Bool, queue_size=10)
 
         # Position publishers:
         self.pub_pos_x = rospy.Publisher("~pids/" + rospy.get_param("~pids/pos_x_controller/topic_from_plant"),
@@ -187,15 +189,10 @@ class CascadedController:
 
         # Get Angular velocity state in the inertial frame:
         try:
-            # Note: There is a bug in
-            # vel: velocity as x,y,z. ang_vel: angular velocity about x,y,z of odom respectively.
-            (vel, ang_vel) = self.tfl.lookupTwistFull(self.base_frame,  # Tracking frame
-                                                      self.world_frame,  # Observation frame
-                                                      self.world_frame,  # Reference frame
-                                                      [0, 0, 0],  # Reference point
-                                                      self.base_frame,  # Reference point frame
-                                                      rospy.Time(0),
-                                                      self.vel_avg_interval)
+            (vel, ang_vel) = self.tfl.lookupTwist(self.base_frame,
+                                                  self.world_frame,
+                                                  rospy.Time(0),
+                                                  self.vel_avg_interval)
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
             # TODO: set exception here
             print("Failed to find transformation between frames: {}".format(e))
@@ -204,20 +201,20 @@ class CascadedController:
         self.pub_vel_pitch.publish(Float64(ang_vel[1]))
         self.pub_vel_yaw.publish(Float64(ang_vel[2]))
 
-        # Get Linear velocity state in the odom frame:
-        try:
-            # vel: velocity as x,y,z. ang_vel: angular velocity about x,y,z of odom respectively.
-            (vel, ang_vel) = self.tfl.lookupTwistFull(self.base_frame,  # Tracking frame
-                                                      self.world_frame,  # Observation frame
-                                                      self.world_frame,  # Reference frame
-                                                      [0, 0, 0],  # Reference point
-                                                      self.base_frame,  # Reference point frame
-                                                      rospy.Time(0),
-                                                      self.vel_avg_interval)
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
-            # TODO: set exception here
-            print("Failed to find transformation between frames: {}".format(e))
-            return
+        # # Get Linear velocity state in the odom frame:
+        # try:
+        #     # vel: velocity as x,y,z. ang_vel: angular velocity about x,y,z of odom respectively.
+        #     (vel, ang_vel) = self.tfl.lookupTwistFull(self.base_frame,  # Tracking frame
+        #                                               self.world_frame,  # Observation frame
+        #                                               self.world_frame,  # Reference frame
+        #                                               [0, 0, 0],  # Reference point
+        #                                               self.base_frame,  # Reference point frame
+        #                                               rospy.Time(0),
+        #                                               self.vel_avg_interval)
+        # except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+        #     # TODO: set exception here
+        #     print("Failed to find transformation between frames: {}".format(e))
+        #     return
         self.pub_vel_x.publish(Float64(vel[0]))
         self.pub_vel_y.publish(Float64(vel[1]))
         self.pub_vel_z.publish(Float64(vel[2]))
@@ -259,15 +256,13 @@ class CascadedController:
         if self.enable_vel_control[5]:
             f_odom[5] += self.vel_yaw_effort
 
-        print(self.vel_yaw_effort)
-
         # Feed-forward torque:
         f_odom[0] += self.torque_x
         f_odom[1] += self.torque_y
         f_odom[2] += self.torque_z
-        f_base[3] += self.torque_roll
-        f_base[4] += self.torque_pitch
-        f_base[5] += self.torque_yaw
+        f_odom[3] += self.torque_roll
+        f_odom[4] += self.torque_pitch
+        f_odom[5] += self.torque_yaw
 
         # Convert odom wrench to base_link:
         force_odom = f_odom[0:3]
@@ -283,8 +278,6 @@ class CascadedController:
         force_base = np.dot(R.as_dcm(), np.array(force_odom))
         torque_base = np.dot(R.as_dcm(), np.array(torque_odom))
 
-        # print("from_base: {}, from_odom: {}, torque_base: {}".format(f_base, force_base, torque_base))
-
         ws = WrenchStamped()
         ws.header = Header()
         ws.header.stamp = rospy.Time.now()
@@ -297,6 +290,7 @@ class CascadedController:
         ws.wrench.torque.z = f_base[5] + torque_base[2]
 
         self.pub_wrench.publish(ws)
+        self.pub_enable.publish(Bool(True))
 
     def set_ref(self, msg):
         self.enable_pos_control = msg.enable_pos_control
@@ -310,11 +304,9 @@ class CascadedController:
         ori = msg.pos_target[3:7]
         self.attitude_target = ori  # Attitude target in odom frame
 
+        w = msg.vel_target[3:6]
         # Convert angular velocity setpoints into inertial frame if necessary:
-        if not msg.use_inertial_ang_vel:
-            w = msg.vel_target[3:6]
-        else:
-            w = msg.vel_target[3:6]
+        if msg.use_inertial_ang_vel:
             try:
                 # pos is position in world frame, rot is a quaternion representing orientation
                 (pos, rot) = self.tfl.lookupTransform(self.base_frame, self.world_frame, rospy.Time(0))

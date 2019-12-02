@@ -10,9 +10,9 @@
         <node name="cascaded_controller" pkg="tauv_common" type="cascaded_controller" output="screen"/>
 
         <group ns="cascaded_controller/pids">
-            <node name="pos_roll_controller" pkg="tauv_pid" type="controller" output="screen"/>
-            <node name="pos_pitch_controller" pkg="tauv_pid" type="controller" output="screen"/>
-            <node name="pos_yaw_controller" pkg="tauv_pid" type="controller" output="screen"/>
+            <node name="pos_roll_controller" pkg="tauv_pid" type="controller"/>
+            <node name="pos_pitch_controller" pkg="tauv_pid" type="controller"/>
+            <node name="pos_yaw_controller" pkg="tauv_pid" type="controller"/>
             <node name="pos_x_controller" pkg="tauv_pid" type="controller"/>
             <node name="pos_y_controller" pkg="tauv_pid" type="controller"/>
             <node name="pos_z_controller" pkg="tauv_pid" type="controller"/>

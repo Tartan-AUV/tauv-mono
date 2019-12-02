@@ -159,11 +159,11 @@ cascaded_controller:
       node_name: "vel_yaw_controller"
 
     vel_x_controller:
-      Kp: 1
+      Kp: 10
       Kd: 0
       Ki: 0
-      upper_limit: 100
-      lower_limit: -100
+      upper_limit: 20
+      lower_limit: -20
       windup_limit: 0.5
       topic_from_controller: "vel_x_effort"
       topic_from_plant: "vel_x_state"
@@ -171,11 +171,11 @@ cascaded_controller:
       node_name: "vel_x_controller"
 
     vel_y_controller:
-      Kp: 1
+      Kp: 10
       Kd: 0
       Ki: 0
-      upper_limit: 100
-      lower_limit: -100
+      upper_limit: 20
+      lower_limit: -20
       windup_limit: 0.5
       topic_from_controller: "vel_y_effort"
       topic_from_plant: "vel_y_state"
@@ -183,11 +183,11 @@ cascaded_controller:
       node_name: "vel_y_controller"
 
     vel_z_controller:
-      Kp: 1
+      Kp: 10
       Kd: 0
       Ki: 0
-      upper_limit: 100
-      lower_limit: -100
+      upper_limit: 20
+      lower_limit: -20
       windup_limit: 0.5
       topic_from_controller: "vel_z_effort"
       topic_from_plant: "vel_z_state"
