@@ -10,6 +10,11 @@
 
     <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" ns="$(arg model_name)" output="screen">
     </node>
+
+     <include file="$(find tauv_common)/launch/controllers/controllers.launch">
+        <arg name="model_name" default="$(arg model_name)"/>
+        <arg name="config_pkg" default="$(arg config_pkg)"/>
+      </include>
 </launch>
 
 
