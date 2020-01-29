@@ -13,6 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# Originally part of UUV-Simulator Project. Adapted for Tartan AUV.
+
 from __future__ import print_function
 import numpy
 import rospy
@@ -57,6 +60,8 @@ class AccelerationControllerNode:
           numpy.hstack((self.mass*numpy.identity(3), numpy.zeros((3, 3)))),
           numpy.hstack((numpy.zeros((3, 3)), self.inertial_tensor))))
 
+        self.force_msg = None
+
         print(self.mass_inertial_matrix)
         self.ready = True
 
@@ -80,7 +85,7 @@ class AccelerationControllerNode:
         force_msg.torque.y = torque[1]
         force_msg.torque.z = torque[2]
 
-        self.pub_gen_force.publish(force_msg)
+        self.force_msg = force_msg
 
     def accel_callback(self, msg):
         if not self.ready:

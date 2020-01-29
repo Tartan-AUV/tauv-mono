@@ -1,0 +1,14 @@
+
+bool enableBuoyancyComp
+bool enableVelocityFeedForward
+
+uint8 pos_src_heading
+uint8 pos_src_attitude
+
+uint8 vel_src_translation
+uint8 vel_src_heading
+uint8 vel_src_attitude
+
+uint8 acc_src_translation
+uint8 acc_src_heading
+uint8 acc_src_attitude

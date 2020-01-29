@@ -2,7 +2,7 @@
   <arg name="model_name" />
   <arg name="uuv_name" default="$(arg model_name)"/>
 
-  <include file="$(find uuv_thruster_manager)/launch/thruster_manager.launch">
+  <include file="$(find tauv_common)/launch/thruster_manager.launch">
     <arg name="uuv_name" value="$(arg uuv_name)" />
     <arg name="model_name" value="$(arg model_name)" />
   </include>

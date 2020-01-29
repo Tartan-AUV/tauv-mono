@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Originally part of UUV-Simulator Project. Adapted for Tartan AUV.
+
 import numpy
 
 
