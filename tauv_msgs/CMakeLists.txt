@@ -9,12 +9,12 @@ add_message_files(
   ControllerList.msg
   ControllerStatus.msg
   ControllerInput.msg
+  CascadedPidSelection.msg
 )
 
 add_service_files(
   FILES
-  SetController.srv
-  JoyMode.srv
+  SetCascadedPidSelection.srv
 )
 
 
