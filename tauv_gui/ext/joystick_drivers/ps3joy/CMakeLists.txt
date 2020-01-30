@@ -1,6 +1,6 @@
 # http://ros.org/doc/groovy/api/catkin/html/user_guide/supposed.html
 cmake_minimum_required(VERSION 2.8.3)
-project(ps3joy)
+project(tauv_ps3joy)
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(LIBUSB REQUIRED libusb)

@@ -1,5 +1,5 @@
 <launch>
-  <node pkg="joy" type="joy_node" name="ps3_joy" output="screen" >
+  <node pkg="tauv_joy" type="joy_node" name="ps3_joy" output="screen" >
     <param name="dev" type="string" value="/dev/input/js0" />
     <param name="deadzone" value="0.12" />
   </node>

@@ -1,6 +1,6 @@
 # http://ros.org/doc/groovy/api/catkin/html/user_guide/supposed.html
 cmake_minimum_required(VERSION 2.8.3)
-project(joy)
+project(tauv_joy)
 
 # Load catkin and all dependencies required for this package
 set(CATKIN_DEPS roscpp diagnostic_updater std_msgs sensor_msgs message_generation)
