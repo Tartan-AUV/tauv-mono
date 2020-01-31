@@ -5,9 +5,9 @@
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
     <group ns="/gnc">
-        <rosparam file="$(find config_pkg)/control_params/inertial.yaml" command="load"/>
-        <rosparam file="$(find config_pkg)/control_params/vel_pid_control.yaml" command="load"/>
-        <rosparam file="$(find config_pkg)/control_params/pos_pid_control.yaml" command="load"/>
+        <rosparam file="$(find $(arg config_pkg))/control_params/inertial.yaml" command="load"/>
+        <rosparam file="$(find $(arg config_pkg))/control_params/vel_pid_control.yaml" command="load"/>
+        <rosparam file="$(find $(arg config_pkg))/control_params/pos_pid_control.yaml" command="load"/>
 
         <node pkg="tauv_common" type="acceleration_controller" name="acceleration_controller"
               output="screen">
