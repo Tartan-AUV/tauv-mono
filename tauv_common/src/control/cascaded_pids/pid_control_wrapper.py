@@ -63,8 +63,31 @@ class PidControlWrapper:
         self.selections.acc_src_heading = parse(rospy.get_param("~acc_src_heading"))
         self.selections.acc_src_attitude = parse(rospy.get_param("~acc_src_attitude"))
 
+    def callback_cmd_acc(self, acc, source):
+        # Acceleration is in the body frame!
+        if source == SOURCE_JOY:
+            self.joy_acc = acc
+        elif source == SOURCE_CONTROLLER:
+            self.control_acc = acc
+
+    def callback_cmd_vel(self, vel, source):
+        # Velocity is in the body frame!
+        if source == SOURCE_JOY:
+            self.joy_vel = vel
+        elif source == SOURCE_CONTROLLER:
+            self.control_vel = vel
+
+    def callback_cmd_pos(self, pos, source):
+        # Pose is in the world frame!
+        if source == SOURCE_JOY:
+            self.joy_pos = pos
+        elif source == SOURCE_CONTROLLER:
+            self.control_pos = pos
+    
     def update(self, timer_event):
-        pass
+        self.pub_cmd_pos.publish(self.calculate_pos())
+        self.pub_cmd_vel.publish(self.calculate_vel())
+        self.pub_cmd_acc.publish(self.calculate_acc())
 
     def post_status(self, timer_event):
         self.pub_status.publish(self.selections)
@@ -74,26 +97,7 @@ class PidControlWrapper:
         rospy.Timer(rospy.duration(0.5), self.post_status)
         rospy.spin()
 
-    def callback_cmd_acc(self, acc, source):
-        # Acceleration is in the body frame!
-        if source == SOURCE_JOY:
-            self.joy_acc = acc
-        elif source == SOURCE_CONTROLLER:
-            self.control_acc = acc
-            
-    def callback_cmd_vel(self, vel, source):
-        # Velocity is in the body frame!
-        if source == SOURCE_JOY:
-            self.joy_vel = vel
-        elif source == SOURCE_CONTROLLER:
-            self.control_vel = vel
-            
-    def callback_cmd_pos(self, pos, source):
-        # Pose is in the world frame!
-        if source == SOURCE_JOY:
-            self.joy_pos = pos
-        elif source == SOURCE_CONTROLLER:
-            self.control_pos = pos
+
 
 def main():
     rospy.init_node('pid_control_wrapper')

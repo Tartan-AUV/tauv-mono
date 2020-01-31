@@ -14,6 +14,6 @@ uint8 vel_src_heading
 uint8 vel_src_attitude
 
 uint8 acc_src_xy
-uint8 vel_src_z
+uint8 acc_src_z
 uint8 acc_src_heading
 uint8 acc_src_attitude

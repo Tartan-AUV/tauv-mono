@@ -6,9 +6,6 @@ find_package(catkin REQUIRED geometry_msgs sensor_msgs std_msgs message_generati
 add_message_files(
   FILES
   FluidDepth.msg
-  ControllerList.msg
-  ControllerStatus.msg
-  ControllerInput.msg
   CascadedPidSelection.msg
 )
 
