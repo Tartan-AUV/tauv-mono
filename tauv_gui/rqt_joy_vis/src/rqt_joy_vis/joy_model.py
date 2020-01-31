@@ -3,7 +3,7 @@ import rospy
 import rospkg
 
 from python_qt_binding.QtCore import Signal, QObject, Slot
-from joy.srv import JoyConnect
+from tauv_joy.srv import JoyConnect
 from std_srvs.srv import Trigger
 from sensor_msgs.msg import Joy
 import glob

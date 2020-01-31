@@ -11,7 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   rqt_gui
   rqt_gui_py
-  joy
+  tauv_joy
   sensor_msgs
 )
 
