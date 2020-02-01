@@ -83,7 +83,7 @@ class PidControlWrapper:
             self.joy_pos = pos
         elif source == SOURCE_CONTROLLER:
             self.control_pos = pos
-    
+
     def update(self, timer_event):
         self.pub_cmd_pos.publish(self.calculate_pos())
         self.pub_cmd_vel.publish(self.calculate_vel())
