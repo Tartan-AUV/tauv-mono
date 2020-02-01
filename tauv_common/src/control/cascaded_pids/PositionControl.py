@@ -20,13 +20,14 @@ import math
 import numpy
 import rospy
 import tf.transformations as trans
-from PID import PIDRegulator
+from PIDRegulator import PIDRegulator
 
 from dynamic_reconfigure.server import Server
-from uuv_control_cascaded_pid.cfg import PositionControlConfig
+from tauv_common.cfg import PositionControlConfig
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
 from rospy.numpy_msg import numpy_msg
+
 
 class PositionControllerNode:
     def __init__(self):
@@ -69,7 +70,7 @@ class PositionControllerNode:
 
         if not self.initialized:
             # If this is the first callback: Store and hold latest pose.
-            self.pos_des  = p
+            self.pos_des = p
             self.quat_des = q
             self.initialized = True
 
@@ -78,7 +79,7 @@ class PositionControllerNode:
 
         # Position error
         e_pos_world = self.pos_des - p
-        e_pos_body = trans.quaternion_matrix(q).transpose()[0:3,0:3].dot(e_pos_world)
+        e_pos_body = trans.quaternion_matrix(q).transpose()[0:3, 0:3].dot(e_pos_world)
 
         # Error quaternion wrt body frame
         e_rot_quat = trans.quaternion_multiply(trans.quaternion_conjugate(q), self.quat_des)

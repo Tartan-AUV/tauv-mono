@@ -25,8 +25,8 @@ import tf.transformations as trans
 from rospy.numpy_msg import numpy_msg
 
 # Modules included in this package
-from PID import PIDRegulator
-from uuv_control_cascaded_pid.cfg import VelocityControlConfig
+from PIDRegulator import PIDRegulator
+from tauv_common.cfg import VelocityControlConfig
 
 
 class VelocityControllerNode:
