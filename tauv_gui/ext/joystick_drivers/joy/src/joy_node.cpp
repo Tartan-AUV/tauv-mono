@@ -43,7 +43,7 @@
 #include <linux/input.h>
 #include <unistd.h>
 #include <std_srvs/Trigger.h>
-#include <joy/JoyConnect.h>
+#include <tauv_joy/JoyConnect.h>
 
 
 ///\brief Opens, reads from and publishes joystick events
@@ -536,7 +536,7 @@ public:
         }
     }
 
-    bool srv_callback_connect(joy::JoyConnect::Request &request, joy::JoyConnect::Response &response) {
+    bool srv_callback_connect(tauv_joy::JoyConnect::Request &request, tauv_joy::JoyConnect::Response &response) {
         ROS_INFO("joystick connection requested.");
         new_dev_ = request.dev;
         stay_connected_ = false;

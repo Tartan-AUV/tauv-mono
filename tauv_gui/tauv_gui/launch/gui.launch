@@ -1,6 +1,6 @@
 <launch>
     <group ns="gui">
-        <node name="joystick" pkg="joy" type="joy_node">
+        <node name="joystick" pkg="tauv_joy" type="joy_node">
             <param name="~deadzone" value="0.1"/>
             <param name="~autorepeat_rate" value="10"/>
         </node>
