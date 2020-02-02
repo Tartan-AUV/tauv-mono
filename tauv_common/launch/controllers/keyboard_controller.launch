@@ -1,0 +1,10 @@
+<launch>
+    <arg name="model_name" default="albatross"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+    <node name="keyboard_controller" pkg="tauv_common" type="keyboard_controller"
+          output="screen" ns="$(arg model_name)/controllers">
+        <param name="output_frame" value="$(arg model_name)/imu_link"/>
+    </node>
+
+</launch>

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(tauv_common)
 
-add_compile_options(-Wall -Werror -std=c++11)
+add_compile_options(-Wall -Werror -std=c++14)
 
 find_package(catkin REQUIRED COMPONENTS
     std_msgs
@@ -46,14 +46,16 @@ catkin_package(CATKIN_DEPENDS
 
 include_directories(
         src
+        include
         ${catkin_INCLUDE_DIRS}
 )
 
 #catkin_install_python(PROGRAMS scripts/thruster_allocator
 #                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
-install(DIRECTORY launch config
+install(DIRECTORY launch config include
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
         PATTERN "*~" EXCLUDE)
 
 # Macros for declaring ros nodes and libraries
@@ -64,5 +66,6 @@ include(cmake/pylint.cmake)
 
 # define nodes here
 # eg: add_subdirectory(src/imu_calibrator)
-
+add_subdirectory(src/constructors)
+add_subdirectory(src/motion)
 

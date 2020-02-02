@@ -1,0 +1,29 @@
+# controllers.yaml
+# This is a rosparam yaml that is intended to parameterize the control aggregator node.
+# Should be loaded into the "/(model_name)/controllers/configs" namespace.
+# Author: Tom Scherlis
+
+# List of the controllers available on the vehicle, and default enable status:
+# Names of controllers must be consistent with their subnamespace within the controllers namespace.
+controllers:
+  keyboard:
+    enabled: true
+  attitude:
+    enabled: false
+
+# Topic suffix: this will be appended to the "(controller_name)" namespace to find the output
+# topic containing the force wrench from that controller. Eg, if the controller is called
+# keyboard, then this will look at keyboard{topic_suffix} for the output wrench.
+# Should likely start with a leading slash.
+topic_suffix: "/wrench"
+
+# Output frame. All wrench data will be published with respect to this frame. There must
+# exist a tf connection between the output_frame and any frame_ids of input wrenches.
+output_frame: "albatross/base_link"
+
+# Timout_s: Control inputs will be "remembered" for this long, before being reset to zero if no
+# data is received.
+timeout_s: 1.0
+
+# Output topic to publish the resultant wrench to.
+output_topic: "/albatross/thruster_manager/input_stamped"

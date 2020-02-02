@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+from controllers import keyboard_controller
+
+
+if __name__ == "__main__":
+    keyboard_controller.main()

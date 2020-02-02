@@ -36,4 +36,6 @@
   <exec_depend>message_filters</exec_depend>
   <exec_depend>multimaster_fkie</exec_depend>
 
+  <depend>pynput-pip</depend>
+
 </package>
