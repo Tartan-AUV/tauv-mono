@@ -75,9 +75,7 @@ class ThrusterManager:
 
         try:
             target = 'base_link'
-            target = target[1::]
             source = 'base_link_ned'
-            source = source[1::]
             tf_trans_ned_to_enu = tf_buffer.lookup_transform(
                 target, source, rospy.Time(), rospy.Duration(1))
         except Exception, e:
