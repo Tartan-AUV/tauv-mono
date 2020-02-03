@@ -20,7 +20,7 @@
   <xacro:include filename="$(find uuv_gazebo_ros_plugins)/urdf/thruster_snippets.xacro"/>
   <xacro:property name="prop_mesh_file" value="file://$(find uuv_descriptions)/models/rexrov/mesh/prop.dae"/>
 
-  <link name="vehicle/base_link">
+  <link name="base_link">
     <inertial>
       <mass value="10"/>
       <origin xyz="0 0 0"/>
@@ -34,7 +34,7 @@
       <flow_velocity_topic>hydrodynamics/current_velocity</flow_velocity_topic>
       <debug>0</debug>
 
-      <link name="vehicle/base_link">
+      <link name="base_link">
           <neutrally_buoyant>0</neutrally_buoyant>
           <volume>0.009727626</volume>
           <box>
