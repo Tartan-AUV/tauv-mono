@@ -21,7 +21,7 @@
     since thrusters can often be inside the collision geometry
     of the vehicle and may cause internal collisions if set otherwise
     -->
-    <link name="${robot_namespace}/thruster_${thruster_id}">
+    <link name="thruster_${thruster_id}">
 
       <visual>
         <geometry>
@@ -39,21 +39,21 @@
     </link>
 
     <!-- Joint between thruster link and vehicle base link -->
-    <joint name="${robot_namespace}/thruster_${thruster_id}_joint" type="continuous">
+    <joint name="thruster_${thruster_id}_joint" type="continuous">
       <xacro:insert_block name="origin" />
       <axis xyz="1 0 0" />
-      <parent link="${robot_namespace}/base_link" />
-      <child link="${robot_namespace}/thruster_${thruster_id}" />
+      <parent link="rbase_link" />
+      <child link="thruster_${thruster_id}" />
     </joint>
 
     <gazebo>
       <!-- Thruster ROS plugin -->
       <plugin name="${robot_namespace}_${thruster_id}_thruster_model" filename="libthruster_ros_plugin.so">
         <!-- Name of the thruster link -->
-        <linkName>${robot_namespace}/thruster_${thruster_id}</linkName>
+        <linkName>thruster_${thruster_id}</linkName>
 
         <!-- Name of the joint between thruster and vehicle base link -->
-        <jointName>${robot_namespace}/thruster_${thruster_id}_joint</jointName>
+        <jointName>thruster_${thruster_id}_joint</jointName>
 
         <!-- Make the thruster aware of its id -->
         <thrusterID>${thruster_id}</thrusterID>
@@ -177,7 +177,7 @@
       </plugin>
     </gazebo>
 
-    <gazebo reference="${robot_namespace}/thruster_${thruster_id}">
+    <gazebo reference="thruster_${thruster_id}">
       <selfCollide>false</selfCollide>
     </gazebo>
   </xacro:macro>
