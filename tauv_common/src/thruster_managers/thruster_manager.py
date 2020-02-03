@@ -74,9 +74,9 @@ class ThrusterManager:
         tf_trans_ned_to_enu = None
 
         try:
-            target = '%sbase_link' % self.namespace
+            target = 'base_link'
             target = target[1::]
-            source = '%sbase_link_ned' % self.namespace
+            source = 'base_link_ned'
             source = source[1::]
             tf_trans_ned_to_enu = tf_buffer.lookup_transform(
                 target, source, rospy.Time(), rospy.Duration(1))
@@ -97,9 +97,6 @@ class ThrusterManager:
 
         rospy.loginfo(
           'ThrusterManager::update_rate=' + str(self.config['update_rate']))
-
-        # Set the tf_prefix parameter
-        rospy.set_param('thruster_manager/tf_prefix', self.namespace)
 
         # Retrieve the output file path to store the TAM
         # matrix for future use
@@ -192,7 +189,7 @@ class ThrusterManager:
         # Small margin to make sure we get thruster frames via tf
         now = rospy.Time.now() + rospy.Duration(1.0)
 
-        base = self.namespace + self.config['base_link']
+        base = self.config['base_link']
 
         self.thrusters = list()
 
@@ -215,8 +212,7 @@ class ThrusterManager:
         sleep(5)
 
         for i in range(self.MAX_THRUSTERS):
-            frame = self.namespace + \
-                self.config['thruster_frame_base'] + str(i)
+            frame = self.config['thruster_frame_base'] + str(i)
             try:
                 # try to get thruster pose with respect to base frame via tf
                 rospy.loginfo('transform: ' + base + ' -> ' + frame)

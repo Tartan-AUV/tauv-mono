@@ -107,7 +107,7 @@
       samples fov range_min range_max range_stddev mesh
       *inertia *origin *visual">
     <!-- Sensor link -->
-    <link name="${namespace}/sonar${suffix}_link">
+    <link name="sonar${suffix}_link">
       <inertial>
         <xacro:insert_block name="inertia" />
         <mass value="${mass}" />
@@ -121,12 +121,12 @@
   <joint name="${namespace}_sonar${suffix}_joint" type="revolute">
     <xacro:insert_block name="origin" />
     <parent link="${parent_link}" />
-    <child link="${namespace}/sonar${suffix}_link" />
+    <child link="sonar${suffix}_link" />
     <limit upper="0" lower="0" effort="0" velocity="0" />
     <axis xyz="1 0 0"/>
   </joint>
 
-  <gazebo reference="${namespace}/sonar${suffix}_link">
+  <gazebo reference="sonar${suffix}_link">
     <sensor type="gpu_ray" name="sonar${suffix}">
       <pose>0 0 0 0 0 0</pose>
       <visualize>false</visualize>

@@ -176,8 +176,8 @@ void UnderwaterObjectROSPlugin::Load(gazebo::physics::ModelPtr _parent,
     this->rosNode->advertise<std_msgs::Bool>
     (_parent->GetName() + "/is_submerged", 0);
 
-  this->nedTransform.header.frame_id = this->model->GetName() + "/base_link";
-  this->nedTransform.child_frame_id = this->model->GetName() + "/base_link_ned";
+  this->nedTransform.header.frame_id = "base_link";
+  this->nedTransform.child_frame_id = "base_link_ned";
   this->nedTransform.transform.translation.x = 0;
   this->nedTransform.transform.translation.y = 0;
   this->nedTransform.transform.translation.z = 0;

@@ -4,7 +4,7 @@
 
     <node name="keyboard_controller" pkg="tauv_common" type="keyboard_controller"
           output="screen" ns="$(arg model_name)/controllers">
-        <param name="output_frame" value="$(arg model_name)/imu_link"/>
+        <param name="output_frame" value="base_link"/>
     </node>
 
 </launch>
