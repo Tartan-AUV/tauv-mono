@@ -53,8 +53,8 @@ class PidControlWrapper:
 
         # Setup tf listener:
         self.tfl = tf.TransformListener()
-        self.body = 'albatross/base_link'
-        self.odom = 'albatross/odom'
+        self.body = 'base_link'
+        self.odom = 'odom'
 
         # Declare publishers:
         self.pub_cmd_pos = rospy.Publisher("cmd_pose", Pose, queue_size=10)
@@ -168,11 +168,11 @@ class PidControlWrapper:
         # Attitude from controller, heading from joystick.
         if self.selections.acc_src_heading == CascadedPidSelection.CONTROLLER and \
                 self.selections.acc_src_attitude == CascadedPidSelection.JOY:
-            # Convert control input to stabilized (level) frame:
+            # Convert control input to odom frame:
             control_stab = self.body2odom(self.control_acc.angular)
 
             # Replace heading (z axis accel) with joystick z axis accel.
-            # Note that this assumes joystick heading accel is in the stab frame.
+            # Note that this assumes joystick heading accel is in the odom frame.
             control_stab[2] = self.joy_acc.angular.z
             angular = tv(self.odom2body(angular))
 
@@ -238,8 +238,8 @@ class PidControlWrapper:
         self.pub_status.publish(self.selections)
 
     def start(self):
-        rospy.Timer(rospy.duration(1.0 / self.frequency), self.update)
-        rospy.Timer(rospy.duration(0.5), self.post_status)
+        rospy.Timer(rospy.Duration(1.0 / self.frequency), self.update)
+        rospy.Timer(rospy.Duration(0.5), self.post_status)
         rospy.spin()
 
 

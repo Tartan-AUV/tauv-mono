@@ -22,14 +22,16 @@ from catkin_pkg.python_setup import generate_distutils_setup
 setup_args = generate_distutils_setup(
     packages=['thruster_managers',
               'thruster_managers.models',
-              'control.cascaded_pids'],
+              'control.cascaded_pids',
+              'teleop'],
     package_dir={'': 'src'},
     requires=['rospy'],
     scripts=['scripts/thruster_allocator',
              'scripts/keyboard_controller',
              'scripts/acceleration_controller',
              'scripts/velocity_controller',
-             'scripts/position_controller']
+             'scripts/position_controller',
+             'scripts/teleop']
 )
 
 setup(**setup_args)

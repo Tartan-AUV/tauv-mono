@@ -75,7 +75,7 @@
   </include>
 
   <!-- Launch vehicle controllers: -->
-  <include file="$(find tauv_common)/launch/controllers/controllers.launch">
+  <include file="$(find tauv_common)/launch/control/cascaded_pids/cascaded_pids.launch">
     <arg name="model_name" default="$(arg model_name)"/>
     <arg name="config_pkg" default="$(arg config_pkg)"/>
   </include>
