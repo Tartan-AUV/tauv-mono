@@ -78,7 +78,7 @@
   </xacro:macro>
 
   <xacro:macro name="dvl_single_sonar" params="namespace suffix index pitch yaw">
-    <link name="${namespace}/dvl${suffix}_sonar${index}_link">
+    <link name="dvl${suffix}_sonar${index}_link">
       <inertial>
         <mass value="0.001" />  <!-- [kg] -->
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -87,15 +87,15 @@
       <xacro:no_collision/>
     </link>
 
-    <joint name="${namespace}/dvl${suffix}_sonar${index}_joint" type="revolute">
+    <joint name="dvl${suffix}_sonar${index}_joint" type="revolute">
       <origin xyz="0 0 0" rpy="0 ${pitch} ${yaw}"/>
-      <parent link="${namespace}/dvl${suffix}_link" />
-      <child link="${namespace}/dvl${suffix}_sonar${index}_link" />
+      <parent link="dvl${suffix}_link" />
+      <child link="dvl${suffix}_sonar${index}_link" />
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
 
-    <gazebo reference="${namespace}/dvl${suffix}_sonar${index}_link">
+    <gazebo reference="dvl${suffix}_sonar${index}_link">
       <sensor type="ray" name="dvl${suffix}_sonar${index}">
         <pose>0 0 0 0 0 0</pose>
         <update_rate>1</update_rate>
@@ -127,7 +127,7 @@
           <alwaysOn>true</alwaysOn>
           <updateRate>1</updateRate>
           <topicName>${topic}_sonar${index}</topicName>
-          <frameName>${namespace}/dvl${suffix}_sonar${index}_link</frameName>
+          <frameName>dvl${suffix}_sonar${index}_link</frameName>
           <fov>0.06</fov>
           <radiation>ultrasound</radiation>
         </plugin>
@@ -138,7 +138,7 @@
   <xacro:macro name="dvl_plugin_macro"
     params="namespace suffix parent_link topic scale *origin update_rate
     reference_frame noise_sigma noise_amplitude">
-    <link name="${namespace}/dvl${suffix}_link">
+    <link name="dvl${suffix}_link">
       <inertial>
         <mass value="0.001" />  <!-- [kg] -->
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -152,10 +152,10 @@
       <xacro:no_collision/>
     </link>
 
-    <joint name="${namespace}/dvl${suffix}_joint" type="revolute">
+    <joint name="dvl${suffix}_joint" type="revolute">
       <xacro:insert_block name="origin" />
       <parent link="${parent_link}" />
-      <child link="${namespace}/dvl${suffix}_link" />
+      <child link="dvl${suffix}_link" />
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
@@ -184,7 +184,7 @@
       <plugin filename="libuuv_gazebo_ros_dvl_plugin.so" name="libuuv_gazebo_dvl${suffix}_plugin">
         <robot_namespace>${namespace}</robot_namespace> <!-- (string, required): ros namespace in which the messages are published -->
 	<!-- Changed from dvl_link to base_link to get ENU coordinate frame -->
-        <link_name>${namespace}/base_link</link_name> <!-- (string, required): name of the body which holds the IMU sensor -->
+        <link_name>base_link</link_name> <!-- (string, required): name of the body which holds the IMU sensor -->
         <sensor_topic>${topic}</sensor_topic> <!-- (string): name of the sensor output topic and prefix of service names -->
         <update_rate>${update_rate}</update_rate> <!-- Update period [s] -->
         <noise_sigma>${noise_sigma}</noise_sigma> <!-- std dev of position estimates in x, y, z [m/s] -->
@@ -193,10 +193,10 @@
         <enable_local_ned_frame>false</enable_local_ned_frame>
         <static_reference_frame>${reference_frame}</static_reference_frame>
         <!-- Declaring the beams -->
-        <beam_link_name_0>${namespace}/dvl_sonar0_link</beam_link_name_0>
-        <beam_link_name_1>${namespace}/dvl_sonar1_link</beam_link_name_1>
-        <beam_link_name_2>${namespace}/dvl_sonar2_link</beam_link_name_2>
-        <beam_link_name_3>${namespace}/dvl_sonar3_link</beam_link_name_3>
+        <beam_link_name_0>dvl_sonar0_link</beam_link_name_0>
+        <beam_link_name_1>dvl_sonar1_link</beam_link_name_1>
+        <beam_link_name_2>dvl_sonar2_link</beam_link_name_2>
+        <beam_link_name_3>dvl_sonar3_link</beam_link_name_3>
         <!-- Declaring the beam output topics -->
         <beam_topic_0>${topic}_sonar0</beam_topic_0>
         <beam_topic_1>${topic}_sonar1</beam_topic_1>

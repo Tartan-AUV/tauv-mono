@@ -78,7 +78,7 @@ class ThrusterAllocatorNode(ThrusterManager):
         return ThrusterManagerInfoResponse(
             self.n_thrusters,
             self.configuration_matrix.flatten().tolist(),
-            self.namespace + self.config['base_link'])
+            self.config['base_link'])
 
     def get_thruster_curve(self, request):
         """Return service callback for computation of thruster curve."""
