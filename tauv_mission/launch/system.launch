@@ -14,6 +14,9 @@
   <!-- If simulated is true, launch gazebo simulation. Otherwise, launch the vehicle abstraction  -->
   <arg name="simulated" default="true"/>
 
+  <!-- Set this to true if you want to use ground truth data for odom and map instead of built in state estimation!-->
+  <arg name="use_gt" default="false"/>
+
   <!-- Default position (for simulation only)  -->
   <arg name="x" default="5.0"/>
   <arg name="y" default="-10.0"/>
@@ -48,6 +51,10 @@
     <include file="$(find tauv_common)/launch/multimaster/multimaster.launch"/>
   </group>
 
+  <group if="$(arg use_gt)">
+    <node pkg="tf" type="static_transform_publisher" name="gt_to_odom" args="0 0 0 0 0 0 1 world_gt $(arg model_name)/odom 100" />
+    <node pkg="tf" type="static_transform_publisher" name="gt_to_map" args="0 0 0 0 0 0 1 world_gt $(arg model_name)/map 100" />
+  </group>
   <!-- =======================  -->
   <!-- Launch abstract systems  -->
   <!-- =======================  -->

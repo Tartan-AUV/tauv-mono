@@ -52,6 +52,8 @@ class Teleop:
         self.joy = None
 
         self.tfl = tf.TransformListener()
+        self.transformer = tf.Transformer()
+        print("prefix: {}".format(self.transformer.getTFPrefix()))
         self.body = 'base_link'
         self.odom = 'odom'
 

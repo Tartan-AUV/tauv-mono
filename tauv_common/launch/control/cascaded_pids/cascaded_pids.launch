@@ -4,7 +4,7 @@
     <!-- path to config package  -->
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
-    <group ns="/gnc">
+    <group ns="gnc">
         <rosparam file="$(arg config_pkg)/control_params/inertial.yaml" command="load"/>
         <rosparam file="$(arg config_pkg)/control_params/vel_pid_control.yaml" command="load"/>
         <rosparam file="$(arg config_pkg)/control_params/pos_pid_control.yaml" command="load"/>
@@ -14,13 +14,15 @@
             <param name="tf_prefix" type="string" value="$(arg model_name)/" />
         </node>
 
-        <node pkg="uuv_control_cascaded_pid" type="velocity_controller" name="velocity_controller"
+        <node pkg="tauv_common" type="velocity_controller" name="velocity_controller"
               output="screen">
+            <param name="tf_prefix" type="string" value="$(arg model_name)/" />
             <remap from="cmd_accel" to="~cmd_accel"/>
         </node>
 
-        <node pkg="uuv_control_cascaded_pid" type="position_controller" name="position_controller"
+        <node pkg="tauv_common" type="position_controller" name="position_controller"
               output="screen">
+            <param name="tf_prefix" type="string" value="$(arg model_name)/" />
             <remap from="cmd_vel" to="~cmd_vel"/>
         </node>
     </group>
