@@ -84,14 +84,14 @@
             mesh_filename
             *dynamics
             *conversion">
-    <joint name="${namespace}/thruster_${thruster_id}_joint" type="continuous">
+    <joint name="thruster_${thruster_id}_joint" type="continuous">
       <xacro:insert_block name="origin"/>
       <axis xyz="1 0 0"/>
-      <parent link="${namespace}/base_link"/>
-      <child link="${namespace}/thruster_${thruster_id}"/>
+      <parent link="base_link"/>
+      <child link="thruster_${thruster_id}"/>
     </joint>
 
-    <link name="${namespace}/thruster_${thruster_id}">
+    <link name="thruster_${thruster_id}">
       <xacro:box_inertial x="0.1" y="0.1" z="0.1" mass="0.3">
         <origin xyz="0 0 0" rpy="0 0 0"/>
       </xacro:box_inertial>
@@ -113,8 +113,8 @@
 
     <gazebo>
       <plugin name="${namespace}_${thruster_id}_thruster_model" filename="libthruster_ros_plugin.so">
-        <linkName>${namespace}/thruster_${thruster_id}</linkName>
-        <jointName>${namespace}/thruster_${thruster_id}_joint</jointName>
+        <linkName>thruster_${thruster_id}</linkName>
+        <jointName>thruster_${thruster_id}_joint</jointName>
         <thrusterID>${thruster_id}</thrusterID>
         <xacro:insert_block name="dynamics"/>
         <xacro:insert_block name="conversion"/>
@@ -122,7 +122,7 @@
     </gazebo>
 	
    <!-- Choose thruster color -->
-    <gazebo reference="${namespace}/thruster_${thruster_id}">
+    <gazebo reference="thruster_${thruster_id}">
       <selfCollide>false</selfCollide>
     <material>Gazebo/Red</material>
     </gazebo>

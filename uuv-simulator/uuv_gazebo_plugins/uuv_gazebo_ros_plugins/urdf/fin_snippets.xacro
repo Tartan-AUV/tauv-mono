@@ -21,15 +21,15 @@
             cda_stall
             current_velocity_topic">
 
-    <joint name="${namespace}/fin${fin_id}_joint" type="revolute">
+    <joint name="fin${fin_id}_joint" type="revolute">
         <limit effort="0" lower="${min_joint_limit}" upper="${max_joint_limit}" velocity="0"/>
         <xacro:insert_block name="origin"/>
         <axis xyz="0 0 1"/>
         <parent link="${parent_link}" />
-        <child link="${namespace}/fin${fin_id}" />
+        <child link="fin${fin_id}" />
     </joint>
 
-    <link name="${namespace}/fin${fin_id}">
+    <link name="fin${fin_id}">
       <xacro:no_inertial />
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -60,8 +60,8 @@
 
         <current_velocity_topic>${current_velocity_topic}</current_velocity_topic>
         <fin_id>${fin_id}</fin_id>
-        <link_name>${namespace}/fin${fin_id}</link_name>
-        <joint_name>${namespace}/fin${fin_id}_joint</joint_name>
+        <link_name>fin${fin_id}</link_name>
+        <joint_name>fin${fin_id}_joint</joint_name>
       </plugin>
     </gazebo>
   </xacro:macro>
@@ -80,15 +80,15 @@
             drag_constant
             current_velocity_topic">
 
-    <joint name="${namespace}/fin${fin_id}_joint" type="revolute">
+    <joint name="fin${fin_id}_joint" type="revolute">
         <limit effort="0" lower="${min_joint_limit}" upper="${max_joint_limit}" velocity="0"/>
         <xacro:insert_block name="origin"/>
         <axis xyz="0 0 1"/>
         <parent link="${parent_link}" />
-        <child link="${namespace}/fin${fin_id}" />
+        <child link="fin${fin_id}" />
     </joint>
 
-    <link name="${namespace}/fin${fin_id}">
+    <link name="fin${fin_id}">
       <xacro:no_inertial />
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -113,8 +113,8 @@
 
         <current_velocity_topic>${current_velocity_topic}</current_velocity_topic>
         <fin_id>${fin_id}</fin_id>
-        <link_name>${namespace}/fin${fin_id}</link_name>
-        <joint_name>${namespace}/fin${fin_id}_joint</joint_name>
+        <link_name>fin${fin_id}</link_name>
+        <joint_name>fin${fin_id}_joint</joint_name>
       </plugin>
     </gazebo>
   </xacro:macro>

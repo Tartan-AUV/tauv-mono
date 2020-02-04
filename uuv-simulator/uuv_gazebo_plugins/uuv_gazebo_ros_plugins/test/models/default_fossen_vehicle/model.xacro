@@ -16,7 +16,7 @@
 -->
 
 <robot name="rexrov" xmlns:xacro="http://www.ros.org/wiki/xacro" >
-  <link name="vehicle/base_link">
+  <link name="base_link">
     <inertial>
       <mass value="10"/>
       <origin xyz="0 0 0"/>
@@ -30,7 +30,7 @@
       <flow_velocity_topic>hydrodynamics/current_velocity</flow_velocity_topic>
       <debug>0</debug>
 
-      <link name="vehicle/base_link">
+      <link name="base_link">
           <neutrally_buoyant>0</neutrally_buoyant>
           <volume>1.0</volume>
           <box>
