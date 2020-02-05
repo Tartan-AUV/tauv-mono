@@ -13,7 +13,6 @@ from scipy.spatial import transform as stf
 SOURCE_JOY = CascadedPidSelection.JOY
 SOURCE_CONTROLLER = CascadedPidSelection.CONTROLLER
 
-
 def parse(str):
     if str == "controller":
         return SOURCE_CONTROLLER
@@ -73,7 +72,7 @@ class PidControlWrapper:
                                             callback_args=SOURCE_JOY)
         self.sub_joy_acc = rospy.Subscriber("joy_cmd_acc", Accel, self.callback_cmd_acc,
                                             callback_args=SOURCE_JOY)
-        self.sub_control_pos = rospy.Subscriber("controller_cmd_pos", Pose, self.callback_cmd_pos,
+        self.sub_control_pos = rospy.Subscriber("guidance_cmd_pos", Pose, self.callback_cmd_pos,
                                                 callback_args=SOURCE_CONTROLLER)
         self.sub_control_vel = rospy.Subscriber("controller_cmd_vel", Twist, self.callback_cmd_vel,
                                                 callback_args=SOURCE_CONTROLLER)

@@ -1,0 +1,49 @@
+<launch>
+    <!-- This launchfile launches the full Guidance, Navigation, and Control system. -->
+    <!-- This includes the cascaded pid controller, teleop node, and (TODO) the trajectory planner. -->
+
+    <!-- Name of the robot model  -->
+    <arg name="model_name" default="albatross"/>
+    <!-- path to config package  -->
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+    <!-- force topic (for the thruster manager) to publish to -->
+    <arg name="force_topic" default="cmd_force"/>
+
+    <!-- Load controller params: -->
+    <rosparam file="$(arg config_pkg)/control_params/inertial.yaml" command="load"/>
+    <rosparam file="$(arg config_pkg)/control_params/vel_pid_control.yaml" command="load"/>
+    <rosparam file="$(arg config_pkg)/control_params/pos_pid_control.yaml" command="load"/>
+    <rosparam file="$(arg config_pkg)/control_params/default_config.yaml" command="load"/>
+
+    <!-- Launch controllers -->
+    <node pkg="tauv_common" type="acceleration_controller" name="acceleration_controller"
+          output="screen">
+        <remap from="cmd_force" to="$(arg force_topic)"/>
+    </node>
+    <node pkg="tauv_common" type="velocity_controller" name="velocity_controller"
+          output="screen">
+        <remap from="cmd_accel" to="controller_cmd_acc"/>
+    </node>
+    <node pkg="tauv_common" type="position_controller" name="position_controller"
+          output="screen">
+        <remap from="cmd_vel" to="controller_cmd_vel"/>
+    </node>
+
+    <!-- Launch controller wrapper -->
+    <node pkg="tauv_common" type="pid_control_wrapper" name="pid_control_wrapper">
+        <remap from="joy_cmd_acc" to="teleop/cmd_acc"/>
+        <remap from="joy_cmd_vel" to="teleop/cmd_vel"/>
+        <remap from="joy_cmd_pos" to="teleop/cmd_pos"/>
+    </node>
+
+    <!-- Load USB joystick controller configs -->
+    <rosparam file="$(arg config_pkg)/joy.yaml" command="load"/>
+
+    <!-- Start Teleop node -->
+    <node pkg="tauv_common" type="teleop" name="teleop" output="screen">
+        <remap from="cmd_acc" to="teleop/cmd_acc"/>
+        <remap from="cmd_vel" to="teleop/cmd_vel"/>
+        <remap from="cmd_pos" to="teleop/cmd_pos"/>
+    </node>
+
+</launch>

@@ -3,10 +3,11 @@
 # Intended to be used as inputs to the pid_control_wrapper
 # Usually you would only use a combination of the pose, twist, and accel outputs
 # since they are separate results that represent different things.
+# TODO: Send arm/disarm commands from the controller
 
 import rospy
 
-from geometry_msgs.msg import Pose, Twist, Accel, Vector3, Point, Quaternion
+from geometry_msgs.msg import Pose, PoseStamped Twist, Accel, Vector3, Point, Quaternion
 from sensor_msgs.msg import Joy
 import tf
 from scipy.spatial import transform as stf
@@ -17,25 +18,25 @@ def build_cmd(joy, name):
     linear = Vector3(0, 0, 0)
     angular = Vector3(0, 0, 0)
 
-    linear.x = rospy.get_param("~{}/linear_x/scale".format(name)) * \
-               joy.axes[rospy.get_param("~{}/linear_x/axis".format(name))]
+    linear.x = rospy.get_param("~{}/axes/linear_x/scale".format(name)) * \
+               joy.axes[rospy.get_param("~{}/axes/linear_x/axis".format(name))]
 
-    linear.y = rospy.get_param("~{}/linear_y/scale".format(name)) * \
-               joy.axes[rospy.get_param("~{}/linear_y/axis".format(name))]
+    linear.y = rospy.get_param("~{}/axes/linear_y/scale".format(name)) * \
+               joy.axes[rospy.get_param("~{}/axes/linear_y/axis".format(name))]
 
-    linear.z = rospy.get_param("~{}/linear_z_up/scale".format(name)) * \
-               joy.axes[rospy.get_param("~{}/linear_z_up/axis".format(name))] \
-               - rospy.get_param("~{}/linear_z_down/scale".format(name)) * \
-               joy.axes[rospy.get_param("~{}/linear_z_down/axis".format(name))]
+    linear.z = rospy.get_param("~{}/axes/linear_z_down/scale".format(name)) * \
+               joy.axes[rospy.get_param("~{}/axes/linear_z_down/axis".format(name))] \
+               - rospy.get_param("~{}/axes/linear_z_up/scale".format(name)) * \
+               joy.axes[rospy.get_param("~{}/axes/linear_z_up/axis".format(name))]
 
-    angular.x = rospy.get_param("~{}/angular_x/scale".format(name)) * \
-                joy.axes[rospy.get_param("~{}/angular_x/axis".format(name))]
+    angular.x = rospy.get_param("~{}/axes/angular_x/scale".format(name)) * \
+                joy.axes[rospy.get_param("~{}/axes/angular_x/axis".format(name))]
 
-    angular.y = rospy.get_param("~{}/angular_y/scale".format(name)) * \
-                joy.axes[rospy.get_param("~{}/angular_y/axis".format(name))]
+    angular.y = rospy.get_param("~{}/axes/angular_y/scale".format(name)) * \
+                joy.axes[rospy.get_param("~{}/axes/angular_y/axis".format(name))]
 
-    angular.z = rospy.get_param("~{}/angular_z/scale".format(name)) * \
-                joy.axes[rospy.get_param("~{}/angular_z/axis".format(name))]
+    angular.z = rospy.get_param("~{}/axes/angular_z/scale".format(name)) * \
+                joy.axes[rospy.get_param("~{}/axes/angular_z/axis".format(name))]
 
     return linear, angular
 
@@ -53,7 +54,7 @@ class Teleop:
 
         self.tfl = tf.TransformListener()
         self.transformer = tf.Transformer()
-        print("prefix: {}".format(self.transformer.getTFPrefix()))
+
         self.body = 'base_link'
         self.odom = 'odom'
 
@@ -65,11 +66,14 @@ class Teleop:
     def form_pose_message(self, linear, angular):
         # TODO: Support xy position and more depth/orientation modes
         # Depth is integrated, as is heading. Orientation and xy position are absolute.
-        res = Pose()
+
+        res = PoseStamped()
+        res.header.stamp = rospy.Time.now()
+        res.header.frame_id = self.odom
         depth = self.pos[2]
-        res.position.z = depth + self.dt * linear.z
-        res.position.x = linear.x
-        res.position.y = linear.y
+        res.pose.position.z = depth + self.dt * linear.z
+        res.pose.position.x = linear.x
+        res.pose.position.y = linear.y
 
         R = stf.Rotation.from_quat(self.orientation)
         ZYX = R.as_euler("ZYX")

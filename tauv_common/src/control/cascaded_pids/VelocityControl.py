@@ -102,13 +102,10 @@ class VelocityControllerNode:
         return config
 
 
-if __name__ == '__main__':
+
+def main():
     print('starting VelocityControl.py')
     rospy.init_node('velocity_control')
-
-    try:
-        node = VelocityControllerNode()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
+    node = VelocityControllerNode()
+    rospy.spin()
     print('exiting')

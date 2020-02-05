@@ -36,5 +36,6 @@
   <exec_depend>multimaster_fkie</exec_depend>
 
   <depend>pynput-pip</depend>
+  <depend>dynamic_reconfigure</depend>
 
 </package>

@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
+  <!--TODO: Add machine tags to force vehicle machine based on vehicle name-->
+
   <!-- =======================  -->
   <!--        Arguments         -->
   <!-- =======================  -->
@@ -52,8 +54,8 @@
   </group>
 
   <group if="$(arg use_gt)">
-    <node pkg="tf" type="static_transform_publisher" name="gt_to_odom" args="0 0 0 0 0 0 1 world_gt $(arg model_name)/odom 100" />
-    <node pkg="tf" type="static_transform_publisher" name="gt_to_map" args="0 0 0 0 0 0 1 world_gt $(arg model_name)/map 100" />
+    <node pkg="tf" type="static_transform_publisher" name="gt_to_odom" args="0 0 0 0 0 0 1 world_gt odom 100" />
+    <node pkg="tf" type="static_transform_publisher" name="gt_to_world" args="0 0 0 0 0 0 1 world_gt world 100" />
   </group>
   <!-- =======================  -->
   <!-- Launch abstract systems  -->
@@ -81,11 +83,8 @@
     <arg name="config_pkg" default="$(arg config_pkg)"/>
   </include>
 
-  <!-- Launch vehicle controllers: -->
-  <include file="$(find tauv_common)/launch/control/cascaded_pids/cascaded_pids.launch">
-    <arg name="model_name" default="$(arg model_name)"/>
-    <arg name="config_pkg" default="$(arg config_pkg)"/>
-  </include>
+  <!-- Start the GNC system: -->
+  <include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>
 
 
 </launch>

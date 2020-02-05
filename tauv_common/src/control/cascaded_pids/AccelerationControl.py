@@ -110,13 +110,10 @@ class AccelerationControllerNode:
 
         self.pub_gen_force.publish(force_msg)
 
-if __name__ == '__main__':
+
+def main():
     print('starting AccelerationControl.py')
     rospy.init_node('acceleration_control')
-
-    try:
-        node = AccelerationControllerNode()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
+    node = AccelerationControllerNode()
+    rospy.spin()
     print('exiting')

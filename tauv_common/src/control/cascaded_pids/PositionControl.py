@@ -114,13 +114,10 @@ class PositionControllerNode:
         return config
 
 
-if __name__ == '__main__':
+
+def main():
     print('starting PositionControl.py')
     rospy.init_node('position_control')
-
-    try:
-        node = PositionControllerNode()
-        rospy.spin()
-    except rospy.ROSInterruptException:
-        print('caught exception')
+    node = PositionControllerNode()
+    rospy.spin()
     print('exiting')
