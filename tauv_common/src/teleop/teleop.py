@@ -7,7 +7,7 @@
 
 import rospy
 
-from geometry_msgs.msg import Pose, PoseStamped Twist, Accel, Vector3, Point, Quaternion
+from geometry_msgs.msg import Pose, PoseStamped, Twist, Accel, Vector3, Point, Quaternion
 from sensor_msgs.msg import Joy
 import tf
 from scipy.spatial import transform as stf
@@ -43,9 +43,9 @@ def build_cmd(joy, name):
 
 class Teleop:
     def __init__(self):
-        self.pub_cmd_pos = rospy.Publisher(rospy.get_param("~position/topic"), Pose, queue_size=10)
-        self.pub_cmd_vel = rospy.Publisher(rospy.get_param("~velocity/topic"), Twist, queue_size=10)
-        self.pub_cmd_acc = rospy.Publisher(rospy.get_param("~acceleration/topic"), Accel, queue_size=10)
+        self.pub_cmd_pos = rospy.Publisher("cmd_pos", PoseStamped, queue_size=10)
+        self.pub_cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
+        self.pub_cmd_acc = rospy.Publisher("cmd_pos", Accel, queue_size=10)
 
         self.dt = 0.02
         self.pos = (0, 0, 0)
@@ -87,7 +87,7 @@ class Teleop:
             ZYX[0] += 2 * math.pi
 
         quat = stf.Rotation.from_euler("ZYX", ZYX).as_quat()
-        res.orientation = Quaternion(quat[0], quat[1], quat[2], quat[3])
+        res.pose.orientation = Quaternion(quat[0], quat[1], quat[2], quat[3])
 
         return res
 

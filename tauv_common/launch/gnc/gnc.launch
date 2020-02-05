@@ -30,7 +30,7 @@
     </node>
 
     <!-- Launch controller wrapper -->
-    <node pkg="tauv_common" type="pid_control_wrapper" name="pid_control_wrapper">
+    <node pkg="tauv_common" type="pid_control_wrapper" name="pid_control_wrapper" output="screen">
         <remap from="joy_cmd_acc" to="teleop/cmd_acc"/>
         <remap from="joy_cmd_vel" to="teleop/cmd_vel"/>
         <remap from="joy_cmd_pos" to="teleop/cmd_pos"/>

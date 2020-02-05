@@ -6,7 +6,6 @@ teleop:
   joy_topic: "/gui/joy"
 
   acceleration:
-    topic: cmd_accel
     axes:
       linear_x:
         axis: 1
@@ -37,7 +36,6 @@ teleop:
         scale: 1.0
 
   velocity:
-    topic: cmd_vel
     axes:
       linear_x:
         axis: 1
@@ -68,7 +66,6 @@ teleop:
         scale: 1.0
 
   position:
-    topic: cmd_pose
     axes:
       linear_x:
         axis: 1
