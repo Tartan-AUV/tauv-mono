@@ -94,7 +94,7 @@ class Teleop:
         try:
             (self.pos, self.orientation) = self.tfl.lookupTransform(self.odom, self.body, rospy.Time(0))
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
-            # print("Failed to find transformation between frames: {}".format(e))
+            print("Failed to find transformation between frames {} and {}:\n {}".format(self.odom, self.body, e))
             return
 
         (pos_linear, pos_angular) = build_cmd(self.joy, "position")
