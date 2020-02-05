@@ -60,7 +60,7 @@ class PidControlWrapper:
         self.pub_cmd_acc = rospy.Publisher("cmd_accel", Accel, queue_size=10)
 
         # Declare status publisher:
-        self.pub_status = rospy.Publisher("status", CascadedPidSelection, queue_size=10)
+        self.pub_status = rospy.Publisher("controller_configuration", CascadedPidSelection, queue_size=10)
 
         # Declare reconfiguration service:
         self.srv_config = rospy.Service("configure_controller", SetCascadedPidSelection, self.configure)
@@ -109,7 +109,20 @@ class PidControlWrapper:
             self.load_default_config()
             return SetCascadedPidSelectionResponse(True)
 
-        # TODO: validate config
+        valid_options = [SOURCE_JOY, SOURCE_CONTROLLER]
+        if config.sel.pos_src_z not in valid_options or \
+                config.sel.pos_src_heading not in valid_options or \
+                config.sel.pos_src_attitude not in valid_options or \
+                config.sel.vel_src_xy not in valid_options or \
+                config.sel.vel_src_z not in valid_options or \
+                config.sel.vel_src_heading not in valid_options or \
+                config.sel.vel_src_attitude not in valid_options or \
+                config.sel.acc_src_xy not in valid_options or \
+                config.sel.acc_src_z not in valid_options or \
+                config.sel.acc_src_heading not in valid_options or \
+                config.sel.acc_src_attitude not in valid_options:
+            return SetCascadedPidSelectionResponse(False)
+
         self.selections = config.sel
         return SetCascadedPidSelectionResponse(True)
 
@@ -197,8 +210,8 @@ class PidControlWrapper:
             linear = self.control_acc.linear
 
         # Both linear are from joystick: use the body frame.
-        if self.selections.acc_src_xy == SOURCE_CONTROLLER and \
-                self.selections.acc_src_z == SOURCE_CONTROLLER:
+        if self.selections.acc_src_xy == SOURCE_JOY and \
+                self.selections.acc_src_z == SOURCE_JOY:
             if self.joy_acc is None:
                 return
             linear = self.joy_acc.linear
@@ -296,8 +309,8 @@ class PidControlWrapper:
             linear = self.control_vel.linear
 
         # Both linear are from joystick: use the body frame.
-        if self.selections.vel_src_xy == SOURCE_CONTROLLER and \
-                self.selections.vel_src_z == SOURCE_CONTROLLER:
+        if self.selections.vel_src_xy == SOURCE_JOY and \
+                self.selections.vel_src_z == SOURCE_JOY:
             if self.joy_vel is None:
                 return
             linear = self.joy_vel.linear

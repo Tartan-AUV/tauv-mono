@@ -7,43 +7,47 @@
     <!-- path to config package  -->
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
     <!-- force topic (for the thruster manager) to publish to -->
-    <arg name="force_topic" default="cmd_force"/>
+    <arg name="thruster_manager_topic" default="/$(arg model_name)/thruster_manager/input"/>
 
-    <!-- Load controller params: -->
-    <rosparam file="$(arg config_pkg)/control_params/inertial.yaml" command="load"/>
-    <rosparam file="$(arg config_pkg)/control_params/vel_pid_control.yaml" command="load"/>
-    <rosparam file="$(arg config_pkg)/control_params/pos_pid_control.yaml" command="load"/>
-    <rosparam file="$(arg config_pkg)/control_params/default_config.yaml" command="load"/>
+    <group ns="gnc">
+        <!-- Load controller params: -->
+        <rosparam file="$(arg config_pkg)/control_params/inertial.yaml" command="load"/>
+        <rosparam file="$(arg config_pkg)/control_params/vel_pid_control.yaml" command="load"/>
+        <rosparam file="$(arg config_pkg)/control_params/pos_pid_control.yaml" command="load"/>
+        <rosparam file="$(arg config_pkg)/control_params/default_config.yaml" command="load"/>
 
-    <!-- Launch controllers -->
-    <node pkg="tauv_common" type="acceleration_controller" name="acceleration_controller"
-          output="screen">
-        <remap from="cmd_force" to="$(arg force_topic)"/>
-    </node>
-    <node pkg="tauv_common" type="velocity_controller" name="velocity_controller"
-          output="screen">
-        <remap from="cmd_accel" to="controller_cmd_acc"/>
-    </node>
-    <node pkg="tauv_common" type="position_controller" name="position_controller"
-          output="screen">
-        <remap from="cmd_vel" to="controller_cmd_vel"/>
-    </node>
+        <!-- Launch controllers -->
+        <node pkg="tauv_common" type="acceleration_controller" name="acceleration_controller"
+              output="screen">
+            <remap from="thruster_manager/input" to="$(arg thruster_manager_topic)"/>
+        </node>
+        <node pkg="tauv_common" type="velocity_controller" name="velocity_controller"
+              output="screen">
+            <remap from="cmd_accel" to="controller_cmd_acc"/>
+        </node>
+        <node pkg="tauv_common" type="position_controller" name="position_controller"
+              output="screen">
+            <remap from="cmd_vel" to="controller_cmd_vel"/>
+        </node>
 
-    <!-- Launch controller wrapper -->
-    <node pkg="tauv_common" type="pid_control_wrapper" name="pid_control_wrapper" output="screen">
-        <remap from="joy_cmd_acc" to="teleop/cmd_acc"/>
-        <remap from="joy_cmd_vel" to="teleop/cmd_vel"/>
-        <remap from="joy_cmd_pos" to="teleop/cmd_pos"/>
-    </node>
+        <!-- Launch controller wrapper -->
+        <node pkg="tauv_common" type="pid_control_wrapper" name="pid_control_wrapper" output="screen">
+            <remap from="joy_cmd_acc" to="teleop/cmd_acc"/>
+            <remap from="joy_cmd_vel" to="teleop/cmd_vel"/>
+            <remap from="joy_cmd_pos" to="teleop/cmd_pos"/>
+        </node>
 
-    <!-- Load USB joystick controller configs -->
-    <rosparam file="$(arg config_pkg)/joy.yaml" command="load"/>
+        <!-- Load USB joystick controller configs -->
+        <rosparam file="$(arg config_pkg)/joy.yaml" command="load"/>
 
-    <!-- Start Teleop node -->
-    <node pkg="tauv_common" type="teleop" name="teleop" output="screen">
-        <remap from="cmd_acc" to="teleop/cmd_acc"/>
-        <remap from="cmd_vel" to="teleop/cmd_vel"/>
-        <remap from="cmd_pos" to="teleop/cmd_pos"/>
-    </node>
+        <!-- Start Teleop node -->
+        <node pkg="tauv_common" type="teleop" name="teleop" output="screen">
+            <remap from="cmd_acc" to="teleop/cmd_acc"/>
+            <remap from="cmd_vel" to="teleop/cmd_vel"/>
+            <remap from="cmd_pos" to="teleop/cmd_pos"/>
+        </node>
+    </group>
+
+
 
 </launch>

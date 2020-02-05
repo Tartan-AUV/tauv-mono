@@ -45,7 +45,7 @@ class Teleop:
     def __init__(self):
         self.pub_cmd_pos = rospy.Publisher("cmd_pos", PoseStamped, queue_size=10)
         self.pub_cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
-        self.pub_cmd_acc = rospy.Publisher("cmd_pos", Accel, queue_size=10)
+        self.pub_cmd_acc = rospy.Publisher("cmd_acc", Accel, queue_size=10)
 
         self.dt = 0.02
         self.pos = (0, 0, 0)
