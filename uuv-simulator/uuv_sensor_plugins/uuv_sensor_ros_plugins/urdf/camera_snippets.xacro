@@ -67,7 +67,7 @@
       hfov width height stddev scale
       *inertia *origin">
     <!-- Sensor link -->
-    <link name="${namespace}/camera${suffix}_link">
+    <link name="camera${suffix}_link">
       <inertial>
         <xacro:insert_block name="inertia" />
         <mass value="${mass}" />
@@ -81,15 +81,15 @@
       <xacro:no_collision/>
     </link>
 
-    <joint name="${namespace}/camera${suffix}_joint" type="revolute">
+    <joint name="camera${suffix}_joint" type="revolute">
       <xacro:insert_block name="origin" />
       <parent link="${parent_link}" />
-      <child link="${namespace}/camera${suffix}_link" />
+      <child link="camera${suffix}_link" />
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
 
-    <link name="${namespace}/camera${suffix}_link_optical">
+    <link name="camera${suffix}_link_optical">
       <xacro:box_inertial x="0.0001" y="0.0001" z="0.0001" mass="0.001">
         <origin xyz="0 0 0" rpy="0 0 0"/>
       </xacro:box_inertial>
@@ -108,15 +108,15 @@
       </visual>
     </link>
 
-    <joint name="${namespace}/camera${suffix}_optical_joint" type="revolute">
+    <joint name="camera${suffix}_optical_joint" type="revolute">
       <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
-      <parent link="${namespace}/camera${suffix}_link"/>
-      <child link="${namespace}/camera${suffix}_link_optical"/>
+      <parent link="camera${suffix}_link"/>
+      <child link="camera${suffix}_link_optical"/>
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
 
-    <gazebo reference="${namespace}/camera${suffix}_link">
+    <gazebo reference="camera${suffix}_link">
       <sensor type="camera" name="camera${suffix}">
         <update_rate>${update_rate}</update_rate>
         <camera name="camera${suffix}">
@@ -165,7 +165,7 @@
       hfov width height stddev
       *inertia *origin">
     <!-- Sensor link -->
-    <link name="${namespace}/camera${suffix}_link">
+    <link name="camera${suffix}_link">
       <inertial>
         <xacro:insert_block name="inertia" />
         <mass value="${mass}" />
@@ -179,15 +179,15 @@
       <xacro:no_collision/>
     </link>
 
-    <joint name="${namespace}/camera${suffix}_joint" type="revolute">
+    <joint name="camera${suffix}_joint" type="revolute">
       <xacro:insert_block name="origin" />
       <parent link="${parent_link}" />
-      <child link="${namespace}/camera${suffix}_link" />
+      <child link="camera${suffix}_link" />
       <axis xyz="1 0 0"/>
       <limit upper="0" lower="0" effort="0" velocity="0" />
     </joint>
 
-    <gazebo reference="${namespace}/camera${suffix}_link">
+    <gazebo reference="camera${suffix}_link">
       <sensor type="depth" name="camera${suffix}">
         <update_rate>${update_rate}</update_rate>
         <camera name="camera${suffix}">
@@ -210,7 +210,7 @@
         <plugin name="camera${suffix}_controller" filename="libuuv_gazebo_ros_camera_plugin.so">
           <updateRate>${update_rate}</updateRate>
           <cameraName>$camera${suffix}</cameraName>
-          <frameName>${namespace}/camera${suffix}_link</frameName>
+          <frameName>camera${suffix}_link</frameName>
 
           <attenuationR>0.01</attenuationR>
           <attenuationG>0.01</attenuationG>

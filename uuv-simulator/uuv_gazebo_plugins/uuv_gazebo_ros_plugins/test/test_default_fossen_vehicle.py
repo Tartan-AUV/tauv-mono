@@ -45,7 +45,7 @@ class TestDefaultFossenVehicle(unittest.TestCase):
 
         # Test the name of the link
         self.assertEqual(
-            models.link_names[0], 'vehicle/base_link',
+            models.link_names[0], 'base_link',
             'Link name is invalid, name=' + str(models.link_names[0]))
 
         # Test message types

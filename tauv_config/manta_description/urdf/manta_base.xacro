@@ -58,7 +58,7 @@
 
   <xacro:macro name="manta_base" params="namespace *gazebo inertial_reference_frame">
    <!-- Rigid body description of the base link -->
-    <link name="${namespace}/base_link">
+    <link name="base_link">
         <!--
           Be careful to setup the coefficients for the inertial tensor,
           otherwise your model will become unstable on Gazebo
@@ -96,7 +96,7 @@
 
   </link>
 
-    <gazebo reference="${namespace}/base_link">
+    <gazebo reference="base_link">
       <selfCollide>false</selfCollide>
     </gazebo>
 
