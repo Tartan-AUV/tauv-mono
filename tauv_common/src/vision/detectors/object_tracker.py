@@ -12,7 +12,7 @@ from PIL import Image
 # load weights and set defaults
 config_path='config/yolov3.cfg'
 weights_path='config/yolov3.weights'
-class_path='config/coco.names'
+class_path='config/robosub.names'
 img_size=416
 conf_thres=0.8
 nms_thres=0.4
