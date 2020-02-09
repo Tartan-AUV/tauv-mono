@@ -3,11 +3,13 @@ import cv2
 
 class TemplateMatching(Detector):
     def __init__(self, name, params, template):
+        super(Detector, self).__init__(name, params)
+        self.template = template
 
     def get_detection(self, image):
         img = src
         img2 = img.copy()
-        template = templ
+        template = self.template
         w, h = template.shape[::-1]
         methods = ['cv.TM_CCOEFF_NORMED']
         for meth in methods:
