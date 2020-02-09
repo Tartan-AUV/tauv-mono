@@ -7,7 +7,7 @@ add_custom_target(
   cppcheck
   COMMAND ${CPPCHECK}
   --enable=all
-  --std=c++11
+  --std=c++14
   --language=c++
   --library=std.cfg
   -i /opt/ros/kinetic/include

@@ -63,9 +63,17 @@ include(cmake/ros-node.cmake)
 include(cmake/cppcheck.cmake)
 include(cmake/clang-format.cmake)
 include(cmake/pylint.cmake)
+include(cmake/unit-test.cmake)
 
 # define nodes here
 # eg: add_subdirectory(src/imu_calibrator)
 add_subdirectory(src/constructors)
 add_subdirectory(src/motion)
+
+# Unit Tests
+# if(CATKIN_ENABLE_TESTING)
+#   find_package(rostest REQUIRED)
+#   add_subdirectory(tests/motion)
+# endif
+  add_subdirectory(tests/motion)
 

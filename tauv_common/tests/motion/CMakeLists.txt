@@ -1,0 +1,3 @@
+# ros_node_cpp_test(motion_utilities_tests motion_utilities_tests.test motion_utilities_tests.cpp)
+cpp_test(motion_utilities_tests motion_utilities_tests.cpp)
+

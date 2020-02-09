@@ -35,6 +35,9 @@
   <exec_depend>tauv_config</exec_depend>
   <exec_depend>message_filters</exec_depend>
   <exec_depend>multimaster_fkie</exec_depend>
+  <exec_depend>gtest</exec_depend>
+
+  <test_depend>rosunit</test_depend>
 
   <depend>pynput-pip</depend>
 
