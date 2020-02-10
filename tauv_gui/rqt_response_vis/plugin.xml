@@ -1,0 +1,18 @@
+<library path="src">
+    <class name="response_vis" type="response_vis.response_vis.ResponseVis" base_class_type="rqt_gui_py::Plugin">
+        <description>
+            Select and visualize USB joysticks.
+        </description>
+        <qtgui>
+            <group>
+              <label>Tartan AUV</label>
+                <icon type="theme">folder</icon>
+            </group>
+            <label>System Response Visualizer</label>
+            <!-- icons list: https://developer.gnome.org/icon-naming-spec/ -->
+            <!-- Look at /usr/share/icons or ~/.local/share/icons -->
+            <icon type="theme">utilities-system-monitor</icon>
+            <statustip>View system response</statustip>
+        </qtgui>
+    </class>
+</library>
