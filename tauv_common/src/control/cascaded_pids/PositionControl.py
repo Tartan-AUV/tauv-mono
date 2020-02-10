@@ -84,13 +84,6 @@ class PositionControllerNode:
         # Error quaternion wrt body frame
         e_rot_quat = trans.quaternion_multiply(trans.quaternion_conjugate(q), self.quat_des)
 
-        # if numpy.linalg.norm(e_pos_world[0:2]) > 5.0:
-        #     # special case if we are far away from goal:
-        #     # ignore desired heading, look towards goal position
-        #     heading = math.atan2(e_pos_world[1],e_pos_world[0])
-        #     quat_des = numpy.array([0, 0, math.sin(0.5*heading), math.cos(0.5*heading)])
-        #     e_rot_quat = trans.quaternion_multiply(trans.quaternion_conjugate(q), quat_des)
-
         # Error angles
         e_rot = numpy.array(trans.euler_from_quaternion(e_rot_quat))
 

@@ -5,6 +5,7 @@ import rospy
 from tauv_msgs.msg import CascadedPidSelection
 from tauv_msgs.srv import SetCascadedPidSelection, SetCascadedPidSelectionResponse
 from geometry_msgs.msg import Pose, PoseStamped, Twist, Accel, Vector3, Quaternion, Point
+from std_msgs.msg import Header
 
 import tf
 import numpy as np
@@ -12,6 +13,7 @@ from scipy.spatial import transform as stf
 
 SOURCE_JOY = CascadedPidSelection.JOY
 SOURCE_CONTROLLER = CascadedPidSelection.CONTROLLER
+
 
 def parse(str):
     if str == "controller":
@@ -28,6 +30,14 @@ def tl(vec3):
 
 def tv(vec):
     return Vector3(vec[0], vec[1], vec[2])
+
+
+def tp(vec):
+    return Point(vec[0], vec[1], vec[2])
+
+
+def tq(vec):
+    return Quaternion(vec[0], vec[1], vec[2], vec[3])
 
 
 class PidControlWrapper:
@@ -93,6 +103,7 @@ class PidControlWrapper:
         self.selections.enableBuoyancyComp = rospy.get_param("~enableBuoyancyComp")
         self.selections.enableVelocityFeedForward = rospy.get_param("~enableVelocityFeedForward")
         self.selections.pos_src_z = parse(rospy.get_param("~pos_src_z"))
+        self.selections.pos_src_xy = parse(rospy.get_param("~pos_src_xy"))
         self.selections.pos_src_heading = parse(rospy.get_param("~pos_src_heading"))
         self.selections.pos_src_attitude = parse(rospy.get_param("~pos_src_attitude"))
         self.selections.vel_src_xy = parse(rospy.get_param("~vel_src_xy"))
@@ -111,6 +122,7 @@ class PidControlWrapper:
 
         valid_options = [SOURCE_JOY, SOURCE_CONTROLLER]
         if config.sel.pos_src_z not in valid_options or \
+                config.sel.pos_src_xy not in valid_options or \
                 config.sel.pos_src_heading not in valid_options or \
                 config.sel.pos_src_attitude not in valid_options or \
                 config.sel.vel_src_xy not in valid_options or \
@@ -171,8 +183,8 @@ class PidControlWrapper:
             angular = self.joy_acc.angular
 
         # Attitude from joy, heading from controller.
-        if self.selections.acc_src_heading == SOURCE_JOY and \
-                self.selections.acc_src_attitude == SOURCE_CONTROLLER:
+        if self.selections.acc_src_heading == SOURCE_CONTROLLER and \
+                self.selections.acc_src_attitude == SOURCE_JOY:
             # Convert both inputs to stabilized (level) frame:
             if self.joy_acc is None or self.control_acc is None:
                 return
@@ -186,8 +198,8 @@ class PidControlWrapper:
             angular = tv(self.odom2body(joy_stab))
 
         # Attitude from controller, heading from joystick.
-        if self.selections.acc_src_heading == SOURCE_CONTROLLER and \
-                self.selections.acc_src_attitude == SOURCE_JOY:
+        if self.selections.acc_src_heading == SOURCE_JOY and \
+                self.selections.acc_src_attitude == SOURCE_CONTROLLER:
             if self.joy_acc is None or self.control_acc is None:
                 return
             # Convert control input to odom frame:
@@ -196,7 +208,7 @@ class PidControlWrapper:
             # Replace heading (z axis accel) with joystick z axis accel.
             # Note that this assumes joystick heading accel is in the odom frame.
             control_stab[2] = self.joy_acc.angular.z
-            angular = tv(self.odom2body(angular))
+            angular = tv(self.odom2body(control_stab))
 
         # LINEAR ACCELERATION:
 
@@ -270,8 +282,8 @@ class PidControlWrapper:
             angular = self.joy_vel.angular
 
         # Attitude from joy, heading from controller.
-        if self.selections.vel_src_heading == SOURCE_JOY and \
-                self.selections.vel_src_attitude == SOURCE_CONTROLLER:
+        if self.selections.vel_src_heading == SOURCE_CONTROLLER and \
+                self.selections.vel_src_attitude == SOURCE_JOY:
             # Convert both inputs to stabilized (level) frame:
             if self.joy_vel is None or self.control_vel is None:
                 return
@@ -285,8 +297,8 @@ class PidControlWrapper:
             angular = tv(self.odom2body(joy_stab))
 
         # Attitude from controller, heading from joystick.
-        if self.selections.vel_src_heading == SOURCE_CONTROLLER and \
-                self.selections.vel_src_attitude == SOURCE_JOY:
+        if self.selections.vel_src_heading == SOURCE_JOY and \
+                self.selections.vel_src_attitude == SOURCE_CONTROLLER:
             if self.joy_vel is None or self.control_vel is None:
                 return
             # Convert control input to odom frame:
@@ -295,7 +307,7 @@ class PidControlWrapper:
             # Replace heading (z axis velocities) with joystick z axis velocities.
             # Note that this assumes joystick heading velocities is in the odom frame.
             control_stab[2] = self.joy_vel.angular.z
-            angular = tv(self.odom2body(angular))
+            angular = tv(self.odom2body(control_stab))
 
         # LINEAR VELOCITY:
 
@@ -350,101 +362,88 @@ class PidControlWrapper:
 
     def calculate_pos(self):
         # Orientation:
-        # orientation = Quaternion(0,0,0,1)
-        #
-        # # Both orientation are from controller: Pass quaternion through.
-        # if self.selections.pos_src_attitude == SOURCE_CONTROLLER and \
-        #         self.selections.pos_src_heading == SOURCE_CONTROLLER:
-        #     if self.control_vel is None:
-        #         return
-        #     orientation = self.control_pos.pose.orientation
-        #
-        # # Both orientation are from joystick: Pass quaternion through.
-        # if self.selections.pos_src_attitude == SOURCE_JOY and \
-        #         self.selections.pos_src_heading == SOURCE_JOY:
-        #     if self.joy_vel is None:
-        #         return
-        #     orientation = self.joy_pos.pose.orientation
-        #
-        # # Attitude from joy, heading from controller.
-        # if self.selections.vel_src_heading == SOURCE_JOY and \
-        #         self.selections.vel_src_attitude == SOURCE_CONTROLLER:
-        #     # Convert both inputs to stabilized (level) frame:
-        #     if self.joy_vel is None or self.control_vel is None:
-        #         return
-        #     control_stab = self.body2odom(self.control_vel.angular)
-        #     joy_stab = self.body2odom(self.joy_vel.angular)
-        #
-        #     # Replace heading (z axis) in the joystick input with the heading from the controller
-        #     # Note that this assumes joystick attitude is in the body frame
-        #     joy_stab[2] = control_stab[2]
-        #
-        #     angular = tv(self.odom2body(joy_stab))
-        #
-        # # Attitude from controller, heading from joystick.
-        # if self.selections.vel_src_heading == SOURCE_CONTROLLER and \
-        #         self.selections.vel_src_attitude == SOURCE_JOY:
-        #     if self.joy_vel is None or self.control_vel is None:
-        #         return
-        #     # Convert control input to odom frame:
-        #     control_stab = self.body2odom(self.control_vel.angular)
-        #
-        #     # Replace heading (z axis velocities) with joystick z axis velocities.
-        #     # Note that this assumes joystick heading velocities is in the odom frame.
-        #     control_stab[2] = self.joy_vel.angular.z
-        #     angular = tv(self.odom2body(angular))
-        #
-        # # LINEAR VELOCITY:
-        #
-        # linear = Vector3(0, 0, 0)
-        #
-        # # Both linear are from controller: use the body frame.
-        # if self.selections.vel_src_xy == SOURCE_CONTROLLER and \
-        #         self.selections.vel_src_z == SOURCE_CONTROLLER:
-        #     if self.control_vel is None:
-        #         return
-        #     linear = self.control_vel.linear
-        #
-        # # Both linear are from joystick: use the body frame.
-        # if self.selections.vel_src_xy == SOURCE_CONTROLLER and \
-        #         self.selections.vel_src_z == SOURCE_CONTROLLER:
-        #     if self.joy_vel is None:
-        #         return
-        #     linear = self.joy_vel.linear
-        #
-        # # xy from joystick, depth from controller
-        # if self.selections.vel_src_xy == SOURCE_JOY and \
-        #         self.selections.vel_src_z == SOURCE_CONTROLLER:
-        #     if self.joy_vel is None or self.control_vel is None:
-        #         return
-        #     # Convert both velocity to stab frame:
-        #     control_stab = self.body2odom(self.control_vel.linear)
-        #     joy_stab = self.body2odom(self.joy_vel.linear)
-        #
-        #     # Overwrite joystick depth with controller depth:
-        #     joy_stab[2] = control_stab[2]
-        #
-        #     linear = tv(self.odom2body(joy_stab))
-        #
-        # # xy from controller, depth from joystick
-        # if self.selections.vel_src_xy == SOURCE_CONTROLLER and \
-        #         self.selections.vel_src_z == SOURCE_JOY:
-        #     if self.joy_vel is None or self.control_vel is None:
-        #         return
-        #     # Convert both velocities to stab frame:
-        #     control_stab = self.body2odom(self.control_vel.linear)
-        #     joy_stab = self.body2odom(self.joy_vel.linear)
-        #
-        #     # Overwrite controller depth with joystick depth:
-        #     control_stab[2] = joy_stab[2]
-        #
-        #     linear = tv(self.odom2body(control_stab))
-        #
-        # res = Twist()
-        # res.angular = angular
-        # res.linear = linear
-        # return res
-        return PoseStamped()
+        orientation = Quaternion(0, 0, 0, 1)
+
+        # Both orientation are from controller: Pass quaternion through.
+        if self.selections.pos_src_attitude == SOURCE_CONTROLLER and \
+                self.selections.pos_src_heading == SOURCE_CONTROLLER:
+            if self.control_pos is None:
+                return
+            orientation = self.control_pos.pose.orientation
+
+        # Both orientation are from joystick: Pass quaternion through.
+        if self.selections.pos_src_attitude == SOURCE_JOY and \
+                self.selections.pos_src_heading == SOURCE_JOY:
+            if self.joy_pos is None:
+                return
+            orientation = self.joy_pos.pose.orientation
+
+        # Attitude from controller, heading from joystick.
+        if self.selections.pos_src_attitude == SOURCE_CONTROLLER and \
+                self.selections.pos_src_heading == SOURCE_JOY:
+            if self.joy_pos is None or self.control_pos is None:
+                return
+            o_j = self.joy_pos.pose.orientation
+            o_c = self.control_pos.pose.orientation
+            zyx_j = stf.Rotation.from_quat(o_j).as_euler("ZYX")
+            zyx_c = stf.Rotation.from_quat(o_c).as_euler("ZYX")
+
+            zyx_res = [zyx_j[0], zyx_c[1], zyx_c[2]]
+            orientation = tq(stf.Rotation.from_euler("ZYX", zyx_res).as_quat())
+
+        # Attitude from joystick, heading from controller.
+        if self.selections.pos_src_attitude == SOURCE_JOY and \
+                self.selections.pos_src_heading == SOURCE_CONTROLLER:
+            if self.joy_pos is None or self.control_pos is None:
+                return
+            o_j = self.joy_pos.pose.orientation
+            o_c = self.control_pos.pose.orientation
+            zyx_j = stf.Rotation.from_quat(o_j).as_euler("ZYX")
+            zyx_c = stf.Rotation.from_quat(o_c).as_euler("ZYX")
+
+            zyx_res = [zyx_c[0], zyx_j[1], zyx_j[2]]
+            orientation = tq(stf.Rotation.from_euler("ZYX", zyx_res).as_quat())
+
+        position = Point(0, 0, 0)
+
+        # XY and Z position from controller
+        if self.selections.pos_src_z == SOURCE_CONTROLLER and \
+                self.selections.pos_src_xy == SOURCE_CONTROLLER:
+            if self.control_pos is None:
+                return
+            position = self.control_pos.pose.position
+
+        # XY and Z position from joystick
+        if self.selections.pos_src_z == SOURCE_JOY and \
+                self.selections.pos_src_xy == SOURCE_JOY:
+            if self.joy_pos is None:
+                print("fuck")
+                return
+            position = self.joy_pos.pose.position
+
+        # XY from controller, Z from joystick
+        if self.selections.pos_src_z == SOURCE_JOY and \
+                self.selections.pos_src_xy == SOURCE_CONTROLLER:
+            if self.joy_pos is None or self.control_pos is None:
+                return
+            p_j = tv(self.joy_pos.pose.position)
+            p_c = tv(self.control_pos.pose.position)
+            position = tp([p_c[0], p_c[1], p_j[2]])
+
+        # XY from joy, Z from controller
+        if self.selections.pos_src_z == SOURCE_CONTROLLER and \
+                self.selections.pos_src_xy == SOURCE_JOY:
+            if self.joy_pos is None or self.control_pos is None:
+                return
+            p_j = tv(self.joy_pos.pose.position)
+            p_c = tv(self.control_pos.pose.position)
+            position = tp([p_j[0], p_j[1], p_c[2]])
+
+        pose = Pose(position, orientation)
+        header = Header()
+        header.stamp = rospy.Time.now()
+        header.frame_id = "odom"
+        return PoseStamped(header, pose)
 
     def update(self):
 
@@ -459,7 +458,7 @@ class PidControlWrapper:
         # Calculate and publish commands:
         cmd_pos = self.calculate_pos()
         if cmd_pos is not None:
-            self.pub_cmd_pos.publish()
+            self.pub_cmd_pos.publish(cmd_pos)
 
         cmd_vel = self.calculate_vel()
         if cmd_vel is not None:

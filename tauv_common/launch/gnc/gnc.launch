@@ -8,6 +8,8 @@
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
     <!-- force topic (for the thruster manager) to publish to -->
     <arg name="thruster_manager_topic" default="/$(arg model_name)/thruster_manager/input"/>
+    <!-- odom topic to listen on -->
+    <arg name="odom_topic" default="odom"/>
 
     <group ns="gnc">
         <!-- Load controller params: -->
@@ -23,11 +25,13 @@
         </node>
         <node pkg="tauv_common" type="velocity_controller" name="velocity_controller"
               output="screen">
-            <remap from="cmd_accel" to="controller_cmd_acc"/>
+            <remap from="cmd_accel" to="controller/cmd_acc"/>
+            <remap from="odom" to="$(arg odom_topic)"/>
         </node>
         <node pkg="tauv_common" type="position_controller" name="position_controller"
               output="screen">
-            <remap from="cmd_vel" to="controller_cmd_vel"/>
+            <remap from="cmd_vel" to="controller/cmd_vel"/>
+            <remap from="odom" to="$(arg odom_topic)"/>
         </node>
 
         <!-- Launch controller wrapper -->
@@ -35,6 +39,8 @@
             <remap from="joy_cmd_acc" to="teleop/cmd_acc"/>
             <remap from="joy_cmd_vel" to="teleop/cmd_vel"/>
             <remap from="joy_cmd_pos" to="teleop/cmd_pos"/>
+            <remap from="controller_cmd_acc" to="controller/cmd_acc"/>
+            <remap from="controller_cmd_vel" to="controller/cmd_vel"/>
         </node>
 
         <!-- Load USB joystick controller configs -->

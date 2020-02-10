@@ -4,6 +4,7 @@ uint8 JOY=2
 bool enableBuoyancyComp
 bool enableVelocityFeedForward
 
+uint8 pos_src_xy
 uint8 pos_src_z
 uint8 pos_src_heading
 uint8 pos_src_attitude
