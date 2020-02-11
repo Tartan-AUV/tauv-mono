@@ -47,75 +47,6 @@ from rqt_py_common import topic_helpers
 from . rosplot import ROSData, RosPlotException
 
 
-def get_plot_fields(topic_name):
-    topic_type, real_topic, _ = topic_helpers.get_topic_type(topic_name)
-    if topic_type is None:
-        message = "topic %s does not exist" % (topic_name)
-        return [], message
-    field_name = topic_name[len(real_topic) + 1:]
-
-    slot_type, is_array, array_size = roslib.msgs.parse_type(topic_type)
-    field_class = roslib.message.get_message_class(slot_type)
-    if field_class is None:
-        message = "type of topic %s is unknown" % (topic_name)
-        return [], message
-
-    fields = [f for f in field_name.split('/') if f]
-
-    for field in fields:
-        # parse the field name for an array index
-        try:
-            field, _, field_index = roslib.msgs.parse_type(field)
-        except roslib.msgs.MsgSpecException:
-            message = "invalid field %s in topic %s" % (field, real_topic)
-            return [], message
-
-        if field not in getattr(field_class, '__slots__', []):
-            message = "no field %s in topic %s" % (field_name, real_topic)
-            return [], message
-        slot_type = field_class._slot_types[field_class.__slots__.index(field)]
-        slot_type, slot_is_array, array_size = roslib.msgs.parse_type(slot_type)
-        is_array = slot_is_array and field_index is None
-
-        field_class = topic_helpers.get_type_class(slot_type)
-
-    if field_class in (int, float, bool):
-        topic_kind = 'boolean' if field_class == bool else 'numeric'
-        if is_array:
-            if array_size is not None:
-                message = "topic %s is fixed-size %s array" % (topic_name, topic_kind)
-                return ["%s[%d]" % (topic_name, i) for i in range(array_size)], message
-            else:
-                message = "topic %s is variable-size %s array" % (topic_name, topic_kind)
-                return [], message
-        else:
-            message = "topic %s is %s" % (topic_name, topic_kind)
-            return [topic_name], message
-    else:
-        if not roslib.msgs.is_valid_constant_type(slot_type):
-            numeric_fields = []
-            for i, slot in enumerate(field_class.__slots__):
-                slot_type = field_class._slot_types[i]
-                slot_type, is_array, array_size = roslib.msgs.parse_type(slot_type)
-                slot_class = topic_helpers.get_type_class(slot_type)
-                if slot_class in (int, float) and not is_array:
-                    numeric_fields.append(slot)
-            message = ""
-            if len(numeric_fields) > 0:
-                message = "%d plottable fields in %s" % (len(numeric_fields), topic_name)
-            else:
-                message = "No plottable fields in %s" % (topic_name)
-            return ["%s/%s" % (topic_name, f) for f in numeric_fields], message
-        else:
-            message = "Topic %s is not numeric" % (topic_name)
-            return [], message
-
-
-def is_plottable(topic_name):
-    fields, message = get_plot_fields(topic_name)
-    return len(fields) > 0, message
-
-
 class PlotWidget(QWidget):
     _redraw_interval = 40
 
@@ -174,60 +105,7 @@ class PlotWidget(QWidget):
                 data_x, data_y = rosdata.next()
                 self.data_plot.add_curve(topic_name, topic_name, data_x, data_y)
 
-        self._subscribed_topics_changed()
-
-    @Slot('QDragEnterEvent*')
-    def dragEnterEvent(self, event):
-        # get topic name
-        if not event.mimeData().hasText():
-            if not hasattr(event.source(), 'selectedItems') or \
-                    len(event.source().selectedItems()) == 0:
-                qWarning(
-                    'Plot.dragEnterEvent(): not hasattr(event.source(), selectedItems) or '
-                    'len(event.source().selectedItems()) == 0')
-                return
-            item = event.source().selectedItems()[0]
-            topic_name = item.data(0, Qt.UserRole)
-            if topic_name == None:
-                qWarning('Plot.dragEnterEvent(): not hasattr(item, ros_topic_name_)')
-                return
-        else:
-            topic_name = str(event.mimeData().text())
-
-        # check for plottable field type
-        plottable, message = is_plottable(topic_name)
-        if plottable:
-            event.acceptProposedAction()
-        else:
-            qWarning('Plot.dragEnterEvent(): rejecting: "%s"' % (message))
-
-    @Slot('QDropEvent*')
-    def dropEvent(self, event):
-        if event.mimeData().hasText():
-            topic_name = str(event.mimeData().text())
-        else:
-            droped_item = event.source().selectedItems()[0]
-            topic_name = str(droped_item.data(0, Qt.UserRole))
-        self.add_topic(topic_name)
-
-    @Slot(str)
-    def on_topic_edit_textChanged(self, topic_name):
-        # on empty topic name, update topics
-        if topic_name in ('', '/'):
-            self._topic_completer.update_topics()
-
-        plottable, message = is_plottable(topic_name)
-        self.subscribe_topic_button.setEnabled(plottable)
-        self.subscribe_topic_button.setToolTip(message)
-
-    @Slot()
-    def on_topic_edit_returnPressed(self):
-        if self.subscribe_topic_button.isEnabled():
-            self.add_topic(str(self.topic_edit.text()))
-
-    @Slot()
-    def on_subscribe_topic_button_clicked(self):
-        self.add_topic(str(self.topic_edit.text()))
+        self._subscribed_topics_changed()s
 
     @Slot(bool)
     def on_pause_button_clicked(self, checked):
@@ -257,67 +135,10 @@ class PlotWidget(QWidget):
             if needs_redraw:
                 self.data_plot.redraw()
 
-    def _subscribed_topics_changed(self):
-        self._update_remove_topic_menu()
-        if not self.pause_button.isChecked():
-            # if pause button is not pressed, enable timer based on subscribed topics
-            self.enable_timer(self._rosdata)
-        self.data_plot.redraw()
-
-    def _update_remove_topic_menu(self):
-        def make_remove_topic_function(x):
-            return lambda: self.remove_topic(x)
-
-        self._remove_topic_menu.clear()
-        for topic_name in sorted(self._rosdata.keys()):
-            action = QAction(topic_name, self._remove_topic_menu)
-            action.triggered.connect(make_remove_topic_function(topic_name))
-            self._remove_topic_menu.addAction(action)
-
-        if len(self._rosdata) > 1:
-            all_action = QAction('All', self._remove_topic_menu)
-            all_action.triggered.connect(self.clean_up_subscribers)
-            self._remove_topic_menu.addAction(all_action)
-
-        self.remove_topic_button.setMenu(self._remove_topic_menu)
-
-    def add_topic(self, topic_name):
-        topics_changed = False
-        for topic_name in get_plot_fields(topic_name)[0]:
-            if topic_name in self._rosdata:
-                qWarning('PlotWidget.add_topic(): topic already subscribed: %s' % topic_name)
-                continue
-            self._rosdata[topic_name] = ROSData(topic_name, self._start_time)
-            if self._rosdata[topic_name].error is not None:
-                qWarning(str(self._rosdata[topic_name].error))
-                del self._rosdata[topic_name]
-            else:
-                data_x, data_y = self._rosdata[topic_name].next()
-                self.data_plot.add_curve(topic_name, topic_name, data_x, data_y)
-                topics_changed = True
-
-        if topics_changed:
-            self._subscribed_topics_changed()
-
-    def remove_topic(self, topic_name):
-        self._rosdata[topic_name].close()
-        del self._rosdata[topic_name]
-        self.data_plot.remove_curve(topic_name)
-
-        self._subscribed_topics_changed()
-
     def clear_plot(self):
         for topic_name, _ in self._rosdata.items():
             self.data_plot.clear_values(topic_name)
         self.data_plot.redraw()
-
-    def clean_up_subscribers(self):
-        for topic_name, rosdata in self._rosdata.items():
-            rosdata.close()
-            self.data_plot.remove_curve(topic_name)
-        self._rosdata = {}
-
-        self._subscribed_topics_changed()
 
     def enable_timer(self, enabled=True):
         if enabled:

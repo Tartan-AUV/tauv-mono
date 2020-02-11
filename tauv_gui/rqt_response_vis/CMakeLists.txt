@@ -13,6 +13,9 @@ find_package(catkin REQUIRED COMPONENTS
   rqt_gui_py
   tauv_joy
   sensor_msgs
+  nav_msgs
+  std_msgs
+  geometry_msgs
 )
 
 ## System dependencies are found with CMake's conventions
