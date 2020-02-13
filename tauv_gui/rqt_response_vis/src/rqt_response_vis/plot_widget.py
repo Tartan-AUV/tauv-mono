@@ -54,28 +54,10 @@ class PlotWidget(QWidget):
         super(PlotWidget, self).__init__()
         self.setObjectName('PlotWidget')
 
-        self._initial_topics = initial_topics
-
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_plot'), 'resource', 'plot.ui')
-        loadUi(ui_file, self)
-        self.subscribe_topic_button.setIcon(QIcon.fromTheme('list-add'))
-        self.remove_topic_button.setIcon(QIcon.fromTheme('list-remove'))
-        self.pause_button.setIcon(QIcon.fromTheme('media-playback-pause'))
-        self.clear_button.setIcon(QIcon.fromTheme('edit-clear'))
+        loadUi(ui_file, self.ui)
         self.data_plot = None
-
-        self.subscribe_topic_button.setEnabled(False)
-        if start_paused:
-            self.pause_button.setChecked(True)
-
-        self._topic_completer = TopicCompleter(self.topic_edit)
-        self._topic_completer.update_topics()
-        self.topic_edit.setCompleter(self._topic_completer)
-
-        self._start_time = rospy.get_time()
-        self._rosdata = {}
-        self._remove_topic_menu = QMenu()
 
         # init and start update timer for plot
         self._update_plot_timer = QTimer(self)
@@ -91,10 +73,6 @@ class PlotWidget(QWidget):
         self.data_plot = data_plot
         self.data_plot_layout.addWidget(self.data_plot)
         self.data_plot.autoscroll(self.autoscroll_checkbox.isChecked())
-
-        # setup drag 'n drop
-        self.data_plot.dropEvent = self.dropEvent
-        self.data_plot.dragEnterEvent = self.dragEnterEvent
 
         if self._initial_topics:
             for topic_name in self._initial_topics:
@@ -124,16 +102,16 @@ class PlotWidget(QWidget):
     def update_plot(self):
         if self.data_plot is not None:
             needs_redraw = False
-            for topic_name, rosdata in self._rosdata.items():
-                try:
-                    data_x, data_y = rosdata.next()
-                    if data_x or data_y:
-                        self.data_plot.update_values(topic_name, data_x, data_y)
-                        needs_redraw = True
-                except RosPlotException as e:
-                    qWarning('PlotWidget.update_plot(): error in rosplot: %s' % e)
-            if needs_redraw:
-                self.data_plot.redraw()
+            # for topic_name, rosdata in self._rosdata.items():
+            #     try:
+            #         data_x, data_y = rosdata.next()
+            #         if data_x or data_y:
+            #             self.data_plot.update_values(topic_name, data_x, data_y)
+            #             needs_redraw = True
+            #     except RosPlotException as e:
+            #         qWarning('PlotWidget.update_plot(): error in rosplot: %s' % e)
+            # if needs_redraw:
+            #     self.data_plot.redraw()
 
     def clear_plot(self):
         for topic_name, _ in self._rosdata.items():
