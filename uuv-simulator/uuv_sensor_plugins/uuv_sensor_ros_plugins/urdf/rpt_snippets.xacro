@@ -40,7 +40,7 @@
   <xacro:macro name="rpt_plugin_macro"
     params="namespace suffix parent_link topic noise_sigma noise_amplitude
     *origin">
-    <link name="${namespace}/rpt${suffix}_link">
+    <link name="rpt${suffix}_link">
       <inertial>
         <mass value="0.001" />  <!-- [kg] -->
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -54,10 +54,10 @@
       <xacro:no_collision/>
     </link>
 
-    <joint name="${namespace}/rpt${suffix}_joint" type="revolute">
+    <joint name="rpt${suffix}_joint" type="revolute">
       <xacro:insert_block name="origin" />
       <parent link="${parent_link}" />
-      <child link="${namespace}/rpt${suffix}_link" />
+      <child link="rpt${suffix}_link" />
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
@@ -65,7 +65,7 @@
     <gazebo>
       <plugin filename="libuuv_gazebo_ros_rpt_plugin.so" name="libuuv_gazebo_rpt${suffix}_plugin">
         <robot_namespace>${namespace}</robot_namespace> <!-- ros namespace in which the messages are published -->
-        <link_name>${namespace}/rpt${suffix}_link</link_name> <!-- sensor link name -->
+        <link_name>rpt${suffix}_link</link_name> <!-- sensor link name -->
         <static_reference_frame>ssbl</static_reference_frame> <!-- name of the refernce frame of all position measurements -->
         <sensor_topic>${topic}</sensor_topic> <!-- name of the sensor output topic and prefix of service name -->
         <update_rate>0.5</update_rate> <!-- Update period [s] -->

@@ -21,7 +21,7 @@
     horizontal_pos_std_dev vertical_pos_std_dev horizontal_vel_std_dev
     vertical_vel_std_dev *inertia *origin update_rate">
       <!-- GPS link -->
-     <link name="${namespace}/gps_link">
+     <link name="gps_link">
        <inertial>
          <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001" />
          <mass value="${mass_gps_sensor}" />  <!-- [kg] -->
@@ -35,16 +35,16 @@
      </link>
 
      <!-- GPS joint -->
-    <joint name="${namespace}/gps_joint" type="revolute">
+    <joint name="gps_joint" type="revolute">
       <xacro:insert_block name="origin" />
       <parent link="${parent_link}" />
-      <child link="${namespace}/gps_link" />
+      <child link="gps_link" />
       <axis xyz="1 0 0"/>
       <limit upper="0" lower="0" effort="0" velocity="0" />
     </joint>
 
-    <gazebo reference="${namespace}/gps_link">
-      <sensor type="gps" name="${namespace}/gps">
+    <gazebo reference="gps_link">
+      <sensor type="gps" name="gps">
         <pose>0 0 0 0 0 0</pose>
         <visualize>0</visualize>
         <always_on>1</always_on>

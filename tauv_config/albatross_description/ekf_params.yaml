@@ -2,7 +2,7 @@
 #     Copyright (c) 2019 Tartan AUV
 #     All rights reserved.
 
-frequency: 50
+frequency: 2
 sensor_timeout: 0.1
 two_d_mode: false
 transform_time_offset: 0.0

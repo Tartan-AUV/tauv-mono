@@ -14,7 +14,7 @@
 
     <xacro:macro name="$ROBOT_NAME_hydro_model" params="namespace">
       <!-- List of hydrodynamic models this robot's links -->
-      <link name="${namespace}/base_link">
+      <link name="base_link">
         <!-- This flag will make the link neutrally buoyant -->
         <neutrally_buoyant>0</neutrally_buoyant>
 

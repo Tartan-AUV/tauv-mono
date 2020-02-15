@@ -88,7 +88,7 @@
             gamma radius update_rate reference_frame water_salinity_value plume_salinity_value
             salinity_output_topic salinity_unit gain noise_sigma noise_amplitude">
     <!-- Sensor link -->
-   <link name="${namespace}/cc_sensor_link">
+   <link name="cc_sensor_link">
      <inertial>
        <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001" />
        <mass value="0.001" />  <!-- [kg] -->
@@ -96,10 +96,10 @@
      </inertial>
    </link>
 
-   <joint name="${namespace}/cc_sensor_joint" type="revolute">
+   <joint name="cc_sensor_joint" type="revolute">
      <xacro:insert_block name="origin" />
      <parent link="${parent_link}" />
-     <child link="${namespace}/cc_sensor_link" />
+     <child link="cc_sensor_link" />
      <axis xyz="1 0 0"/>
      <limit upper="0" lower="0" effort="0" velocity="0" />
    </joint>
@@ -108,7 +108,7 @@
      <plugin filename="libuuv_gazebo_ros_cpc_plugin.so"
        name="particle_concentration{suffix}_sensor">
        <robot_namespace>${namespace}</robot_namespace>
-       <link_name>${namespace}/cc_sensor_link</link_name>
+       <link_name>cc_sensor_link</link_name>
        <plume_topic>${input_topic}</plume_topic>
        <sensor_topic>${output_topic}</sensor_topic>
        <update_rate>${update_rate}</update_rate>

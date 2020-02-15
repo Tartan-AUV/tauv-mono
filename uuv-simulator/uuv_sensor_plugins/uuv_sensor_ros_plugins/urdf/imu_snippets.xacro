@@ -131,7 +131,7 @@
       enable_local_ned_frame
       *inertia *origin">
     <!-- IMU link -->
-    <link name="${namespace}/imu${imu_suffix}_link">
+    <link name="imu${imu_suffix}_link">
       <xacro:box_inertial x="0.0001" y="0.0001" z="0.0001" mass="${mass_imu_sensor}">
         <origin xyz="0 0 0" rpy="0 0 0"/>
       </xacro:box_inertial>
@@ -144,10 +144,10 @@
     </link>
 
     <!-- IMU joint -->
-    <joint name="${namespace}/imu${imu_suffix}_joint" type="revolute">
+    <joint name="imu${imu_suffix}_joint" type="revolute">
       <xacro:insert_block name="origin" />
       <parent link="${parent_link}" />
-      <child link="${namespace}/imu${imu_suffix}_link" />
+      <child link="imu${imu_suffix}_link" />
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
@@ -157,7 +157,7 @@
       <!-- A good description of the IMU parameters can be found in the kalibr documentation:
            https://github.com/ethz-asl/kalibr/wiki/IMU-Noise-Model-and-Intrinsics -->
         <robot_namespace>${namespace}</robot_namespace> <!-- (string, required): ros namespace in which the messages are published -->
-        <link_name>${namespace}/imu${imu_suffix}_link</link_name> <!-- (string, required): name of the body which holds the IMU sensor -->
+        <link_name>imu${imu_suffix}_link</link_name> <!-- (string, required): name of the body which holds the IMU sensor -->
         <sensor_topic>${imu_topic}</sensor_topic> <!-- (string): name of the sensor output topic and prefix of service names (defaults to imu) -->
 
         <gyroscope_noise_density>${gyroscope_noise_density}</gyroscope_noise_density> <!-- Gyroscope noise density (two-sided spectrum) [rad/s/sqrt(Hz)] -->
