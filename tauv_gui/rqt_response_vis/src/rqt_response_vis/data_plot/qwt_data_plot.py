@@ -121,7 +121,7 @@ class QwtDataPlot(Qwt.QwtPlot):
         Qwt.QwtPlot.resizeEvent(self, event)
         self.rescale()
 
-    def add_curve(self, curve_id, curve_name, curve_color=QColor(Qt.blue), markers_on=False):
+    def add_curve(self, curve_id, curve_name, curve_color=QColor(Qt.blue), markers_on=False, dashed=False):
         curve_id = str(curve_id)
         if curve_id in self._curves:
             return

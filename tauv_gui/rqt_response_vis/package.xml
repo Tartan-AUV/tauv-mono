@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>rqt_graph_vis</name>
+  <name>rqt_response_vis</name>
   <version>0.0.0</version>
-  <description>The rqt_graph_vis package</description>
+  <description>The rqt_response_vis package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -54,6 +54,7 @@
   <depend>nav_msgs</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
+  <depend>libqwt-qt5-dev</depend>
   <build_depend>rospy</build_depend>
   <build_depend>rqt_gui</build_depend>
   <build_depend>rqt_gui_py</build_depend>

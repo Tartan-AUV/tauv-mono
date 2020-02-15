@@ -1,5 +1,5 @@
 <library path="src">
-    <class name="response_vis" type="response_vis.response_vis.ResponseVis" base_class_type="rqt_gui_py::Plugin">
+    <class name="rqt_response_vis" type="rqt_response_vis.response_vis.ResponseVis" base_class_type="rqt_gui_py::Plugin">
         <description>
             Select and visualize USB joysticks.
         </description>

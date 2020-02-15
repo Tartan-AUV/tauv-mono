@@ -66,7 +66,7 @@ class PyQtGraphDataPlot(QWidget):
     def __init__(self, parent=None):
         super(PyQtGraphDataPlot, self).__init__(parent)
         self._plot_widget = PlotWidget()
-        self._plot_widget.getPlotItem().addLegend()
+        # self._plot_widget.getPlotItem().addLegend()
         self._plot_widget.setBackground((255, 255, 255))
         self._plot_widget.setXRange(0, 10, padding=0)
         vbox = QVBoxLayout()
@@ -77,11 +77,15 @@ class PyQtGraphDataPlot(QWidget):
         self._curves = {}
         self._current_vline = None
 
-    def add_curve(self, curve_id, curve_name, curve_color=QColor(Qt.blue), markers_on=False):
+    def add_curve(self, curve_id, curve_name, curve_color=QColor(Qt.blue), markers_on=False, dashed=False):
         pen = mkPen(curve_color, width=1)
         symbol = "o"
         symbolPen = mkPen(QColor(Qt.black))
-        symbolBrush = mkBrush(curve_color)
+        if dashed:
+            symbolBrush = mkBrush(curve_color, style=Qt.DashLine)
+        else:
+            symbolBrush = mkBrush(curve_color)
+
         # this adds the item to the plot and legend
         if markers_on:
             plot = self._plot_widget.plot(name=curve_name, pen=pen, symbol=symbol,
@@ -100,7 +104,7 @@ class PyQtGraphDataPlot(QWidget):
     def _update_legend(self):
         # clear and rebuild legend (there is no remove item method for the legend...)
         self._plot_widget.clear()
-        self._plot_widget.getPlotItem().legend.items = []
+        # self._plot_widget.getPlotItem().legend.items = []
         for curve in self._curves.values():
             self._plot_widget.addItem(curve)
         if self._current_vline:

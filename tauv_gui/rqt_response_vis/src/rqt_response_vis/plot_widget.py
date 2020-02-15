@@ -44,8 +44,7 @@ import rospy
 from rqt_py_common.topic_completer import TopicCompleter
 from rqt_py_common import topic_helpers
 
-from . rosplot import ROSData, RosPlotException
-
+# UNUSED: Just here as an example!
 
 class PlotWidget(QWidget):
     _redraw_interval = 40
@@ -62,28 +61,28 @@ class PlotWidget(QWidget):
         # init and start update timer for plot
         self._update_plot_timer = QTimer(self)
         self._update_plot_timer.timeout.connect(self.update_plot)
-
-    def switch_data_plot_widget(self, data_plot):
-        self.enable_timer(enabled=False)
-
-        self.data_plot_layout.removeWidget(self.data_plot)
-        if self.data_plot is not None:
-            self.data_plot.close()
-
-        self.data_plot = data_plot
-        self.data_plot_layout.addWidget(self.data_plot)
-        self.data_plot.autoscroll(self.autoscroll_checkbox.isChecked())
-
-        if self._initial_topics:
-            for topic_name in self._initial_topics:
-                self.add_topic(topic_name)
-            self._initial_topics = None
-        else:
-            for topic_name, rosdata in self._rosdata.items():
-                data_x, data_y = rosdata.next()
-                self.data_plot.add_curve(topic_name, topic_name, data_x, data_y)
-
-        self._subscribed_topics_changed()s
+    #
+    # def switch_data_plot_widget(self, data_plot):
+    #     self.enable_timer(enabled=False)
+    #
+    #     self.data_plot_layout.removeWidget(self.data_plot)
+    #     if self.data_plot is not None:
+    #         self.data_plot.close()
+    #
+    #     self.data_plot = data_plot
+    #     self.data_plot_layout.addWidget(self.data_plot)
+    #     self.data_plot.autoscroll(self.autoscroll_checkbox.isChecked())
+    #
+    #     if self._initial_topics:
+    #         for topic_name in self._initial_topics:
+    #             self.add_topic(topic_name)
+    #         self._initial_topics = None
+    #     else:
+    #         for topic_name, rosdata in self._rosdata.items():
+    #             data_x, data_y = rosdata.next()
+    #             self.data_plot.add_curve(topic_name, topic_name, data_x, data_y)
+    #
+    #     self._subscribed_topics_changed()
 
     @Slot(bool)
     def on_pause_button_clicked(self, checked):

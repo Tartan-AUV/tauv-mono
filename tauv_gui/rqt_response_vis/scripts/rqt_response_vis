@@ -3,8 +3,8 @@
 import sys
 
 from rqt_gui.main import Main
-from rqt_plot.plot import Plot
+from rqt_response_vis.response_vis import ResponseVis
 
-plugin = 'rqt_plot.plot.Plot'
+plugin = 'rqt_response_vis'
 main = Main(filename=plugin)
-sys.exit(main.main(standalone=plugin, plugin_argument_provider=Plot.add_arguments))
+sys.exit(main.main(standalone=plugin))

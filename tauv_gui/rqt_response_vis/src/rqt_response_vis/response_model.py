@@ -61,9 +61,8 @@ class ResponseType(Enum):
 
 class ResponseModel:
     def __init__(self):
-        self.sub_odom = rospy.Subscriber(rospy.get_param("~odom_topic"), self.odom_callback)
 
-        self.max_preservation_time = rospy.get_param("~max_preservation_time")
+        self.max_preservation_time = 30.0
 
         self.accel_alpha = 0.0
 
@@ -73,6 +72,11 @@ class ResponseModel:
         self.last_vel = None
         self.last_accel = None
 
+        self.sub_odom = None
+        self.sub_cmd_acc = None
+        self.sub_cmd_vel = None
+        self.sub_cmd_pos = None
+
         self.last_cmd_pos = PoseStamped()
         self.last_cmd_vel = Twist()
         self.last_cmd_acc = Accel()
@@ -81,17 +85,28 @@ class ResponseModel:
 
         self.responses = [r.value for r in ResponseType]
 
-        self.buffers = {}
+        self.buffers = {r: [0.0] * int(ceil((self.max_preservation_time / self.dt))) for r in ResponseType}
 
         for r in self.responses:
             buf = [0] * int(ceil(1.0 / self.dt * self.max_preservation_time))
             self.buffers[r] = buf
 
-        self.sub_cmd_acc = rospy.Subscriber(rospy.get_param("~cmd_accel_topic"), self.cmd_acc_callback)
-        self.sub_cmd_vel = rospy.Subscriber(rospy.get_param("~cmd_vel_topic"), self.cmd_vel_callback)
-        self.sub_cmd_pos = rospy.Subscriber(rospy.get_param("~cmd_pose_topic"), self.cmd_pos_callback)
+        rospy.Timer(rospy.Duration(self.dt), self.update)
 
-        rospy.Timer(rospy.Duration(1.0 / self.dt), self.update)
+    def declare_subscribers(self, topics):
+        if self.sub_cmd_acc is not None:
+            self.sub_cmd_acc.unregister()
+        if self.sub_cmd_vel is not None:
+            self.sub_cmd_vel.unregister()
+        if self.sub_cmd_pos is not None:
+            self.sub_cmd_pos.unregister()
+        if self.sub_odom is not None:
+            self.sub_odom.unregister()
+
+        self.sub_odom = rospy.Subscriber(topics["odom"], Odometry, self.odom_callback)
+        self.sub_cmd_acc = rospy.Subscriber(topics["cmd_acc"], Accel, self.cmd_acc_callback)
+        self.sub_cmd_vel = rospy.Subscriber(topics["cmd_vel"], Twist, self.cmd_vel_callback)
+        self.sub_cmd_pos = rospy.Subscriber(topics["cmd_pos"], PoseStamped, self.cmd_pos_callback)
 
     def add_pt(self, r, v):
         self.buffers[r].pop(0)
@@ -109,7 +124,7 @@ class ResponseModel:
     def cmd_pos_callback(self, cmd_pos):
         self.last_cmd_pos = cmd_pos
 
-    def update(self):
+    def update(self, timer_event):
         t = rospy.Time.now()
         self.add_pt(ResponseType.time, t.to_sec() - self.startup_time)
 
@@ -117,7 +132,10 @@ class ResponseModel:
 
         # position
         pose = self.last_odom.pose.pose
-        zyx = stf.Rotation.from_quat(tl(pose.orientation)).as_euler("ZYX")
+        try:
+            zyx = stf.Rotation.from_quat(tl(pose.orientation)).as_euler("ZYX")
+        except:
+            zyx = [0, 0, 0]
 
         self.add_pt(ResponseType.pos_x, pose.position.x)
         self.add_pt(ResponseType.pos_y, pose.position.y)
@@ -173,7 +191,11 @@ class ResponseModel:
 
         # Do cmd_pos
         pose = self.last_cmd_pos.pose
-        zyx = stf.Rotation.from_quat(tl(pose.orientation)).as_euler("ZYX")
+        try:
+            zyx = stf.Rotation.from_quat(tl(pose.orientation)).as_euler("ZYX")
+        except:
+            zyx = [0, 0, 0]
+
         self.add_pt(ResponseType.cmd_pos_x, pose.position.x)
         self.add_pt(ResponseType.cmd_pos_y, pose.position.y)
         self.add_pt(ResponseType.cmd_pos_z, pose.position.z)
@@ -199,7 +221,9 @@ class ResponseModel:
         self.add_pt(ResponseType.cmd_acc_wy, accel.angular.y)
         self.add_pt(ResponseType.cmd_acc_wz, accel.angular.z)
 
-    def get_data(self, windowWidth, response):
+    def get_data(self, response, windowWidth=None):
+        if windowWidth is None:
+            windowWidth = self.max_preservation_time
         nsamps = int(ceil(windowWidth / self.dt))
         buf_x = self.buffers[ResponseType.time][-nsamps:]
         buf_y = self.buffers[response][-nsamps:]

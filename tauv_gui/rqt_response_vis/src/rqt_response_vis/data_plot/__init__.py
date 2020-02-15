@@ -120,7 +120,7 @@ class DataPlot(QWidget):
 
     limits_changed = Signal()
     _redraw = Signal()
-    _add_curve = Signal(str, str, 'QColor', bool)
+    _add_curve = Signal(str, str, 'QColor', bool, bool)
 
     def __init__(self, parent=None):
         """Create a new, empty DataPlot
@@ -129,12 +129,14 @@ class DataPlot(QWidget):
         backends can be found
         """
         super(DataPlot, self).__init__(parent)
+        self.x_width = 5.0
+
         self._plot_index = 0
         self._color_index = 0
         self._markers_on = False
         self._autoscroll = True
 
-        self._autoscale_x = True
+        self._autoscale_x = False
         self._autoscale_y = DataPlot.SCALE_ALL
 
         # the backend widget that we're trying to hide/abstract
@@ -164,6 +166,9 @@ class DataPlot(QWidget):
 
         self.show()
 
+    def set_x_width(self, width):
+        self.x_width = width
+
     def _switch_data_plot_widget(self, plot_index, markers_on=False):
         """Internal method for activating a plotting backend by index"""
         # check if selected plot type is available
@@ -177,6 +182,7 @@ class DataPlot(QWidget):
         self._plot_index = plot_index
         self._markers_on = markers_on
         selected_plot = self.plot_types[plot_index]
+        print("Selected plot: {}".format(selected_plot['title']))
 
         if self._data_plot_widget:
             x_limits = self.get_xlim()
@@ -213,7 +219,7 @@ class DataPlot(QWidget):
         for curve_id in self._curves:
             self._data_plot_widget.remove_curve(curve_id)
             curve = self._curves[curve_id]
-            self._data_plot_widget.add_curve(curve_id, curve['name'], curve['color'], markers_on)
+            self._data_plot_widget.add_curve(curve_id, curve['name'], curve['color'], markers_on, curve['dashed'])
 
         self.redraw()
 
@@ -328,7 +334,7 @@ class DataPlot(QWidget):
             raise DataPlotException("No curve named %s in this DataPlot" %
                                     (curve_id))
 
-    def add_curve(self, curve_id, curve_name, data_x, data_y):
+    def add_curve(self, curve_id, curve_name, data_x, data_y, curve_color=None, dashed=False):
         """Add a new, named curve to this plot
 
         Add a curve named `curve_name` to the plot, with initial data series
@@ -339,15 +345,17 @@ class DataPlot(QWidget):
         Note that the plot is not redraw automatically; call `redraw()` to make
         any changes visible to the user.
         """
-        curve_color = QColor(self._colors[self._color_index % len(self._colors)])
+        if curve_color is None:
+            curve_color = QColor(self._colors[self._color_index % len(self._colors)])
         self._color_index += 1
 
         self._curves[curve_id] = {'x': numpy.array(data_x),
                                   'y': numpy.array(data_y),
                                   'name': curve_name,
-                                  'color': curve_color}
+                                  'color': curve_color,
+                                  'dashed': dashed}
         if self._data_plot_widget:
-            self._add_curve.emit(curve_id, curve_name, curve_color, self._markers_on)
+            self._add_curve.emit(curve_id, curve_name, curve_color, self._markers_on, dashed)
 
     def remove_curve(self, curve_id):
         """Remove the specified curve from this plot"""
@@ -453,7 +461,8 @@ class DataPlot(QWidget):
         elif self._autoscroll:
             # get current width of plot
             x_limit = self.get_xlim()
-            x_width = x_limit[1] - x_limit[0]
+            # x_width = x_limit[1] - x_limit[0]
+            x_width = self.x_width
 
             # reset the upper x_limit so that we ignore the previous position
             x_limit[1] = -numpy.inf

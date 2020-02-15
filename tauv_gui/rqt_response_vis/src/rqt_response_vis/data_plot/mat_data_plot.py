@@ -127,7 +127,7 @@ class MatDataPlot(QWidget):
     def _limits_changed(self, event):
         self.limits_changed.emit()
 
-    def add_curve(self, curve_id, curve_name, curve_color=QColor(Qt.blue), markers_on=False):
+    def add_curve(self, curve_id, curve_name, curve_color=QColor(Qt.blue), markers_on=False, dashed=False):
 
         # adding an empty curve and change the limits, so save and restore them
         x_limits = self.get_xlim()
