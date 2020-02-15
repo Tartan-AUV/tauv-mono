@@ -48,11 +48,11 @@ class Depth_Odom:
         pose_msg.pose.pose.position.z = self.depth_data
         pose_msg.pose.covariance[14] = self.depth_data_variance**2
         self.depth_pose_pub.publish(pose_msg)
-        self.map_broadcaster.sendTransform((0, 0, 0),
-                                           quaternion_from_euler(0, 0, 0),
-                                           rospy.Time.now(),
-                                           "albatross/pressure_link",
-                                            "albatross/odom")
+        # self.map_broadcaster.sendTransform((0, 0, 0),
+        #                                    quaternion_from_euler(0, 0, 0),
+        #                                    rospy.Time.now(),
+        #                                    "albatross/pressure_link",
+        #                                     "albatross/odom")
 
 def main():
     rospy.init_node('state_estimation', anonymous=True)
