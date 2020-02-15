@@ -11,8 +11,8 @@
     <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" ns="$(arg model_name)" output="screen">
     </node>
 
-    <include file="$(find vins)/launch/vins_rviz.launch">
-      </include>
+<!--     <include file="$(find vins)/launch/vins_rviz.launch"> -->
+<!--       </include> -->
 </launch>
 
 
