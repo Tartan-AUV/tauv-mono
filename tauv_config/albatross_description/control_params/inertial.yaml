@@ -1,6 +1,6 @@
 pid:
   mass: 15.0
-  buoyuancy: 18.54
+  buoyancy: 18.54
   inertial:
     ixx: 2.0
     ixy: 0

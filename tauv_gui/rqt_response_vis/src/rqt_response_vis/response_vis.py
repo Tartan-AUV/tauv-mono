@@ -96,10 +96,10 @@ class ResponseVis(Plugin):
 
         self._response_model = ResponseModel()
 
-        self.topics = {"odom": "/odom",
-                       "cmd_acc": "/cmd_acc",
-                       "cmd_vel": "/cmd_vel",
-                       "cmd_pos": "/cmd_pos"}
+        self.topics = {"odom": "/gnc/odom",
+                       "cmd_acc": "/gnc/cmd_accel",
+                       "cmd_vel": "/gnc/cmd_vel",
+                       "cmd_pos": "/gnc/cmd_pose"}
         self._response_model.declare_subscribers(self.topics)
 
         self.mode = None
@@ -122,7 +122,7 @@ class ResponseVis(Plugin):
     def restore_settings(self, plugin_settings, instance_settings):
         # v = instance_settings.value(k)
         self.topics = json.loads(instance_settings.value("topics"))
-        self._response_model.declare_subscribers(self.topics)
+        # self._response_model.declare_subscribers(self.topics)
         pass
 
     @Slot()
@@ -131,7 +131,7 @@ class ResponseVis(Plugin):
             self._plotWidget.set_autoscale(x=None, y=DataPlot.SCALE_ALL)
 
             for i in range(6):
-                x, y = self._response_model.get_data(ModeResponses[self.mode][i], self._redraw_interval*2)
+                x, y = self._response_model.get_data(ModeResponses[self.mode][i], self._redraw_interval*10)
                 self._plotWidget.update_values(str(i), x, y)
 
             self._plotWidget.redraw()

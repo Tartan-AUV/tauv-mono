@@ -1,18 +1,18 @@
 <library path="src">
-    <class name="rqt_response_vis" type="rqt_response_vis.response_vis.ResponseVis" base_class_type="rqt_gui_py::Plugin">
+    <class name="rqt_pid_tuner" type="rqt_pid_tuner.pid_tuner.PidTuner" base_class_type="rqt_gui_py::Plugin">
         <description>
-            View system response to control inputs.
+            Tune Cascaded PID Controller
         </description>
         <qtgui>
             <group>
               <label>Tartan AUV</label>
                 <icon type="theme">folder</icon>
             </group>
-            <label>System Response Visualizer</label>
+            <label>Cascaded PID Tuner</label>
             <!-- icons list: https://developer.gnome.org/icon-naming-spec/ -->
             <!-- Look at /usr/share/icons or ~/.local/share/icons -->
             <icon type="theme">utilities-system-monitor</icon>
-            <statustip>View system response</statustip>
+            <statustip>Tune Cascaded PIDs</statustip>
         </qtgui>
     </class>
 </library>

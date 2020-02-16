@@ -18,7 +18,6 @@
 
 import numpy
 import rospy
-from dynamic_reconfigure.server import Server
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
 import tf.transformations as trans
@@ -27,6 +26,8 @@ from rospy.numpy_msg import numpy_msg
 # Modules included in this package
 from PIDRegulator import PIDRegulator
 from tauv_common.cfg import VelocityControlConfig
+from tauv_msgs.msg import PidVals
+from tauv_msgs.srv import TunePid, TunePidResponse
 
 
 class VelocityControllerNode:
@@ -39,14 +40,37 @@ class VelocityControllerNode:
         self.v_angular_des = numpy.zeros(3)
 
         # Initialize pids with default parameters
-        self.pid_angular = PIDRegulator(1, 0, 0, 1)
-        self.pid_linear = PIDRegulator(1, 0, 0, 1)
+        l_p = rospy.get_param("~linear_p")
+        l_i = rospy.get_param("~linear_i")
+        l_d = rospy.get_param("~linear_d")
+        l_sat = rospy.get_param("~linear_sat")
+        a_p = rospy.get_param("~angular_p")
+        a_i = rospy.get_param("~angular_i")
+        a_d = rospy.get_param("~angular_d")
+        a_sat = rospy.get_param("~angular_sat")
+
+        self.pid_angular = PIDRegulator(a_p, a_i, a_d, a_sat)
+        self.pid_linear = PIDRegulator(l_p, l_i, l_d, l_sat)
 
         # ROS infrastructure
+        self.cfg = PidVals()
+        self.cfg.a_p = a_p
+        self.cfg.a_i = a_i
+        self.cfg.a_d = a_d
+        self.cfg.a_sat = a_sat
+        self.cfg.l_p = l_p
+        self.cfg.l_i = l_i
+        self.cfg.l_d = l_d
+        self.cfg.l_sat = l_sat
+        self.srv_reconfigure = rospy.Service("~tune", TunePid, self.reconfig_srv)
+        self.pub_cfg = rospy.Publisher("~config", PidVals, queue_size=10)
+
         self.sub_cmd_vel = rospy.Subscriber('cmd_vel', numpy_msg(geometry_msgs.Twist), self.cmd_vel_callback)
         self.sub_odometry = rospy.Subscriber('odom', numpy_msg(Odometry), self.odometry_callback)
         self.pub_cmd_accel = rospy.Publisher('cmd_accel', geometry_msgs.Accel, queue_size=10)
-        self.srv_reconfigure = Server(VelocityControlConfig, self.config_callback)
+
+        self.ready = True
+        print("Velocity Controller Started!")
 
     def cmd_vel_callback(self, msg):
         """Handle updated set velocity callback."""
@@ -58,7 +82,7 @@ class VelocityControllerNode:
 
     def odometry_callback(self, msg):
         """Handle updated measured velocity callback."""
-        if not bool(self.config):
+        if not self.ready:
             return
 
         linear = msg.twist.twist.linear
@@ -66,16 +90,16 @@ class VelocityControllerNode:
         v_linear = numpy.array([linear.x, linear.y, linear.z])
         v_angular = numpy.array([angular.x, angular.y, angular.z])
 
-        if self.config['odom_vel_in_world']:
-            # This is a temp. workaround for gazebo's pos3d plugin not behaving properly:
-            # Twist should be provided wrt child_frame, gazebo provides it wrt world frame
-            # see http://docs.ros.org/api/nav_msgs/html/msg/Odometry.html
-            xyzw_array = lambda o: numpy.array([o.x, o.y, o.z, o.w])
-            q_wb = xyzw_array(msg.pose.pose.orientation)
-            R_bw = trans.quaternion_matrix(q_wb)[0:3, 0:3].transpose()
-
-            v_linear = R_bw.dot(v_linear)
-            v_angular = R_bw.dot(v_angular)
+        # if self.config['odom_vel_in_world']:
+        #     # This is a temp. workaround for gazebo's pos3d plugin not behaving properly:
+        #     # Twist should be provided wrt child_frame, gazebo provides it wrt world frame
+        #     # see http://docs.ros.org/api/nav_msgs/html/msg/Odometry.html
+        #     xyzw_array = lambda o: numpy.array([o.x, o.y, o.z, o.w])
+        #     q_wb = xyzw_array(msg.pose.pose.orientation)
+        #     R_bw = trans.quaternion_matrix(q_wb)[0:3, 0:3].transpose()
+        #
+        #     v_linear = R_bw.dot(v_linear)
+        #     v_angular = R_bw.dot(v_angular)
 
         # Compute compute control output:
         t = msg.header.stamp.to_sec()
@@ -91,15 +115,17 @@ class VelocityControllerNode:
         cmd_accel.angular = geometry_msgs.Vector3(*a_angular)
         self.pub_cmd_accel.publish(cmd_accel)
 
-    def config_callback(self, config, level):
+        self.pub_cfg.publish(self.cfg)
+
+    def reconfig_srv(self, config):
         """Handle updated configuration values."""
         # config has changed, reset PID controllers
-        self.pid_linear = PIDRegulator(config['linear_p'], config['linear_i'], config['linear_d'], config['linear_sat'])
-        self.pid_angular = PIDRegulator(config['angular_p'], config['angular_i'], config['angular_d'], config['angular_sat'])
+        self.cfg = config.vals
 
-        self.config = config
+        self.pid_linear = PIDRegulator(self.cfg.l_p, self.cfg.l_i, self.cfg.l_d, self.cfg.l_sat)
+        self.pid_angular = PIDRegulator(self.cfg.a_p, self.cfg.a_i, self.cfg.a_d, self.cfg.a_sat)
 
-        return config
+        return TunePidResponse(True)
 
 
 

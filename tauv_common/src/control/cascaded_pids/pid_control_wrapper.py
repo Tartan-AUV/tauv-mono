@@ -5,7 +5,7 @@ import rospy
 from tauv_msgs.msg import CascadedPidSelection
 from tauv_msgs.srv import SetCascadedPidSelection, SetCascadedPidSelectionResponse
 from geometry_msgs.msg import Pose, PoseStamped, Twist, Accel, Vector3, Quaternion, Point
-from std_msgs.msg import Header
+from std_msgs.msg import Header, Bool
 
 import tf
 import numpy as np
@@ -68,6 +68,7 @@ class PidControlWrapper:
         self.pub_cmd_pos = rospy.Publisher("cmd_pose", PoseStamped, queue_size=10)
         self.pub_cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
         self.pub_cmd_acc = rospy.Publisher("cmd_accel", Accel, queue_size=10)
+        self.pub_enable_bc = rospy.Publisher("enable_bc", Bool, queue_size=10)
 
         # Declare status publisher:
         self.pub_status = rospy.Publisher("controller_configuration", CascadedPidSelection, queue_size=10)
@@ -417,7 +418,6 @@ class PidControlWrapper:
         if self.selections.pos_src_z == SOURCE_JOY and \
                 self.selections.pos_src_xy == SOURCE_JOY:
             if self.joy_pos is None:
-                print("fuck")
                 return
             position = self.joy_pos.pose.position
 
@@ -446,7 +446,6 @@ class PidControlWrapper:
         return PoseStamped(header, pose)
 
     def update(self):
-
         try:
             (self.pos, self.orientation) = self.tfl.lookupTransform(self.odom, self.body, rospy.Time(0))
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
@@ -458,15 +457,19 @@ class PidControlWrapper:
         # Calculate and publish commands:
         cmd_pos = self.calculate_pos()
         if cmd_pos is not None:
+            #print("pos")
             self.pub_cmd_pos.publish(cmd_pos)
 
         cmd_vel = self.calculate_vel()
         if cmd_vel is not None:
+            #print("vel")
             self.pub_cmd_vel.publish(cmd_vel)
 
         cmd_acc = self.calculate_acc()
         if cmd_acc is not None:
             self.pub_cmd_acc.publish(cmd_acc)
+
+        self.pub_enable_bc.publish(Bool(self.selections.enableBuoyancyComp))
 
     def post_status(self, timer_event):
         self.pub_status.publish(self.selections)

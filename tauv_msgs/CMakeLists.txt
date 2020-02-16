@@ -7,11 +7,15 @@ add_message_files(
   FILES
   FluidDepth.msg
   CascadedPidSelection.msg
+  InertialVals.msg
+  PidVals.msg
 )
 
 add_service_files(
   FILES
   SetCascadedPidSelection.srv
+  TuneInertial.srv
+  TunePid.srv
 )
 
 

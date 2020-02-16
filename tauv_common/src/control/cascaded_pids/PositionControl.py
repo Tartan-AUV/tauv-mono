@@ -22,11 +22,12 @@ import rospy
 import tf.transformations as trans
 from PIDRegulator import PIDRegulator
 
-from dynamic_reconfigure.server import Server
 from tauv_common.cfg import PositionControlConfig
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
 from rospy.numpy_msg import numpy_msg
+from tauv_msgs.msg import PidVals
+from tauv_msgs.srv import TunePid, TunePidResponse
 
 
 class PositionControllerNode:
@@ -41,14 +42,36 @@ class PositionControllerNode:
         self.initialized = False
 
         # Initialize pids with default parameters
-        self.pid_rot = PIDRegulator(1, 0, 0, 1)
-        self.pid_pos = PIDRegulator(1, 0, 0, 1)
+        l_p = rospy.get_param("~pos_p")
+        l_i = rospy.get_param("~pos_i")
+        l_d = rospy.get_param("~pos_d")
+        l_sat = rospy.get_param("~pos_sat")
+        a_p = rospy.get_param("~rot_p")
+        a_i = rospy.get_param("~rot_i")
+        a_d = rospy.get_param("~rot_d")
+        a_sat = rospy.get_param("~rot_sat")
+        self.pid_rot = PIDRegulator(a_p, a_i, a_d, a_sat)
+        self.pid_pos = PIDRegulator(l_p, l_i, l_d, l_sat)
 
         # ROS infrastructure
+        self.cfg = PidVals()
+        self.cfg.a_p = a_p
+        self.cfg.a_i = a_i
+        self.cfg.a_d = a_d
+        self.cfg.a_sat = a_sat
+        self.cfg.l_p = l_p
+        self.cfg.l_i = l_i
+        self.cfg.l_d = l_d
+        self.cfg.l_sat = l_sat
+        self.srv_reconfigure = rospy.Service("~tune", TunePid, self.reconfig_srv)
+        self.pub_cfg = rospy.Publisher("~config", PidVals, queue_size=10)
+
         self.sub_cmd_pose = rospy.Subscriber('cmd_pose', numpy_msg(geometry_msgs.PoseStamped), self.cmd_pose_callback)
         self.sub_odometry = rospy.Subscriber('odom', numpy_msg(Odometry), self.odometry_callback)
         self.pub_cmd_vel = rospy.Publisher('cmd_vel', geometry_msgs.Twist, queue_size=10)
-        self.srv_reconfigure = Server(PositionControlConfig, self.config_callback)
+
+        self.ready = True
+        print("Position Controller Started!")
 
     def cmd_pose_callback(self, msg):
         """Handle updated set pose callback."""
@@ -60,7 +83,7 @@ class PositionControllerNode:
 
     def odometry_callback(self, msg):
         """Handle updated measured velocity callback."""
-        if not bool(self.config):
+        if not self.ready:
             return
 
         p = msg.pose.pose.position
@@ -96,15 +119,17 @@ class PositionControllerNode:
         cmd_vel.angular = geometry_msgs.Vector3(*v_angular)
         self.pub_cmd_vel.publish(cmd_vel)
 
-    def config_callback(self, config, level):
+        self.pub_cfg.publish(self.cfg)
+
+    def reconfig_srv(self, config):
         """Handle updated configuration values."""
-        # Config has changed, reset PID controllers
-        self.pid_pos = PIDRegulator(config['pos_p'], config['pos_i'], config['pos_d'], config['pos_sat'])
-        self.pid_rot = PIDRegulator(config['rot_p'], config['rot_i'], config['rot_d'], config['rot_sat'])
+        # config has changed, reset PID controllers
+        self.cfg = config.vals
 
-        self.config = config
+        self.pid_pos = PIDRegulator(self.cfg.l_p, self.cfg.l_i, self.cfg.l_d, self.cfg.l_sat)
+        self.pid_rot = PIDRegulator(self.cfg.a_p, self.cfg.a_i, self.cfg.a_d, self.cfg.a_sat)
 
-        return config
+        return TunePidResponse(True)
 
 
 

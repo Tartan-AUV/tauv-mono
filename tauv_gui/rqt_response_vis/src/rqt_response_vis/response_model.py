@@ -64,9 +64,9 @@ class ResponseModel:
 
         self.max_preservation_time = 30.0
 
-        self.accel_alpha = 0.0
+        self.accel_alpha = 0.95
 
-        self.dt = 0.01
+        self.dt = 0.02
 
         self.last_odom = Odometry()
         self.last_vel = None
@@ -103,6 +103,7 @@ class ResponseModel:
         if self.sub_odom is not None:
             self.sub_odom.unregister()
 
+        print(topics)
         self.sub_odom = rospy.Subscriber(topics["odom"], Odometry, self.odom_callback)
         self.sub_cmd_acc = rospy.Subscriber(topics["cmd_acc"], Accel, self.cmd_acc_callback)
         self.sub_cmd_vel = rospy.Subscriber(topics["cmd_vel"], Twist, self.cmd_vel_callback)
@@ -116,7 +117,7 @@ class ResponseModel:
         self.last_odom = odom
 
     def cmd_acc_callback(self, cmd_acc):
-        self.last_cmd_vel = cmd_acc
+        self.last_cmd_acc = cmd_acc
 
     def cmd_vel_callback(self, cmd_vel):
         self.last_cmd_vel = cmd_vel

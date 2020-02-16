@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     geometry_msgs
     message_filters
-    dynamic_reconfigure
     tf
   )
 find_package(yaml-cpp REQUIRED)
@@ -33,11 +32,6 @@ generate_messages(
     geometry_msgs
 )
 
-generate_dynamic_reconfigure_options(
-    cfg/VelocityControl.cfg
-    cfg/PositionControl.cfg
-)
-
 catkin_package(CATKIN_DEPENDS
     message_runtime
     std_msgs
@@ -48,7 +42,6 @@ catkin_package(CATKIN_DEPENDS
     tf
     tauv_config
     message_filters
-    dynamic_reconfigure
   )
 
 include_directories(

@@ -23,6 +23,7 @@ setup_args = generate_distutils_setup(
     packages=['thruster_managers',
               'thruster_managers.models',
               'control.cascaded_pids',
+              'control.keyboard_controller',
               'control',
               'teleop'],
     package_dir={'': 'src'},
