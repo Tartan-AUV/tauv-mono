@@ -12,7 +12,7 @@
     <!-- odom topic to listen on -->
     <arg name="odom_topic" default="odom"/>
 
-    <group ns="gnc">
+    <group>
         <!-- Launch State Estimation -->
         <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
