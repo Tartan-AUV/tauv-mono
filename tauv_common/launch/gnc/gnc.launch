@@ -18,7 +18,10 @@
             <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
         </node>
 
-        <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" ns="$(arg model_name)" output="screen"/>
+        <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" output="screen">
+            <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
+            <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
+        </node>
 
 
         <!-- Load controller params: -->
