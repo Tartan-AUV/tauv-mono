@@ -16,7 +16,6 @@
         <!-- Launch State Estimation -->
         <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
-            <remap from="odometry/filtered" to="odom"/>
         </node>
 
         <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" ns="$(arg model_name)" output="screen"/>
