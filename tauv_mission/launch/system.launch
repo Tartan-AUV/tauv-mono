@@ -15,8 +15,8 @@
   <arg name="simulated" default="true"/>
 
   <!-- Default position (for simulation only)  -->
-  <arg name="x" default="5.0"/>
-  <arg name="y" default="-10.0"/>
+  <arg name="x" default="15.0"/>
+  <arg name="y" default="0.0"/>
   <arg name="z" default="0.0"/>
   <arg name="roll" default="0.0"/>
   <arg name="pitch" default="0.0"/>
@@ -73,6 +73,15 @@
     <arg name="model_name" default="$(arg model_name)"/>
     <arg name="config_pkg" default="$(arg config_pkg)"/>
   </include>
+
+<!--     <launch> -->
+<!--         <node name="rvizvisualisation" pkg="rviz" type="rviz" output="log" args="-d $(find tauv_config)/albatross_description/robosub.rviz" /> -->
+<!--     </launch> -->
+
+   <include file="$(find tauv_common)/launch/state_estimation/state_estimation.launch">
+      <arg name="model_name" default="$(arg model_name)"/>
+      <arg name="config_pkg" default="$(arg config_pkg)"/>
+    </include>
 
   <!-- Launch vehicle controllers: -->
   <include file="$(find tauv_common)/launch/controllers/controllers.launch">

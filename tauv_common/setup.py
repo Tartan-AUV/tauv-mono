@@ -20,12 +20,13 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['thruster_managers', 'thruster_managers.models', 'controllers'],
+    packages=['thruster_managers', 'thruster_managers.models', 'controllers', 'state_estimation'],
     package_dir={'': 'src'},
     requires=['rospy'],
+
     scripts=['scripts/thruster_allocator',
              'scripts/keyboard_controller',
-             'scripts/control_aggregator']
+             'scripts/control_aggregator',
+             'scripts/state_estimation'],
 )
-
 setup(**setup_args)

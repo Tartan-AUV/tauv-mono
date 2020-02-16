@@ -60,10 +60,15 @@
 
   <arg name="cameraunder" default="1"/> 
   <group if="$(arg cameraunder)">
-    <node ns="under" pkg="image_view" type="image_view" name="image_view" args="image:=/manta/manta/cameraunder/camera_image">
+    <node ns="under" pkg="image_view" type="image_view" name="image_view" args="image:=/manta/manta/cameraunder1/camera_image">
     </node>
   </group>  
 
+    <arg name="cameraunder2" default="1"/>
+      <group if="$(arg cameraunder)">
+        <node ns="under" pkg="image_view" type="image_view" name="image_view" args="image:=/manta/manta/cameraunder2/camera_image">
+        </node>
+      </group>
 
 <!-- Launching assistants -->
 
