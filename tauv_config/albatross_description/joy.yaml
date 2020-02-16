@@ -1,7 +1,7 @@
 # This works for logitech F310 wired gamepad.
 teleop:
-  # arm_button: 7
-  # estop_button: 8
+  arm_button: 7
+  estop_button: 8
   # reset_orientation_button: 0
   joy_topic: "/gui/joy"
 

@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     message_filters
     tf
+    std_srvs
   )
 find_package(yaml-cpp REQUIRED)
 
@@ -30,11 +31,13 @@ generate_messages(
     std_msgs
     sensor_msgs
     geometry_msgs
+    std_srvs
 )
 
 catkin_package(CATKIN_DEPENDS
     message_runtime
     std_msgs
+    std_srvs
     roscpp
     rospy
     sensor_msgs

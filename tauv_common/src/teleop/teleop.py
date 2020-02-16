@@ -12,6 +12,7 @@ from sensor_msgs.msg import Joy
 import tf
 from scipy.spatial import transform as stf
 import math
+from std_srvs.srv import SetBool
 
 
 def build_cmd(joy, name):
@@ -118,6 +119,20 @@ class Teleop:
         self.pub_cmd_acc.publish(cmd_acc)
         self.pub_cmd_vel.publish(cmd_vel)
         self.pub_cmd_pos.publish(cmd_pos)
+
+        if self.joy.buttons[rospy.get_param("~arm_button")] == 1:
+            self.arm(True)
+
+        if self.joy.buttons[rospy.get_param("~estop_button")] == 1:
+            self.arm(False)
+
+    def arm(self, arm):
+        try:
+            arm_srv = rospy.ServiceProxy('/arm', SetBool)
+            resp1 = arm_srv(arm)
+            return resp1.sum
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
 
     def start(self):
         rospy.Timer(rospy.Duration(self.dt), self.update)

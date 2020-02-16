@@ -34,8 +34,10 @@ class Maestro:
                  ttyStr='/dev/serial/by-id/usb-Pololu_Corporation_Pololu_Micro_Maestro_6-Servo_Controller_00251776-if00',
                  device=0x0c):
         # Open the command port
+        self.ttyStr = ttyStr
+        self.device = device
         try:
-            self.usb = serial.Serial(ttyStr)
+            self.usb = serial.Serial(self.ttyStr)
         except:
             raise ValueError("Could not find Maestro servo controller! Is it connected and configured as dual port?")
         # Command lead-in and device number are sent for each Pololu serial command.
@@ -62,10 +64,16 @@ class Maestro:
         if not self.init:
             return False
 
-        if PY2:
-            self.usb.write(cmdStr)
-        else:
-            self.usb.write(bytes(cmdStr, 'latin-1'))
+        try:
+            if PY2:
+                self.usb.write(cmdStr)
+            else:
+                self.usb.write(bytes(cmdStr, 'latin-1'))
+        except serial.SerialException:
+            try:
+                self.__init__(self.ttyStr, self.device)
+            except serial.SerialException:
+                pass
 
     # Set channels min and max value range.  Use this as a safety to protect
     # from accidentally moving outside known safe parameters. A setting of 0

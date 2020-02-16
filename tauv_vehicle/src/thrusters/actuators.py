@@ -13,6 +13,7 @@ from maestro import Maestro
 import rospy
 import message_filters
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
+from std_srvs.srv import SetBool, SetBoolResponse
 
 
 class ActuatorController:
@@ -22,6 +23,8 @@ class ActuatorController:
 
         self.has_thrusters = rospy.get_param('/vehicle_params/maestro_thrusters')
         self.has_servos = rospy.get_param('/vehicle_params/maestro_servos')
+
+        self.arm_service = rospy.Service("/arm", SetBool, self.srv_arm)
 
         if not self.has_thrusters and not self.has_servos:
             raise ValueError('''Error: maestro node is running, but vehicle is not
@@ -49,6 +52,8 @@ class ActuatorController:
         if self.has_thrusters:
             if len(self.thrusters) != 8:
                 raise ValueError('Error: Thruster driver only supports configurations with 8 thrusters')
+
+            self.armed = False
 
             # thruster command is a dict mapping from  channel to value
             self.thruster_command = {}
@@ -82,12 +87,14 @@ class ActuatorController:
             ts = message_filters.ApproximateTimeSynchronizer(subscribers, queue_size=10, slop=0.05)
             ts.registerCallback(self.thruster_callback)
 
+
     def start(self):
         r = rospy.Rate(50)  # 50 Hz
         while not rospy.is_shutdown():
             if self.has_thrusters:
                 if self.last_thruster_msg is None \
-                        or rospy.get_rostime() - self.last_thruster_msg > self.timeout:
+                        or rospy.get_rostime() - self.last_thruster_msg > self.timeout \
+                        or not self.armed:
                     # timed out, reset thrusters
                     self.thruster_command = [0] * len(self.thrusters)
 
@@ -122,6 +129,9 @@ class ActuatorController:
         zero = halfrange + self.pwm_reverse
         return int(round(zero + halfrange * cmd * self.thruster_inversions[channel]))
 
+    def srv_arm(self, req):
+        self.armed = req.data
+        return SetBoolResponse(True, "")
 
 def main():
     rospy.init_node('actuator_controller')
