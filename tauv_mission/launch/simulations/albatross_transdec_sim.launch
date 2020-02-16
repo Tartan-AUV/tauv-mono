@@ -4,6 +4,7 @@
   <include file="$(find tauv_mission)/launch/system.launch">
     <arg name="model_name" value="albatross"/>
     <arg name="simulated" value="true"/>
+    <arg name="use_gt" value="true"/>
 
     <arg name="x" default="5.0"/>
     <arg name="y" default="-27.5"/>

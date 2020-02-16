@@ -207,8 +207,8 @@ void multiCallback(topic_tools::ShapeShifter const &input) {
 int main(int argc, char** argv) {
   ros::init(argc, argv, "message_to_tf");
 
-  g_footprint_frame_id = "base_footprint";
-  g_stabilized_frame_id = "base_stabilized";
+  //g_footprint_frame_id = "base_footprint";
+  //g_stabilized_frame_id = "base_stabilized";
   // g_position_frame_id = "base_position";
   // g_child_frame_id = "base_link";
 
@@ -241,6 +241,7 @@ int main(int argc, char** argv) {
   ros::Subscriber sub1, sub2, sub3, sub4;
   int subscribers = 0;
   if (!g_odometry_topic.empty()) {
+      //ROS_INFO("YEEEEEEEET: %s",g_odometry_topic.c_str());
       sub1 = node.subscribe(g_odometry_topic, 10, &odomCallback);
       subscribers++;
   }

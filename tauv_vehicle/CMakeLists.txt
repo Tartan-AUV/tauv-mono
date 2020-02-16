@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
         roscpp
         rospy
         std_msgs
+        std_srvs
         image_transport
         roslaunch
         sensor_msgs
@@ -81,6 +82,7 @@ generate_messages(
         sensor_msgs
         geometry_msgs
         tauv_msgs
+        std_srvs
 )
 
 ################################################
@@ -125,6 +127,7 @@ catkin_package(
         imu_filter_madgwick
         imu_transformer
         tauv_msgs
+        std_srvs
 #  DEPENDS system_lib
 )
 

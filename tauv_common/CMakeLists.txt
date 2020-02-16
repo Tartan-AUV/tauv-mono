@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
     message_filters
     robot_localization
     tf
+    std_srvs
     tauv_msgs
   )
 find_package(yaml-cpp REQUIRED)
@@ -32,12 +33,14 @@ generate_messages(
     std_msgs
     sensor_msgs
     geometry_msgs
+    std_srvs
     tauv_msgs
 )
 
 catkin_package(CATKIN_DEPENDS
     message_runtime
     std_msgs
+    std_srvs
     roscpp
     rospy
     sensor_msgs

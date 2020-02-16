@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <launch>
 
+  <!--TODO: Add machine tags to force vehicle machine based on vehicle name-->
+
   <!-- =======================  -->
   <!--        Arguments         -->
   <!-- =======================  -->
@@ -13,6 +15,9 @@
 
   <!-- If simulated is true, launch gazebo simulation. Otherwise, launch the vehicle abstraction  -->
   <arg name="simulated" default="true"/>
+
+  <!-- Set this to true if you want to use ground truth data for odom and map instead of built in state estimation!-->
+  <arg name="use_gt" default="false"/>
 
   <!-- Default position (for simulation only)  -->
   <arg name="x" default="15.0"/>
@@ -48,6 +53,11 @@
     <include file="$(find tauv_common)/launch/multimaster/multimaster.launch"/>
   </group>
 
+  <group if="$(arg use_gt)">
+    <node pkg="tf" type="static_transform_publisher" name="gt_to_odom" args="0 0 0 0 0 0 1 world_gt odom 100" />
+    <node pkg="tf" type="static_transform_publisher" name="gt_to_world" args="0 0 0 0 0 0 1 world_gt world 100" />
+    <node pkg="topic_tools" type="relay" name="gt_to_odom_topic" args="/$(arg model_name)/sensors/pose_gt /gnc/odom"/>
+  </group>
   <!-- =======================  -->
   <!-- Launch abstract systems  -->
   <!-- =======================  -->
@@ -74,20 +84,7 @@
     <arg name="config_pkg" default="$(arg config_pkg)"/>
   </include>
 
-<!--     <launch> -->
-<!--         <node name="rvizvisualisation" pkg="rviz" type="rviz" output="log" args="-d $(find tauv_config)/albatross_description/robosub.rviz" /> -->
-<!--     </launch> -->
-
-   <include file="$(find tauv_common)/launch/state_estimation/state_estimation.launch">
-      <arg name="model_name" default="$(arg model_name)"/>
-      <arg name="config_pkg" default="$(arg config_pkg)"/>
-    </include>
-
-  <!-- Launch vehicle controllers: -->
-  <include file="$(find tauv_common)/launch/controllers/controllers.launch">
-    <arg name="model_name" default="$(arg model_name)"/>
-    <arg name="config_pkg" default="$(arg config_pkg)"/>
-  </include>
-
+  <!-- Start the GNC system: -->
+  <include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>
 
 </launch>

@@ -1,0 +1,18 @@
+pid_control_wrapper:
+  enableBuoyancyComp: False
+  enableVelocityFeedForward: False
+
+  pos_src_z: "joy"
+  pos_src_xy: "joy"
+  pos_src_heading: "joy"
+  pos_src_attitude: "joy"
+
+  vel_src_xy: "joy"
+  vel_src_z: "joy"
+  vel_src_heading: "joy"
+  vel_src_attitude: "controller"
+
+  acc_src_xy: "controller"
+  acc_src_z: "controller"
+  acc_src_heading: "controller"
+  acc_src_attitude: "controller"

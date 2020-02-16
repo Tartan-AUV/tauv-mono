@@ -1,0 +1,18 @@
+<library path="src">
+    <class name="rqt_pid_tuner" type="rqt_pid_tuner.pid_tuner.PidTuner" base_class_type="rqt_gui_py::Plugin">
+        <description>
+            Tune Cascaded PID Controller
+        </description>
+        <qtgui>
+            <group>
+              <label>Tartan AUV</label>
+                <icon type="theme">folder</icon>
+            </group>
+            <label>Cascaded PID Tuner</label>
+            <!-- icons list: https://developer.gnome.org/icon-naming-spec/ -->
+            <!-- Look at /usr/share/icons or ~/.local/share/icons -->
+            <icon type="theme">utilities-system-monitor</icon>
+            <statustip>Tune Cascaded PIDs</statustip>
+        </qtgui>
+    </class>
+</library>

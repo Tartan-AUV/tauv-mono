@@ -30,7 +30,6 @@
   <exec_depend>uuv_gazebo_ros_plugins_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>tf</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>tauv_config</exec_depend>
@@ -38,6 +37,7 @@
   <exec_depend>multimaster_fkie</exec_depend>
 
   <depend>pynput-pip</depend>
+  <depend>std_srvs</depend>
   <depend>robot_localization</depend>
 
 </package>
