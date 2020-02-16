@@ -36,7 +36,6 @@ setup_args = generate_distutils_setup(
              'scripts/velocity_controller',
              'scripts/position_controller',
              'scripts/teleop',
-             'scripts/control_aggregator',
              'scripts/state_estimation'],
 )
 setup(**setup_args)
