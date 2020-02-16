@@ -37,9 +37,9 @@
   <node pkg="nodelet" type="nodelet" name="ImuFilterNodelet"
     args="load imu_filter_madgwick/ImuFilterNodelet imu_manager"
     output="screen">
-    <param name="use_mag" value="true"/>
-    <param name="reverse_tf" value="true"/>
-    <param name="publish_tf" value="true"/>
+    <param name="use_mag" value="false"/>
+<!--    <param name="reverse_tf" value="true"/>-->
+<!--    <param name="publish_tf" value="true"/>-->
 </node>
 
 <!--
