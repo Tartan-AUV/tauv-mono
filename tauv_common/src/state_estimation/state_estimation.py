@@ -31,8 +31,10 @@ class Depth_Odom:
         self.depth_data = 0.0
         self.depth_data_variance = .1
         self.depth_data_frame = ""
+        self.imu_data = Imu()
         self.depth_sensor_sub = rospy.Subscriber("sensors/depth", FluidDepth, self.depth_data_callback)
-        self.depth_pose_pub = rospy.Publisher("sensors/depth_pose", PoseWithCovarianceStamped, queue_size=50)
+        self.imu_sensor_sub = rospy.Subscriber("sensors/imu/data", Imu, self.imu_data_callback)
+        self.depth_odom_pub = rospy.Publisher("sensors/depth_odom", Odometry, queue_size=50)
         self.map_broadcaster = tf.TransformBroadcaster()
 
     def depth_data_callback(self, data):
@@ -40,14 +42,19 @@ class Depth_Odom:
         self.depth_data_frame = data.header.frame_id
         self.depth_data_variance = data.variance
 
+    def imu_data_callback(self, data):
+        self.imu_data = data
+
+
     def spin(self):
-        pose_rot = quaternion_from_euler(0, 0, 0)
+        odom = Odometry()
+        odom.header.stamp = rospy.Time.now()
+        odom.header.frame_id = "odom"
+        odom.child_frame_id = "pressure_link"
         pose_msg = PoseWithCovarianceStamped()
-        pose_msg.header.frame_id = self.depth_data_frame
-        pose_msg.header.stamp = rospy.Time.now()
-        pose_msg.pose.pose.position.z = self.depth_data
-        pose_msg.pose.covariance[14] = self.depth_data_variance**2
-        self.depth_pose_pub.publish(pose_msg)
+        odom.pose.pose.position.z = -self.depth_data
+        odom.pose.covariance[14] = self.depth_data_variance**2
+        self.depth_odom_pub.publish(odom)
         # self.map_broadcaster.sendTransform((0, 0, 0),
         #                                    quaternion_from_euler(0, 0, 0),
         #                                    rospy.Time.now(),

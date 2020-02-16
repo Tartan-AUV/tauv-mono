@@ -47,8 +47,8 @@ class ControlAggregator:
             sub = rospy.Subscriber(c + self.topic_suffix, WrenchStamped, self.wrenchCallback, callback_args=c)
             self.subscribers.append(sub)
 
-        self.pub = rospy.Publisher(rospy.get_param('configs/output_topic'), WrenchStamped)
-        self.statusPub = rospy.Publisher("status", ControllerList)
+        self.pub = rospy.Publisher(rospy.get_param('configs/output_topic'), WrenchStamped, queue_size=50)
+        self.statusPub = rospy.Publisher("status", ControllerList, queue_size=50)
 
         self.enableSrv = rospy.Service('controller_set_status', SetController, self.setControllerCallback)
 
