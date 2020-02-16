@@ -130,7 +130,7 @@ class Teleop:
         try:
             arm_srv = rospy.ServiceProxy('/arm', SetBool)
             resp1 = arm_srv(arm)
-            return resp1.sum
+            return resp1.success
         except rospy.ServiceException, e:
             print "Service call failed: %s"%e
 
