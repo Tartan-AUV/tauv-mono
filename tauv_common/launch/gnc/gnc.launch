@@ -32,12 +32,12 @@
               output="screen">
             <remap from="thruster_manager/input" to="$(arg thruster_manager_topic)"/>
         </node>
-        <node pkg="tauv_common" type="velocity_controller" name="velocity_controller"
+        <node pkg="tauv_common" type="velocity_controller" name="velocity_control"
               output="screen">
             <remap from="cmd_accel" to="controller/cmd_acc"/>
             <remap from="odom" to="$(arg odom_topic)"/>
         </node>
-        <node pkg="tauv_common" type="position_controller" name="position_controller"
+        <node pkg="tauv_common" type="position_controller" name="position_control"
               output="screen">
             <remap from="cmd_vel" to="controller/cmd_vel"/>
             <remap from="odom" to="$(arg odom_topic)"/>

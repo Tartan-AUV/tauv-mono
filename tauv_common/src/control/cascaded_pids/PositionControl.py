@@ -22,7 +22,6 @@ import rospy
 import tf.transformations as trans
 from PIDRegulator import PIDRegulator
 
-from tauv_common.cfg import PositionControlConfig
 import geometry_msgs.msg as geometry_msgs
 from nav_msgs.msg import Odometry
 from rospy.numpy_msg import numpy_msg
