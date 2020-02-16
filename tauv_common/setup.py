@@ -25,15 +25,18 @@ setup_args = generate_distutils_setup(
               'control.cascaded_pids',
               'control.keyboard_controller',
               'control',
+              'state_estimation',
               'teleop'],
     package_dir={'': 'src'},
     requires=['rospy'],
+
     scripts=['scripts/thruster_allocator',
              'scripts/keyboard_controller',
              'scripts/acceleration_controller',
              'scripts/velocity_controller',
              'scripts/position_controller',
-             'scripts/teleop']
+             'scripts/teleop',
+             'scripts/control_aggregator',
+             'scripts/state_estimation'],
 )
-
 setup(**setup_args)

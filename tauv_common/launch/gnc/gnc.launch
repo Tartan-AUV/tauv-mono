@@ -13,6 +13,15 @@
     <arg name="odom_topic" default="odom"/>
 
     <group ns="gnc">
+        <!-- Launch State Estimation -->
+        <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
+            <remap from="odometry/filtered" to="odom"/>
+        </node>
+
+        <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" ns="$(arg model_name)" output="screen"/>
+
+
         <!-- Load controller params: -->
         <rosparam file="$(arg config_pkg)/control_params/inertial.yaml" command="load"/>
         <rosparam file="$(arg config_pkg)/control_params/vel_pid_control.yaml" command="load"/>

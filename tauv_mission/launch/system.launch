@@ -20,8 +20,8 @@
   <arg name="use_gt" default="false"/>
 
   <!-- Default position (for simulation only)  -->
-  <arg name="x" default="5.0"/>
-  <arg name="y" default="-10.0"/>
+  <arg name="x" default="15.0"/>
+  <arg name="y" default="0.0"/>
   <arg name="z" default="0.0"/>
   <arg name="roll" default="0.0"/>
   <arg name="pitch" default="0.0"/>
@@ -85,7 +85,6 @@
   </include>
 
   <!-- Start the GNC system: -->
-  <!--<include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>-->
-
+  <include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>
 
 </launch>

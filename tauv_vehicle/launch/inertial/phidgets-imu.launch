@@ -39,6 +39,7 @@
     output="screen">
     <param name="use_mag" value="true"/>
     <param name="reverse_tf" value="true"/>
+    <param name="publish_tf" value="true"/>
 </node>
 
 <!--
