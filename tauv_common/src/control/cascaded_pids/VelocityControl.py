@@ -25,7 +25,6 @@ from rospy.numpy_msg import numpy_msg
 
 # Modules included in this package
 from PIDRegulator import PIDRegulator
-from tauv_common.cfg import VelocityControlConfig
 from tauv_msgs.msg import PidVals
 from tauv_msgs.srv import TunePid, TunePidResponse
 

@@ -12,13 +12,18 @@
     <!-- odom topic to listen on -->
     <arg name="odom_topic" default="odom"/>
 
-    <group ns="gnc">
+    <group>
         <!-- Launch State Estimation -->
         <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
+            <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
+            <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
         </node>
 
-        <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" ns="$(arg model_name)" output="screen"/>
+        <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" output="screen">
+            <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
+            <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
+        </node>
 
 
         <!-- Load controller params: -->
@@ -32,12 +37,12 @@
               output="screen">
             <remap from="thruster_manager/input" to="$(arg thruster_manager_topic)"/>
         </node>
-        <node pkg="tauv_common" type="velocity_controller" name="velocity_controller"
+        <node pkg="tauv_common" type="velocity_controller" name="velocity_control"
               output="screen">
             <remap from="cmd_accel" to="controller/cmd_acc"/>
             <remap from="odom" to="$(arg odom_topic)"/>
         </node>
-        <node pkg="tauv_common" type="position_controller" name="position_controller"
+        <node pkg="tauv_common" type="position_controller" name="position_control"
               output="screen">
             <remap from="cmd_vel" to="controller/cmd_vel"/>
             <remap from="odom" to="$(arg odom_topic)"/>
