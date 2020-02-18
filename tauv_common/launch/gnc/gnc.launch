@@ -1,7 +1,6 @@
 <launch>
     <!-- This launchfile launches the full Guidance, Navigation, and Control system. -->
     <!-- This includes the cascaded pid controller, teleop node, and (TODO) the trajectory planner. -->
-    <!-- TODO: Support the keyboard controller via a topic mux on the wrench output-->
 
     <!-- Name of the robot model  -->
     <arg name="model_name" default="albatross"/>
@@ -31,6 +30,7 @@
         <rosparam file="$(arg config_pkg)/control_params/vel_pid_control.yaml" command="load"/>
         <rosparam file="$(arg config_pkg)/control_params/pos_pid_control.yaml" command="load"/>
         <rosparam file="$(arg config_pkg)/control_params/default_config.yaml" command="load"/>
+        <rosparam file="$(find tauv_common)/src/planners/planners.yaml" command="load"/>
 
         <!-- Launch controllers -->
         <node pkg="tauv_common" type="acceleration_controller" name="acceleration_controller"
@@ -57,15 +57,8 @@
             <remap from="controller_cmd_vel" to="controller/cmd_vel"/>
         </node>
 
-        <!-- Load USB joystick controller configs -->
-        <rosparam file="$(arg config_pkg)/joy.yaml" command="load"/>
-
-        <!-- Start Teleop node -->
-        <node pkg="tauv_common" type="teleop" name="teleop" output="screen">
-            <remap from="cmd_acc" to="teleop/cmd_acc"/>
-            <remap from="cmd_vel" to="teleop/cmd_vel"/>
-            <remap from="cmd_pos" to="teleop/cmd_pos"/>
-        </node>
+        <!-- Launch the planners -->
+        <include file="$(find tauv_common)/launch/gnc/planners/planners.launch"/>
     </group>
 
 

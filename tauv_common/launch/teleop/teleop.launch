@@ -1,9 +1,0 @@
-<launch>
-    <!-- Name of the robot model  -->
-    <arg name="model_name" default="albatross"/>
-    <!-- path to config package  -->
-    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
-
-    <rosparam file="$(arg config_pkg)/joy.yaml" command="load"/>
-    <node pkg="tauv_common" type="teleop" name="teleop" output="screen"/>
-</launch>

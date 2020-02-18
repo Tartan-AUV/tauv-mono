@@ -8,19 +8,18 @@ from geometry_msgs.msg import Pose, PoseStamped, Twist, Accel, Vector3, Quaterni
 from std_msgs.msg import Header, Bool
 
 import tf
-import numpy as np
 from scipy.spatial import transform as stf
 
-SOURCE_JOY = CascadedPidSelection.JOY
+SOURCE_PLANNER = CascadedPidSelection.PLANNER
 SOURCE_CONTROLLER = CascadedPidSelection.CONTROLLER
 
 
 def parse(str):
     if str == "controller":
         return SOURCE_CONTROLLER
-    elif str == "joy":
-        return SOURCE_JOY
-    raise ValueError("YAML Selections must be \"controller\" or \"joy\"")
+    elif str == "planner":
+        return SOURCE_PLANNER
+    raise ValueError("YAML Selections must be \"controller\" or \"ext\"")
 
 
 def tl(vec3):
@@ -45,16 +44,18 @@ class PidControlWrapper:
         self.selections = CascadedPidSelection()
         self.load_default_config()
 
+        self.available_planners = rospy.get_param("available_planners")
+        print(self.available_planners)
+
         self.R = stf.Rotation((0, 0, 0, 1))
         self.R_inv = stf.Rotation((0, 0, 0, 1))
 
         # State vars:
-        self.joy_acc = None
+        self.planner_acc = None
         self.control_acc = None
-        self.joy_vel = None
+        self.planner_vel = None
         self.control_vel = None
-        self.joy_pos = None
-        self.control_pos = None
+        self.planner_pos = None
 
         self.pos = None
         self.orientation = None
@@ -76,15 +77,16 @@ class PidControlWrapper:
         # Declare reconfiguration service:
         self.srv_config = rospy.Service("configure_controller", SetCascadedPidSelection, self.configure)
 
+        # Determine planner topics from planner list:
+        planner_prefix = self.available_planners[self.selections.planner]["topic_prefix"]
+
         # Declare subscribers:
-        self.sub_joy_pos = rospy.Subscriber("joy_cmd_pos", PoseStamped, self.callback_cmd_pos,
-                                            callback_args=SOURCE_JOY)
-        self.sub_joy_vel = rospy.Subscriber("joy_cmd_vel", Twist, self.callback_cmd_vel,
-                                            callback_args=SOURCE_JOY)
-        self.sub_joy_acc = rospy.Subscriber("joy_cmd_acc", Accel, self.callback_cmd_acc,
-                                            callback_args=SOURCE_JOY)
-        self.sub_control_pos = rospy.Subscriber("guidance_cmd_pos", PoseStamped, self.callback_cmd_pos,
-                                                callback_args=SOURCE_CONTROLLER)
+        self.sub_planner_pos = rospy.Subscriber("planners/" + planner_prefix + "/cmd_pos", PoseStamped,
+                                                self.callback_cmd_pos, callback_args=SOURCE_PLANNER)
+        self.sub_planner_vel = rospy.Subscriber("planners/" + planner_prefix + "/cmd_vel", Twist,
+                                                self.callback_cmd_vel, callback_args=SOURCE_PLANNER)
+        self.sub_planner_acc = rospy.Subscriber("planners/" + planner_prefix + "/cmd_acc", Accel,
+                                                self.callback_cmd_acc, callback_args=SOURCE_PLANNER)
         self.sub_control_vel = rospy.Subscriber("controller_cmd_vel", Twist, self.callback_cmd_vel,
                                                 callback_args=SOURCE_CONTROLLER)
         self.sub_control_acc = rospy.Subscriber("controller_cmd_acc", Accel, self.callback_cmd_acc,
@@ -101,12 +103,9 @@ class PidControlWrapper:
         return self.R_inv.apply(vec)
 
     def load_default_config(self):
+        self.selections.planner = rospy.get_param("~planner")
         self.selections.enableBuoyancyComp = rospy.get_param("~enableBuoyancyComp")
         self.selections.enableVelocityFeedForward = rospy.get_param("~enableVelocityFeedForward")
-        self.selections.pos_src_z = parse(rospy.get_param("~pos_src_z"))
-        self.selections.pos_src_xy = parse(rospy.get_param("~pos_src_xy"))
-        self.selections.pos_src_heading = parse(rospy.get_param("~pos_src_heading"))
-        self.selections.pos_src_attitude = parse(rospy.get_param("~pos_src_attitude"))
         self.selections.vel_src_xy = parse(rospy.get_param("~vel_src_xy"))
         self.selections.vel_src_z = parse(rospy.get_param("~vel_src_z"))
         self.selections.vel_src_heading = parse(rospy.get_param("~vel_src_heading"))
@@ -121,12 +120,8 @@ class PidControlWrapper:
             self.load_default_config()
             return SetCascadedPidSelectionResponse(True)
 
-        valid_options = [SOURCE_JOY, SOURCE_CONTROLLER]
-        if config.sel.pos_src_z not in valid_options or \
-                config.sel.pos_src_xy not in valid_options or \
-                config.sel.pos_src_heading not in valid_options or \
-                config.sel.pos_src_attitude not in valid_options or \
-                config.sel.vel_src_xy not in valid_options or \
+        valid_options = [SOURCE_PLANNER, SOURCE_CONTROLLER]
+        if config.sel.vel_src_xy not in valid_options or \
                 config.sel.vel_src_z not in valid_options or \
                 config.sel.vel_src_heading not in valid_options or \
                 config.sel.vel_src_attitude not in valid_options or \
@@ -136,29 +131,56 @@ class PidControlWrapper:
                 config.sel.acc_src_attitude not in valid_options:
             return SetCascadedPidSelectionResponse(False)
 
+        planner = config.sel.planner
+        if planner not in self.available_planners.keys():
+            return SetCascadedPidSelectionResponse(False)
+
+        # Update selections
         self.selections = config.sel
+
+        # Flush cached vals
+        self.planner_acc = None
+        self.control_acc = None
+        self.planner_vel = None
+        self.control_vel = None
+        self.planner_pos = None
+
+        # Update subscribers
+        self.sub_planner_pos.unregister()
+        self.sub_planner_vel.unregister()
+        self.sub_planner_acc.unregister()
+
+        planner_prefix = self.available_planners[planner]["topic_prefix"]
+
+        self.sub_planner_pos = rospy.Subscriber("planners/" + planner_prefix + "/cmd_pos", PoseStamped,
+                                                self.callback_cmd_pos, callback_args=SOURCE_PLANNER)
+        self.sub_planner_vel = rospy.Subscriber("planners/" + planner_prefix + "/cmd_vel", Twist,
+                                                self.callback_cmd_vel, callback_args=SOURCE_PLANNER)
+        self.sub_planner_acc = rospy.Subscriber("planners/" + planner_prefix + "/cmd_acc", Accel,
+                                                self.callback_cmd_acc, callback_args=SOURCE_PLANNER)
+
         return SetCascadedPidSelectionResponse(True)
 
     def callback_cmd_acc(self, acc, source):
         # Acceleration is in the body frame!
-        if source == SOURCE_JOY:
-            self.joy_acc = acc
+        if source == SOURCE_PLANNER:
+            self.planner_acc = acc
         elif source == SOURCE_CONTROLLER:
             self.control_acc = acc
         self.update()
 
     def callback_cmd_vel(self, vel, source):
         # Velocity is in the body frame!
-        if source == SOURCE_JOY:
-            self.joy_vel = vel
+        if source == SOURCE_PLANNER:
+            self.planner_vel = vel
         elif source == SOURCE_CONTROLLER:
             self.control_vel = vel
         self.update()
 
     def callback_cmd_pos(self, pos, source):
         # Pose is in the world frame!
-        if source == SOURCE_JOY:
-            self.joy_pos = pos
+        if source == SOURCE_PLANNER:
+            self.planner_pos = pos
         elif source == SOURCE_CONTROLLER:
             self.control_pos = pos
         self.update()
@@ -176,39 +198,39 @@ class PidControlWrapper:
                 return
             angular = self.control_acc.angular
 
-        # Both angular are from joystick: use the body frame.
-        if self.selections.acc_src_attitude == SOURCE_JOY and \
-                self.selections.acc_src_heading == SOURCE_JOY:
-            if self.joy_acc is None:
+        # Both angular are from planner: use the body frame.
+        if self.selections.acc_src_attitude == SOURCE_PLANNER and \
+                self.selections.acc_src_heading == SOURCE_PLANNER:
+            if self.planner_acc is None:
                 return
-            angular = self.joy_acc.angular
+            angular = self.planner_acc.angular
 
-        # Attitude from joy, heading from controller.
+        # Attitude from planner, heading from controller.
         if self.selections.acc_src_heading == SOURCE_CONTROLLER and \
-                self.selections.acc_src_attitude == SOURCE_JOY:
+                self.selections.acc_src_attitude == SOURCE_PLANNER:
             # Convert both inputs to stabilized (level) frame:
-            if self.joy_acc is None or self.control_acc is None:
+            if self.planner_acc is None or self.control_acc is None:
                 return
             control_stab = self.body2odom(self.control_acc.angular)
-            joy_stab = self.body2odom(self.joy_acc.angular)
+            planner_stab = self.body2odom(self.planner_acc.angular)
 
-            # Replace heading (z axis) in the joystick input with the heading from the controller
-            # Note that this assumes joystick attitude is in the body frame
-            joy_stab[2] = control_stab[2]
+            # Replace heading (z axis) in the planner input with the heading from the controller
+            # Note that this assumes planner attitude is in the body frame
+            planner_stab[2] = control_stab[2]
 
-            angular = tv(self.odom2body(joy_stab))
+            angular = tv(self.odom2body(planner_stab))
 
-        # Attitude from controller, heading from joystick.
-        if self.selections.acc_src_heading == SOURCE_JOY and \
+        # Attitude from controller, heading from planner.
+        if self.selections.acc_src_heading == SOURCE_PLANNER and \
                 self.selections.acc_src_attitude == SOURCE_CONTROLLER:
-            if self.joy_acc is None or self.control_acc is None:
+            if self.planner_acc is None or self.control_acc is None:
                 return
             # Convert control input to odom frame:
             control_stab = self.body2odom(self.control_acc.angular)
 
-            # Replace heading (z axis accel) with joystick z axis accel.
-            # Note that this assumes joystick heading accel is in the odom frame.
-            control_stab[2] = self.joy_acc.angular.z
+            # Replace heading (z axis accel) with planner z axis accel.
+            # Note that this assumes planner heading accel is in the odom frame.
+            control_stab[2] = self.planner_acc.angular.z
             angular = tv(self.odom2body(control_stab))
 
         # LINEAR ACCELERATION:
@@ -222,38 +244,38 @@ class PidControlWrapper:
                 return
             linear = self.control_acc.linear
 
-        # Both linear are from joystick: use the body frame.
-        if self.selections.acc_src_xy == SOURCE_JOY and \
-                self.selections.acc_src_z == SOURCE_JOY:
-            if self.joy_acc is None:
+        # Both linear are from planner: use the body frame.
+        if self.selections.acc_src_xy == SOURCE_PLANNER and \
+                self.selections.acc_src_z == SOURCE_PLANNER:
+            if self.planner_acc is None:
                 return
-            linear = self.joy_acc.linear
+            linear = self.planner_acc.linear
 
-        # xy from joystick, depth from controller
-        if self.selections.acc_src_xy == SOURCE_JOY and \
+        # xy from planner, depth from controller
+        if self.selections.acc_src_xy == SOURCE_PLANNER and \
                 self.selections.acc_src_z == SOURCE_CONTROLLER:
-            if self.joy_acc is None or self.control_acc is None:
+            if self.planner_acc is None or self.control_acc is None:
                 return
             # Convert both accel to stab frame:
             control_stab = self.body2odom(self.control_acc.linear)
-            joy_stab = self.body2odom(self.joy_acc.linear)
+            planner_stab = self.body2odom(self.planner_acc.linear)
 
-            # Overwrite joystick depth with controller depth:
-            joy_stab[2] = control_stab[2]
+            # Overwrite planner depth with controller depth:
+            planner_stab[2] = control_stab[2]
 
-            linear = tv(self.odom2body(joy_stab))
+            linear = tv(self.odom2body(planner_stab))
 
-        # xy from controller, depth from joystick
+        # xy from controller, depth from planner
         if self.selections.acc_src_xy == SOURCE_CONTROLLER and \
-                self.selections.acc_src_z == SOURCE_JOY:
-            if self.joy_acc is None or self.control_acc is None:
+                self.selections.acc_src_z == SOURCE_PLANNER:
+            if self.planner_acc is None or self.control_acc is None:
                 return
             # Convert both accel to stab frame:
             control_stab = self.body2odom(self.control_acc.linear)
-            joy_stab = self.body2odom(self.joy_acc.linear)
+            planner_stab = self.body2odom(self.planner_acc.linear)
 
-            # Overwrite controller depth with joystick depth:
-            control_stab[2] = joy_stab[2]
+            # Overwrite controller depth with planner depth:
+            control_stab[2] = planner_stab[2]
 
             linear = tv(self.odom2body(control_stab))
 
@@ -275,39 +297,39 @@ class PidControlWrapper:
                 return
             angular = self.control_vel.angular
 
-        # Both angular are from joystick: use the body frame.
-        if self.selections.vel_src_attitude == SOURCE_JOY and \
-                self.selections.vel_src_heading == SOURCE_JOY:
-            if self.joy_vel is None:
+        # Both angular are from planner: use the body frame.
+        if self.selections.vel_src_attitude == SOURCE_PLANNER and \
+                self.selections.vel_src_heading == SOURCE_PLANNER:
+            if self.planner_vel is None:
                 return
-            angular = self.joy_vel.angular
+            angular = self.planner_vel.angular
 
-        # Attitude from joy, heading from controller.
+        # Attitude from planner, heading from controller.
         if self.selections.vel_src_heading == SOURCE_CONTROLLER and \
-                self.selections.vel_src_attitude == SOURCE_JOY:
+                self.selections.vel_src_attitude == SOURCE_PLANNER:
             # Convert both inputs to stabilized (level) frame:
-            if self.joy_vel is None or self.control_vel is None:
+            if self.planner_vel is None or self.control_vel is None:
                 return
             control_stab = self.body2odom(self.control_vel.angular)
-            joy_stab = self.body2odom(self.joy_vel.angular)
+            planner_stab = self.body2odom(self.planner_vel.angular)
 
-            # Replace heading (z axis) in the joystick input with the heading from the controller
-            # Note that this assumes joystick attitude is in the body frame
-            joy_stab[2] = control_stab[2]
+            # Replace heading (z axis) in the planner input with the heading from the controller
+            # Note that this assumes planner attitude is in the body frame
+            planner_stab[2] = control_stab[2]
 
-            angular = tv(self.odom2body(joy_stab))
+            angular = tv(self.odom2body(planner_stab))
 
-        # Attitude from controller, heading from joystick.
-        if self.selections.vel_src_heading == SOURCE_JOY and \
+        # Attitude from controller, heading from planner.
+        if self.selections.vel_src_heading == SOURCE_PLANNER and \
                 self.selections.vel_src_attitude == SOURCE_CONTROLLER:
-            if self.joy_vel is None or self.control_vel is None:
+            if self.planner_vel is None or self.control_vel is None:
                 return
             # Convert control input to odom frame:
             control_stab = self.body2odom(self.control_vel.angular)
 
-            # Replace heading (z axis velocities) with joystick z axis velocities.
-            # Note that this assumes joystick heading velocities is in the odom frame.
-            control_stab[2] = self.joy_vel.angular.z
+            # Replace heading (z axis velocities) with planner z axis velocities.
+            # Note that this assumes planner heading velocities is in the odom frame.
+            control_stab[2] = self.planner_vel.angular.z
             angular = tv(self.odom2body(control_stab))
 
         # LINEAR VELOCITY:
@@ -321,38 +343,38 @@ class PidControlWrapper:
                 return
             linear = self.control_vel.linear
 
-        # Both linear are from joystick: use the body frame.
-        if self.selections.vel_src_xy == SOURCE_JOY and \
-                self.selections.vel_src_z == SOURCE_JOY:
-            if self.joy_vel is None:
+        # Both linear are from planner: use the body frame.
+        if self.selections.vel_src_xy == SOURCE_PLANNER and \
+                self.selections.vel_src_z == SOURCE_PLANNER:
+            if self.planner_vel is None:
                 return
-            linear = self.joy_vel.linear
+            linear = self.planner_vel.linear
 
-        # xy from joystick, depth from controller
-        if self.selections.vel_src_xy == SOURCE_JOY and \
+        # xy from planner, depth from controller
+        if self.selections.vel_src_xy == SOURCE_PLANNER and \
                 self.selections.vel_src_z == SOURCE_CONTROLLER:
-            if self.joy_vel is None or self.control_vel is None:
+            if self.planner_vel is None or self.control_vel is None:
                 return
             # Convert both velocity to stab frame:
             control_stab = self.body2odom(self.control_vel.linear)
-            joy_stab = self.body2odom(self.joy_vel.linear)
+            planner_stab = self.body2odom(self.planner_vel.linear)
 
-            # Overwrite joystick depth with controller depth:
-            joy_stab[2] = control_stab[2]
+            # Overwrite planner depth with controller depth:
+            planner_stab[2] = control_stab[2]
 
-            linear = tv(self.odom2body(joy_stab))
+            linear = tv(self.odom2body(planner_stab))
 
-        # xy from controller, depth from joystick
+        # xy from controller, depth from planner
         if self.selections.vel_src_xy == SOURCE_CONTROLLER and \
-                self.selections.vel_src_z == SOURCE_JOY:
-            if self.joy_vel is None or self.control_vel is None:
+                self.selections.vel_src_z == SOURCE_PLANNER:
+            if self.planner_vel is None or self.control_vel is None:
                 return
             # Convert both velocities to stab frame:
             control_stab = self.body2odom(self.control_vel.linear)
-            joy_stab = self.body2odom(self.joy_vel.linear)
+            planner_stab = self.body2odom(self.planner_vel.linear)
 
-            # Overwrite controller depth with joystick depth:
-            control_stab[2] = joy_stab[2]
+            # Overwrite controller depth with planner depth:
+            control_stab[2] = planner_stab[2]
 
             linear = tv(self.odom2body(control_stab))
 
@@ -362,90 +384,10 @@ class PidControlWrapper:
         return res
 
     def calculate_pos(self):
-        # Orientation:
-        orientation = Quaternion(0, 0, 0, 1)
-
-        # Both orientation are from controller: Pass quaternion through.
-        if self.selections.pos_src_attitude == SOURCE_CONTROLLER and \
-                self.selections.pos_src_heading == SOURCE_CONTROLLER:
-            if self.control_pos is None:
-                return
-            orientation = self.control_pos.pose.orientation
-
-        # Both orientation are from joystick: Pass quaternion through.
-        if self.selections.pos_src_attitude == SOURCE_JOY and \
-                self.selections.pos_src_heading == SOURCE_JOY:
-            if self.joy_pos is None:
-                return
-            orientation = self.joy_pos.pose.orientation
-
-        # Attitude from controller, heading from joystick.
-        if self.selections.pos_src_attitude == SOURCE_CONTROLLER and \
-                self.selections.pos_src_heading == SOURCE_JOY:
-            if self.joy_pos is None or self.control_pos is None:
-                return
-            o_j = self.joy_pos.pose.orientation
-            o_c = self.control_pos.pose.orientation
-            zyx_j = stf.Rotation.from_quat(o_j).as_euler("ZYX")
-            zyx_c = stf.Rotation.from_quat(o_c).as_euler("ZYX")
-
-            zyx_res = [zyx_j[0], zyx_c[1], zyx_c[2]]
-            orientation = tq(stf.Rotation.from_euler("ZYX", zyx_res).as_quat())
-
-        # Attitude from joystick, heading from controller.
-        if self.selections.pos_src_attitude == SOURCE_JOY and \
-                self.selections.pos_src_heading == SOURCE_CONTROLLER:
-            if self.joy_pos is None or self.control_pos is None:
-                return
-            o_j = self.joy_pos.pose.orientation
-            o_c = self.control_pos.pose.orientation
-            zyx_j = stf.Rotation.from_quat(o_j).as_euler("ZYX")
-            zyx_c = stf.Rotation.from_quat(o_c).as_euler("ZYX")
-
-            zyx_res = [zyx_c[0], zyx_j[1], zyx_j[2]]
-            orientation = tq(stf.Rotation.from_euler("ZYX", zyx_res).as_quat())
-
-        position = Point(0, 0, 0)
-
-        # XY and Z position from controller
-        if self.selections.pos_src_z == SOURCE_CONTROLLER and \
-                self.selections.pos_src_xy == SOURCE_CONTROLLER:
-            if self.control_pos is None:
-                return
-            position = self.control_pos.pose.position
-
-        # XY and Z position from joystick
-        if self.selections.pos_src_z == SOURCE_JOY and \
-                self.selections.pos_src_xy == SOURCE_JOY:
-            if self.joy_pos is None:
-                return
-            position = self.joy_pos.pose.position
-
-        # XY from controller, Z from joystick
-        if self.selections.pos_src_z == SOURCE_JOY and \
-                self.selections.pos_src_xy == SOURCE_CONTROLLER:
-            if self.joy_pos is None or self.control_pos is None:
-                return
-            p_j = tv(self.joy_pos.pose.position)
-            p_c = tv(self.control_pos.pose.position)
-            position = tp([p_c[0], p_c[1], p_j[2]])
-
-        # XY from joy, Z from controller
-        if self.selections.pos_src_z == SOURCE_CONTROLLER and \
-                self.selections.pos_src_xy == SOURCE_JOY:
-            if self.joy_pos is None or self.control_pos is None:
-                return
-            p_j = tv(self.joy_pos.pose.position)
-            p_c = tv(self.control_pos.pose.position)
-            position = tp([p_j[0], p_j[1], p_c[2]])
-
-        pose = Pose(position, orientation)
-        header = Header()
-        header.stamp = rospy.Time.now()
-        header.frame_id = "odom"
-        return PoseStamped(header, pose)
+        return self.planner_pos
 
     def update(self):
+        # Update state for transformations
         try:
             (self.pos, self.orientation) = self.tfl.lookupTransform(self.odom, self.body, rospy.Time(0))
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
@@ -457,13 +399,14 @@ class PidControlWrapper:
         # Calculate and publish commands:
         cmd_pos = self.calculate_pos()
         if cmd_pos is not None:
-            #print("pos")
             self.pub_cmd_pos.publish(cmd_pos)
 
         cmd_vel = self.calculate_vel()
         if cmd_vel is not None:
-            #print("vel")
             self.pub_cmd_vel.publish(cmd_vel)
+        else:
+            # Publish zero-twist to stop robot
+            self.pub_cmd_vel.publish(Twist())
 
         cmd_acc = self.calculate_acc()
         if cmd_acc is not None:
@@ -472,6 +415,7 @@ class PidControlWrapper:
         self.pub_enable_bc.publish(Bool(self.selections.enableBuoyancyComp))
 
     def post_status(self, timer_event):
+        self.selections.available_planners = self.available_planners.keys()
         self.pub_status.publish(self.selections)
 
     def start(self):
