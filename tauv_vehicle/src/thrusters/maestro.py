@@ -191,12 +191,3 @@ class Maestro:
 
     def is_init(self):
         return self.init
-
-
-if __name__ == '__main__':
-    servo = Controller()
-    while True:
-        servo.setTarget(5, 3000)
-        time.sleep(1)
-        servo.setTarget(5, 7000)
-        time.sleep(1)
