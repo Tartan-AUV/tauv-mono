@@ -58,17 +58,17 @@ imu0_remove_gravitational_acceleration: true
 
 
 # Depth Sensor
-pose0: sensors/depth_pose
-
-pose0_config: [true, true, true, # x, y, z
-               false, false, false,  # roll, pitch, yaw
-               false, false, false,   # vx, vy, vz
-               false, false, false,   # vroll, vpitch, vyaw
-               false, false, false]  # ax, ay, az
-pose0_queue_size: 10
-pose0_nodelay: false
-pose0_differential: true
-pose0_relative: false
+#pose0: sensors/depth_pose
+#
+#pose0_config: [true, true, true, # x, y, z
+#               false, false, false,  # roll, pitch, yaw
+#               false, false, false,   # vx, vy, vz
+#               false, false, false,   # vroll, vpitch, vyaw
+#               false, false, false]  # ax, ay, az
+#pose0_queue_size: 10
+#pose0_nodelay: false
+#pose0_differential: true
+#pose0_relative: false
 
 
 #twist0: /manta/twist_dvl
