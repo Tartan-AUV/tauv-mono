@@ -57,7 +57,7 @@ class Depth_Odom:
         self.depth_odom_pub.publish(odom)
         q = self.imu_data.orientation
         self.map_broadcaster.sendTransform((0, 0, 0),
-                                           Quaternion(q[0], q[1], q[2], q[3]),
+                                           Quaternion(*q),
                                            rospy.Time.now(),
                                            "albatross/imu_debug",
                                             "albatross/odom")
