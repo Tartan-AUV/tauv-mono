@@ -62,6 +62,7 @@
   <group unless="$(arg use_gt)">
     <node pkg="topic_tools" type="relay" name="gt_to_odom_topic" args="/gnc/odometry/filtered /gnc/odom"/>
   </group>
+
   <!-- =======================  -->
   <!-- Launch abstract systems  -->
   <!-- =======================  -->
@@ -80,6 +81,12 @@
     <arg name="roll" default="$(arg roll)"/>
     <arg name="pitch" default="$(arg pitch)"/>
     <arg name="yaw" default="$(arg yaw)"/>
+  </include>
+
+  <!-- Publish state and tf for in relation to the odom frame -->
+  <include file="$(find uuv_descriptions)/models/common/launch/message_to_tf.launch">
+    <arg name="namespace" value="$(arg model_name)"/>
+    <arg name="odom_topic" value="/gnc/odom"/>
   </include>
 
   <!-- Launch the thruster manager:  -->
