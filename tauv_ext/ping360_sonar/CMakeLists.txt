@@ -1,26 +1,22 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(tauv_vehicle)
+project(ping360_sonar)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-add_compile_options(-Wall -Werror -std=c++11)
+# add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-        roscpp
-        rospy
-        std_msgs
-        std_srvs
-        image_transport
-        roslaunch
-        sensor_msgs
-        tf
-        phidgets_imu
-        imu_filter_madgwick
-        tauv_msgs
-        ping360_sonar
+  cv_bridge
+  rospy
+  sensor_msgs
+  std_msgs
+  dynamic_reconfigure
+  message_generation
+  roslint
 )
+find_package(OpenCV REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -30,6 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 catkin_python_setup()
+roslint_python()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -56,11 +53,10 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  SonarEcho.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -76,15 +72,10 @@ catkin_python_setup()
 #   Action2.action
 # )
 
-# Generate added messages and services with any dependencies listed here
+## Generate added messages and services with any dependencies listed here
 generate_messages(
-        DEPENDENCIES
-        std_msgs  # Or other packages containing msgs
-        sensor_msgs
-        geometry_msgs
-        tauv_msgs
-        std_srvs
-        ping360_sonar
+  DEPENDENCIES
+  sensor_msgs#   std_msgs
 )
 
 ################################################
@@ -102,10 +93,11 @@ generate_messages(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+
+generate_dynamic_reconfigure_options(
+  cfg/sonar.cfg
+  #...
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -117,20 +109,9 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-        INCLUDE_DIRS src
-#  LIBRARIES tauv_vehicle
-        CATKIN_DEPENDS
-        roscpp
-        std_msgs
-        image_transport
-        sensor_msgs
-        tf
-        phidgets_imu
-        imu_filter_madgwick
-        imu_transformer
-        tauv_msgs
-        std_srvs
-        ping360_sonar
+#  INCLUDE_DIRS include
+#  LIBRARIES sonar-ping360
+#  CATKIN_DEPENDS cv_bridge rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
@@ -141,13 +122,13 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-        src
-        ${catkin_INCLUDE_DIRS}
+# include
+  ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/tauv_vehicle.cpp
+#   src/${PROJECT_NAME}/sonar-ping360.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -158,7 +139,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/tauv_vehicle_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/sonar-ping360_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -169,6 +150,7 @@ include_directories(
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(ping360_node ${PROJECT_NAME}_gencfg)
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -189,11 +171,18 @@ include_directories(
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
-## Mark executables and/or libraries for installation
-# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
+## Mark executables for installation
+## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_executables.html
+# install(TARGETS ${PROJECT_NAME}_node
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
+
+## Mark libraries for installation
+## See http://docs.ros.org/melodic/api/catkin/html/howto/format1/building_libraries.html
+# install(TARGETS ${PROJECT_NAME}
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 # )
 
 ## Mark cpp header files for installation
@@ -210,21 +199,20 @@ include_directories(
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
 
+install(PROGRAMS
+     nodes/ping360_node
+     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 #############
 ## Testing ##
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_tauv_vehicle.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_sonar-ping360.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-
-# Macros for declaring ros nodes and libraries
-include(cmake/ros-node.cmake)
-include(cmake/cppcheck.cmake)
-include(cmake/clang-format.cmake)
-include(cmake/pylint.cmake)

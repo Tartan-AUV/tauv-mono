@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="1">
+<package format="2">
   <name>tauv_vehicle</name>
   <version>0.0.0</version>
   <description>The tauv_vehicle package</description>
@@ -16,67 +16,25 @@
   <license>TODO</license>
 
 
-  <!-- Url tags are optional, but multiple are allowed, one per tag -->
-  <!-- Optional attribute type can be: website, bugtracker, or repository -->
-  <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/tauv_vehicle</url> -->
-
-
-  <!-- Author tags are optional, multiple are allowed, one per tag -->
-  <!-- Authors do not have to be maintainers, but could be -->
-  <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
-
-
-  <!-- The *depend tags are used to specify dependencies -->
-  <!-- Dependencies can be catkin packages or system dependencies -->
-  <!-- Examples: -->
-  <!-- Use depend as a shortcut for packages that are both build and exec dependencies -->
-  <!--   <depend>roscpp</depend> -->
-  <!--   Note that this is equivalent to the following: -->
-  <!--   <build_depend>roscpp</build_depend> -->
-  <!--   <exec_depend>roscpp</exec_depend> -->
-  <!-- Use build_depend for packages you need at compile time: -->
-  <!--   <build_depend>message_generation</build_depend> -->
-  <!-- Use build_export_depend for packages you need in order to build against this package: -->
-  <!--   <build_export_depend>message_generation</build_export_depend> -->
-  <!-- Use buildtool_depend for build tool packages: -->
-  <!--   <buildtool_depend>catkin</buildtool_depend> -->
-  <!-- Use exec_depend for packages you need at runtime: -->
-  <!--   <exec_depend>message_runtime</exec_depend> -->
-  <!-- Use test_depend for packages you need only for testing: -->
-  <!--   <test_depend>gtest</test_depend> -->
-  <!-- Use doc_depend for packages you need only for building documentation: -->
-  <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>image_transport</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>roslaunch</build_depend>
-  <build_depend>tf</build_depend>
-  <build_depend>phidgets_imu</build_depend>
-  <build_depend>imu_filter_madgwick</build_depend>
-  <build_depend>tauv_msgs</build_depend>
-  <build_depend>std_srvs</build_depend>
 
-  <run_depend>roscpp</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>std_msgs</run_depend>
-  <run_depend>image_transport</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>zed-ros-wrapper</run_depend>
-  <run_depend>gscam</run_depend>
-  <run_depend>image_proc</run_depend>
-  <run_depend>tf</run_depend>
-  <run_depend>phidgets_imu</run_depend>
-  <run_depend>imu_filter_madgwick</run_depend>
-  <run_depend>imu_transformer</run_depend>
-  <run_depend>tauv_msgs</run_depend>
-  <run_depend>libi2c-dev</run_depend>
-  <run_depend>python-smbus</run_depend>
-  <run_depend>std_srvs</run_depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>image_transport</depend>
+  <depend>sensor_msgs</depend>
+  <depend>zed-ros-wrapper</depend>
+  <depend>gscam</depend>
+  <depend>image_proc</depend>
+  <depend>tf</depend>
+  <depend>phidgets_imu</depend>
+  <depend>imu_filter_madgwick</depend>
+  <depend>imu_transformer</depend>
+  <depend>tauv_msgs</depend>
+  <depend>libi2c-dev</depend>
+  <depend>python-smbus</depend>
+  <depend>std_srvs</depend>
+  <depend>ping360_sonar</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 
