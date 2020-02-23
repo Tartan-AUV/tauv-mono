@@ -32,7 +32,7 @@ imu0_config: [false, false, false, # x, y, z
               true, true, true,  # roll, pitch, yaw
               false, false, false,  # vx, vy, vz
               false, false, false,   # vroll, vpitch, vyaw
-              true, true, true]  # ax, ay, az
+              false, false, false]  # ax, ay, az
 imu0_nodelay: false
 imu0_differential: false
 imu0_relative: false
