@@ -38,7 +38,7 @@
   </xacro:default_camera>
   <!-- IMU  -->
   <xacro:default_imu namespace="${namespace}" parent_link="base_link">
-    <origin xyz="0 0 0" rpy="${0} ${.5*pi} ${-.5*pi}"/>
+    <origin xyz="0 0 0" rpy="${0} ${0} ${0}"/>
   </xacro:default_imu>
 
   <!-- Mount a camera -->
