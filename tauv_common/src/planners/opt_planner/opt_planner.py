@@ -12,6 +12,7 @@ from tauv_common.planner.opt_planner.opt_planner_utils import State3d, Control3d
 from geometry_msgs.msg import Accel
 from nav_msgs.msg import Odometry
 import tf.transformations as angle_transform
+from tauv_msgs.msg import TargetState
 
 
 N = State3d.dim
@@ -59,6 +60,7 @@ class OptPlanner():
     def __init__(self):
         self.pub_accel = rospy.Publisher("cmd_acc", Accel, queue_size=1)
         self.sub_odom = rospy.Subscriber("/gnc/odom", Odometry, self.odom_callback)
+        self.sub_target = rospy.Subscriber("target_state", TargetState, self.traj_callback)
 
         # Initial condition
         self.x_0 = np.zeros(N)
@@ -135,7 +137,8 @@ class OptPlanner():
         self.x0[State3d.pitch_dot] = twist.angular.y
         self.x0[State3d.yaw_dot] = twist.angular.z
 
-    def plan_trajectory(self, final_state):
+    def traj_callback(self, final_state):
+        # TODO: Init the problem in constructor to prevent making a new problem at every callback.
         prob, x, u = self.create_constrained_problem(self.x0, final_state)
         states, controls = self.solve_planning_problem(prob, x, u)
         accel_msg = self.cvx_accel_to_accel_msg(controls)
