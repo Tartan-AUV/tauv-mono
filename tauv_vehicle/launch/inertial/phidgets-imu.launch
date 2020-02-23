@@ -3,7 +3,7 @@
 <launch>
 
   #### Nodelet manager ######################################################
-
+  <arg name="model_name" default="albatross"/>
   <node pkg="nodelet" type="nodelet" name="imu_manager"
     args="manager" output="screen"/>
 
