@@ -8,7 +8,7 @@
     <param name="~stabilized_frame_id" value="base_stabilized" />
     <param name="~footprint_frame_id" value="base_footprint" />
     <param name="~child_frame_id" value="base_link" />
-    <param name="~imu_topic" value="sensors/imu/data" />
+    <param name="~imu_topic" value="/albatross/sensors/imu/data" />
     <param name="~publish_roll_pitch" value="true" />
   </node>
 </launch>
