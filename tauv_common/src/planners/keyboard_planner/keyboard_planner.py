@@ -15,7 +15,7 @@ from std_msgs.msg import Header
 
 class UserController:
     def __init__(self):
-        self.gain = [30, 30, 60, 20, 20, 8]      
+        self.gain = [30, 30, 60, 20, 20, 8]
         rospy.init_node('keyboard_controller', anonymous=True)
         self.pub = rospy.Publisher("cmd_acc", Accel, queue_size=1)
 
@@ -68,7 +68,7 @@ class UserController:
         if self.is_pressed("e"):
             self.vector[3] = self.gain[3]
         if self.is_pressed("q"):
-            self.vector[3] = -self.gain[3]        
+            self.vector[3] = -self.gain[3]
 
     def send_thrust(self):
         command = self.vector

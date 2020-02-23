@@ -10,8 +10,14 @@
     </node>
 
     <!-- Launch keyboard planner -->
-    <!--<node pkg="tauv_common" type="keyboard_planner" name="keyboard_planner" output="screen">-->
+    <!-- <node pkg="tauv_common" type="keyboard_planner" name="keyboard_planner" output="screen">-->
         <!--<param name="output_frame" value="base_link"/>-->
         <!--<remap from="cmd_acc" to="planners/keyboard/cmd_acc"/>-->
-    <!--</node>-->
+    <!--</node> -->
+
+    <!-- Launch Opt planner -->
+    <!-- <node pkg="tauv_common" type="opt_planner" name="opt_planner" output="screen"> -->
+        <!-- <param name="output_frame" value="base_link"/> -->
+        <!-- <remap from="cmd_acc" to="planners/opt/cmd_acc"/> -->
+    <!-- </node> -->
 </launch>
