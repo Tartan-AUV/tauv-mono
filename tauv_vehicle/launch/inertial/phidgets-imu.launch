@@ -34,16 +34,20 @@
 
   #### IMU Orientation Filter ###############################################
 
-  <node pkg="nodelet" type="nodelet" name="ImuFilterNodelet"
-    args="load imu_filter_madgwick/ImuFilterNodelet imu_manager"
-    output="screen">
-    <param name="use_mag" value="false"/>
-    <param name="reverse_tf" value="false"/>
-    <param name="publish_tf" value="false"/>
-    <param name="fixed_frame" value="inertial_fixed"/>
-    <param name="world_frame" value="enu"/>
-  </node>
+<!--  <node pkg="nodelet" type="nodelet" name="ImuFilterNodelet"-->
+<!--    args="load imu_filter_madgwick/ImuFilterNodelet imu_manager"-->
+<!--    output="screen">-->
+<!--    <param name="use_mag" value="false"/>-->
+<!--    <param name="reverse_tf" value="false"/>-->
+<!--    <param name="publish_tf" value="false"/>-->
+<!--    <param name="fixed_frame" value="inertial_fixed"/>-->
+<!--    <param name="world_frame" value="enu"/>-->
+<!--  </node>-->
 
+  <node pkg="imu_complementary_filter" type="complementary_filter_node" name="comp_imu" clear_params="true" output="screen">
+    <param name="~use_mag" value="false"/>
+    <param name="~publish_tf" value="false"/>
+  </node>
 <!--
   #### IMU Transformer ######################################################
   <node pkg="nodelet" type="nodelet" name="ImuTransformerNodelet"
