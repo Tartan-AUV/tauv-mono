@@ -4,17 +4,19 @@
 
   #### Nodelet manager ######################################################
 
-  <node pkg="nodelet" type="nodelet" name="imu_manager"
-    args="manager" output="screen"/>
+<!--  <node pkg="nodelet" type="nodelet" name="imu_manager"-->
+<!--    args="manager" output="screen"/>-->
 
   #### IMU Driver ###########################################################
 
-  <node pkg="nodelet" type="nodelet" name="PhidgetsImuNodelet"
-    args="load phidgets_imu/PhidgetsImuNodelet imu_manager"
-    output="screen">
+<!--  <node pkg="nodelet" type="nodelet" name="PhidgetsImuNodelet"-->
+<!--    args="load phidgets_imu/PhidgetsImuNodelet imu_manager"-->
+<!--    output="screen">-->
+  <node pkg="phidgets_imu" type="phidgets_imu" name="imu" output="screen">
     # supported data rates: 4 8 16 24 32 40 ... 1000 (in ms)
     <param name="period" value="4"/>
     <param name="frame_id" value="imu_link"/>
+  </node>
 
 # compass correction params (see http://www.phidgets.com/docs/1044_User_Guide)
     <!-- <param name="cc_mag_field" value="0.52859"/>
@@ -30,7 +32,7 @@
          <param name="cc_t3" value="-0.05038"/>
          <param name="cc_t4" value="-0.03942"/>
          <param name="cc_t5" value="-0.05673"/> -->
-  </node>
+<!--  </node>-->
 
   #### IMU Orientation Filter ###############################################
 
