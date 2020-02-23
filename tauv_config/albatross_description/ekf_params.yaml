@@ -44,16 +44,16 @@ imu0_queue_size: 10
 imu0_remove_gravitational_acceleration: true
 
 # Depth odom
-#odom0: sensors/depth_odom
-#odom0_config: [false, false, true, # x, y, z
-#               false, false, false,  # roll, pitch, yaw
-#               false, false, false,     # vx, vy, vz
-#               false, false, false,   # vroll, vpitch, vyaw
-#               false, false, false]  # ax, ay, az
-#odom0_queue_size: 10
-#odom0_nodelay: false
-#odom0_differential: false
-#odom0_relative: false
+odom0: sensors/depth_odom
+odom0_config: [false, false, true, # x, y, z
+               false, false, false,  # roll, pitch, yaw
+               false, false, false,     # vx, vy, vz
+               false, false, false,   # vroll, vpitch, vyaw
+               false, false, false]  # ax, ay, az
+odom0_queue_size: 10
+odom0_nodelay: false
+odom0_differential: false
+odom0_relative: false
 
 
 
