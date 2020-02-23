@@ -47,7 +47,15 @@
 <!--
   #### IMU Transformer ######################################################
   <node pkg="nodelet" type="nodelet" name="ImuTransformerNodelet"
-    args="load imu_transformer/imu_transformer_nodelet imu_manager"
+    argNo, you can not Gimbal lock a sensor, as it is a physical object that you moved.
+
+Gimbal lock refers to a state on where if you where to move 2 angles, they would have the same effect on the rotation. It is not an error, but an specific rotation state. But if you are personally moving the object by hand, Gimbal lock is impossible. Wikipedia has a brilliant gif:
+
+￼
+
+Gimbal locked airplane. When the pitch (green) and yaw (magenta) gimbals become aligned, changes to roll (blue) and yaw apply the same rotation to the airplane.
+
+However, note that the cause of Gimbal lock may be the causes="load imu_transformer/imu_transformer_nodelet imu_manager"
     output="screen">
     <remap from="imu_in/data" to="imu/relative/data"/>
     <remap from="imu_in/mag" to="imu/relative/mag"/>
