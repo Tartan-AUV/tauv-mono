@@ -45,11 +45,11 @@
   </node>
 
   #### IMU Transformer ######################################################
-  <node pkg="nodelet" type="nodelet" name="ImuTransformerNodelet"
-    args="load imu_transformer/imu_transformer_nodelet imu_manager"
-    output="screen">
-    <remap from="imu_in/data" to="/$(arg model_name)/sensors/imu/data"/>
-    <remap from="imu_out/data" to="/$(arg model_name)/sensors/imu/data_trans"/>
-    <param name="target_frame" value="base_link" />
-  </node>
+<!--  <node pkg="nodelet" type="nodelet" name="ImuTransformerNodelet"-->
+<!--    args="load imu_transformer/imu_transformer_nodelet imu_manager"-->
+<!--    output="log">-->
+<!--    <remap from="imu_in/data" to="/$(arg model_name)/sensors/imu/data"/>-->
+<!--    <remap from="imu_out/data" to="/$(arg model_name)/sensors/imu/data_trans"/>-->
+<!--    <param name="target_frame" value="base_link" />-->
+<!--  </node>-->
 </launch>
