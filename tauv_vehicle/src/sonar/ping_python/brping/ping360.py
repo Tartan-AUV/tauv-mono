@@ -219,6 +219,19 @@ class Ping360(PingDevice):
         )
         return self.wait_message([definitions.PING360_DEVICE_DATA, definitions.COMMON_NACK], 4.0)
 
+    def transmitAngleNoWait(self, angle):
+        self.control_transducer(
+            0,  # reserved
+            self._gain_setting,
+            angle,
+            self._transmit_duration,
+            self._sample_period,
+            self._transmit_frequency,
+            self._number_of_samples,
+            1,
+            0
+        )
+
     def transmit(self):
         return self.transmitAngle(self._angle)
 

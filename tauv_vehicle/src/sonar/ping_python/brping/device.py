@@ -110,7 +110,7 @@ class PingDevice(object):
             if msg is not None:
                 if msg.message_id in message_ids:
                     return msg
-            time.sleep(0.005)
+            time.sleep(0.001)
         return None
 
     ##
