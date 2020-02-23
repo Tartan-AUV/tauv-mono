@@ -20,7 +20,7 @@
         </node>
 
         <node pkg="imu_transformer" type="imu_transformer_node" name="imu_optimus_prime"
-              output="screen">
+              output="screen" ns="">
             <remap from="$(arg model_name)/sensors/imu/data" to="/imu_in/data"/>
             <remap from="/imu_out/data" to="$(arg model_name)/sensors/imu/data_trans"/>
             <param name="target_frame" value="base_link" />
