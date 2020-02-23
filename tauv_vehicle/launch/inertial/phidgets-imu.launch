@@ -44,15 +44,14 @@
     <param name="world_frame" value="enu"/>
   </node>
 
-<!--
   #### IMU Transformer ######################################################
-  <node pkg="nodelet" type="nodelet" name="ImuTransformerNodelet"
-    args="load imu_transformer/imu_transformer_nodelet imu_manager"
-    output="screen">
-    <remap from="imu_in/data" to="imu/relative/data"/>
-    <remap from="imu_in/mag" to="imu/relative/mag"/>
-    <remap from="imu_out/data" to="imu/data"/>
-    <remap from="imu_out/mag" to="imu/mag"/>
-  </node>
-  -->
+<!--  <node pkg="nodelet" type="nodelet" name="ImuTransformerNodelet"-->
+<!--    args="load imu_transformer/imu_transformer_nodelet imu_manager"-->
+<!--    output="screen">-->
+<!--    <remap from="imu/data" to="imu/relative/data"/>-->
+<!--    <remap from="imu_in/mag" to="imu/relative/mag"/>-->
+<!--    <remap from="imu_out/data" to="imu/data"/>-->
+<!--    <remap from="imu_out/mag" to="imu/mag"/>-->
+<!--    <param name="target_frame" value="base_link" />-->
+<!--  </node>-->
 </launch>
