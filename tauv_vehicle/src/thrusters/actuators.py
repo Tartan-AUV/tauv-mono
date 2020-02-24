@@ -84,7 +84,7 @@ class ActuatorController:
                 topicname = 'thrusters/' + str(i) + '/input'
                 topics.append(topicname)
                 subscribers.append(message_filters.Subscriber(topicname, FloatStamped))
-            ts = message_filters.ApproximateTimeSynchronizer(subscribers, queue_size=10, slop=0.05)
+            ts = message_filters.ApproximateTimeSynchronizer(subscribers, queue_size=100, slop=1.0)
             ts.registerCallback(self.thruster_callback)
 
 
@@ -96,7 +96,14 @@ class ActuatorController:
                         or rospy.get_rostime() - self.last_thruster_msg > self.timeout \
                         or not self.armed:
                     # timed out, reset thrusters
+                    #print("last cmd: {}".format(self.last_thruster_msg))
+                    #if self.last_thruster_msg is not None:
+                    #    print("delay: {}".format(rospy.get_rostime() - self.last_thruster_msg > rospy.Duration.from_sec(1)))
+                    #print("armed:  {}".format(self.armed))
                     self.thruster_command = [0] * len(self.thrusters)
+                else:
+                    pass
+                    #print("armed!")
 
                 for channel in self.thrusters:
                     cmd = self.speed_to_pwm(self.thruster_command[channel], channel)
@@ -115,6 +122,7 @@ class ActuatorController:
             val = m.data
             self.thruster_command[self.thrusters[i]] = val
 
+        print("here: {}".format(rospy.get_rostime()))
         self.last_thruster_msg = rospy.get_rostime()
 
     # goes from normalized (-1 to 1) speed to uS pulse width
