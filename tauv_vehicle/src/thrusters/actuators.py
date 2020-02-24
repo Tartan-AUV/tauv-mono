@@ -84,7 +84,7 @@ class ActuatorController:
                 topicname = 'thrusters/' + str(i) + '/input'
                 topics.append(topicname)
                 subscribers.append(message_filters.Subscriber(topicname, FloatStamped))
-            ts = message_filters.TimeSynchronizer(subscribers, queue_size=10)
+            ts = message_filters.TimeSynchronizer(subscribers, 100)
             ts.registerCallback(self.thruster_callback)
 
 
@@ -122,7 +122,7 @@ class ActuatorController:
             val = m.data
             self.thruster_command[self.thrusters[i]] = val
 
-        print("here: {}".format(rospy.get_rostime()))
+        # print("here: {}".format(rospy.get_rostime()))
         self.last_thruster_msg = rospy.get_rostime()
 
     # goes from normalized (-1 to 1) speed to uS pulse width
