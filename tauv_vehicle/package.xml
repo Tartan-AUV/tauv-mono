@@ -34,7 +34,6 @@
   <depend>libi2c-dev</depend>
   <depend>python-smbus</depend>
   <depend>std_srvs</depend>
-  <depend>ping360_sonar</depend>
 
   <buildtool_depend>catkin</buildtool_depend>
 
