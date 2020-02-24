@@ -19,7 +19,6 @@ find_package(catkin REQUIRED COMPONENTS
         phidgets_imu
         imu_filter_madgwick
         tauv_msgs
-        ping360_sonar
 )
 
 ## System dependencies are found with CMake's conventions
