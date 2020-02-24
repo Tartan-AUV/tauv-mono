@@ -296,8 +296,9 @@ class ThrusterManager:
         """Publish the thruster input into their specific topic."""
         if self.thrust is None:
             return
+        stamp = rospy.Time.now()
         for i in range(self.n_thrusters):
-            self.thrusters[i].publish_command(self.thrust[i])
+            self.thrusters[i].publish_command(self.thrust[i], stamp)
 
     def publish_thrust_forces(self, control_forces, control_torques,
                               frame_id=None):

@@ -2,7 +2,9 @@
 
 <launch>
   <group ns="albatross">
-    <include file="$(find tauv_vehicle)/launch/inertial/phidgets-imu.launch" ns="sensors"/>
+    <include file="$(find tauv_vehicle)/launch/inertial/phidgets-imu.launch" ns="sensors">
+      <arg name="model_name" value="albatross"/>
+    </include>
     <include file="$(find tauv_vehicle)/launch/depth/depth-sensor.launch" ns="sensors"/>
     <include file="$(find tauv_vehicle)/launch/joints/default_joint_publisher.launch"/>
     <include file="$(find tauv_vehicle)/launch/frames/static_tfs.launch"/>

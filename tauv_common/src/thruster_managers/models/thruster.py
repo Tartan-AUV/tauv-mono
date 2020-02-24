@@ -101,9 +101,9 @@ class Thruster(object):
         self._thrust = thrust
         self._calc_command()
 
-    def publish_command(self, thrust):
+    def publish_command(self, thrust, stamp):
         self._update(thrust)
         output = FloatStamped()
-        output.header.stamp = rospy.Time.now()
+        output.header.stamp = stamp
         output.data = self._command
         self._command_pub.publish(output)
