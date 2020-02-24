@@ -83,7 +83,6 @@ generate_messages(
         geometry_msgs
         tauv_msgs
         std_srvs
-        ping360_sonar
 )
 
 ################################################
@@ -129,7 +128,6 @@ catkin_package(
         imu_transformer
         tauv_msgs
         std_srvs
-        ping360_sonar
 #  DEPENDS system_lib
 )
 
