@@ -9,6 +9,7 @@ add_message_files(
   CascadedPidSelection.msg
   InertialVals.msg
   PidVals.msg
+  SonarPulse.msg
 )
 
 add_service_files(

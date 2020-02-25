@@ -1,0 +1,4 @@
+<launch>
+    <rosparam file="$(find albatross_description)/vehicle_params.yaml" command="load" ns="vehicle_params"/>
+    <node pkg="tauv_vehicle" type="sonar" name="sonar" output="screen"/>
+</launch>
