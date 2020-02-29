@@ -16,6 +16,7 @@
         <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
             <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
+            <remap from="sensors/dvl_twist" to="/$(arg model_name)/sensors/dvl_twist" />
             <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
         </node>
 
