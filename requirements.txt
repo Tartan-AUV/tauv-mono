@@ -1,0 +1,2 @@
+bluerobotics-ping
+scipy
