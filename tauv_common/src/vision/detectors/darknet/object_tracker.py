@@ -1,11 +1,12 @@
-from models import *
-from utils import *
+from models import Darknet
+from utils import utils
 
 import os, sys, time, datetime, random
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torch.autograd import Variable
+import cv2
 
 from PIL import Image
 

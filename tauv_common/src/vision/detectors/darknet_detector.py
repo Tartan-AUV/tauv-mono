@@ -1,6 +1,7 @@
 from detector_base import Detector
 import cv2
-from models import Darknet
+from darknet.models import Darknet
+from darknet.utils import utils
 
 import torch
 from torch.utils.data import DataLoader
