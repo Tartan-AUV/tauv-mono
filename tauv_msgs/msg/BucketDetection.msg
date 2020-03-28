@@ -1,0 +1,9 @@
+Header header
+geometry_msgs/Point position
+float32 length
+float32 width
+float32 height
+geometry_msgs/Vector3 normal
+string tag
+string info
+uint32 detection_number

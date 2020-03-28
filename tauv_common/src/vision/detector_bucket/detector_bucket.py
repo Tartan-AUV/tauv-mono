@@ -15,7 +15,7 @@ import tf_conversions
 from tf.transformations import *
 import tf
 from geometry_msgs.msg import Quaternion
-from tauv_msgs.msg import BucketDetection
+from tauv_msgs.msg import BucketDetection, BucketList
 import numpy as np
 
 
@@ -23,5 +23,22 @@ import numpy as np
 class Detector_Bucket():
     def __init__(self):
         self.depth_odom_pub = rospy.Publisher("vision/bucket_list", BucketDetection, queue_size=50)
+
+
+
+    def spin(self):
+
+
+
+
+
+
+
+
+
+
+def main():
+    rospy.init_node("detector_bucket", anonymous=True)
+
 
 

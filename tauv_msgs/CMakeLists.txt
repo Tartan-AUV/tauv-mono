@@ -5,6 +5,8 @@ find_package(catkin REQUIRED geometry_msgs sensor_msgs std_msgs message_generati
 
 add_message_files(
   FILES
+  BucketDetection.msg
+  BucketList.msg
   FluidDepth.msg
   CascadedPidSelection.msg
   InertialVals.msg
