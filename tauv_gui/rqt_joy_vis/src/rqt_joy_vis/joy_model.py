@@ -34,7 +34,7 @@ class JoyModel(QObject):
         super(JoyModel, self).__init__(parent)
         self._is_connected = False
 
-        self._joySubscriber = rospy.Subscriber('joy', Joy, self.joyCallback)
+        self._joySubscriber = rospy.Subscriber('tauv_joy', Joy, self.joyCallback)
         self._connectionService = rospy.ServiceProxy('joy_node/connect', JoyConnect)
         self._disconnectionService = rospy.ServiceProxy('joy_node/disconnect', Trigger)
         self._shutdownService = rospy.ServiceProxy('joy_node/shutdown', Trigger)
