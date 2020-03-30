@@ -25,9 +25,9 @@ check_include_files(linux/joystick.h HAVE_LINUX_JOYSTICK_H)
 
 if(HAVE_LINUX_JOYSTICK_H)
   include_directories(msg/cpp ${catkin_INCLUDE_DIRS} ${CMAKE_CURRENT_BINARY_DIR})
-  add_executable(joy_node src/tauv_joy_node.cpp)
-  add_dependencies(joy_node tauv_joy_generate_messages_cpp)
-  target_link_libraries(joy_node ${catkin_LIBRARIES})
+  add_executable(tauv_joy_node src/tauv_joy_node.cpp)
+  add_dependencies(tauv_joy_node tauv_joy_generate_messages_cpp)
+  target_link_libraries(tauv_joy_node ${catkin_LIBRARIES})
 else(HAVE_LINUX_JOYSTICK_H)
   message("Warning: no <linux/joystick.h>; won't build joy node")
 endif(HAVE_LINUX_JOYSTICK_H)
@@ -36,7 +36,7 @@ endif(HAVE_LINUX_JOYSTICK_H)
 
 # Install targets
 if(HAVE_LINUX_JOYSTICK_H)
-install(TARGETS joy_node
+install(TARGETS tauv_joy_node
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
