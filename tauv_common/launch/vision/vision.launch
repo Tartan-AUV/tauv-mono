@@ -9,7 +9,7 @@
 
 
     <group>
-        <node pkg="tauv_common" type="vision" name="detector_bucket" clear_params="true" output="screen">
+        <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" clear_params="true" output="screen">
         </node>
     </group>
 
