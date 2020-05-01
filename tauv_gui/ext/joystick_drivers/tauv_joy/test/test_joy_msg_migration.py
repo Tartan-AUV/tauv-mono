@@ -33,7 +33,7 @@
 #
 
 import roslib
-roslib.load_manifest('joy')
+roslib.load_manifest('tauv_joy')
 
 import sys
 import struct
@@ -67,7 +67,7 @@ class TestJoyMsgsMigration(unittest.TestCase):
 
     def get_old_joy(self):
         joy_classes = self.load_saved_classes('Joy.saved')
-        joy  = joy_classes['joy/Joy']
+        joy  = joy_classes['tauv_joy/Joy']
         return joy([0.1,0.2,0.3,0.4,0.5],[0,1,0,1,0])
 
     def get_new_joy(self):
@@ -77,12 +77,12 @@ class TestJoyMsgsMigration(unittest.TestCase):
 
 
     def test_joy(self):
-        self.do_test('joy', self.get_old_joy, self.get_new_joy)
+        self.do_test('tauv_joy', self.get_old_joy, self.get_new_joy)
 
 ########### Helper functions ###########
 
     def setUp(self):
-        self.pkg_dir = roslib.packages.get_pkg_dir("joy")
+        self.pkg_dir = roslib.packages.get_pkg_dir("tauv_joy")
 
 
     def load_saved_classes(self,saved_msg):

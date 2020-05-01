@@ -515,8 +515,8 @@ public:
     }
 
     int main(int argc, char **argv) {
-        pub_ = nh_.advertise<sensor_msgs::Joy>("joy", 1);
-        sub_ = nh_.subscribe("joy/set_feedback", 10, &Joystick::set_feedback, this);
+        pub_ = nh_.advertise<sensor_msgs::Joy>("tauv_joy", 1);
+        sub_ = nh_.subscribe("tauv_joy/set_feedback", 10, &Joystick::set_feedback, this);
         ros::ServiceServer service_disconnect = nh_.advertiseService("joy_node/disconnect",
                                                                      &Joystick::srv_callback_disconnect, this);
         ros::ServiceServer service_connect = nh_.advertiseService("joy_node/connect", &Joystick::srv_callback_connect,
