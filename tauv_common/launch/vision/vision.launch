@@ -1,0 +1,18 @@
+<launch>
+    <!-- This launchfile launches the full Guidance, Navigation, and Control system. -->
+    <!-- This includes the cascaded pid controller, teleop node, and (TODO) the trajectory planner. -->
+
+    <!-- Name of the robot model  -->
+    <arg name="model_name" default="albatross"/>
+    <!-- path to config package  -->
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+
+    <group>
+        <node pkg="tauv_common" type="vision" name="detector_bucket" clear_params="true" output="screen">
+        </node>
+    </group>
+
+
+
+</launch>
