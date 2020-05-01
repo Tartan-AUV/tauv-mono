@@ -1,4 +1,4 @@
-# detector_bucket.py
+# detector_bucket
 #
 # This node is the for aggregating the detections from the vision pipeline.
 # The information in the bucket will be broadcast to the mission nodes and used for tasks.
@@ -23,22 +23,22 @@ import numpy as np
 class Detector_Bucket():
     def __init__(self):
         self.depth_odom_pub = rospy.Publisher("vision/bucket_list", BucketDetection, queue_size=50)
+        self.refresh_rate = 0 #set this using params in future
 
 
 
     def spin(self):
-
-
-
-
-
-
+        return
 
 
 
 
 def main():
     rospy.init_node("detector_bucket", anonymous=True)
+    detector_bucket = Detector_Bucket()
+    while not rospy.is_shutdown():
+        detector_bucket.spin()
+        rospy.sleep(.1)
 
 
 

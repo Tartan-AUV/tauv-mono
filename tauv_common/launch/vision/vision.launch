@@ -1,6 +1,6 @@
 <launch>
-    <!-- This launchfile launches the full Guidance, Navigation, and Control system. -->
-    <!-- This includes the cascaded pid controller, teleop node, and (TODO) the trajectory planner. -->
+    <!-- This launchfile launches the vision system. -->
+
 
     <!-- Name of the robot model  -->
     <arg name="model_name" default="albatross"/>

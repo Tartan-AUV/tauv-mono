@@ -28,7 +28,9 @@ setup_args = generate_distutils_setup(
               'planners.keyboard_planner',
               'planners.teleop_planner',
               'state_estimation',
-              'teleop'],
+              'teleop',
+              'vision',
+              'vision.detector_bucket'],
     package_dir={'': 'src'},
     requires=['rospy'],
 
@@ -38,6 +40,7 @@ setup_args = generate_distutils_setup(
              'scripts/velocity_controller',
              'scripts/position_controller',
              'scripts/teleop_planner',
-             'scripts/state_estimation'],
+             'scripts/state_estimation',
+             'scripts/detector_bucket'],
 )
 setup(**setup_args)

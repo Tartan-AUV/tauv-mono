@@ -14,4 +14,5 @@
 # limitations under the License.
 
 from .vision.detector import Detector
+from .vision.detector_bucket import Detector_Bucket
 import thruster_allocator
