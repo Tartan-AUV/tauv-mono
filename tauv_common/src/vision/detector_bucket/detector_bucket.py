@@ -22,19 +22,19 @@ import numpy as np
 
 class Detector_Bucket():
     def __init__(self):
-        self.depth_odom_pub = rospy.Publisher("vision/bucket_list", BucketDetection, queue_size=50)
+        self.depth_odom_pub = rospy.Publisher("vision/bucket_list", BucketList, queue_size=50)
         self.refresh_rate = 0 #set this using params in future
 
-
-
     def spin(self):
+        d = BucketDetection()
+        d.info = "testing"
+        d2 = BucketDetection()
+        d2.info = "lol"
+        self.depth_odom_pub.publish([d, d2])
         return
 
-
-
-
 def main():
-    rospy.init_node("detector_bucket", anonymous=True)
+    rospy.init_node('detector_bucket', anonymous=True)
     detector_bucket = Detector_Bucket()
     while not rospy.is_shutdown():
         detector_bucket.spin()
