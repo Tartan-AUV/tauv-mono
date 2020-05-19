@@ -1,5 +1,5 @@
 import unittest
-from tauv_common.src.position_controllers.trajectory_planner.mpc import MPC
+from tauv_common.src.planners.trajectory_planner.mpc import MPC
 import numpy as np
 
 

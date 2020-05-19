@@ -10,6 +10,8 @@
     <arg name="thruster_manager_topic" default="/$(arg model_name)/thruster_manager/input"/>
     <!-- odom topic to listen on -->
     <arg name="odom_topic" default="odom"/>
+    <!-- Planner to use. Possible options: "teleop" -->
+    <arg name="planner" default="teleop"/>
 
     <group>
         <!-- Launch State Estimation -->
@@ -40,32 +42,18 @@
         <rosparam file="$(find tauv_common)/src/planners/planners.yaml" command="load"/>
 
         <!-- Launch controllers -->
-        <node pkg="tauv_common" type="acceleration_controller" name="acceleration_controller"
-              output="screen">
-            <remap from="thruster_manager/input" to="$(arg thruster_manager_topic)"/>
-        </node>
-        <node pkg="tauv_common" type="velocity_controller" name="velocity_control"
-              output="screen">
-            <remap from="cmd_accel" to="controller/cmd_acc"/>
+        <node pkg="tauv_common" type="attitude_controller" name="attitude_controller" output="screen">
             <remap from="odom" to="$(arg odom_topic)"/>
-        </node>
-        <node pkg="tauv_common" type="position_controller" name="position_control"
-              output="screen">
-            <remap from="cmd_vel" to="controller/cmd_vel"/>
-            <remap from="odom" to="$(arg odom_topic)"/>
+            <remap from="controller_cmd" to="$(arg planner)/controller_cmd"
         </node>
 
-        <!-- Launch controller wrapper -->
-        <node pkg="tauv_common" type="pid_control_wrapper" name="pid_control_wrapper" output="screen">
-            <remap from="joy_cmd_acc" to="teleop/cmd_acc"/>
-            <remap from="joy_cmd_vel" to="teleop/cmd_vel"/>
-            <remap from="joy_cmd_pos" to="teleop/cmd_pos"/>
-            <remap from="controller_cmd_acc" to="controller/cmd_acc"/>
-            <remap from="controller_cmd_vel" to="controller/cmd_vel"/>
-        </node>
+        <!-- Load USB joystick controller configs -->
+        <rosparam file="$(find tauv_common)/src/planners/teleop_planner/joy.yaml" command="load"/>
 
-        <!-- Launch the planners -->
-        <include file="$(find tauv_common)/launch/gnc/planners/planners.launch"/>
+        <!-- Start Teleop node -->
+        <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">
+            <remap from="controller_cmd" to="teleop/controller_cmd"/>
+        </node>
     </group>
 
 

@@ -1,0 +1,107 @@
+# Teleop.py
+# Converts joystick message into useful pose, twist, and accel messages
+# Intended to be used as inputs to the pid_control_wrapper
+# Usually you would only use a combination of the pose, twist, and accel outputs
+# since they are separate results that represent different things.
+# TODO: Send arm/disarm commands from the controller
+
+import rospy
+
+from geometry_msgs.msg import Pose, PoseStamped, Twist, Accel, Vector3, Point, Quaternion
+from sensor_msgs.msg import Joy
+import tf
+from scipy.spatial import transform as stf
+import math
+from std_srvs.srv import SetBool
+from tauv_msgs.msg import ControllerCmd
+
+def build_cmd(joy, name):
+    linear = Vector3(0, 0, 0)
+    angular = Vector3(0, 0, 0)
+
+    linear.x = rospy.get_param("~axes/linear_x/scale") * \
+               joy.axes[rospy.get_param("~axes/linear_x/axis")]
+
+    linear.y = rospy.get_param("~axes/linear_y/scale") * \
+               joy.axes[rospy.get_param("~axes/linear_y/axis")]
+
+    linear.z = rospy.get_param("~axes/linear_z_down/scale") * \
+               joy.axes[rospy.get_param("~axes/linear_z_down/axis")] \
+               - rospy.get_param("~axes/linear_z_up/scale") * \
+               joy.axes[rospy.get_param("~axes/linear_z_up/axis")]
+
+    angular.x = rospy.get_param("~axes/angular_x/scale") * \
+                joy.axes[rospy.get_param("~axes/angular_x/axis")]
+
+    angular.y = rospy.get_param("~axes/angular_y/scale") * \
+                joy.axes[rospy.get_param("~axes/angular_y/axis")]
+
+    angular.z = rospy.get_param("~axes/angular_z/scale") * \
+                joy.axes[rospy.get_param("~axes/angular_z/axis")]
+
+    return linear, angular
+
+
+class Teleop:
+    def __init__(self):
+        self.pub_cmd_acc = rospy.Publisher("controller_cmd", ControllerCmd, queue_size=10)
+
+        self.dt = 0.02
+        self.pos = (0, 0, 0)
+        self.orientation = (0, 0, 0, 1)
+        self.joy = None
+
+        self.tfl = tf.TransformListener()
+        self.transformer = tf.Transformer()
+
+        self.body = 'base_link'
+        self.odom = 'odom'
+
+        self.sub_joy = rospy.Subscriber('joy', Joy, self.joy_callback)
+
+    def joy_callback(self, joy):
+        self.joy = joy
+
+    def update(self, timer_event):
+        if self.joy is None:
+            return
+
+        try:
+            (self.pos, self.orientation) = self.tfl.lookupTransform(self.odom, self.body, rospy.Time(0))
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            print("Failed to find transformation between frames {} and {}:\n {}".format(self.odom, self.body, e))
+            return
+
+        (cmd_linear, cmd_angular) = build_cmd(self.joy)
+
+        cmd = ControllerCmd()
+        cmd.a_x = cmd_linear.x
+        cmd.a_y = cmd_linear.y
+        cmd.a_z = cmd_linear.z
+        cmd.a_yaw = cmd_angular.z
+        cmd.p_roll = cmd_angular.x
+        cmd.p_pitch = cmd_angular.y
+
+        if self.joy.buttons[rospy.get_param("~arm_button")] == 1:
+            self.arm(True)
+
+        if self.joy.buttons[rospy.get_param("~estop_button")] == 1:
+            self.arm(False)
+
+    def arm(self, arm):
+        try:
+            arm_srv = rospy.ServiceProxy('/arm', SetBool)
+            resp1 = arm_srv(arm)
+            return resp1.success
+        except rospy.ServiceException, e:
+            print "Service call failed: %s"%e
+
+    def start(self):
+        rospy.Timer(rospy.Duration(self.dt), self.update)
+        rospy.spin()
+
+
+def main():
+    rospy.init_node('teleop')
+    t = Teleop()
+    t.start()

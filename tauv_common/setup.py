@@ -22,10 +22,10 @@ from catkin_pkg.python_setup import generate_distutils_setup
 setup_args = generate_distutils_setup(
     packages=['thruster_managers',
               'thruster_managers.models',
-              'attitude_controllers'
-              'position_controllers.keyboard_planner',
-              'position_controllers.teleop_planner',
-              'position_controllers.trajectory_planner',
+              'controllers'
+              'planners.keyboard_planner',
+              'planners.teleop_planner',
+              'planners.trajectory_planner',
               'state_estimation',
               'dynamics'],
     package_dir={'': 'src'},
@@ -33,10 +33,8 @@ setup_args = generate_distutils_setup(
 
     scripts=['scripts/thruster_allocator',
              'scripts/keyboard_planner',
-             'scripts/acceleration_controller',
-             'scripts/velocity_controller',
-             'scripts/position_controller',
              'scripts/teleop_planner',
-             'scripts/state_estimation'],
+             'scripts/state_estimation',
+             'scripts/attitude_controller'],
 )
 setup(**setup_args)
