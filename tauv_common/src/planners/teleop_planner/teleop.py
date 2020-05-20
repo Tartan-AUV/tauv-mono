@@ -15,7 +15,8 @@ import math
 from std_srvs.srv import SetBool
 from tauv_msgs.msg import ControllerCmd
 
-def build_cmd(joy, name):
+
+def build_cmd(joy):
     linear = Vector3(0, 0, 0)
     angular = Vector3(0, 0, 0)
 
@@ -44,7 +45,7 @@ def build_cmd(joy, name):
 
 class Teleop:
     def __init__(self):
-        self.pub_cmd_acc = rospy.Publisher("controller_cmd", ControllerCmd, queue_size=10)
+        self.pub_cmd = rospy.Publisher("controller_cmd", ControllerCmd, queue_size=10)
 
         self.dt = 0.02
         self.pos = (0, 0, 0)
@@ -64,6 +65,7 @@ class Teleop:
 
     def update(self, timer_event):
         if self.joy is None:
+            rospy.logwarn_throttle(3, "No joystick data received yet! Teleop node waiting.")
             return
 
         try:
@@ -81,6 +83,7 @@ class Teleop:
         cmd.a_yaw = cmd_angular.z
         cmd.p_roll = cmd_angular.x
         cmd.p_pitch = cmd_angular.y
+        self.pub_cmd.publish(cmd)
 
         if self.joy.buttons[rospy.get_param("~arm_button")] == 1:
             self.arm(True)
@@ -97,7 +100,7 @@ class Teleop:
             print "Service call failed: %s"%e
 
     def start(self):
-        rospy.Timer(rospy.Duration(self.dt), self.update)
+        rospy.Timer(rospy.Duration.from_sec(self.dt), self.update)
         rospy.spin()
 
 

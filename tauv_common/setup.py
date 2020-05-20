@@ -22,7 +22,8 @@ from catkin_pkg.python_setup import generate_distutils_setup
 setup_args = generate_distutils_setup(
     packages=['thruster_managers',
               'thruster_managers.models',
-              'controllers'
+              'controllers',
+              'planners',
               'planners.keyboard_planner',
               'planners.teleop_planner',
               'planners.trajectory_planner',

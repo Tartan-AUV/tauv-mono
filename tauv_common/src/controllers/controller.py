@@ -10,7 +10,7 @@ from dynamics.dynamics import Dynamics
 from tauv_msgs.msg import ControllerCmd
 import numpy as np
 from scipy.spatial.transform import Rotation
-from geometry_msgs.msg import WrenchStamped, Wrench, Vector3
+from geometry_msgs.msg import WrenchStamped, Wrench, Vector3, Quaternion
 from nav_msgs.msg import Odometry
 
 
@@ -46,7 +46,7 @@ class AttitudeController:
                             Ki=roll_tunings[2],
                             setpoint=0,
                             sample_time=None,
-                            output_limits=None,
+                            output_limits=(None, None),
                             auto_mode=True,
                             proportional_on_measurement=False)
         self.pitch_pid = PID(Kp=pitch_tunings[0],
@@ -54,11 +54,11 @@ class AttitudeController:
                              Ki=pitch_tunings[2],
                              setpoint=0,
                              sample_time=None,
-                             output_limits=None,
+                             output_limits=(None, None),
                              auto_mode=True,
                              proportional_on_measurement=False)
 
-    def control_update(self):
+    def control_update(self, timer_event):
         failsafe = False
 
         if self.eta is None or self.v is None:
@@ -73,8 +73,8 @@ class AttitudeController:
             roll_error = self.target_roll - self.eta[3]
             pitch_error = self.target_pitch - self.eta[4]
 
-            roll_effort = self.roll_pid(roll_error)
-            pitch_effort = self.pitch_pid(pitch_error)
+            roll_effort = self.roll_pid(-roll_error)
+            pitch_effort = self.pitch_pid(-pitch_error)
 
             vd_pid = [0, 0, 0, roll_effort, pitch_effort, 0]
             eta_dd_pid = self.dyn.get_eta_dd(self.eta, self.eta_d, vd_pid)
@@ -85,7 +85,7 @@ class AttitudeController:
             tau = self.dyn.compute_tau(self.eta, self.eta_d, eta_dd)
         else:
             # TODO: support more complex failsafe behaviors, eg: don't publish
-            tau = [0]*6
+            tau = [0] * 6
 
         wrench = WrenchStamped()
         wrench.header.stamp = rospy.Time.now()
@@ -96,7 +96,7 @@ class AttitudeController:
 
     def odometry_callback(self, msg):
         p = msg.pose.pose.position
-        q = msg.pose.pose.orientation
+        q = tl(msg.pose.pose.orientation)
         v_l = msg.twist.twist.linear
         v_a = msg.twist.twist.angular
 
@@ -119,8 +119,12 @@ class AttitudeController:
         rospy.spin()
 
 
+def tl(v):
+    if isinstance(v, Quaternion):
+        return [v.x, v.y, v.z, v.w]
+
+
 def main():
     rospy.init_node('attitude_controller')
     ac = AttitudeController()
     ac.start()
-

@@ -35,16 +35,16 @@
 
 
         <!-- Load controller params: -->
-        <rosparam file="$(arg config_pkg)/control_params/inertial.yaml" command="load"/>
-        <rosparam file="$(arg config_pkg)/control_params/vel_pid_control.yaml" command="load"/>
-        <rosparam file="$(arg config_pkg)/control_params/pos_pid_control.yaml" command="load"/>
-        <rosparam file="$(arg config_pkg)/control_params/default_config.yaml" command="load"/>
-        <rosparam file="$(find tauv_common)/src/planners/planners.yaml" command="load"/>
+<!--        <rosparam file="$(arg config_pkg)/control_params/inertial.yaml" command="load"/>-->
+<!--        <rosparam file="$(arg config_pkg)/control_params/vel_pid_control.yaml" command="load"/>-->
+<!--        <rosparam file="$(arg config_pkg)/control_params/pos_pid_control.yaml" command="load"/>-->
+<!--        <rosparam file="$(arg config_pkg)/control_params/default_config.yaml" command="load"/>-->
+<!--        <rosparam file="$(find tauv_common)/src/planners/planners.yaml" command="load"/>-->
 
         <!-- Launch controllers -->
         <node pkg="tauv_common" type="attitude_controller" name="attitude_controller" output="screen">
             <remap from="odom" to="$(arg odom_topic)"/>
-            <remap from="controller_cmd" to="$(arg planner)/controller_cmd"
+            <remap from="controller_cmd" to="$(arg planner)/controller_cmd"/>
         </node>
 
         <!-- Load USB joystick controller configs -->
@@ -53,6 +53,7 @@
         <!-- Start Teleop node -->
         <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">
             <remap from="controller_cmd" to="teleop/controller_cmd"/>
+            <remap from="joy" to="/gui/tauv_joy"/>
         </node>
     </group>
 
