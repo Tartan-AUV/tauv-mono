@@ -17,7 +17,7 @@ class Dynamics:
     def __init__(self):
         # TODO: load these from a yaml file in tauv_config (or better, the URDF itself!)
         self.m = 15  # mass of vehicle
-        self.b = 18.5  # mass of displaced water (b = volume * rho)
+        self.b = 15  # mass of displaced water (b = volume * rho)
         self.r_G = [0, 0, 0]  # defined in body NED frame!
         self.r_B = [0, 0, 0]  # defined in body NED frame!
 
@@ -234,7 +234,7 @@ class Dynamics:
         q = vel[4]
         r = vel[5]
 
-        return np.diag([X * abs(u), Y * abs(v), Z * abs(w), K * abs(p), M * abs(q), N * abs(r)])
+        return np.diag([X, Y, Z, K, M, N])
 
     def _G(self, x):
         # Gravity compensation vector:
@@ -349,7 +349,7 @@ class Dynamics:
             np.hstack((np.zeros((3,3)), dTdt)))
         )
 
-        return dJdt
+        return np.zeros((6,6))  # dJdt
 
     def _skew(self, x):
         return np.array([

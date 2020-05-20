@@ -28,7 +28,7 @@ class AttitudeController:
         self.v = None
         self.eta_d = None
 
-        self.pub_wrench = rospy.Publisher('wrench', WrenchStamped, queue_size=10)
+        self.pub_wrench = rospy.Publisher('/gnc/wrench', WrenchStamped, queue_size=10)
 
         # TODO: load from rosparams
         self.timeout_duration = 2.0  # timeout is 2 seconds.
@@ -37,8 +37,8 @@ class AttitudeController:
         # TODO: expose ability to tune via ros service
         self._build_pids([1, 0.1, 0], [1, 0.1, 0])
 
-        self.sub_odom = rospy.Subscriber('odom', Odometry, self.odometry_callback)
-        self.sub_command = rospy.Subscriber('controller_cmd', ControllerCmd, self.plan_callback)
+        self.sub_odom = rospy.Subscriber('/gnc/odom', Odometry, self.odometry_callback)
+        self.sub_command = rospy.Subscriber('/gnc/teleop/controller_cmd', ControllerCmd, self.plan_callback)
 
     def _build_pids(self, roll_tunings, pitch_tunings):
         self.roll_pid = PID(Kp=roll_tunings[0],

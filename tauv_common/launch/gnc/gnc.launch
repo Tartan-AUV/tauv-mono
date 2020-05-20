@@ -13,7 +13,7 @@
     <!-- Planner to use. Possible options: "teleop" -->
     <arg name="planner" default="teleop"/>
 
-    <group>
+    <group ns="gnc">
         <!-- Launch State Estimation -->
         <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
@@ -42,10 +42,10 @@
 <!--        <rosparam file="$(find tauv_common)/src/planners/planners.yaml" command="load"/>-->
 
         <!-- Launch controllers -->
-        <node pkg="tauv_common" type="attitude_controller" name="attitude_controller" output="screen">
-            <remap from="odom" to="$(arg odom_topic)"/>
-            <remap from="controller_cmd" to="$(arg planner)/controller_cmd"/>
-        </node>
+<!--        <node pkg="tauv_common" type="attitude_controller" name="attitude_controller" output="screen">-->
+<!--            <remap from="odom" to="$(arg odom_topic)"/>-->
+<!--            <remap from="controller_cmd" to="$(arg planner)/controller_cmd"/>-->
+<!--        </node>-->
 
         <!-- Load USB joystick controller configs -->
         <rosparam file="$(find tauv_common)/src/planners/teleop_planner/joy.yaml" command="load"/>
