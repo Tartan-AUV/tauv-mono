@@ -17,13 +17,13 @@ class Dynamics:
     def __init__(self):
         # TODO: load these from a yaml file in tauv_config (or better, the URDF itself!)
         self.m = 15  # mass of vehicle
-        self.b = 15  # mass of displaced water (b = volume * rho)
+        self.b = 17  # mass of displaced water (b = volume * rho)
         self.r_G = [0, 0, 0]  # defined in body NED frame!
         self.r_B = [0, 0, 0]  # defined in body NED frame!
 
-        self.Ixx = 5
-        self.Iyy = 5
-        self.Izz = 10
+        self.Ixx = .5
+        self.Iyy = .5
+        self.Izz = 1
         self.Ixy = 0
         self.Ixz = 0
         self.Iyz = 0
@@ -57,67 +57,68 @@ class Dynamics:
     def get_v(self, eta, eta_d):
         return np.dot(np.linalg.inv(self._J(eta)), eta_d)
 
-    def get_eta_dd(self, eta, eta_d, v_d):
-        J = self._J(eta)
-        J_d = self._J_d(eta, eta_d)
-        J_inv = np.linalg.inv(J)
-
-        a = np.dot(np.dot(J_inv, J_inv), np.dot(J_d, eta_d))
-        b = v_d + a
-        return np.dot(J, b)
-
-    def get_v_d(self, eta, eta_d, eta_dd):
-        J = self._J(eta)
-        J_d = self._J_d(eta, eta_d)
-        J_inv = np.linalg.inv(J)
-
-        a = np.dot(J_inv, eta_dd)
-        b = np.dot(np.dot(J_inv, J_inv), np.dot(J_d, eta_d))
-        return a - b
-
-    def compute_tau(self, eta, eta_d, eta_dd):
-        J = self._J(eta)
-        tau_n = self.compute_tau_n(eta, eta_d, eta_dd)
-        tau = np.dot(J.T, tau_n)
-        return tau
-
-    def compute_tau_n(self, eta, eta_d, eta_dd):
+    def compute_tau(self, eta, v, v_d):
         # eta = measured state [x,y,z,phi,theta,psi]
         # eta_d = measured derivatives of eta
         # eta_dd = desired fixed frame acceleration
 
         eta = np.array(eta)
-        eta_d = np.array(eta_d)
-        eta_dd = np.array(eta_dd)
-
-        v = self.get_v(eta, eta_d)
+        v = np.array(v)
+        v_d = np.array(v_d)
 
         M_rb = self._M_rb()
         C_rb = self._C_rb(v)
         M_a = self._M_a()
         C_a = self.C_a(v)
         D = self._D(v)
-        G = self._G(eta)
+        G = self.G(eta)
 
         M = M_rb + M_a
         C = C_rb + C_a
 
         J = self._J(eta)
-        J_d = self._J_d(eta, eta_d)
-        J_inv = np.linalg.inv(J)
-        J_tinv = J_inv.T
 
-        M_n = np.dot(np.dot(J_tinv, M), J_inv)
-        C_n = np.dot(np.dot(J_tinv, C - np.dot(np.dot(M, J_inv), J_d)), J_inv)
-        D_n = np.dot(np.dot(J_tinv, D), J_inv)
-        G_n = np.dot(J_tinv, G)
+        # TODO: why is coriolis broken?
+        # tau = np.dot(M, v_d) + np.dot(C, v) + np.dot(D, v) + G.T
+        tau = np.dot(M, v_d) + np.dot(D, v) + G.T
+        return tau.flatten()
 
-        tau_n = np.dot(M_n, eta_dd) + np.dot(C_n, eta_d) + np.dot(D_n, eta_d) + G_n.T
-        return tau_n.T
+    def compute_A_matrix(self, eta, v):
+        eta = np.array(eta)
+        v = np.array(v)
 
-    ######################
-    # Dynamics Matrices: #
-    ######################
+        M_rb = self._M_rb()
+        C_rb = self._C_rb(v)
+        M_a = self._M_a()
+        C_a = self.C_a(v)
+        D = self._D(v)
+
+        M = M_rb + M_a
+        M_inv = np.linalg.inv(M)
+        C = C_rb + C_a
+
+        J = self._J(eta)
+
+        return np.vstack((
+            np.hstack((np.zeros((6, 6)), J)),
+            np.hstack((np.zeros((6, 6)), np.dot(M_inv, D)))
+        ))
+
+    def compute_B_matrix(self):
+        M_rb = self._M_rb()
+        M_a = self._M_a()
+
+        M = M_rb + M_a
+        M_inv = np.linalg.inv(M)
+
+        return np.vstack((
+            np.zeros((6, 6)),
+            M_inv
+        ))
+
+    ########################
+    # Body-fixed matrices: #
+    ########################
 
     def _M_rb(self):
         # Mass matrix in body frame
@@ -175,7 +176,7 @@ class Dynamics:
             [-Iyz * r - Ixy * p - Iy * q, Ixz * r + Ixy * q - Ix * p, 0]
         ])
         return np.vstack((
-            np.hstack((np.zeros((3,3)), C_12)),
+            np.hstack((np.zeros((3, 3)), C_12)),
             np.hstack((-C_12.T, C_22))
         ))
 
@@ -236,7 +237,7 @@ class Dynamics:
 
         return np.diag([X, Y, Z, K, M, N])
 
-    def _G(self, x):
+    def G(self, x):
         # Gravity compensation vector:
         # Eq 12
         # x is vehicle state (in world fixed NED frame)
@@ -260,6 +261,10 @@ class Dynamics:
             [(zg * W - zb * B) * sin(theta) + (xg * W - xb * B) * cos(theta) * cos(phi)],
             [-(xg * W - xb * B) * cos(theta) * sin(phi) - (yg * W - yb * B) * sin(theta)]
         ])
+
+    ##############
+    # Kinematics #
+    ##############
 
     def _J(self, x):
         # fixed <-> body frame transformation matrix
@@ -295,61 +300,9 @@ class Dynamics:
         ])
 
         return np.vstack((
-            np.hstack((J1, np.zeros((3,3)))),
-            np.hstack((np.zeros((3,3)), J2))
+            np.hstack((J1, np.zeros((3, 3)))),
+            np.hstack((np.zeros((3, 3)), J2))
         ))
-
-    def _J_d(self, eta, eta_d):
-        phi = eta[3]
-        theta = eta[4]
-        psi = eta[5]
-        dphidt = eta_d[3]
-        dthetdt = eta_d[4]
-        dpsidt = eta_d[5]
-
-        dTdphi = np.array([
-            [0, cos(phi) * tan(theta), -sin(phi) * tan(theta)],
-            [0, -sin(phi), -cos(phi)],
-            [0, cos(phi) / cos(theta), -sin(phi) / cos(theta)]
-        ])
-
-        dTdtheta = np.array([
-            [0, sin(phi) * (tan(theta) ** 2 + 1), cos(phi) * (tan(theta) ** 2 + 1)],
-            [0, 0, 0],
-            [0, (sin(phi) * sin(theta)) / cos(theta) ** 2, (cos(phi) * sin(theta)) / cos(theta) ** 2]
-        ])
-
-        dRdphi = np.array([
-            [0, sin(phi) * sin(psi) + cos(phi) * cos(psi) * sin(theta),
-             cos(phi) * sin(psi) - cos(psi) * sin(phi) * sin(theta)],
-            [0, cos(phi) * sin(psi) * sin(theta) - cos(psi) * sin(phi), -cos(phi) * cos(psi)],
-            [0, cos(phi) * cos(theta), -cos(theta) * sin(phi)]
-        ])
-
-        dRdtheta = np.array([
-            [-cos(psi) * sin(theta), cos(psi) * cos(theta) * sin(phi), cos(phi) * cos(psi) * cos(theta)],
-            [-sin(psi) * sin(theta), cos(theta) * sin(phi) * sin(psi), cos(theta) ** 2 * sin(psi) - sin(psi) * sin(
-                theta) ** 2],
-            [-cos(theta), -sin(phi) * sin(theta), -cos(phi) * sin(theta)]
-        ])
-
-        dRdpsi = np.array([
-            [-cos(theta) * sin(psi), - cos(phi) * cos(psi) - sin(phi) * sin(psi) * sin(theta),
-             cos(psi) * sin(phi) - cos(phi) * sin(psi) * sin(theta)],
-            [cos(psi) * cos(theta), cos(psi) * sin(phi) * sin(theta) - cos(phi) * sin(psi), sin(phi) * sin(psi) + cos(
-                psi) * cos(theta) * sin(theta)],
-            [0, 0, 0]
-        ])
-
-        dRdt = dRdphi * dphidt + dRdtheta * dthetdt + dRdpsi * dpsidt
-        dTdt = dTdphi * dphidt + dTdtheta * dthetdt
-
-        dJdt = np.vstack((
-            np.hstack((dRdt, np.zeros((3,3)))),
-            np.hstack((np.zeros((3,3)), dTdt)))
-        )
-
-        return np.zeros((6,6))  # dJdt
 
     def _skew(self, x):
         return np.array([

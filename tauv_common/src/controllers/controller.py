@@ -1,7 +1,12 @@
 # hybrid_controller.py
 #
-# This is an attitute
+# This is an attitude controller for roll and pitch
+# Also accepts a world-space linear acceleration and yaw acceleration command
+# Uses the vehicle dynamics to provide more accurate acceleration control.
 #
+# NOTE: Acceleration control should only be used with a closed loop controller, as
+# inverse dynamics can cause a positive feedback loop if dynamics are not modelled correctly:
+# eg, estimated damping too high can result in rapid uncontrolled acceleration!
 #
 
 import rospy
@@ -12,7 +17,8 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import WrenchStamped, Wrench, Vector3, Quaternion
 from nav_msgs.msg import Odometry
-
+import control
+import copy
 
 class AttitudeController:
     def __init__(self):
@@ -34,8 +40,12 @@ class AttitudeController:
         self.timeout_duration = 2.0  # timeout is 2 seconds.
         self.base_link = 'base_link'
 
+        # NA = 1
+        # self.Q = np.diag([NA, NA, NA, 300, 300, NA, NA, NA, NA, 5, 5, NA])
+        # self.R = np.eye(6) * 1
+
         # TODO: expose ability to tune via ros service
-        self._build_pids([1, 0.1, 0], [1, 0.1, 0])
+        self._build_pids([150, 20, 0], [150, 20, 0])
 
         self.sub_odom = rospy.Subscriber('/gnc/odom', Odometry, self.odometry_callback)
         self.sub_command = rospy.Subscriber('/gnc/teleop/controller_cmd', ControllerCmd, self.plan_callback)
@@ -77,14 +87,16 @@ class AttitudeController:
             pitch_effort = self.pitch_pid(-pitch_error)
 
             vd_pid = [0, 0, 0, roll_effort, pitch_effort, 0]
-            eta_dd_pid = self.dyn.get_eta_dd(self.eta, self.eta_d, vd_pid)
-            eta_dd_command = [self.target_acc[0], self.target_acc[1], self.target_acc[2], 0, 0, self.target_yaw_acc]
 
-            eta_dd = np.array(eta_dd_pid) + np.array(eta_dd_command)
+            R = Rotation.from_euler('xyz', self.eta[3:6]).inv()
+            target_acc_body = R.apply(self.target_acc)
+            target_yaw_body = R.apply([0, 0, self.target_yaw_acc])
+            vd_command = np.hstack((target_acc_body, target_yaw_body))
 
-            tau = self.dyn.compute_tau(self.eta, self.eta_d, eta_dd)
+            vd = np.array(vd_pid) + np.array(vd_command)
+
+            tau = self.dyn.compute_tau(self.eta, self.v, vd)
         else:
-            # TODO: support more complex failsafe behaviors, eg: don't publish
             tau = [0] * 6
 
         wrench = WrenchStamped()
@@ -92,7 +104,57 @@ class AttitudeController:
         wrench.header.frame_id = self.base_link
         wrench.wrench.force = Vector3(tau[0], -tau[1], -tau[2])
         wrench.wrench.torque = Vector3(tau[3], -tau[4], -tau[5])
-        self.pub_wrench.publish((wrench))
+
+        self.pub_wrench.publish(wrench)
+
+    # def control_update_lqr(self, timer_event):
+    #     failsafe = False
+    #
+    #     if self.eta is None or self.v is None:
+    #         rospy.logwarn_throttle_identical(3, 'Odometry not yet received: Controller waiting...')
+    #         failsafe = True
+    #
+    #     if self.last_updated is None or rospy.Time.now().to_sec() - self.last_updated > self.timeout_duration:
+    #         failsafe = True
+    #         rospy.logwarn_throttle_identical(3, 'No controller command received recently: entering failsafe mode!')
+    #
+    #     if not failsafe:
+    #         A = self.dyn.compute_A_matrix(self.eta, self.v)
+    #         B = self.dyn.compute_B_matrix()
+    #         G = self.dyn.G(self.eta)
+    #
+    #         K, S, E = control.lqr(A, B, self.Q, self.R)
+    #
+    #         eta = self.eta
+    #         v = self.v
+    #
+    #         eta_goal = copy.copy(eta)
+    #         v_goal = copy.copy(v)
+    #
+    #         eta_goal[3] = self.target_roll
+    #         eta_goal[4] = self.target_pitch
+    #         v_goal[3] = 0
+    #         v_goal[4] = 0
+    #
+    #         eta_err = np.array(eta_goal)[:, np.newaxis] - np.array(eta)[:, np.newaxis]
+    #         v_err = np.array(v_goal)[:, np.newaxis] - np.array(v)[:, np.newaxis]
+    #
+    #         tau = np.dot(K, np.vstack((eta_err, v_err))) + G
+    #         tau = np.array(tau).flatten()
+    #
+    #         print(tau)
+    #
+    #     else:
+    #         # TODO: support more complex failsafe behaviors, eg: don't publish
+    #         tau = [0] * 6
+    #
+    #     wrench = WrenchStamped()
+    #     wrench.header.stamp = rospy.Time.now()
+    #     wrench.header.frame_id = self.base_link
+    #     wrench.wrench.force = Vector3(tau[0], -tau[1], -tau[2])
+    #     wrench.wrench.torque = Vector3(tau[3], -tau[4], -tau[5])
+    #
+    #     self.pub_wrench.publish(wrench)
 
     def odometry_callback(self, msg):
         p = msg.pose.pose.position
