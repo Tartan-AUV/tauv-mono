@@ -36,6 +36,7 @@ setup_args = generate_distutils_setup(
              'scripts/keyboard_planner',
              'scripts/teleop_planner',
              'scripts/state_estimation',
-             'scripts/attitude_controller'],
+             'scripts/attitude_controller',
+             'scripts/mpc_traj_follower'],
 )
 setup(**setup_args)

@@ -16,15 +16,15 @@ class MpcTrajectoryFollower:
 
         self.odom = rospy.get_param('~world_frame', 'odom')
 
-        rospy.wait_for_service('get_traj', 3)
-        self.get_traj_service = rospy.ServiceProxy('get_traj', GetTraj)
+        # rospy.wait_for_service('get_traj', 3)
+        # self.get_traj_service = rospy.ServiceProxy('get_traj', GetTraj)
         self.pub_control = rospy.Publisher('controller_cmd', ControllerCmd, queue_size=10)
 
         self.p = None
         self.p_d = None
         self.ready = False
 
-        self.sub_odom = rospy.Subscriber('odom', Odometry, self.odometry_callback)
+        self.sub_odom = rospy.Subscriber('/gnc/odom', Odometry, self.odometry_callback)
 
         self.prediction_pub = rospy.Publisher('mpc_pred', Path, queue_size=10)
         self.reference_pub = rospy.Publisher('mpc_ref', Path, queue_size=10)
@@ -59,13 +59,34 @@ class MpcTrajectoryFollower:
             [0, 0, 0, 1]
         ])
 
-        self.Q = np.diag([1, 1, 1, 1])
+        self.Q = np.diag([1, 1, 1, 1, .1, .1, .1, .1])
         self.R = np.diag([1, 1, 1, 1])
-        self.S = self.R * 10
+        self.S = self.Q * 30
 
-        # horizon = 20 * 0.05 = 1 second
+        INF = 1e10
+        xcon = np.array([
+            [INF],
+            [INF],
+            [INF],
+            [INF],
+            [1],
+            [1],
+            [1],
+            [INF],
+        ])
+
+        ucon = np.array([
+                [1],
+                [1],
+                [1],
+                [2]
+            ])
+        self.u_constraints = np.hstack((-1 * ucon, ucon))
+        self.x_constraints = np.hstack((-1 * xcon, xcon))
+
+        # horizon = 20 * 0.01 = 2 seconds
         self.N = 20
-        self.tstep = self.dt
+        self.tstep = 0.1
 
         # build MPC solver object:
         self.mpc = MPC(A=self.A,
@@ -74,7 +95,9 @@ class MpcTrajectoryFollower:
                        R=self.R,
                        S=self.S,
                        N=self.N,
-                       dt=self.tstep)
+                       dt=self.tstep,
+                       x_constraints=self.x_constraints,
+                       u_constraints=self.u_constraints)
 
     def update(self, timer_event):
         if not self.ready:
@@ -89,7 +112,8 @@ class MpcTrajectoryFollower:
         req.header.stamp = rospy.Time.now()
         req.header.frame_id = self.odom
 
-        traj_response = self.get_traj_service(req)
+        # traj_response = self.get_traj_service(req)
+        traj_response = make_test_traj(req)
 
         if not traj_response.success:
             rospy.logwarn_throttle(3, '[MPC Trajectory Follower] Trajectory failure!')
@@ -115,20 +139,21 @@ class MpcTrajectoryFollower:
 
         if traj_response.auto_twists:
             gdiff = np.diff(ref_traj, 1) * self.tstep
-            ref_traj[4:8, :] = np.pad(gdiff, ((0, 0), (0, 1)), 'edge')
+            ref_traj[4:8, :] = np.pad(gdiff[0:4], ((0, 0), (0, 1)), 'edge')
 
         u_mpc, x_mpc = self.mpc.solve(x, ref_traj)
+        u = u_mpc[:, 0]
 
-        self.reference_pub.publish(self.mpc.to_path(np.array(ref_traj).transpose(), start_time=rospy.Time.now(), frame=self.odom))
+        self.reference_pub.publish(self.mpc.to_path(ref_traj, start_time=rospy.Time.now(), frame=self.odom))
         self.prediction_pub.publish(self.mpc.to_path(x_mpc, start_time=rospy.Time.now(), frame=self.odom))
 
         ref_rpy = Rotation.from_quat(tl(traj_response.poses[0].orientation)).as_euler('xyz')
 
         cmd = ControllerCmd()
-        cmd.a_x = u_mpc[0]
-        cmd.a_y = u_mpc[1]
-        cmd.a_z = u_mpc[2]
-        cmd.a_yaw = u_mpc[3]
+        cmd.a_x = u[0]
+        cmd.a_y = u[1]
+        cmd.a_z = u[2]
+        cmd.a_yaw = u[3]
         cmd.p_roll = ref_rpy[0]
         cmd.p_pitch = ref_rpy[1]
 
@@ -150,7 +175,8 @@ class MpcTrajectoryFollower:
 
         self.p = p
 
-        R = Rotation.from_quat(tl(p.orientation))
+        # R = Rotation.from_quat(tl(p.orientation))
+        R = Rotation.from_quat([0, 0, 0, 1])
 
         lin_vel = R.apply(tl(v.linear))
         ang_vel = R.apply(tl(v.angular))
@@ -164,6 +190,28 @@ class MpcTrajectoryFollower:
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self.dt), self.update)
         rospy.spin()
+
+
+def make_test_traj(req):
+    res = GetTrajResponse()
+    res.success = True
+    res.auto_twists = True
+
+    pos = [10, 10, -5]
+
+    poses = []
+    for i in range(req.len):
+        p = Pose()
+        p.position.x = pos[0]
+        p.position.y = pos[1]
+        p.position.z = pos[2]
+        p.orientation.w = 1
+        poses.append(p)
+
+    res.poses = poses
+    return res
+
+
 
 
 def tl(v):

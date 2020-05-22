@@ -62,9 +62,9 @@ class MPC:
         if self.m is None:
             H = np.dot(np.dot(self.B_bar.transpose(), self.Q_bar), self.B_bar) + self.R_bar
             L = np.vstack((self.L_u_bar, np.dot(self.L_x_bar, self.B_bar)))
-            m = osqp.OSQP()
-            m.setup(P=sparse.csc_matrix(H), q=C.transpose(), l=None, A=sparse.csc_matrix(L), u=b, verbose=False,
-                    warm_start=True)
+            self.m = osqp.OSQP()
+            self.m.setup(P=sparse.csc_matrix(H), q=C.transpose(), l=None, A=sparse.csc_matrix(L), u=b, verbose=False,
+                         warm_start=True)
         else:
             self.m.update(q=C.transpose(), l=None, u=b)
 
@@ -79,7 +79,7 @@ class MPC:
 
     def to_path(self, x, start_time, frame='odom'):
         assert x.shape[0] == self.xdim
-        assert x.shape[0] >= 3
+        assert x.shape[0] == 8
 
         num_poses = x.shape[1]
 
@@ -88,8 +88,9 @@ class MPC:
             t = start_time + rospy.Duration(self.dt * i)
             p = PoseStamped()
             p.pose.position = Point(x=x[0, i], y=x[1, i], z=x[2, i])
-            vel = np.array([x[3, i], x[4, i], x[5, i]])
-            vel = vel / linalg.norm(vel)
+            vel = np.array([x[4, i], x[5, i], x[6, i]])
+            if abs(linalg.norm(vel)) > 1e-8:
+                vel = vel / linalg.norm(vel)
             psi = atan2(vel[1], vel[0])
             theta = asin(-vel[2])
             q = Rotation.from_euler('ZYX', [psi, theta, 0]).as_quat()
