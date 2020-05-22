@@ -30,7 +30,7 @@
   <!-- Collision geometry mesh, usually in STL format (it is recommended to keep
   this geometry as simple as possible to improve the performance the physics engine
   regarding the computation of collision forces) -->
-  <xacro:property name="collision_mesh_file" value="file://$(find albatross_description)/meshes/vehicle.stl"/>
+  <xacro:property name="collision_mesh_file" value="file://$(find albatross_description)/meshes/vehicle.dae"/>
 
   <!-- Vehicle macro -->
   <xacro:macro name="albatross_base" params="namespace *gazebo">

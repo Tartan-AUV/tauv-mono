@@ -20,6 +20,7 @@ from nav_msgs.msg import Odometry
 import control
 import copy
 
+
 class AttitudeController:
     def __init__(self):
         self.dt = 0.02  # 50Hz
@@ -34,7 +35,7 @@ class AttitudeController:
         self.v = None
         self.eta_d = None
 
-        self.pub_wrench = rospy.Publisher('/gnc/wrench', WrenchStamped, queue_size=10)
+        self.pub_wrench = rospy.Publisher('wrench', WrenchStamped, queue_size=10)
 
         # TODO: load from rosparams
         self.timeout_duration = 2.0  # timeout is 2 seconds.
@@ -47,8 +48,8 @@ class AttitudeController:
         # TODO: expose ability to tune via ros service
         self._build_pids([200, 40, 0], [200, 40, 0])
 
-        self.sub_odom = rospy.Subscriber('/gnc/odom', Odometry, self.odometry_callback)
-        self.sub_command = rospy.Subscriber('/gnc/teleop/controller_cmd', ControllerCmd, self.plan_callback)
+        self.sub_odom = rospy.Subscriber('odom', Odometry, self.odometry_callback)
+        self.sub_command = rospy.Subscriber('controller_cmd', ControllerCmd, self.plan_callback)
 
     def _build_pids(self, roll_tunings, pitch_tunings):
         self.roll_pid = PID(Kp=roll_tunings[0],
@@ -97,7 +98,6 @@ class AttitudeController:
             target_acc_body = R.apply(ta)
             target_yaw_body = R.apply([0, 0, ty])
             vd_command = np.hstack((target_acc_body, target_yaw_body))
-            print(self.target_acc, ' -> ', vd_command)
 
             vd = np.array(vd_pid) + np.array(vd_command)
 

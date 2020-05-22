@@ -17,7 +17,7 @@ class Dynamics:
     def __init__(self):
         # TODO: load these from a yaml file in tauv_config (or better, the URDF itself!)
         self.m = 15  # mass of vehicle
-        self.b = 17  # mass of displaced water (b = volume * rho)
+        self.b = 16  # mass of displaced water (b = volume * rho)
         self.r_G = [0, 0, 0]  # defined in body NED frame!
         self.r_B = [0, 0, 0]  # defined in body NED frame!
 

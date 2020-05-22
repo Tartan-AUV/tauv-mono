@@ -5,7 +5,7 @@
     <xacro:property name="albatross_cob" value="0 0 0"/>
 
     <!-- Vehicle's actual volume (Gazebo cannot compute the volume out of the mesh) -->
-    <xacro:property name="albatross_volume" value="0.01854"/>
+    <xacro:property name="albatross_volume" value="0.016"/>
 
     <!-- Describing the dimensions of the vehicle's bounding box -->
     <xacro:property name="albatross_length" value="1"/>
