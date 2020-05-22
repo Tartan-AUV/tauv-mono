@@ -16,6 +16,7 @@ add_service_files(
   FILES
   TuneInertial.srv
   TunePid.srv
+  GetTraj.srv
 )
 
 

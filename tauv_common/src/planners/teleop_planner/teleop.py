@@ -16,20 +16,28 @@ from std_srvs.srv import SetBool
 from tauv_msgs.msg import ControllerCmd
 
 
-def build_cmd(joy):
+def build_cmd(joy, orientation):
     linear = Vector3(0, 0, 0)
     angular = Vector3(0, 0, 0)
 
-    linear.x = rospy.get_param("~axes/linear_x/scale") * \
+    x = rospy.get_param("~axes/linear_x/scale") * \
                joy.axes[rospy.get_param("~axes/linear_x/axis")]
 
-    linear.y = rospy.get_param("~axes/linear_y/scale") * \
+    y = rospy.get_param("~axes/linear_y/scale") * \
                joy.axes[rospy.get_param("~axes/linear_y/axis")]
 
-    linear.z = rospy.get_param("~axes/linear_z_down/scale") * \
+    z = rospy.get_param("~axes/linear_z_down/scale") * \
                joy.axes[rospy.get_param("~axes/linear_z_down/axis")] \
                - rospy.get_param("~axes/linear_z_up/scale") * \
                joy.axes[rospy.get_param("~axes/linear_z_up/axis")]
+
+    yaw = stf.Rotation.from_quat(orientation).as_euler('ZYX')[0]
+    R = stf.Rotation.from_euler('ZYX', [yaw, 0, 0])
+    xyz_world = R.apply([x,y,z])
+
+    linear.x = xyz_world[0]
+    linear.y = xyz_world[1]
+    linear.z = xyz_world[2]
 
     angular.x = rospy.get_param("~axes/angular_x/scale") * \
                 joy.axes[rospy.get_param("~axes/angular_x/axis")]
@@ -74,7 +82,7 @@ class Teleop:
             print("Failed to find transformation between frames {} and {}:\n {}".format(self.odom, self.body, e))
             return
 
-        (cmd_linear, cmd_angular) = build_cmd(self.joy)
+        (cmd_linear, cmd_angular) = build_cmd(self.joy, self.orientation)
 
         cmd = ControllerCmd()
         cmd.a_x = cmd_linear.x
@@ -108,3 +116,4 @@ def main():
     rospy.init_node('teleop')
     t = Teleop()
     t.start()
+

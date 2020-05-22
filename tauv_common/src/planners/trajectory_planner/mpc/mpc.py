@@ -44,6 +44,8 @@ class MPC:
         self.A_bar = self._build_a_bar(A)
         self.B_bar = self._build_b_bar(A, B)
 
+        self.m = None
+
     def solve(self, x, x_ref):
         assert x.shape[0] == self.xdim
         assert x.shape[1] == 1
@@ -53,15 +55,20 @@ class MPC:
 
         f_bar = np.dot(self.A_bar, x)
         G_bar = x_ref.transpose().reshape((self.xdim * (self.N + 1), 1))
-        H = np.dot(np.dot(self.B_bar.transpose(), self.Q_bar), self.B_bar) + self.R_bar
         C = np.dot(np.dot(f_bar.transpose(), self.Q_bar), self.B_bar) - np.dot(np.dot(G_bar.transpose(), self.Q_bar),
                                                                                self.B_bar)
         b = np.vstack((self.b_u_bar, self.b_x_bar - np.dot(self.L_x_bar, f_bar)))
-        L = np.vstack((self.L_u_bar, np.dot(self.L_x_bar, self.B_bar)))
 
-        m = osqp.OSQP()
-        m.setup(P=sparse.csc_matrix(H), q=C.transpose(), l=None, A=sparse.csc_matrix(L), u=b, verbose=False)
-        res = m.solve()
+        if self.m is None:
+            H = np.dot(np.dot(self.B_bar.transpose(), self.Q_bar), self.B_bar) + self.R_bar
+            L = np.vstack((self.L_u_bar, np.dot(self.L_x_bar, self.B_bar)))
+            m = osqp.OSQP()
+            m.setup(P=sparse.csc_matrix(H), q=C.transpose(), l=None, A=sparse.csc_matrix(L), u=b, verbose=False,
+                    warm_start=True)
+        else:
+            self.m.update(q=C.transpose(), l=None, u=b)
+
+        res = self.m.solve()
         u = res.x
         x = f_bar + np.dot(self.B_bar, u[np.newaxis].transpose())
 
@@ -72,6 +79,7 @@ class MPC:
 
     def to_path(self, x, start_time, frame='odom'):
         assert x.shape[0] == self.xdim
+        assert x.shape[0] >= 3
 
         num_poses = x.shape[1]
 

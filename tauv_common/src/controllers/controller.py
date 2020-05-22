@@ -80,22 +80,28 @@ class AttitudeController:
             rospy.logwarn_throttle_identical(3, 'No controller command received recently: entering failsafe mode!')
 
         if not failsafe:
-            roll_error = self.target_roll - self.eta[3]
-            pitch_error = self.target_pitch - self.eta[4]
+            eta = self.eta
+            v = self.v
+            ta = self.target_acc
+            ty = self.target_yaw_acc
+
+            roll_error = self.target_roll - eta[3]
+            pitch_error = self.target_pitch - eta[4]
 
             roll_effort = self.roll_pid(-roll_error)
             pitch_effort = self.pitch_pid(-pitch_error)
 
             vd_pid = [0, 0, 0, roll_effort, pitch_effort, 0]
 
-            R = Rotation.from_euler('xyz', self.eta[3:6]).inv()
-            target_acc_body = R.apply(self.target_acc)
-            target_yaw_body = R.apply([0, 0, self.target_yaw_acc])
+            R = Rotation.from_euler('xyz', eta[3:6]).inv()
+            target_acc_body = R.apply(ta)
+            target_yaw_body = R.apply([0, 0, ty])
             vd_command = np.hstack((target_acc_body, target_yaw_body))
+            print(self.target_acc, ' -> ', vd_command)
 
             vd = np.array(vd_pid) + np.array(vd_command)
 
-            tau = self.dyn.compute_tau(self.eta, self.v, vd)
+            tau = self.dyn.compute_tau(eta, v, vd)
         else:
             tau = [0] * 6
 
@@ -106,55 +112,6 @@ class AttitudeController:
         wrench.wrench.torque = Vector3(tau[3], -tau[4], -tau[5])
 
         self.pub_wrench.publish(wrench)
-
-    # def control_update_lqr(self, timer_event):
-    #     failsafe = False
-    #
-    #     if self.eta is None or self.v is None:
-    #         rospy.logwarn_throttle_identical(3, 'Odometry not yet received: Controller waiting...')
-    #         failsafe = True
-    #
-    #     if self.last_updated is None or rospy.Time.now().to_sec() - self.last_updated > self.timeout_duration:
-    #         failsafe = True
-    #         rospy.logwarn_throttle_identical(3, 'No controller command received recently: entering failsafe mode!')
-    #
-    #     if not failsafe:
-    #         A = self.dyn.compute_A_matrix(self.eta, self.v)
-    #         B = self.dyn.compute_B_matrix()
-    #         G = self.dyn.G(self.eta)
-    #
-    #         K, S, E = control.lqr(A, B, self.Q, self.R)
-    #
-    #         eta = self.eta
-    #         v = self.v
-    #
-    #         eta_goal = copy.copy(eta)
-    #         v_goal = copy.copy(v)
-    #
-    #         eta_goal[3] = self.target_roll
-    #         eta_goal[4] = self.target_pitch
-    #         v_goal[3] = 0
-    #         v_goal[4] = 0
-    #
-    #         eta_err = np.array(eta_goal)[:, np.newaxis] - np.array(eta)[:, np.newaxis]
-    #         v_err = np.array(v_goal)[:, np.newaxis] - np.array(v)[:, np.newaxis]
-    #
-    #         tau = np.dot(K, np.vstack((eta_err, v_err))) + G
-    #         tau = np.array(tau).flatten()
-    #
-    #         print(tau)
-    #
-    #     else:
-    #         # TODO: support more complex failsafe behaviors, eg: don't publish
-    #         tau = [0] * 6
-    #
-    #     wrench = WrenchStamped()
-    #     wrench.header.stamp = rospy.Time.now()
-    #     wrench.header.frame_id = self.base_link
-    #     wrench.wrench.force = Vector3(tau[0], -tau[1], -tau[2])
-    #     wrench.wrench.torque = Vector3(tau[3], -tau[4], -tau[5])
-    #
-    #     self.pub_wrench.publish(wrench)
 
     def odometry_callback(self, msg):
         p = msg.pose.pose.position
