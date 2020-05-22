@@ -175,6 +175,7 @@ class MpcTrajectoryFollower:
 
         self.p = p
 
+        # TODO: why is ground truth published in wrong frame???
         # R = Rotation.from_quat(tl(p.orientation))
         R = Rotation.from_quat([0, 0, 0, 1])
 

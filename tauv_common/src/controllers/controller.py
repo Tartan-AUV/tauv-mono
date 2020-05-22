@@ -48,7 +48,7 @@ class AttitudeController:
         self._build_pids([200, 40, 0], [200, 40, 0])
 
         self.sub_odom = rospy.Subscriber('/gnc/odom', Odometry, self.odometry_callback)
-        self.sub_command = rospy.Subscriber('controller_cmd', ControllerCmd, self.plan_callback)
+        self.sub_command = rospy.Subscriber('/gnc/teleop/controller_cmd', ControllerCmd, self.plan_callback)
 
     def _build_pids(self, roll_tunings, pitch_tunings):
         self.roll_pid = PID(Kp=roll_tunings[0],
@@ -119,10 +119,16 @@ class AttitudeController:
         v_l = msg.twist.twist.linear
         v_a = msg.twist.twist.angular
 
-        rpy = Rotation.from_quat(q).as_euler('xyz')
+        R = Rotation.from_quat(q)
+        rpy = R.as_euler('xyz')
 
         self.eta = [p.x, -p.y, -p.z, rpy[0], -rpy[1], -rpy[2]]
-        self.v = [v_l.x, -v_l.y, -v_l.z, v_a.x, -v_a.y, -v_a.z]
+
+        # TODO: why is odometry published in the wrong frame??
+        v_l = R.inv().apply(tl(v_l))
+        v_a = R.inv().apply(tl(v_a))
+
+        self.v = [v_l[0], -v_l[1], -v_l[2], v_a[0], -v_a[1], -v_a[2]]
         self.eta_d = self.dyn.get_eta_d(self.eta, self.v)
 
     def plan_callback(self, msg):
@@ -141,6 +147,8 @@ class AttitudeController:
 def tl(v):
     if isinstance(v, Quaternion):
         return [v.x, v.y, v.z, v.w]
+    if isinstance(v, Vector3):
+        return [v.x, v.y, v.z]
 
 
 def main():

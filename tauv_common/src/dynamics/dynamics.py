@@ -79,8 +79,8 @@ class Dynamics:
         J = self._J(eta)
 
         # TODO: why is coriolis broken?
-        # tau = np.dot(M, v_d) + np.dot(C, v) + np.dot(D, v) + G.T
-        tau = np.dot(M, v_d) + np.dot(D, v) + G.T
+        tau = np.dot(M, v_d) + np.dot(C, v) + np.dot(D, v) + G.T
+        # tau = np.dot(M, v_d) + np.dot(D, v) + G.T
         return tau.flatten()
 
     def compute_A_matrix(self, eta, v):
