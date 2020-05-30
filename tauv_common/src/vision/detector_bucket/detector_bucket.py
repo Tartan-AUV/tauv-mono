@@ -26,6 +26,7 @@ class Detector_Bucket():
         self.refresh_rate = 0 #set this using params in future
 
     def spin(self):
+        #use frame_id in the header
         d = BucketDetection()
         d.info = "testing"
         d2 = BucketDetection()

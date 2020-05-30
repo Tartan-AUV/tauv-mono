@@ -344,4 +344,5 @@ class ThrusterManager:
         for i in range(self.n_thrusters):
             if abs(thrust[i]) > max_thrust[i]:
                 thrust[i] = numpy.sign(thrust[i]) * max_thrust[i]
+                rospy.logwarn_throttle_identical(1, '[Thruster Manager] Thruster {} Saturated!'.format(i))
         return thrust

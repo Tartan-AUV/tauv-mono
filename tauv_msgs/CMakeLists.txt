@@ -8,7 +8,7 @@ add_message_files(
   BucketDetection.msg
   BucketList.msg
   FluidDepth.msg
-  CascadedPidSelection.msg
+  ControllerCmd.msg
   InertialVals.msg
   PidVals.msg
   SonarPulse.msg
@@ -16,9 +16,9 @@ add_message_files(
 
 add_service_files(
   FILES
-  SetCascadedPidSelection.srv
   TuneInertial.srv
   TunePid.srv
+  GetTraj.srv
 )
 
 
