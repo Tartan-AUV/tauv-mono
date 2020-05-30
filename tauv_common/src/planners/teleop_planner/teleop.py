@@ -13,40 +13,47 @@ import tf
 from scipy.spatial import transform as stf
 import math
 from std_srvs.srv import SetBool
+from tauv_msgs.msg import ControllerCmd
 
 
-def build_cmd(joy, name):
+def build_cmd(joy, orientation):
     linear = Vector3(0, 0, 0)
     angular = Vector3(0, 0, 0)
 
-    linear.x = rospy.get_param("~{}/axes/linear_x/scale".format(name)) * \
-               joy.axes[rospy.get_param("~{}/axes/linear_x/axis".format(name))]
+    x = rospy.get_param("~axes/linear_x/scale") * \
+               joy.axes[rospy.get_param("~axes/linear_x/axis")]
 
-    linear.y = rospy.get_param("~{}/axes/linear_y/scale".format(name)) * \
-               joy.axes[rospy.get_param("~{}/axes/linear_y/axis".format(name))]
+    y = rospy.get_param("~axes/linear_y/scale") * \
+               joy.axes[rospy.get_param("~axes/linear_y/axis")]
 
-    linear.z = rospy.get_param("~{}/axes/linear_z_down/scale".format(name)) * \
-               joy.axes[rospy.get_param("~{}/axes/linear_z_down/axis".format(name))] \
-               - rospy.get_param("~{}/axes/linear_z_up/scale".format(name)) * \
-               joy.axes[rospy.get_param("~{}/axes/linear_z_up/axis".format(name))]
+    z = rospy.get_param("~axes/linear_z_down/scale") * \
+               joy.axes[rospy.get_param("~axes/linear_z_down/axis")] \
+               - rospy.get_param("~axes/linear_z_up/scale") * \
+               joy.axes[rospy.get_param("~axes/linear_z_up/axis")]
 
-    angular.x = rospy.get_param("~{}/axes/angular_x/scale".format(name)) * \
-                joy.axes[rospy.get_param("~{}/axes/angular_x/axis".format(name))]
+    yaw = stf.Rotation.from_quat(orientation).as_euler('ZYX')[0]
+    R = stf.Rotation.from_euler('ZYX', [yaw, 0, 0])
+    xyz_world = R.apply([x,y,z])
 
-    angular.y = rospy.get_param("~{}/axes/angular_y/scale".format(name)) * \
-                joy.axes[rospy.get_param("~{}/axes/angular_y/axis".format(name))]
+    linear.x = xyz_world[0]
+    linear.y = xyz_world[1]
+    linear.z = xyz_world[2]
 
-    angular.z = rospy.get_param("~{}/axes/angular_z/scale".format(name)) * \
-                joy.axes[rospy.get_param("~{}/axes/angular_z/axis".format(name))]
+    angular.x = rospy.get_param("~axes/angular_x/scale") * \
+                joy.axes[rospy.get_param("~axes/angular_x/axis")]
+
+    angular.y = rospy.get_param("~axes/angular_y/scale") * \
+                joy.axes[rospy.get_param("~axes/angular_y/axis")]
+
+    angular.z = rospy.get_param("~axes/angular_z/scale") * \
+                joy.axes[rospy.get_param("~axes/angular_z/axis")]
 
     return linear, angular
 
 
 class Teleop:
     def __init__(self):
-        self.pub_cmd_pos = rospy.Publisher("cmd_pos", PoseStamped, queue_size=10)
-        self.pub_cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
-        self.pub_cmd_acc = rospy.Publisher("cmd_acc", Accel, queue_size=10)
+        self.pub_cmd = rospy.Publisher("controller_cmd", ControllerCmd, queue_size=10)
 
         self.dt = 0.02
         self.pos = (0, 0, 0)
@@ -59,41 +66,14 @@ class Teleop:
         self.body = 'base_link'
         self.odom = 'odom'
 
-        self.sub_joy = rospy.Subscriber(rospy.get_param("~joy_topic"), Joy, self.joy_callback)
+        self.sub_joy = rospy.Subscriber('joy', Joy, self.joy_callback)
 
     def joy_callback(self, joy):
         self.joy = joy
 
-    def form_pose_message(self, linear, angular):
-        # TODO: Support xy position and more depth/orientation modes
-        # Depth is integrated, as is heading. Orientation and xy position are absolute.
-
-        res = PoseStamped()
-        res.header.stamp = rospy.Time.now()
-        res.header.frame_id = self.odom
-        depth = self.pos[2]
-        res.pose.position.z = depth + self.dt * linear.z
-        res.pose.position.x = linear.x
-        res.pose.position.y = linear.y
-
-        R = stf.Rotation.from_quat(self.orientation)
-        ZYX = R.as_euler("ZYX")
-        ZYX[0] += angular.z * self.dt
-        ZYX[1] = angular.y
-        ZYX[2] = angular.x
-
-        if ZYX[0] > math.pi:
-            ZYX[0] -= 2 * math.pi
-        if ZYX[0] < -math.pi:
-            ZYX[0] += 2 * math.pi
-
-        quat = stf.Rotation.from_euler("ZYX", ZYX).as_quat()
-        res.pose.orientation = Quaternion(quat[0], quat[1], quat[2], quat[3])
-
-        return res
-
     def update(self, timer_event):
         if self.joy is None:
+            rospy.logwarn_throttle(3, "No joystick data received yet! Teleop node waiting.")
             return
 
         try:
@@ -102,23 +82,16 @@ class Teleop:
             print("Failed to find transformation between frames {} and {}:\n {}".format(self.odom, self.body, e))
             return
 
-        (pos_linear, pos_angular) = build_cmd(self.joy, "position")
-        (vel_linear, vel_angular) = build_cmd(self.joy, "velocity")
-        (acc_linear, acc_angular) = build_cmd(self.joy, "acceleration")
+        (cmd_linear, cmd_angular) = build_cmd(self.joy, self.orientation)
 
-        cmd_vel = Twist()
-        cmd_vel.angular = vel_angular
-        cmd_vel.linear = vel_linear
-
-        cmd_acc = Accel()
-        cmd_acc.angular = acc_angular
-        cmd_acc.linear = acc_linear
-
-        cmd_pos = self.form_pose_message(pos_linear, pos_angular)
-
-        self.pub_cmd_acc.publish(cmd_acc)
-        self.pub_cmd_vel.publish(cmd_vel)
-        self.pub_cmd_pos.publish(cmd_pos)
+        cmd = ControllerCmd()
+        cmd.a_x = cmd_linear.x
+        cmd.a_y = cmd_linear.y
+        cmd.a_z = cmd_linear.z
+        cmd.a_yaw = cmd_angular.z
+        cmd.p_roll = cmd_angular.x
+        cmd.p_pitch = cmd_angular.y
+        self.pub_cmd.publish(cmd)
 
         if self.joy.buttons[rospy.get_param("~arm_button")] == 1:
             self.arm(True)
@@ -135,7 +108,7 @@ class Teleop:
             print "Service call failed: %s"%e
 
     def start(self):
-        rospy.Timer(rospy.Duration(self.dt), self.update)
+        rospy.Timer(rospy.Duration.from_sec(self.dt), self.update)
         rospy.spin()
 
 
@@ -143,3 +116,4 @@ def main():
     rospy.init_node('teleop')
     t = Teleop()
     t.start()
+

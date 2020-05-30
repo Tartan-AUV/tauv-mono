@@ -74,5 +74,5 @@ include(cmake/pylint.cmake)
 # define nodes here
 # eg: add_subdirectory(src/imu_calibrator)
 add_subdirectory(src/constructors)
-add_subdirectory(src/motion)
+# add_subdirectory(src/motion)
 

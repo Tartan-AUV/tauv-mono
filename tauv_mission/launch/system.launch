@@ -96,6 +96,6 @@
   </include>
 
   <!-- Start the GNC system: -->
-  <include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>
+<!--  <include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>-->
 
 </launch>

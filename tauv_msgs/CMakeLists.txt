@@ -6,7 +6,7 @@ find_package(catkin REQUIRED geometry_msgs sensor_msgs std_msgs message_generati
 add_message_files(
   FILES
   FluidDepth.msg
-  CascadedPidSelection.msg
+  ControllerCmd.msg
   InertialVals.msg
   PidVals.msg
   SonarPulse.msg
@@ -14,9 +14,9 @@ add_message_files(
 
 add_service_files(
   FILES
-  SetCascadedPidSelection.srv
   TuneInertial.srv
   TunePid.srv
+  GetTraj.srv
 )
 
 

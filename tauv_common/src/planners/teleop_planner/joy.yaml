@@ -2,94 +2,32 @@
 teleop_planner:
   arm_button: 7
   estop_button: 8
-  joy_topic: "/gui/joy"
 
-  acceleration:
-    axes:
-      linear_x:
-        axis: 1
-        scale: 1.0
+  axes:
+    linear_x:
+      axis: 1
+      scale: 1.0
 
-      linear_y:
-        axis: 0
-        scale: 1.0
+    linear_y:
+      axis: 0
+      scale: 1.0
 
-      linear_z_down:
-        axis: 2
-        scale: 0.5
+    linear_z_down:
+      axis: 2
+      scale: 0.5
 
-      linear_z_up:
-        axis: 5
-        scale: 0.5
+    linear_z_up:
+      axis: 5
+      scale: 0.5
 
-      angular_x:
-        axis: 6
-        scale: -1.0
+    angular_x:
+      axis: 6
+      scale: -1.0
 
-      angular_y:
-        axis: 7
-        scale: 1.0
+    angular_y:
+      axis: 7
+      scale: 1.0
 
-      angular_z:
-        axis: 3
-        scale: 1.0
-
-  velocity:
-    axes:
-      linear_x:
-        axis: 1
-        scale: 1.0
-
-      linear_y:
-        axis: 0
-        scale: 1.0
-
-      linear_z_down:
-        axis: 2
-        scale: -0.5
-
-      linear_z_up:
-        axis: 5
-        scale: -0.5
-
-      angular_x:
-        axis: 6
-        scale: -1.0
-
-      angular_y:
-        axis: 7
-        scale: 1.0
-
-      angular_z:
-        axis: 3
-        scale: 1.0
-
-  position:
-    axes:
-      linear_x:
-        axis: 1
-        scale: 10.0
-
-      linear_y:
-        axis: 0
-        scale: 10.0
-
-      linear_z_down:
-        axis: 2
-        scale: 5.0
-
-      linear_z_up:
-        axis: 5
-        scale: 5.0
-
-      angular_x:
-        axis: 6
-        scale: -1.0
-
-      angular_y:
-        axis: 7
-        scale: 1.0
-
-      angular_z:
-        axis: 3
-        scale: 10.0
+    angular_z:
+      axis: 3
+      scale: 1.0

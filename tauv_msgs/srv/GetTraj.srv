@@ -1,0 +1,14 @@
+# Note: Angular velocities outside of yaw (z axis) are currently unused.
+
+std_msgs/Header header
+geometry_msgs/Pose start_pose  # Current positions
+geometry_msgs/Twist start_twist  # Current velocities (in world frame! Not body velocities!)
+int32 len  # Number of samples to look ahead on the trajectory. (First sample corresponds to current time, second is time + dt, etc)
+float32 dt  # time difference between samples
+
+---
+
+geometry_msgs/Pose[] poses  # list of poses on trajectory
+geometry_msgs/Twist[] twists  # list of twists on trajectory (in world frame! Not body velocities!)
+bool success  # false indicates some sort of failure
+bool auto_twists  # set to True to automatically calculate the twists from the poses, rather than providing them.
