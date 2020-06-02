@@ -24,7 +24,7 @@ class MpcTrajectoryFollower:
         self.p_d = None
         self.ready = False
 
-        self.sub_odom = rospy.Subscriber('/gnc/odom', Odometry, self.odometry_callback)
+        self.sub_odom = rospy.Subscriber('/albatross/sensors/pose_gt', Odometry, self.odometry_callback)
 
         self.prediction_pub = rospy.Publisher('mpc_pred', Path, queue_size=10)
         self.reference_pub = rospy.Publisher('mpc_ref', Path, queue_size=10)

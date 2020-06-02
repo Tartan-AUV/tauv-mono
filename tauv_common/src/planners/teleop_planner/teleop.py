@@ -66,7 +66,8 @@ class Teleop:
         self.body = 'base_link'
         self.odom = 'odom'
 
-        self.sub_joy = rospy.Subscriber('joy', Joy, self.joy_callback)
+        #changed joy to /gui/tauv_joy
+        self.sub_joy = rospy.Subscriber('/gui/tauv_joy', Joy, self.joy_callback)
 
     def joy_callback(self, joy):
         self.joy = joy
