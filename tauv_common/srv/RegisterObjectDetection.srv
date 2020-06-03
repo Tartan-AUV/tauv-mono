@@ -1,0 +1,3 @@
+tauv_msgs/ObjectDetection objdet
+---
+bool success

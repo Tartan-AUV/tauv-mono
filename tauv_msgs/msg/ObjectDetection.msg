@@ -1,0 +1,3 @@
+BucketDetection bucket_detection
+sensor_msgs/Image image
+vision_msgs/BoundingBox2D bbox_2d
