@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(tauv_msgs)
 
-find_package(catkin REQUIRED geometry_msgs sensor_msgs std_msgs message_generation)
+find_package(catkin REQUIRED geometry_msgs sensor_msgs std_msgs vision_msgs message_generation)
 
 add_message_files(
   FILES
   BucketDetection.msg
+  ObjectDetection.msg
   BucketList.msg
   FluidDepth.msg
   ControllerCmd.msg
@@ -27,6 +28,7 @@ generate_messages(
   geometry_msgs
   sensor_msgs
   std_msgs
+  vision_msgs
 )
 
 catkin_package(
@@ -35,6 +37,7 @@ catkin_package(
   CATKIN_DEPENDS
   geometry_msgs
   sensor_msgs
+  vision_msgs
   std_msgs
   message_runtime
 # DEPENDS

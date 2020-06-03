@@ -1,17 +1,18 @@
 <launch>
     <!-- This launchfile launches the vision system. -->
-
-
-    <!-- Name of the robot model  -->
     <arg name="model_name" default="albatross"/>
     <!-- path to config package  -->
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+    <group ns="vision">
+        <group>
+            <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" clear_params="true" output="screen">
+            </node>
+        </group>
 
 
-    <group>
-        <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" clear_params="true" output="screen">
-        </node>
+
     </group>
+
 
 
 

@@ -36,6 +36,7 @@ generate_messages(
     geometry_msgs
     std_srvs
     tauv_msgs
+    vision_msgs
 )
 
 catkin_package(CATKIN_DEPENDS
@@ -46,6 +47,7 @@ catkin_package(CATKIN_DEPENDS
     rospy
     sensor_msgs
     geometry_msgs
+    vision_msgs
     tf
     tauv_config
     message_filters
