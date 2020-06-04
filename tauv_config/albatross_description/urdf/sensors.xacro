@@ -33,7 +33,8 @@
   <xacro:default_pressure namespace="${namespace}" parent_link="base_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:default_pressure>
-  <xacro:default_camera namespace="${namespace}" parent_link="base_link" suffix="under2">
+
+  <xacro:default_camera namespace="${namespace}" parent_link="base_link" suffix="_under_stereo_left">
     <origin xyz="0.15 -0.05 -0.06" rpy="0 ${0.5*pi} 0"/>
   </xacro:default_camera>
   <!-- IMU  -->
@@ -42,12 +43,16 @@
   </xacro:default_imu>
 
   <!-- Mount a camera -->
-  <xacro:default_camera namespace="${namespace}" parent_link="base_link" suffix="front">
-    <origin xyz="0.29 0.0 0." rpy="0 0 0"/>
+  <xacro:default_camera namespace="${namespace}" parent_link="base_link" suffix="_front_stereo_left">
+    <origin xyz="0.29 -0.10 0." rpy="0 0 0"/>
   </xacro:default_camera>
 
-  <xacro:default_camera namespace="${namespace}" parent_link="base_link" suffix="under1">
-    <origin xyz="0.15 0.05 -0.06" rpy="0 ${0.5*pi} 0"/>
+  <xacro:default_camera namespace="${namespace}" parent_link="base_link" suffix="_front_stereo_right">
+    <origin xyz="0.29 .05 0." rpy="0 0 0"/>
+  </xacro:default_camera>
+
+  <xacro:default_camera namespace="${namespace}" parent_link="base_link" suffix="_under_stereo_right">
+    <origin xyz="0.15 0.10 -0.06" rpy="0 ${0.5*pi} 0"/>
 
   </xacro:default_camera>
 

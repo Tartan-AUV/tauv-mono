@@ -12,6 +12,7 @@ import tf
 import tf_conversions
 import numpy as np
 from sensor_msgs.msg import Imu
+from stereo_msgs.msg import DisparityImage
 from geometry_msgs.msg import *
 from nav_msgs.msg import Odometry
 from tf.transformations import *
@@ -24,8 +25,12 @@ class Detector_Bucket():
     def __init__(self):
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
         self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, self.register_object_detection)
-        self.refresh_rate = 0 
+        self.disp = rospy.Subscriber("disparity", DisparityImage, self.callback)
+        self.refresh_rate = 0
         self.detections = []
+
+    def callback(self, img):
+        return
 
     def is_valid_registration(self, bucket_detection):
         return True

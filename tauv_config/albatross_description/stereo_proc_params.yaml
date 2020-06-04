@@ -1,0 +1,7 @@
+#     Written by Advaith Sethuraman
+#     Copyright (c) 2020 Tartan AUV
+#     All rights reserved.
+
+
+approximate_sync: true
+queue_size: 10

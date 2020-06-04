@@ -4,10 +4,22 @@
     <!-- path to config package  -->
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
     <group ns="vision">
-        <group>
-            <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" clear_params="true" output="screen">
-            </node>
-        </group>
+
+        <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" clear_params="true" output="screen">
+        </node>
+
+
+        <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" clear_params="true" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/stereo_proc_params.yaml"/>
+            <remap from="left/image_raw" to="/$(arg model_name)/camera_under_stereo_left/camera_image"/>
+            <remap from="right/image_raw" to="/$(arg model_name)/camera_under_stereo_right/camera_image"/>
+            <remap from="left/camera_info" to="/$(arg model_name)/camera_under_stereo_left/camera_info"/>
+            <remap from="right/camera_info" to="/$(arg model_name)/camera_under_stereo_right/camera_info"/>
+        </node>
+
+
+
+
 
 
 
