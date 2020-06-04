@@ -48,7 +48,7 @@ class AttitudeController:
         # TODO: expose ability to tune via ros service
         self._build_pids([200, 40, 0], [200, 40, 0])
 
-        self.sub_odom = rospy.Subscriber('/albatross/sensors/pose_gt', Odometry, self.odometry_callback)
+        self.sub_odom = rospy.Subscriber('odom', Odometry, self.odometry_callback)
         self.sub_command = rospy.Subscriber('controller_cmd', ControllerCmd, self.plan_callback)
 
     def _build_pids(self, roll_tunings, pitch_tunings):
