@@ -24,7 +24,7 @@ class MpcTrajectoryFollower:
         self.p_d = None
         self.ready = False
 
-        self.sub_odom = rospy.Subscriber('/gnc/odom', Odometry, self.odometry_callback)
+        self.sub_odom = rospy.Subscriber('odom', Odometry, self.odometry_callback)
 
         self.prediction_pub = rospy.Publisher('mpc_pred', Path, queue_size=10)
         self.reference_pub = rospy.Publisher('mpc_ref', Path, queue_size=10)
@@ -59,8 +59,8 @@ class MpcTrajectoryFollower:
             [0, 0, 0, 1]
         ])
 
-        self.Q = np.diag([1, 1, 1, 1, .1, .1, .1, .1])
-        self.R = np.diag([1, 1, 1, 1])
+        self.Q = np.diag([1, 1, 100, 1, .1, .1, .1, .1])
+        self.R = np.diag([1, 1, 10, 1]) * 1
         self.S = self.Q * 30
 
         INF = 1e10
@@ -69,17 +69,17 @@ class MpcTrajectoryFollower:
             [INF],
             [INF],
             [INF],
-            [1],
-            [1],
-            [1],
-            [INF],
+            [.5],
+            [.5],
+            [.5],
+            [0.75],
         ])
 
         ucon = np.array([
+                [INF],
+                [INF],
                 [1],
-                [1],
-                [1],
-                [2]
+                [INF]
             ])
         self.u_constraints = np.hstack((-1 * ucon, ucon))
         self.x_constraints = np.hstack((-1 * xcon, xcon))
@@ -142,10 +142,18 @@ class MpcTrajectoryFollower:
             ref_traj[4:8, :] = np.pad(gdiff[0:4], ((0, 0), (0, 1)), 'edge')
 
         u_mpc, x_mpc = self.mpc.solve(x, ref_traj)
+
+        if u_mpc is None:
+            rospy.logerr("[MPC Controller] Error computing MPC trajectory!")
+            u_mpc = np.zeros((6, self.N))
+            x_mpc = None
+
         u = u_mpc[:, 0]
 
         self.reference_pub.publish(self.mpc.to_path(ref_traj, start_time=rospy.Time.now(), frame=self.odom))
-        self.prediction_pub.publish(self.mpc.to_path(x_mpc, start_time=rospy.Time.now(), frame=self.odom))
+
+        if x_mpc is not None:
+            self.prediction_pub.publish(self.mpc.to_path(x_mpc, start_time=rospy.Time.now(), frame=self.odom))
 
         ref_rpy = Rotation.from_quat(tl(traj_response.poses[0].orientation)).as_euler('xyz')
 

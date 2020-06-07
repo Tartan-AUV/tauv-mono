@@ -46,7 +46,7 @@ class AttitudeController:
         # self.R = np.eye(6) * 1
 
         # TODO: expose ability to tune via ros service
-        self._build_pids([200, 40, 0], [200, 40, 0])
+        self._build_pids([50, 10, 0], [50, 10, 0])
 
         self.sub_odom = rospy.Subscriber('odom', Odometry, self.odometry_callback)
         self.sub_command = rospy.Subscriber('controller_cmd', ControllerCmd, self.plan_callback)
