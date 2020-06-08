@@ -31,6 +31,7 @@ setup_args = generate_distutils_setup(
               'teleop',
               'vision',
               'vision.detector_bucket',
+              'vision.detectors.dummy_detector'
               'dynamics'],
     package_dir={'': 'src'},
     requires=['rospy'],
@@ -41,7 +42,8 @@ setup_args = generate_distutils_setup(
              'scripts/state_estimation',
              'scripts/detector_bucket',
              'scripts/attitude_controller',
-             'scripts/mpc_traj_follower'],
+             'scripts/mpc_traj_follower',
+             'scripts/dummy_detector'],
 
 )
 setup(**setup_args)

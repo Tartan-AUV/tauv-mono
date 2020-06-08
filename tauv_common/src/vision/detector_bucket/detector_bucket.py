@@ -13,6 +13,7 @@ import tf_conversions
 import numpy as np
 from sensor_msgs.msg import Imu
 from stereo_msgs.msg import DisparityImage
+from jsk_recognition_msgs import *
 from geometry_msgs.msg import *
 from nav_msgs.msg import Odometry
 from tf.transformations import *
@@ -23,11 +24,13 @@ from tauv_common.srv import RegisterObjectDetection
 
 class Detector_Bucket():
     def __init__(self):
-        self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
+        self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)\
+        self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", )
         self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, self.register_object_detection)
         self.disp = rospy.Subscriber("disparity", DisparityImage, self.callback)
         self.refresh_rate = 0
-        self.detections = []
+        self.bucket_list = []
+        self.bbox_3d_list = []
 
     def callback(self, img):
         return
@@ -37,15 +40,18 @@ class Detector_Bucket():
 
     def register_object_detection(self, req):
         bucket_detection = req.bucket_detection
+        bbox_3d_detection = bucket_detection.bbox_3d
         img = req.image
         bbox_2d = req.bbox_2d
         if(self.is_valid_registration(bucket_detection)):
             self.detections.append(bucket_detection)
+            self.bbox_3d_list.append(bbox_3d_detection)
             return True
         return False
 
     def spin(self):
         self.bucket_list_pub.publish(self.detections)
+        self.bbox_3d_list_pub.publish(self.bbox_3d_list)
         return
 
 def main():

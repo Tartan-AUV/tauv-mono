@@ -8,6 +8,9 @@
         <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" clear_params="true" output="screen">
         </node>
 
+        <node pkg="tauv_common" type="dummy_detector" name="dummy_detector" clear_params="true" output="screen">
+        </node>
+
 
         <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" clear_params="true" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/stereo_proc_params.yaml"/>
@@ -17,15 +20,5 @@
             <remap from="right/camera_info" to="/$(arg model_name)/camera_under_stereo_right/camera_info"/>
         </node>
 
-
-
-
-
-
-
     </group>
-
-
-
-
 </launch>

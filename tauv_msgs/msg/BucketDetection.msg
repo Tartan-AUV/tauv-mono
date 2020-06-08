@@ -4,6 +4,7 @@ float32 length
 float32 width
 float32 height
 geometry_msgs/Vector3 normal
+jsk_recognition_msgs/BoundingBox bbox_3d
 string tag
 string info
 uint32 detection_number

@@ -17,6 +17,7 @@
   <depend>std_msgs</depend>
   <depend>vision_msgs</depend>
   <depend>message_runtime</depend>
+  <depend>jsk_recognition_msgs</depend>
 
   <export>
   </export>
