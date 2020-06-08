@@ -1,3 +1,16 @@
+# MPC.py
+#
+# Python implementation of a Model Predictive Controller (MPC). Suitable for linear
+# mpc problems with linear constraints. Under the hood it uses the OSQP QP solver
+# to compute the optimal control inputs.
+#
+# Ros imports are only necessary for generating Path objects for visualization in rviz,
+# but could be removed.
+#
+# Author: Tom Scherlis
+#
+
+
 import osqp
 import numpy as np
 from scipy import linalg, sparse

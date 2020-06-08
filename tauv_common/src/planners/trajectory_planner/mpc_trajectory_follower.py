@@ -1,3 +1,15 @@
+# MPC Trajectory Follower
+#
+# This is the bridge between reference trajectories and the low-level attitude controller.
+# Uses an Model Predictive Controller (MPC) to compute optimal accelerations to follow the
+# reference trajectory.
+#
+# Must be connected to a trajectory server which provides reference trajectories as requested
+# by the MpcTrajectoryFollower.
+#
+# Author: Tom Scherlis
+#
+
 import rospy
 
 from mpc.mpc import MPC
@@ -9,6 +21,7 @@ from tauv_msgs.msg import ControllerCmd
 from geometry_msgs.msg import Pose, Twist, Point, Quaternion, Vector3
 from nav_msgs.msg import Odometry, Path
 from std_msgs.msg import Header
+
 
 class MpcTrajectoryFollower:
     def __init__(self):
@@ -59,10 +72,12 @@ class MpcTrajectoryFollower:
             [0, 0, 0, 1]
         ])
 
+        # TODO: load these from a config.yaml
         self.Q = np.diag([1, 1, 100, 1, .1, .1, .1, .1])
         self.R = np.diag([1, 1, 10, 1]) * 1
         self.S = self.Q * 30
 
+        # TODO: load these from a config.yaml
         INF = 1e10
         xcon = np.array([
             [INF],
@@ -76,11 +91,12 @@ class MpcTrajectoryFollower:
         ])
 
         ucon = np.array([
-                [INF],
-                [INF],
-                [1],
-                [INF]
-            ])
+            [INF],
+            [INF],
+            [1],
+            [INF]
+        ])
+
         self.u_constraints = np.hstack((-1 * ucon, ucon))
         self.x_constraints = np.hstack((-1 * xcon, xcon))
 
@@ -105,8 +121,8 @@ class MpcTrajectoryFollower:
             return
 
         req = GetTrajRequest()
-        req.start_pose = self.p
-        req.start_twist = self.p_d
+        req.curr_pose = self.p
+        req.curr_twist = self.p_d
         req.len = self.N + 1
         req.dt = self.tstep
         req.header.stamp = rospy.Time.now()
@@ -125,7 +141,7 @@ class MpcTrajectoryFollower:
         x = np.zeros((8, 1))
         ref_traj = np.zeros((8, self.N + 1))
 
-        x[:,0] = self.to_x(self.p, self.p_d)
+        x[:, 0] = self.to_x(self.p, self.p_d)
 
         for i in range(self.N + 1):
             gpose = poses[i]
@@ -135,7 +151,7 @@ class MpcTrajectoryFollower:
             else:
                 gtwist = twists[i]
 
-            ref_traj[:,i] = self.to_x(gpose, gtwist)
+            ref_traj[:, i] = self.to_x(gpose, gtwist)
 
         if traj_response.auto_twists:
             gdiff = np.diff(ref_traj, 1) * self.tstep
@@ -219,8 +235,6 @@ def make_test_traj(req):
 
     res.poses = poses
     return res
-
-
 
 
 def tl(v):
