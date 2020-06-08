@@ -31,7 +31,7 @@ setup_args = generate_distutils_setup(
               'teleop',
               'vision',
               'vision.detector_bucket',
-              'vision.detectors.dummy_detector'
+              'vision.detectors'
               'dynamics'],
     package_dir={'': 'src'},
     requires=['rospy'],
