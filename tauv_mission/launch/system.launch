@@ -97,7 +97,7 @@
 
   <!-- Start the GNC system: -->
 
-  <include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>
+  <include file="$(find tauv_common)/launch/gnc/gnc.launch"/>
   <include file="$(find tauv_common)/launch/vision/vision.launch" />
 
 <!--  <include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>-->

@@ -102,6 +102,7 @@ class AttitudeController:
             vd = np.array(vd_pid) + np.array(vd_command)
 
             tau = self.dyn.compute_tau(eta, v, vd)
+            tau[2] = 3.0
         else:
             tau = [0] * 6
 

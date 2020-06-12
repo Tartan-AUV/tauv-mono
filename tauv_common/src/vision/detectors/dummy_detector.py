@@ -1,7 +1,7 @@
 # dummy_detector
 #
-# This node is the for aggregating the detections from the vision pipeline.
-# The information in the bucket will be broadcast to the mission nodes and used for tasks.
+# This node is for testing the vision bucket registration services
+#
 #
 # Author: Advaith Sethuraman 2020
 
@@ -21,8 +21,6 @@ from std_msgs.msg import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList, ObjectDetection
 from tauv_common.srv import RegisterObjectDetection
-
-
 
 
 class Dummy_Detector():

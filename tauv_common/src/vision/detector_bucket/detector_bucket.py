@@ -28,7 +28,6 @@ class Detector_Bucket():
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
         self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
         self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, self.register_object_detection)
-        self.disp = rospy.Subscriber("disparity", DisparityImage, self.callback)
         self.refresh_rate = 0
         self.bucket_list = []
         self.bbox_3d_list = []
@@ -43,7 +42,6 @@ class Detector_Bucket():
         objdet = req.objdet
         bucket_detection = objdet.bucket_detection
         bbox_3d_detection = bucket_detection.bbox_3d
-
         img = objdet.image
         bbox_2d = objdet.bbox_2d
         if(self.is_valid_registration(bucket_detection)):
