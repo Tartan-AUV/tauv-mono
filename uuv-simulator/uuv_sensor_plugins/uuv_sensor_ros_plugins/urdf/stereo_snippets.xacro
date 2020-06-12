@@ -40,7 +40,7 @@
     </collision>
   </xacro:macro>
 
-  <xacro:macro name="duo3d_camera" params="namespace parent_link *origin">
+  <xacro:macro name="stereo_camera" params="namespace parent_link suffix *origin">
     <link name="duo3d_left_link">
       <inertial>
         <mass value="0.01"/>
@@ -88,8 +88,8 @@
       <plugin name="left_controller" filename="libgazebo_ros_camera.so">
         <alwaysOn>true</alwaysOn>
         <updateRate>30.0</updateRate>
-        <cameraName>duo3d_left</cameraName>
-        <imageTopicName>image_raw</imageTopicName>
+        <cameraName>stereo_camera_left_${suffix}</cameraName>
+        <imageTopicName>camera_image</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
         <frameName>duo3d_left_link</frameName>
         <hackBaseline>0.07</hackBaseline>
@@ -147,8 +147,8 @@
       <plugin name="right_controller" filename="libgazebo_ros_camera.so">
         <alwaysOn>true</alwaysOn>
         <updateRate>30.0</updateRate>
-        <cameraName>duo3d_right</cameraName>
-        <imageTopicName>image_raw</imageTopicName>
+        <cameraName>stereo_camera_right_${suffix}</cameraName>
+        <imageTopicName>camera_image</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
         <frameName>duo3d_right_link</frameName>
         <hackBaseline>0.07</hackBaseline>
