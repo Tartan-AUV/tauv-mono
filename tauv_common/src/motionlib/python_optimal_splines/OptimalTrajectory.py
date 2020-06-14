@@ -56,7 +56,7 @@ class OptimalTrajectory:
         else:
             x = np.array([T])
         ts = self._arrange_ts(x)
-        print("Ts: {}".format(ts))
+        # print("Ts: {}".format(ts))
         for i, wp in enumerate(self.waypoints):
             wp.set_time(ts[i])
 
@@ -75,6 +75,9 @@ class OptimalTrajectory:
 
     def end_time(self):
         return self.waypoints[-1].time
+
+    def get_times(self):
+        return [w.time for w in self.waypoints]
 
     def _arrange_ts(self, x):
         if self.use_faster_ts:

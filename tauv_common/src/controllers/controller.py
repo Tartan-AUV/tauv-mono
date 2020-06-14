@@ -89,11 +89,25 @@ class AttitudeController:
             roll_error = self.target_roll - eta[3]
             pitch_error = self.target_pitch - eta[4]
 
+            # Limit error to [-pi, pi] to ensure that the robot rotates the least amount
+            # to hit the target roll/pitch:
+            if roll_error > np.pi:
+                roll_error -= 2*np.pi
+            if roll_error < -np.pi:
+                roll_error += 2 * np.pi
+            if pitch_error > np.pi:
+                pitch_error -= 2*np.pi
+            if pitch_error < -np.pi:
+                pitch_error += 2 * np.pi
+
+            # Compute efforts from PID:
             roll_effort = self.roll_pid(-roll_error)
             pitch_effort = self.pitch_pid(-pitch_error)
 
+            # Build the accel in world space:
             vd_pid = [0, 0, 0, roll_effort, pitch_effort, 0]
 
+            # Convert worldspace accel to body frame:
             R = Rotation.from_euler('xyz', eta[3:6]).inv()
             target_acc_body = R.apply(ta)
             target_yaw_body = R.apply([0, 0, ty])
@@ -101,10 +115,13 @@ class AttitudeController:
 
             vd = np.array(vd_pid) + np.array(vd_command)
 
+            # Compute force required for target acceleration and current velocity:
+            # (Inverse dynamics)
             tau = self.dyn.compute_tau(eta, v, vd)
         else:
             tau = [0] * 6
 
+        # Build and publish control wrench:
         wrench = WrenchStamped()
         wrench.header.stamp = rospy.Time.now()
         wrench.header.frame_id = self.base_link

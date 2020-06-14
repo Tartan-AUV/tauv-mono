@@ -15,6 +15,8 @@
 import rospy
 from tauv_msgs.srv import GetTraj, GetTrajResponse
 from std_srvs.srv import SetBool, SetBoolRequest
+from trajectories import Trajectory, TrajectoryStatus
+
 
 class MotionUtils:
     def __init__(self):
@@ -24,6 +26,7 @@ class MotionUtils:
         self.traj = None
 
     def update_trajectory(self, traj):
+        assert isinstance(traj, Trajectory)
         self.traj = traj
 
     def arm(self, armed):

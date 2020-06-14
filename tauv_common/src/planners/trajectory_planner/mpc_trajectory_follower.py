@@ -153,6 +153,19 @@ class MpcTrajectoryFollower:
 
             ref_traj[:, i] = self.to_x(gpose, gtwist)
 
+        # Re-wind yaw to prevent jumps when winding:
+        psi = x[3]
+        if ref_traj[3, 0] - psi < -np.pi:
+            ref_traj[3, 0] += 2*np.pi
+        if ref_traj[3, 0] - psi > np.pi:
+            ref_traj[3, 0] -= 2*np.pi
+        for i in range(len(ref_traj[3, 0:-1])):
+            if ref_traj[3, i+1] - ref_traj[3, i] < -np.pi:
+                ref_traj[3, i+1] += 2*np.pi
+            if ref_traj[3, i+1] - ref_traj[3, i] > np.pi:
+                ref_traj[3, i+1] -= 2*np.pi
+
+        # Automatically determine velocities if requested:
         if traj_response.auto_twists:
             gdiff = np.diff(ref_traj, 1) * self.tstep
             ref_traj[4:8, :] = np.pad(gdiff[0:4], ((0, 0), (0, 1)), 'edge')

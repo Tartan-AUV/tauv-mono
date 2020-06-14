@@ -67,8 +67,8 @@ def compute_min_derivative_multispline(order, min_derivative_order, continuity_o
                 tvec = _calc_tvec(0, order, con_order)
                 vec = scalar * tvec
                 new_constraint[0, x_dim * d + seg * cw: x_dim * d + (seg + 1) * cw] = vec
-            # Aieq = np.vstack((Aieq, -1 * new_constraint))
-            # bieq = np.vstack((bieq, 0))
+            Aieq = np.vstack((Aieq, -1 * new_constraint))
+            bieq = np.vstack((bieq, 0))
 
             # Limit motion in null space:
             for v in nullspace_vecs:
