@@ -11,7 +11,9 @@ import rospy
 import tf
 import tf_conversions
 import numpy as np
-from sensor_msgs.msg import Imu
+import cv2
+from cv_bridge import CvBridge
+from sensor_msgs.msg import Imu, Image
 from stereo_msgs.msg import DisparityImage
 from geometry_msgs.msg import *
 from jsk_recognition_msgs.msg import BoundingBox
@@ -27,7 +29,28 @@ class Dummy_Detector():
     def __init__(self):
         rospy.wait_for_service("detector_bucket/register_object_detection")
         self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetection)
+        self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_under/camera_image", Image, self.left_callback)
+        self.right_stream = rospy.Subscriber("/albatross/stereo_camera_right_under/camera_image", Image, self.right_callback)
         self.registration_test_number = 1
+        self.stereo_proc = cv2.StereoBM_create(numDisparities=16, blockSize=33)
+        self.cv_bridge = CvBridge()
+        self.stereo_left = []
+        self.left_flag = False
+
+    def left_callback(self, msg):
+        self.stereo_left = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
+        cv2.imwrite("/home/advaith/Desktop/left.png", self.stereo_left)
+        self.left_flag = True
+
+    def right_callback(self, msg):
+        if(self.left_flag):
+            right_img = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
+            cv2.imwrite("/home/advaith/Desktop/right.png", right_img)
+            disp = self.stereo_proc.compute(cv2.cvtColor(self.stereo_left, cv2.COLOR_BGR2GRAY), cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY))
+            cv2.normalize(disp, disp, 0, 255, cv2.NORM_MINMAX)
+            cv2.imshow("Stereo", disp)
+            cv2.waitKey(1)
+            self.left_flag = False
 
     def spin(self):
         if(self.registration_test_number > 0):

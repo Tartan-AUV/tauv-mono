@@ -41,7 +41,7 @@
   </xacro:macro>
 
   <xacro:macro name="stereo_camera" params="namespace parent_link suffix *origin">
-    <link name="duo3d_left_link">
+    <link name="duo3d_left_link_${suffix}">
       <inertial>
         <mass value="0.01"/>
         <inertia ixx="0" ixy="0.0" ixz="0.0" iyy="0" iyz="0.0" izz="0" />
@@ -54,16 +54,16 @@
       <xacro:no_collision/>
     </link>
 
-    <joint name="duo3d_joint" type="revolute">
+    <joint name="duo3d_joint_${suffix}" type="revolute">
       <xacro:insert_block name="origin" />
       <parent link="${parent_link}" />
-      <child link="duo3d_left_link" />
+      <child link="duo3d_left_link_${suffix}" />
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
 
-    <gazebo reference="duo3d_left_link">
-      <sensor name="camera" type="camera">
+    <gazebo reference="duo3d_left_link_${suffix}">
+      <sensor name="camera_${suffix}" type="camera">
       <camera>
         <horizontal_fov>${hfov}</horizontal_fov>
         <image>
@@ -85,7 +85,7 @@
         </distortion>
       </camera>
 
-      <plugin name="left_controller" filename="libgazebo_ros_camera.so">
+      <plugin name="left_controller_${suffix}" filename="libgazebo_ros_camera.so">
         <alwaysOn>true</alwaysOn>
         <updateRate>30.0</updateRate>
         <cameraName>stereo_camera_left_${suffix}</cameraName>
@@ -105,7 +105,7 @@
     </sensor>
     </gazebo>
 
-    <link name="duo3d_right_link">
+    <link name="duo3d_right_link_${suffix}">
       <inertial>
         <mass value="0.01"/>
         <inertia ixx="0" ixy="0.0" ixz="0.0" iyy="0" iyz="0.0" izz="0" />
@@ -113,16 +113,16 @@
       <xacro:no_collision/>
     </link>
 
-    <joint name="duo3d_right_joint" type="revolute">
+    <joint name="duo3d_right_joint_${suffix}" type="revolute">
       <origin xyz="0.0 -0.03 0" rpy="0 0 0"/>
-      <parent link="duo3d_left_link" />
-      <child link="duo3d_right_link" />
+      <parent link="duo3d_left_link_${suffix}" />
+      <child link="duo3d_right_link_${suffix}" />
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
 
-    <gazebo reference="duo3d_right_link">
-      <sensor name="camera" type="camera">
+    <gazebo reference="duo3d_right_link_${suffix}">
+      <sensor name="camera_${suffix}" type="camera">
       <camera>
         <horizontal_fov>${hfov}</horizontal_fov>
         <image>
@@ -144,7 +144,7 @@
         </distortion>
       </camera>
 
-      <plugin name="right_controller" filename="libgazebo_ros_camera.so">
+      <plugin name="right_controller_${suffix}" filename="libgazebo_ros_camera.so">
         <alwaysOn>true</alwaysOn>
         <updateRate>30.0</updateRate>
         <cameraName>stereo_camera_right_${suffix}</cameraName>

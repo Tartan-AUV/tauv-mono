@@ -41,17 +41,15 @@
     <origin xyz="0 0 0" rpy="${0} ${0} ${0}"/>
   </xacro:default_imu>
 
-  <!-- Mount a camera -->
-  <xacro:default_camera namespace="${namespace}" parent_link="base_link" suffix="_front_stereo_left">
-    <origin xyz="0.29 -0.10 0." rpy="0 0 0"/>
-  </xacro:default_camera>
-
-  <xacro:default_camera namespace="${namespace}" parent_link="base_link" suffix="_front_stereo_right">
-    <origin xyz="0.29 .05 0." rpy="0 0 0"/>
-  </xacro:default_camera>
+  <!-- Mount cameras -->
 
   <xacro:stereo_camera namespace="${namespace}" parent_link="base_link" suffix="under">
-    <origin xyz="0.29 0 -0.06" rpy="0 ${0.5*pi} 0"/>
+    <origin xyz="0.29 0 -0.06" rpy="0 ${0.5*pi} 0${pi}"/>
+
+  </xacro:stereo_camera>
+
+  <xacro:stereo_camera namespace="${namespace}" parent_link="base_link" suffix="front">
+    <origin xyz="0.29 -0.10 0." rpy="0 0 0"/>
 
   </xacro:stereo_camera>
 
