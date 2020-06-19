@@ -16,7 +16,7 @@
 
   <!-- Forward-looking sonar sensor -->
   <xacro:forward_multibeam_p900 namespace="${namespace}" parent_link="base_link">
-    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
   </xacro:forward_multibeam_p900>
 
   <!-- DVL  -->
@@ -48,7 +48,7 @@
 
   </xacro:stereo_camera>
 
-  <xacro:stereo_camera namespace="${namespace}" parent_link="base_link" suffix="front">
+  <xacro:stereo_camera namespace="" parent_link="base_link" suffix="front">
     <origin xyz="0.29 -0.10 0." rpy="0 0 0"/>
 
   </xacro:stereo_camera>

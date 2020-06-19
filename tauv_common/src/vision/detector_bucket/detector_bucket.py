@@ -46,6 +46,7 @@ class Detector_Bucket():
         bbox_2d = objdet.bbox_2d
         if(self.is_valid_registration(bucket_detection)):
             self.bucket_list.append(bucket_detection)
+            self.bbox_3d_list = []
             self.bbox_3d_list.append(bbox_3d_detection)
             return True
         return False

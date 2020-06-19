@@ -91,7 +91,7 @@
         <cameraName>stereo_camera_left_${suffix}</cameraName>
         <imageTopicName>camera_image</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-        <frameName>duo3d_left_link</frameName>
+        <frameName>/duo3d_left_link_${suffix}</frameName>
         <hackBaseline>0.07</hackBaseline>
         <distortionK1>${k1l}</distortionK1>
         <distortionK2>${k2l}</distortionK2>
@@ -150,7 +150,7 @@
         <cameraName>stereo_camera_right_${suffix}</cameraName>
         <imageTopicName>camera_image</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-        <frameName>duo3d_right_link</frameName>
+        <frameName>/duo3d_right_link_${suffix}</frameName>
         <hackBaseline>0.07</hackBaseline>
         <distortionK1>${k1l}</distortionK1>
         <distortionK2>${k2l}</distortionK2>
