@@ -2,6 +2,7 @@
 #
 # This node is the for aggregating the detections from the vision pipeline.
 # The information in the bucket will be broadcast to the mission nodes and used for tasks.
+# Main outputs are a 3D Bounding Box array and a list of bucket detections for mission nodes
 #
 # Author: Advaith Sethuraman 2020
 
@@ -36,6 +37,7 @@ class Detector_Bucket():
         return
 
     def is_valid_registration(self, bucket_detection):
+        #TODO add system to determine if this is a new detection
         return True
 
     def register_object_detection(self, req):
