@@ -15,6 +15,7 @@
 import rospy
 from tauv_msgs.srv import GetTraj, GetTrajResponse
 from std_srvs.srv import SetBool, SetBoolRequest
+from nav_msgs.msg import Path
 from trajectories import Trajectory, TrajectoryStatus
 
 
@@ -24,6 +25,10 @@ class MotionUtils:
 
         self.arm_proxy = rospy.ServiceProxy('/arm', SetBool)
         self.traj = None
+        self.path_pub = rospy.Publisher('/gnc/path_viz', Path)
+
+        # 10Hz status update loop:
+        rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status())
 
     def update_trajectory(self, traj):
         assert isinstance(traj, Trajectory)
@@ -31,6 +36,17 @@ class MotionUtils:
 
     def arm(self, armed):
         self.arm_proxy(SetBoolRequest(armed))
+
+    def _update_status(self, timer_event):
+        path = Path()
+        path.header.frame_id = 'odom'
+
+        if self.traj is not None:
+            path = self.traj.as_path(dt=0.1)
+
+        self.path_pub.publish(path)
+
+        # TODO: also post current status, such as eta for current trajectory, percent done, etc.
 
     def _traj_callback(self, req):
         response = GetTrajResponse()

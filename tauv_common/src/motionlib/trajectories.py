@@ -15,11 +15,13 @@ import rospy
 import abc
 from enum import Enum
 from tauv_msgs.srv import GetTrajResponse, GetTrajRequest
-from geometry_msgs.msg import Pose, Vector3, Quaternion, Point
+from geometry_msgs.msg import Pose, Vector3, Quaternion, Point, Twist
+from nav_msgs.msg import Path
 from scipy.spatial.transform import Rotation
 from scipy.interpolate import CubicSpline
 import numpy as np
 from collections import Iterable
+from tauv_util.types import tl, tm
 
 # imports for optimal spline lib:
 from python_optimal_splines.OptimalTrajectory import OptimalTrajectory
@@ -27,17 +29,8 @@ from python_optimal_splines.OptimalSpline import OptimalSpline
 from python_optimal_splines.OptimalSplineGen import Waypoint, compute_min_derivative_spline
 from python_optimal_splines.TrajectoryWaypoint import TrajectoryWaypoint
 
-
-def tl(o):
-    if isinstance(o, Vector3):
-        return [o.x, o.y, o.z]
-    if isinstance(o, Point):
-        return [o.x, o.y, o.z]
-    if isinstance(o, Quaternion):
-        return [o.x, o.y, o.z, o.w]
-    if isinstance(o, list):
-        return o
-    assert(False, "Unsupported type for tl!")
+# math
+from math import sin, cos, atan2
 
 
 class TrajectoryStatus(Enum):
@@ -113,7 +106,7 @@ class Trajectory(object):
 # velocity for the trajectory. True maximum velocity may exceed that, and no guarantees are made.
 #
 class MinSnapTrajectory(Trajectory):
-    def __init__(self, curr_pose, curr_twist, positions, headings=None, directions=None, velocities=0.5, autowind_heading=True):
+    def __init__(self, curr_pose, curr_twist, positions, headings=None, directions=None, velocities=0.5, autowind_headings=True, max_alt=-0.5):
         # MinSnapTrajectory allows a good deal of customization:
         #
         # - curr_pose: unstamped Pose
@@ -125,13 +118,26 @@ class MinSnapTrajectory(Trajectory):
         #               parallel to this direction at corresponding waypoints. (or zero.)
         #               If None: directions will be chosen arbitrarily based on minimum snap.
         #               Quaternion[] or list[]
+        # - autowind_headings: If true, the headings will be automatically winded to reduce the amount of yaw required
+        #                      to achieve them. If false, then the robot will use absolute headings which may result in
+        #                      yaw motions greater than pi radians. Setting this to false can be useful for forcing the
+        #                      robot to do a 360 spin, for example.
+        # - max_alt: This parameter enforces a maximum altitude on the resulting trajectory. Useful for ensuring that
+        #            the robot will not surface accidentally, regardless of the output trajectory result.
         #
+        self.frame = "odom"  # TODO: support other frames?
+        self.max_alt = max_alt
+        self.autowind_headings = autowind_headings
+
         self.status = TrajectoryStatus.PENDING
         num_wp = len(positions)
         assert(num_wp > 0)
         assert(all([len(e) == 3 for e in positions]))
         if isinstance(velocities, list) or isinstance(velocities, tuple):
             assert(len(velocities) == len(positions))
+
+        self.start_pose = curr_pose
+        self.start_twist = curr_twist
 
         start_pos = tl(curr_pose.position)
         q_start = tl(curr_pose.orientation)
@@ -186,9 +192,11 @@ class MinSnapTrajectory(Trajectory):
                         T=self.T)
 
         times = self.traj.get_times()
-
+        last_psi = start_psi
         if headings is not None:
             # Create another optimal spline for heading interpolation. Just make this 4th order, minimizing jerk.
+            # This is a 1d spline without any fancy 3d features so just use the base OptimalSpline class, rather than
+            # OptimalTrajectory.
             wpts = []
             # Create initial heading:
             h = start_psi
@@ -199,9 +207,36 @@ class MinSnapTrajectory(Trajectory):
             wpts.append(wp)
 
             # add middle waypoints:
-            for i in range(times)[1:-1]:
+            for i in range(len(times))[1:-1]:
                 if headings[i] is None:
+                    continue
+                psi = headings[i]
 
+                if self.autowind_headings:
+                    psi = (psi + np.pi) % 2 * np.pi - np.pi
+                    last_psi = (last_psi + np.pi) % 2 * np.pi - np.pi
+                    if psi - last_psi < -np.pi:
+                        psi += 2*np.pi
+                    if psi - last_psi > np.pi:
+                        psi -= 2*np.pi
+                    last_psi = psi
+
+                wp = Waypoint(times[i])
+                wp.add_hard_constraint(order=0, value=psi)
+                wpts.append(wp)
+
+            wp = Waypoint(times[-1])
+            if headings[-1] is not None:
+                wp.add_hard_constraint(order=0, value=headings[-1])
+            wp.add_hard_constraint(order=0, value=0)
+            wpts.append(wp)
+
+            self.heading_traj = compute_min_derivative_spline(order=4,
+                                                              min_derivative_order=3,
+                                                              continuity_order=2,
+                                                              waypoints=wpts)
+        else:
+            self.heading_traj = None
 
         self.start_time = rospy.Time.now().to_sec()
         self.status = TrajectoryStatus.INITIALIZED
@@ -224,18 +259,61 @@ class MinSnapTrajectory(Trajectory):
 
         res = GetTrajResponse()
 
+        poses = []
+        twists = []
+
         elapsed = rospy.Time.now().to_sec() - self.start_time
+
+        lasth = Rotation.from_quat(tl(request.curr_pose.orientation)).as_euler("ZYX")[0]
+
         for i in range(request.len):
             t = request.dt * i + elapsed
             if t > self.T:
                 t = self.T
-            pt = Point(self.traj.val(t, dim=None, order=0))
-            v = Vector3(self.traj.val(t, dim=None, order=1))
 
+            # Create position data
+            pt = tm(self.traj.val(t, dim=None, order=0), Point)
+            pt.z = min(pt.z, self.max_alt)
+            v = tm(self.traj.val(t, dim=None, order=1), Vector3)
+
+            # Create attitude data
+            if self.heading_traj is not None:
+                h = self.heading_traj.val(0, t)
+                dh = self.heading_traj.val(1, t)
+            else:
+                # Compute heading to point along trajectory using atan2
+                dx = v.x
+                dy = v.y
+                a = self.traj.val(t, dim=None, order=2)
+                ddx = a[0]
+                ddy = a[1]
+
+                if dx == 0 and dy == 0:
+                    h = lasth
+                    dh = 0
+                else:
+                    h = atan2(dy, dx)
+                    dh = -dy/(dx**2 + dy**2) * ddx + dx/(dx**2 + dy**2) * ddy
+                    # see: https://stackoverflow.com/questions/52176354/sympy-can-i-safely-differentiate-atan2
+                    lasth = h
+
+            q = tm(Rotation.from_euler("ZYX", [h, 0, 0]), Quaternion)
+            av = Vector3(0, 0, dh)
+
+            p = Pose(pt, q)
+            t = Twist(v, av)
+
+            poses.append(p)
+            twists.append(t)
+
+        res.twists = twists
+        res.poses = poses
+        res.auto_twists = False
+        res.success = True
+        return res
 
     def duration(self):
         return rospy.Duration(self.T)
-        pass
 
     def time_remaining(self):
         end_time = rospy.Time(self.start_time) + self.duration()
@@ -245,7 +323,18 @@ class MinSnapTrajectory(Trajectory):
         return self.status
 
     def as_path(self, dt=0.1):
-        pass
+        request = GetTrajRequest()
+        request.curr_pose = self.start_pose
+        request.curr_twist = self.start_twist
+        request.len = self.T/dt
+        request.dt = dt
+        res = self.get_points(request)
+
+        path = Path()
+        path.header.frame_id = self.frame
+        path.poses = res.poses
+        return path
+
 
 
 # Uses linear segments between waypoints, with a trapezoidal velocity

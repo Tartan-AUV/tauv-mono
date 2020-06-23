@@ -28,7 +28,8 @@ setup_args = generate_distutils_setup(
               'planners.teleop_planner',
               'planners.trajectory_planner',
               'state_estimation',
-              'dynamics'],
+              'dynamics',
+              'tauv_util'],
     package_dir={'': 'src'},
     requires=['rospy'],
 
