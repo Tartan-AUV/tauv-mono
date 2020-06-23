@@ -6,7 +6,6 @@ find_package(catkin REQUIRED geometry_msgs sensor_msgs std_msgs vision_msgs jsk_
 add_message_files(
   FILES
   BucketDetection.msg
-  ObjectDetection.msg
   BucketList.msg
   FluidDepth.msg
   ControllerCmd.msg

@@ -3,6 +3,7 @@
 # This node is the for aggregating the detections from the vision pipeline.
 # The information in the bucket will be broadcast to the mission nodes and used for tasks.
 # Main outputs are a 3D Bounding Box array and a list of bucket detections for mission nodes
+# New detections will be added to observations using a pose graph.
 #
 # Author: Advaith Sethuraman 2020
 
@@ -23,6 +24,59 @@ from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList
 from tauv_common.srv import RegisterObjectDetection
 
+class Pose_Graph_Node():
+    def __init__(self):
+
+    def add_features(self):
+        return
+
+    def get_features(self):
+        return
+
+    def get_similarity(self, pg_node):
+        return
+
+    def get_transform(self, pg_node):
+        return
+
+    def set_pose_from_transform(self, parent_pg_node, transform):
+        return
+
+class Kd_Tree():
+    def __init__(self):
+
+    def add_point(self):
+        return
+
+    def get_neighbors(self, radius):
+        return
+
+    def recompute_boundaries(self):
+        return
+
+class Pose_Graph():
+    def __init__(self):
+        self.front_image_feed = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
+
+    def add_pose(self):
+        #adds a new pose after a given space/time
+        return
+
+    def exists_near_neighbor(self):
+        #finds the closest spatial pose graph node
+        return
+
+    def compute_loop_closure(self):
+        #computes new transform between two nodes
+        return
+
+    def compute_node_similarity(self):
+        #for vision based BoW or other feature matching technique
+        return
+
+    def remove_pose(self):
+        #for pruning the pose graph
+        return
 
 class Detector_Bucket():
     def __init__(self):
@@ -33,9 +87,6 @@ class Detector_Bucket():
         self.bucket_list = []
         self.bbox_3d_list = []
 
-    def callback(self, img):
-        return
-
     def is_valid_registration(self, bucket_detection):
         #TODO add system to determine if this is a new detection
         return True
@@ -44,9 +95,7 @@ class Detector_Bucket():
         objdet = req.objdet
         bucket_detection = objdet.bucket_detection
         bbox_3d_detection = bucket_detection.bbox_3d
-        img = objdet.image
-        bbox_2d = objdet.bbox_2d
-        if(self.is_valid_registration(bucket_detection)):
+        if(self.is_valid_registration(objdet)):
             self.bucket_list.append(bucket_detection)
             self.bbox_3d_list = []
             self.bbox_3d_list.append(bbox_3d_detection)
