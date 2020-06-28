@@ -142,6 +142,8 @@ class MinSnapTrajectory(Trajectory):
         start_pos = tl(curr_pose.position)
         q_start = tl(curr_pose.orientation)
         start_psi = Rotation.from_quat(q_start).as_euler("ZYX")[0]
+
+        # TODO: fix these to proper frame when switching away from ground truth data.
         start_vel = tl(curr_twist.linear)
         start_ang_vel = tl(curr_twist.angular)
 

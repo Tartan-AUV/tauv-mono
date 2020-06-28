@@ -29,8 +29,8 @@ class MpcTrajectoryFollower:
 
         self.odom = rospy.get_param('~world_frame', 'odom')
 
-        # rospy.wait_for_service('get_traj', 3)
-        # self.get_traj_service = rospy.ServiceProxy('get_traj', GetTraj)
+        rospy.wait_for_service('get_traj', 3)
+        self.get_traj_service = rospy.ServiceProxy('get_traj', GetTraj)
         self.pub_control = rospy.Publisher('controller_cmd', ControllerCmd, queue_size=10)
 
         self.p = None
@@ -128,8 +128,11 @@ class MpcTrajectoryFollower:
         req.header.stamp = rospy.Time.now()
         req.header.frame_id = self.odom
 
-        # traj_response = self.get_traj_service(req)
-        traj_response = make_test_traj(req)
+        traj_response = self.get_traj_service(req)
+        if traj_response.success == False:
+            rospy.logwarn_throttle(3, "[MPC Trajectory Follower] No Trajectory Returned by Trajectory Server! Waiting...")
+            return
+        # traj_response = make_test_traj(req)
 
         if not traj_response.success:
             rospy.logwarn_throttle(3, '[MPC Trajectory Follower] Trajectory failure!')

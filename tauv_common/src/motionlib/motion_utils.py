@@ -15,9 +15,8 @@
 import rospy
 from tauv_msgs.srv import GetTraj, GetTrajResponse
 from std_srvs.srv import SetBool, SetBoolRequest
-from nav_msgs.msg import Path
+from nav_msgs.msg import Path, Odometry
 from trajectories import Trajectory, TrajectoryStatus
-
 
 class MotionUtils:
     def __init__(self):
@@ -27,12 +26,23 @@ class MotionUtils:
         self.traj = None
         self.path_pub = rospy.Publisher('/gnc/path_viz', Path)
 
+        self.pose = None
+        self.twist = None
+        self.odom_sub = rospy.Subscriber('/gnc/odom', Odometry, self._odom_callback)
+
         # 10Hz status update loop:
         rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status())
 
-    def update_trajectory(self, traj):
+    def set_trajectory(self, traj):
         assert isinstance(traj, Trajectory)
         self.traj = traj
+
+    def get_robot_state(self):
+        return self.pose, self.twist
+
+    def get_motion_status(self):
+        if self.traj is None:
+            return TrajectoryStatus.TIMEOUT
 
     def arm(self, armed):
         self.arm_proxy(SetBoolRequest(armed))
@@ -55,3 +65,8 @@ class MotionUtils:
             return response
 
         return self.traj.get_points(req)
+
+    def _odom_callback(self, msg):
+        assert(isinstance(msg, Odometry))
+        self.pose = msg.pose.pose
+        self.twist = msg.twist.twist

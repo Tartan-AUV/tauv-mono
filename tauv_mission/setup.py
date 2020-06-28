@@ -17,30 +17,14 @@
 
 from distutils.core import setup
 from catkin_pkg.python_setup import generate_distutils_setup
-from setuptools import find_packages
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    # packages=['thruster_managers',
-    #           'thruster_managers.models',
-    #           'controllers',
-    #           'planners',
-    #           'planners.keyboard_planner',
-    #           'planners.teleop_planner',
-    #           'planners.trajectory_planner',
-    #           'state_estimation',
-    #           'dynamics',
-    #           'tauv_util',
-    #           'motionlib'],
-    packages=find_packages(),
+    packages=['mission_manager',
+              'tasks'],
     package_dir={'': 'src'},
     requires=['rospy'],
 
-    scripts=['scripts/thruster_allocator',
-             'scripts/keyboard_planner',
-             'scripts/teleop_planner',
-             'scripts/state_estimation',
-             'scripts/attitude_controller',
-             'scripts/mpc_traj_follower'],
+    scripts=[],
 )
 setup(**setup_args)
