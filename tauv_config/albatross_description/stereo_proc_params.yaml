@@ -2,12 +2,12 @@
 #     Copyright (c) 2020 Tartan AUV
 #     All rights reserved.
 
-
+stereo_algorithm: StereoSGBM
 approximate_sync: true
 queue_size: 10
 prefilter_size: 21
-prefilter_cap: 12
-correlation_window_size: 13
+prefilter_cap: 5
+correlation_window_size: 10
 min_disparity: 0
 disparity_range: 64
 uniqueness_ratio: 2

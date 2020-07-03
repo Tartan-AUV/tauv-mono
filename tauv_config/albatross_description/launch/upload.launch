@@ -3,8 +3,8 @@
   <arg name="debug" default="0"/>
 
   <!-- Vehicle's initial pose -->
-  <arg name="x"     default="0"/>
-  <arg name="y"     default="0"/>
+  <arg name="x"     default="23"/>
+  <arg name="y"     default="-50"/>
   <arg name="z"     default="-20"/>
   <arg name="roll"  default="0"/>
   <arg name="pitch" default="0"/>

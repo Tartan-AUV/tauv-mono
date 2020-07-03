@@ -20,12 +20,12 @@
   <arg name="use_gt" default="false"/>
 
   <!-- Default position (for simulation only)  -->
-  <arg name="x" default="15.0"/>
-  <arg name="y" default="0.0"/>
-  <arg name="z" default="0.0"/>
+  <arg name="x" default="28.0"/>
+  <arg name="y" default="-3.0"/>
+  <arg name="z" default="-1.0"/>
   <arg name="roll" default="0.0"/>
   <arg name="pitch" default="0.0"/>
-  <arg name="yaw" default="0.0"/>
+  <arg name="yaw" default="-1.57"/>
 
   <!-- =======================  -->
   <!--       Load Configs       -->

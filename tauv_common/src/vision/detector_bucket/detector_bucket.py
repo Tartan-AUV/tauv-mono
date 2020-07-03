@@ -13,6 +13,8 @@ import rospy
 import tf
 import tf_conversions
 import numpy as np
+import cv2
+from cv_bridge import CvBridge
 from sensor_msgs.msg import Imu
 from std_msgs.msg import Header
 from stereo_msgs.msg import DisparityImage
@@ -24,81 +26,61 @@ from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList
 from tauv_common.srv import RegisterObjectDetection
 
-class Pose_Graph_Node():
-    def __init__(self):
 
-    def add_features(self):
-        return
 
-    def get_features(self):
-        return
 
-    def get_similarity(self, pg_node):
-        return
-
-    def get_transform(self, pg_node):
-        return
-
-    def set_pose_from_transform(self, parent_pg_node, transform):
-        return
-
-class Kd_Tree():
-    def __init__(self):
-
-    def add_point(self):
-        return
-
-    def get_neighbors(self, radius):
-        return
-
-    def recompute_boundaries(self):
-        return
-
-class Pose_Graph():
-    def __init__(self):
-        self.front_image_feed = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
-
-    def add_pose(self):
-        #adds a new pose after a given space/time
-        return
-
-    def exists_near_neighbor(self):
-        #finds the closest spatial pose graph node
-        return
-
-    def compute_loop_closure(self):
-        #computes new transform between two nodes
-        return
-
-    def compute_node_similarity(self):
-        #for vision based BoW or other feature matching technique
-        return
-
-    def remove_pose(self):
-        #for pruning the pose graph
-        return
 
 class Detector_Bucket():
     def __init__(self):
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
         self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
         self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, self.register_object_detection)
+        self.tf = tf.TransformListener()
+        self.cv_bridge = CvBridge()
         self.refresh_rate = 0
         self.bucket_list = []
         self.bbox_3d_list = []
 
-    def is_valid_registration(self, bucket_detection):
-        #TODO add system to determine if this is a new detection
+    def similarity_index(self, detection_1, detection_2):
+        point_1 = np.asarray([detection_1.position.x, detection_1.position.y, detection_1.position.z])
+        point_2 = np.asarray([detection_2.position.x, detection_2.position.y, detection_2.position.z])
+        orb = cv2.ORB_create(300)
+        image_1 = self.cv_bridge.imgmsg_to_cv2(detection_1.image, "passthrough")
+        image_2 = self.cv_bridge.imgmsg_to_cv2(detection_2.image, "passthrough")
+        k1, d1 = orb.detectAndCompute(image_1, None)
+        k2, d2 = orb.detectAndCompute(image_2, None)
+        matcher = cv2.BFMatcher()
+        matches = matcher.match(d1,d2)
+
+        distance = (point_1 - point_2).dot((point_1 - point_2).T)
+
+        return distance
+
+    def is_valid_registration(self, new_detection):
+        return True
+        for detections in self.bucket_list:
+            sim_index = self.similarity_index(detections, new_detection)
+            if(sim_index < 1.0):
+                print("Similarity Found")
+                #send updated landmark registration to pose_graph
+                return False
+        #send new landmark to pose_graph
+        print("New Landmark")
         return True
 
     def register_object_detection(self, req):
-        objdet = req.objdet
-        bucket_detection = objdet.bucket_detection
+        bucket_detection = req.objdet
         bbox_3d_detection = bucket_detection.bbox_3d
-        if(self.is_valid_registration(objdet)):
-            self.bucket_list.append(bucket_detection)
-            self.bbox_3d_list = []
-            self.bbox_3d_list.append(bbox_3d_detection)
+        if(self.is_valid_registration(bucket_detection)):
+            found_in_current = False
+            for det, bbox in zip(self.bucket_list, self.bbox_3d_list):
+                if(bucket_detection.tag == det.tag):
+                    det = bucket_detection
+                    bbox = bbox_3d_detection
+                    found_in_current = True
+            if(not found_in_current):
+                self.bucket_list.append(bucket_detection)
+                self.bbox_3d_list.append(bbox_3d_detection)
             return True
         return False
 
