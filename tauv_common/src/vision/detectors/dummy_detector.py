@@ -24,6 +24,7 @@ from std_msgs.msg import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList, ObjectDetection
 from tauv_common.srv import RegisterObjectDetection
+from visualization_msgs.msg import Marker
 
 def white_balance(img):
     result = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
@@ -41,9 +42,12 @@ class Dummy_Detector():
         self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
         self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
+        self.left_camera_detections = rospy.Publisher("front_detections", Image, queue_size=10)
+        self.arrow_pub = rospy.Publisher("detection_marker", Marker, queue_size=10)
         self.weights = "/home/advaith/Documents/catkin_robosoob/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights"
         self.config = "/home/advaith/Documents/catkin_robosoob/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg"
         self.classes_list = "/home/advaith/Documents/catkin_robosoob/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
+
         self.classes = self.prepare_classes()
         self.stereo_proc = cv2.StereoBM_create(numDisparities=16, blockSize=33)
         self.net = self.load_model()
@@ -56,8 +60,10 @@ class Dummy_Detector():
         self.stereo_left = Image()
         self.stereo_right = []
         self.disparity = DisparityImage()
-        self.camera_info = CameraInfo()
+        self.baseline = 0
+        self.left_camera_info = CameraInfo()
         self.left_img_flag = False
+        self.disp_img_flag = False
         self.rate = rospy.Rate(1)
 
     # function to get the output layer names
@@ -125,15 +131,16 @@ class Dummy_Detector():
             final_detections.append([class_ids[i], (x, y, w, h)])
             self.draw_bounding_box(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
 
-        cv2.imshow("object detection", image)
-        cv2.waitKey(1)
+        self.left_camera_detections.publish(self.cv_bridge.cv2_to_imgmsg(image))
         return final_detections
 
     def camera_info_callback(self, msg):
-        self.camera_info = msg
+        self.left_camera_info = msg
 
     def disparity_callback(self, msg):
+        self.disp_img_flag = True
         self.disparity = msg
+        self.baseline = msg.T
 
     def left_callback(self, msg):
         self.stereo_left = white_balance(self.cv_bridge.imgmsg_to_cv2(msg, "passthrough"))
@@ -146,7 +153,7 @@ class Dummy_Detector():
         if(len(pixel_locations) > 0):
             depths = self.query_depth_map_rectangle(depth_map, bbox_detection)
             print("Depths shape", depths.shape)
-            camera_instrinsic_matrix = np.asarray(self.camera_info.K).reshape((3, 3)).T
+            camera_instrinsic_matrix = np.asarray(self.left_camera_info.K).reshape((3, 3)).T
             pixel_homogeneous = np.concatenate((pixel_locations, np.ones((pixel_locations.shape[0], 1)).astype(int)),axis=1)
             world_locations = camera_instrinsic_matrix.dot(pixel_homogeneous.T).T
             normalized_world_vectors = (world_locations / np.expand_dims(np.linalg.norm(world_locations, axis=1), axis=1))
@@ -176,13 +183,47 @@ class Dummy_Detector():
         disparity_image = self.cv_bridge.imgmsg_to_cv2(msg.image, "passthrough")
         return self.focal_length * self.baseline / disparity_image
 
+    def vector_to_detection_centroid(self, bbox_detection):
+        x, y, w, h = bbox_detection[1]
+        disp_map = self.cv_bridge.imgmsg_to_cv2(self.disparity.image, "passthrough")
+        x_cnt = x+w/2
+        y_cnt = y+h/2
+        d = disp_map[y_cnt, x_cnt]
+        d = np.mean(self.query_depth_map_rectangle(disp_map, bbox_detection))
+
+        centroid_2d = np.asmatrix([x_cnt, y_cnt, d, 1]).T
+
+        K = np.asarray(self.left_camera_info.K).reshape((3, 3))
+        fx, fy, cx, cy = K[0, 0], K[1, 1], K[0, 2], K[1, 2]
+        Q = np.asmatrix([[1, 0, 0, -cx],
+                         [0, 1, 0, -cy],
+                         [0, 0, 0, fx],
+                         [0, 0, -1.0/.03, 0]])
+        centroid_3d = Q * centroid_2d
+        centroid_3d /= centroid_3d[3]
+        print(fx, fy, cx, cy)
+        print(K.shape)
+        print(centroid_2d)
+        print(centroid_3d)
+        m = Marker()
+        m.header.frame_id = "duo3d_optical_link_front"
+        m.id = 0
+        m.points = [Point(0, 0, 0), Point(centroid_3d[0], centroid_3d[1], centroid_3d[2])]
+        m.color.b = 1.0
+        m.color.a = 1.0
+        m.scale.x = .1
+        m.scale.y = .1
+        m.scale.z = .1
+        self.arrow_pub.publish(m)
+        return 0
+
     def spin(self):
-        print("In Spin")
-        # if(self.left_img_flag):
-        #     self.left_img_flag = False
-        #     print("Classifying")
-        #     detections = self.classify(self.stereo_left)
-        #     for det in detections:
+        if(self.left_img_flag and self.disp_img_flag):
+            self.left_img_flag = False
+            self.disp_img_flag = False
+            detections = self.classify(self.stereo_left)
+            for det in detections:
+                detection_bearing = self.vector_to_detection_centroid(det)
         #         feature_centroid, feature_height, feature_width = self.get_feature_centroid(self.depth_from_disparity(self.disparity), det)
         #         # print(np.linalg.norm(feature_centroid))
         #         # print("Diff: ")
@@ -213,7 +254,7 @@ class Dummy_Detector():
         #         success = self.registration_service(obj_det)
         #         print("Submitted for detection:" + str(success))
         #         #print(np.linalg.norm(np.asarray([27.0, -7.0, -2.5]) + np.asarray(trans1) - landmark_pos))
-        self.rate.sleep()
+
             # if(len(keypoints) > 100):
             #     feature_centroid = self.get_feature_centroid(self.depth_from_disparity(self.disparity), keypoints)
             #     cv2.imwrite("/home/advaith/Desktop/object_detection_test.png", self.stereo_left)

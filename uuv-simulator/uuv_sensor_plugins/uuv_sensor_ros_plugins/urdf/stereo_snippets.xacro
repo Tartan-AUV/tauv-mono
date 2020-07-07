@@ -159,7 +159,7 @@
     </link>
 
     <joint name="duo3d_right_joint_${suffix}" type="fixed">
-      <origin xyz="0.0 0.03  0.0" rpy="0 0 0"/>
+      <origin xyz="0.0 0.03 0.0" rpy="0 0 0"/>
       <parent link="duo3d_left_link_${suffix}" />
       <child link="duo3d_right_link_${suffix}" />
       <limit upper="0" lower="0" effort="0" velocity="0" />
@@ -222,7 +222,7 @@
         <cameraName>stereo_camera_right_${suffix}</cameraName>
         <imageTopicName>camera_image</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-        <frameName>/duo3d_right_link_${suffix}</frameName>
+        <frameName>/duo3d_optical_link_right_${suffix}</frameName>
         <hackBaseline>0.0</hackBaseline>
         <distortionK1>${k1l}</distortionK1>
         <distortionK2>${k2l}</distortionK2>
