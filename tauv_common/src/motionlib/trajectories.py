@@ -15,7 +15,7 @@ import rospy
 import abc
 from enum import Enum
 from tauv_msgs.srv import GetTrajResponse, GetTrajRequest
-from geometry_msgs.msg import Pose, Vector3, Quaternion, Point, Twist
+from geometry_msgs.msg import Pose, Vector3, Quaternion, Point, Twist, PoseStamped
 from nav_msgs.msg import Path
 from scipy.spatial.transform import Rotation
 from scipy.interpolate import CubicSpline
@@ -30,7 +30,7 @@ from python_optimal_splines.OptimalSplineGen import Waypoint, compute_min_deriva
 from python_optimal_splines.TrajectoryWaypoint import TrajectoryWaypoint
 
 # math
-from math import sin, cos, atan2
+from math import sin, cos, atan2, sqrt, ceil
 
 
 class TrajectoryStatus(Enum):
@@ -131,9 +131,13 @@ class MinSnapTrajectory(Trajectory):
 
         self.status = TrajectoryStatus.PENDING
         num_wp = len(positions)
+        positions = [tl(p) for p in positions]
+
         assert(num_wp > 0)
         assert(all([len(e) == 3 for e in positions]))
         if isinstance(velocities, list) or isinstance(velocities, tuple):
+            velocities = [tl(v) for v in velocities]
+            assert(all([len(v) == 3 for v in velocities]))
             assert(len(velocities) == len(positions))
 
         self.start_pose = curr_pose
@@ -149,7 +153,7 @@ class MinSnapTrajectory(Trajectory):
 
         waypoints = []
 
-        self.T = self._compute_duration([start_pos, positions], velocities)
+        self.T = self._compute_duration([start_pos] + positions, velocities)
 
         # create initial waypoint:
         p = start_pos
@@ -252,7 +256,7 @@ class MinSnapTrajectory(Trajectory):
         for i in range(len(positions) - 1):
             p0 = np.array(tl(positions[i]))
             p1 = np.array(tl(positions[i+1]))
-            d = np.dot(p1-p0, p1-p0)
+            d = sqrt(np.dot(p1-p0, p1-p0))
             T += d/v[i]
         return T
 
@@ -264,7 +268,7 @@ class MinSnapTrajectory(Trajectory):
         poses = []
         twists = []
 
-        elapsed = rospy.Time.now().to_sec() - self.start_time
+        elapsed = request.curr_time.to_sec() - self.start_time
 
         lasth = Rotation.from_quat(tl(request.curr_pose.orientation)).as_euler("ZYX")[0]
 
@@ -299,7 +303,7 @@ class MinSnapTrajectory(Trajectory):
                     # see: https://stackoverflow.com/questions/52176354/sympy-can-i-safely-differentiate-atan2
                     lasth = h
 
-            q = tm(Rotation.from_euler("ZYX", [h, 0, 0]), Quaternion)
+            q = tm(Rotation.from_euler("ZYX", [h, 0, 0]).as_quat(), Quaternion)
             av = Vector3(0, 0, dh)
 
             p = Pose(pt, q)
@@ -328,13 +332,24 @@ class MinSnapTrajectory(Trajectory):
         request = GetTrajRequest()
         request.curr_pose = self.start_pose
         request.curr_twist = self.start_twist
-        request.len = self.T/dt
+        request.len = int(ceil(self.T/dt))
         request.dt = dt
+        request.curr_time = rospy.Time.from_sec(self.start_time)
         res = self.get_points(request)
+
+        start_time = rospy.Time.now()
 
         path = Path()
         path.header.frame_id = self.frame
-        path.poses = res.poses
+        path.header.stamp = start_time
+
+        stamped_poses = []
+        for i, p in enumerate(res.poses):
+            ps = PoseStamped()
+            ps.header.stamp = start_time + rospy.Duration.from_sec(dt * i)
+            ps.pose = p
+            stamped_poses.append(ps)
+        path.poses = stamped_poses
         return path
 
 

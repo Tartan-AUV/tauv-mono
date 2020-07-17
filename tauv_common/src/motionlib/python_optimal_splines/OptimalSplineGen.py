@@ -24,7 +24,7 @@ class Waypoint:
 
 def compute_min_derivative_spline(order, min_derivative_order, continuity_order, waypoints):
     num_segments = len(waypoints) - 1
-    if num_segments < 2:
+    if num_segments < 1:
         return None
 
     assert not any([wp.time is None for wp in waypoints])

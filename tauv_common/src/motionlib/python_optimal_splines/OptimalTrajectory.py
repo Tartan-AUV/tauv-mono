@@ -177,4 +177,5 @@ class OptimalTrajectory:
                                                                             pins)
                 if splines[i] is None:
                     self.splines = None
+                    return None
             return splines

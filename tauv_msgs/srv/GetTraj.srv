@@ -3,6 +3,7 @@
 std_msgs/Header header
 geometry_msgs/Pose curr_pose  # Current positions
 geometry_msgs/Twist curr_twist  # Current velocities (in world frame! Not body velocities!)
+time curr_time
 int32 len  # Number of samples to look ahead on the trajectory. (First sample corresponds to current time, second is time + dt, etc)
 float32 dt  # time difference between samples
 

@@ -105,7 +105,7 @@ class Teleop:
             resp1 = arm_srv(arm)
             return resp1.success
         except rospy.ServiceException, e:
-            print "Service call failed: %s"%e
+            rospy.logwarn_throttle(3, "[Teleop Planner] Arm server not responding, cannot arm/disarm robot.")
 
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self.dt), self.update)

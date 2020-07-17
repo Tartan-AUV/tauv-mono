@@ -20,18 +20,21 @@ from trajectories import Trajectory, TrajectoryStatus
 
 class MotionUtils:
     def __init__(self):
+        self.initialized = False
         self.traj_service = rospy.Service('/gnc/trajectory_service', GetTraj, self._traj_callback)
 
         self.arm_proxy = rospy.ServiceProxy('/arm', SetBool)
         self.traj = None
-        self.path_pub = rospy.Publisher('/gnc/path_viz', Path)
+        self.path_pub = rospy.Publisher('/gnc/path_viz', Path, queue_size=10)
 
         self.pose = None
         self.twist = None
         self.odom_sub = rospy.Subscriber('/gnc/odom', Odometry, self._odom_callback)
 
         # 10Hz status update loop:
-        rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status())
+        rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status)
+        while not self.initialized:
+            rospy.sleep(0.05)
 
     def set_trajectory(self, traj):
         assert isinstance(traj, Trajectory)
@@ -50,6 +53,7 @@ class MotionUtils:
     def _update_status(self, timer_event):
         path = Path()
         path.header.frame_id = 'odom'
+        path.header.stamp = rospy.Time.now()
 
         if self.traj is not None:
             path = self.traj.as_path(dt=0.1)
@@ -70,3 +74,4 @@ class MotionUtils:
         assert(isinstance(msg, Odometry))
         self.pose = msg.pose.pose
         self.twist = msg.twist.twist
+        self.initialized=True

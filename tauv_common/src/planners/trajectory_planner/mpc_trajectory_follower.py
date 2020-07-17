@@ -29,8 +29,8 @@ class MpcTrajectoryFollower:
 
         self.odom = rospy.get_param('~world_frame', 'odom')
 
-        rospy.wait_for_service('get_traj', 3)
         self.get_traj_service = rospy.ServiceProxy('get_traj', GetTraj)
+
         self.pub_control = rospy.Publisher('controller_cmd', ControllerCmd, queue_size=10)
 
         self.p = None
@@ -115,6 +115,14 @@ class MpcTrajectoryFollower:
                        x_constraints=self.x_constraints,
                        u_constraints=self.u_constraints)
 
+    # Attempt to get a trajectory. This might fail if the trajectory server hasn't been started yet.
+    def get_traj(self, req):
+        try:
+            return self.get_traj_service(req)
+        except rospy.ServiceException:
+            return GetTrajResponse(success=False)
+
+    # MPC Update step: Get trajectory, compute control input, apply control input.
     def update(self, timer_event):
         if not self.ready:
             rospy.logwarn_throttle(3, '[MPC Trajectory Follower] No odometry received yet! Waiting...')
@@ -127,15 +135,13 @@ class MpcTrajectoryFollower:
         req.dt = self.tstep
         req.header.stamp = rospy.Time.now()
         req.header.frame_id = self.odom
+        req.curr_time = timer_event.current_expected
 
-        traj_response = self.get_traj_service(req)
+        traj_response = self.get_traj(req)
+
         if traj_response.success == False:
-            rospy.logwarn_throttle(3, "[MPC Trajectory Follower] No Trajectory Returned by Trajectory Server! Waiting...")
-            return
-        # traj_response = make_test_traj(req)
-
-        if not traj_response.success:
-            rospy.logwarn_throttle(3, '[MPC Trajectory Follower] Trajectory failure!')
+            rospy.logwarn_throttle(3, "[MPC Trajectory Follower] Trajectory Server Error! Waiting...")
+            # TODO: error behavior besides quitting
             return
 
         poses = traj_response.poses
