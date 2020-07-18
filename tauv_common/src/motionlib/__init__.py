@@ -1,1 +1,2 @@
-from motion_utils import *
+from motion_utils import MotionUtils
+import trajectories

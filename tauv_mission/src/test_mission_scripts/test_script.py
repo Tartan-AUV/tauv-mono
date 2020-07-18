@@ -3,7 +3,6 @@ from motionlib import MotionUtils, trajectories
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 from geometry_msgs.msg import Point
 
-
 class TestMission(object):
     def __init__(self):
         self.mu = MotionUtils()
