@@ -28,10 +28,10 @@
     </include>
 
     <!-- Heightmap -->
-    <include>
-      <uri>model://sand_heightmap</uri>
-      <pose>0 0 -15 0 0 0</pose>
-    </include>
+<!--    <include>-->
+<!--      <uri>model://sand_heightmap</uri>-->
+<!--      <pose>0 0 -15 0 0 0</pose>-->
+<!--    </include>-->
 
     <plugin name="underwater_current_plugin" filename="libuuv_underwater_current_ros_plugin.so">
       <namespace>hydrodynamics</namespace>

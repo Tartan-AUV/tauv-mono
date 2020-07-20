@@ -1,3 +1,4 @@
+import rospy
 from trajectories import TrajectoryStatus, Trajectory
 
 from tauv_msgs.srv import GetTrajResponse, GetTrajRequest
@@ -238,7 +239,7 @@ class MinSnapTrajectory(Trajectory):
 
         res.twists = twists
         res.poses = poses
-        res.auto_twists = False
+        res.auto_twists = True
         res.success = True
         return res
 

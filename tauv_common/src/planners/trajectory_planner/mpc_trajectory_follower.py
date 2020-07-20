@@ -119,11 +119,16 @@ class MpcTrajectoryFollower:
     def get_traj(self, req):
         try:
             return self.get_traj_service(req)
-        except rospy.ServiceException:
+        except rospy.ServiceException as e:
+            print("[MPC Node] Service error! {}".format(e.message))
             return GetTrajResponse(success=False)
 
     # MPC Update step: Get trajectory, compute control input, apply control input.
     def update(self, timer_event):
+        if timer_event.last_duration is not None:
+            print("[{}], expected: {}, last dur: {}".format(timer_event.current_real.to_sec(),
+                                                            timer_event.current_expected.to_sec(),
+                                                            timer_event.last_duration))
         if not self.ready:
             rospy.logwarn_throttle(3, '[MPC Trajectory Follower] No odometry received yet! Waiting...')
             return
@@ -135,13 +140,17 @@ class MpcTrajectoryFollower:
         req.dt = self.tstep
         req.header.stamp = rospy.Time.now()
         req.header.frame_id = self.odom
-        req.curr_time = timer_event.current_expected
+        req.curr_time = rospy.Time.now()
+
+        print("Request time: {}".format(req.header.stamp.to_sec()))
 
         traj_response = self.get_traj(req)
 
-        if traj_response.success == False:
+        if not traj_response.success:
             rospy.logwarn_throttle(3, "[MPC Trajectory Follower] Trajectory Server Error! Waiting...")
             # TODO: error behavior besides quitting
+            print("Dead")
+            self.pub_failsafe()
             return
 
         poses = traj_response.poses
@@ -165,34 +174,32 @@ class MpcTrajectoryFollower:
         # Re-wind yaw to prevent jumps when winding:
         psi = x[3]
         if ref_traj[3, 0] - psi < -np.pi:
-            ref_traj[3, 0] += 2*np.pi
+            ref_traj[3, 0] += 2 * np.pi
         if ref_traj[3, 0] - psi > np.pi:
-            ref_traj[3, 0] -= 2*np.pi
+            ref_traj[3, 0] -= 2 * np.pi
         for i in range(len(ref_traj[3, 0:-1])):
-            if ref_traj[3, i+1] - ref_traj[3, i] < -np.pi:
-                ref_traj[3, i+1] += 2*np.pi
-            if ref_traj[3, i+1] - ref_traj[3, i] > np.pi:
-                ref_traj[3, i+1] -= 2*np.pi
+            if ref_traj[3, i + 1] - ref_traj[3, i] < -np.pi:
+                ref_traj[3, i + 1] += 2 * np.pi
+            if ref_traj[3, i + 1] - ref_traj[3, i] > np.pi:
+                ref_traj[3, i + 1] -= 2 * np.pi
 
         # Automatically determine velocities if requested:
         if traj_response.auto_twists:
             gdiff = np.diff(ref_traj, 1) * self.tstep
             ref_traj[4:8, :] = np.pad(gdiff[0:4], ((0, 0), (0, 1)), 'edge')
 
+        self.reference_pub.publish(self.mpc.to_path(ref_traj, start_time=rospy.Time.now(), frame=self.odom))
+
         u_mpc, x_mpc = self.mpc.solve(x, ref_traj)
 
         if u_mpc is None:
             rospy.logerr("[MPC Controller] Error computing MPC trajectory!")
-            u_mpc = np.zeros((6, self.N))
-            x_mpc = None
+            self.pub_failsafe()
+            return
 
         u = u_mpc[:, 0]
 
-        self.reference_pub.publish(self.mpc.to_path(ref_traj, start_time=rospy.Time.now(), frame=self.odom))
-
-        if x_mpc is not None:
-            self.prediction_pub.publish(self.mpc.to_path(x_mpc, start_time=rospy.Time.now(), frame=self.odom))
-
+        self.prediction_pub.publish(self.mpc.to_path(x_mpc, start_time=rospy.Time.now(), frame=self.odom))
         ref_rpy = Rotation.from_quat(tl(traj_response.poses[0].orientation)).as_euler('xyz')
 
         cmd = ControllerCmd()
@@ -204,6 +211,26 @@ class MpcTrajectoryFollower:
         cmd.p_pitch = ref_rpy[1]
 
         self.pub_control.publish(cmd)
+
+    def pub_failsafe(self):
+        p_d = self.p_d
+        p_d = np.array([p_d.linear.x, p_d.linear.y, p_d.linear.z, p_d.angular.z])
+
+        d = 1
+        d_h = 1
+        failsafe_mat = np.diag([-d, -d, -d, -d_h])
+
+        u = np.dot(failsafe_mat, np.array(p_d))
+        cmd = ControllerCmd()
+        cmd.a_x = u[0]
+        cmd.a_y = u[1]
+        cmd.a_z = u[2]
+        cmd.a_yaw = u[3]
+        cmd.p_roll = 0
+        cmd.p_pitch = 0
+
+        self.pub_control.publish(cmd)
+
 
     def to_x(self, pose, twist):
         yaw = Rotation.from_quat(tl(pose.orientation)).as_euler('ZYX')[0]

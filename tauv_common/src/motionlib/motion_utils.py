@@ -21,7 +21,7 @@ from trajectories import Trajectory, TrajectoryStatus
 class MotionUtils:
     def __init__(self):
         self.initialized = False
-        self.traj_service = rospy.Service('/gnc/trajectory_service', GetTraj, self._traj_callback)
+        self.traj_service = rospy.Service('/gnc/get_traj', GetTraj, self._traj_callback)
 
         self.arm_proxy = rospy.ServiceProxy('/arm', SetBool)
         self.traj = None
