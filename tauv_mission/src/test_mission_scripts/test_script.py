@@ -9,7 +9,7 @@ class TestMission(object):
         # self.run_service = rospy.Service('/mission/test_mission_run', Trigger, self.run)
         self.run(None)
 
-    def run(self, req):
+    def update(self, timer_event):
         res = TriggerResponse
         res.success = True
         res.message = "run success!"
@@ -18,13 +18,9 @@ class TestMission(object):
         traj = trajectories.MinSnapTrajectory(curr_pos, curr_twist, [Point(1, 0, -2)])
 
         self.mu.set_trajectory(traj)
-        while self.mu.get_motion_status() != trajectories.TrajectoryStatus.FINISHED:
-            rospy.sleep(1)
-            print("Waiting...")
 
-        print("Done!")
-        return res
-
+    def run(self, req):
+        rospy.Timer(rospy.Duration.from_sec(0.2), self.update)
 
 def main():
     rospy.init_node('test_mission')
