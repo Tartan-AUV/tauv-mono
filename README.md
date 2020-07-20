@@ -1,7 +1,7 @@
 
 
 # TAUV-ROS-Packages
-[![Build Status](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages.svg?branch=master)](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages)
+[![Build Status](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages.svg?token=FrwKiSXG1hQbYsyh6LNc&branch=master)](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages)
 
 This is the monorepo for all TAUV ROS packages. Each package contains its own ROS nodes or other common code.
 
