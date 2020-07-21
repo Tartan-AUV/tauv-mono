@@ -1,8 +1,8 @@
 import numpy as np
 from math import factorial
 import osqp
-from scipy import sparse
-
+from scipy import sparse, linalg
+from TrajectoryWaypoint import TrajectoryWaypoint
 from OptimalSpline import OptimalSpline
 
 
@@ -22,7 +22,97 @@ class Waypoint:
         self.soft_constraints.append((order, value, radius))
 
 
-def compute_min_derivative_spline(order, min_derivative_order, continuity_order, waypoints):
+def compute_min_derivative_multispline(order, min_derivative_order, continuity_order, traj_waypoints):
+    num_segments = len(traj_waypoints) - 1
+    if num_segments < 2:
+        return None
+
+    cw = order + 1  # constraint width
+    x_dim = cw * num_segments  # num columns in the constraint matrix
+    multi_x_dim = x_dim * traj_waypoints[0].ndim
+
+    Aeq = np.zeros((0, 0))  # equality constraints A matrix
+    Aieq = np.zeros((0, 0))  # inequality constraints A matrix
+    beq = np.zeros((0, 1))
+    bieq = np.zeros((0, 1))
+    H = np.zeros((0, 0))
+
+    for dim in range(traj_waypoints[0].ndim):
+        pins = [wp.spline_pins[dim] for wp in traj_waypoints]
+        dAeq, dbeq, dAieq, dbieq, dH = compute_spline_matrices(order, min_derivative_order, continuity_order, pins)
+
+        Aeq = linalg.block_diag(Aeq, dAeq)
+        Aieq = linalg.block_diag(Aieq, dAieq)
+        H = linalg.block_diag(H, dH)
+        beq = np.vstack((beq, dbeq))
+        bieq = np.vstack((bieq, dbieq))
+
+    # build directional constraints (constraints between spline dimensions)
+    for seg in range(num_segments):
+        wp = traj_waypoints[seg]
+        for sdc in wp.soft_directional_constraints:
+            con_order = sdc[0]
+            dvec = sdc[1]
+            radius = sdc[2]
+
+            dspace = np.zeros((wp.ndim, wp.ndim))
+            dspace[0,:] = np.array(dvec)
+            nspace = linalg.null_space(dspace)
+            nullspace_vecs = list(nspace.transpose())
+
+            # Positive dot product enforces correct direction of motion
+            new_constraint = np.zeros((1, multi_x_dim))
+            for d in range(wp.ndim):
+                scalar = dvec[d]
+                tvec = _calc_tvec(0, order, con_order)
+                vec = scalar * tvec
+                new_constraint[0, x_dim * d + seg * cw: x_dim * d + (seg + 1) * cw] = vec
+            Aieq = np.vstack((Aieq, -1 * new_constraint))
+            bieq = np.vstack((bieq, 0))
+
+            # Limit motion in null space:
+            for v in nullspace_vecs:
+                new_constraint = np.zeros((1, multi_x_dim))
+                for d in range(wp.ndim):
+                    scalar = v[d]
+                    tvec = _calc_tvec(0, order, con_order)
+                    vec = scalar * tvec
+                    new_constraint[0, x_dim * d + seg * cw: x_dim * d + (seg + 1) * cw] = vec
+                Aieq = np.vstack((Aieq, new_constraint))
+                Aieq = np.vstack((Aieq, -1*new_constraint))
+                bieq = np.vstack((bieq, radius))
+                bieq = np.vstack((bieq, -radius))
+
+    # Convert equality constraints to inequality constraints:
+    Aeq_ieq = np.vstack((Aeq, -1 * Aeq))
+    beq_ieq = np.vstack((beq, -1 * beq))
+    Aieq = np.vstack((Aieq, Aeq_ieq))
+    bieq = np.vstack((bieq, beq_ieq))
+
+    # Solve the QP!
+    m = osqp.OSQP()
+    try:
+        m.setup(P=sparse.csc_matrix(H), q=None, l=None, A=sparse.csc_matrix(Aieq), u=bieq, verbose=False)
+    except ValueError as ve:
+        print(ve.message)
+        print("Could not setup QP!")
+        return None
+    results = m.solve()
+    x = results.x
+
+    splines = []
+    xwidth = len(x) / traj_waypoints[0].ndim
+    for dim in range(traj_waypoints[0].ndim):
+        dx = x[dim * xwidth: dim * xwidth + xwidth]
+        coefficients = np.fliplr(np.array(dx).reshape((num_segments, order + 1)))
+        ts = [wp.time for wp in traj_waypoints]
+        spline = OptimalSpline(coefficients.transpose(), ts)
+        splines.append(spline)
+
+    return splines
+
+
+def compute_spline_matrices(order, min_derivative_order, continuity_order, waypoints):
     num_segments = len(waypoints) - 1
     if num_segments < 2:
         return None
@@ -45,6 +135,7 @@ def compute_min_derivative_spline(order, min_derivative_order, continuity_order,
     beq = np.zeros((0, 1))
     bieq = np.zeros((0, 1))
 
+    # Build constraint matrices:
     for seg, wp in enumerate(waypoints):
         for con in wp.hard_constraints:
             if seg == num_segments:
@@ -93,23 +184,7 @@ def compute_min_derivative_spline(order, min_derivative_order, continuity_order,
         Q = _compute_Q(order, min_derivative_order, 0, durations[seg])
         H[cw * seg:cw * (seg + 1), cw * seg:cw * (seg + 1)] = Q
 
-    c = np.zeros((x_dim, 1))
-
-    # Convert equality constraints to inequality constraints:
-    Aeq_ieq = np.vstack((Aeq, -1 * Aeq))
-    beq_ieq = np.vstack((beq, -1 * beq))
-    Aieq = np.vstack((Aieq, Aeq_ieq))
-    bieq = np.vstack((bieq, beq_ieq))
-
-    # Solve the QP!
-    m = osqp.OSQP()
-    m.setup(P=sparse.csc_matrix(H), q=None, l=None, A=sparse.csc_matrix(Aieq), u=bieq, verbose=False)
-    results = m.solve()
-    x = results.x
-
-    coefficients = np.fliplr(np.array(x).reshape((num_segments, order + 1)))
-    ts = [wp.time for wp in waypoints]
-    return OptimalSpline(coefficients.transpose(), ts)
+    return Aeq, beq, Aieq, bieq, H
 
 
 def _compute_Q(order, min_derivative_order, t1, t2):
@@ -143,3 +218,4 @@ def _calc_tvec(t, polynomial_order, tvec_order):
 
 def _dc(d, p):
     return factorial(p) / factorial(d)
+

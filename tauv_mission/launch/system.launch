@@ -73,7 +73,7 @@
   <!-- Launch the watchdog:  -->
   <!-- TODO: write watchdog node -->
 
-  <!-- Luanch robot state publisher using URDFs, and upload to simulator if necessary:  -->
+  <!-- Launch robot state publisher using URDFs, and upload to simulator if necessary:  -->
   <include file="$(arg config_pkg)/launch/upload.launch">
     <arg name="x" default="$(arg x)"/>
     <arg name="y" default="$(arg y)"/>
@@ -89,13 +89,13 @@
     <arg name="odom_topic" value="/gnc/odom"/>
   </include>
 
-  <!-- Launch the thruster manager:  -->
+  <!-- Launch Thruster Manager -->
   <include file="$(find tauv_common)/launch/thruster_manager/thruster_manager.launch">
-    <arg name="model_name" default="$(arg model_name)"/>
-    <arg name="config_pkg" default="$(arg config_pkg)"/>
+      <arg name="model_name" default="$(arg model_name)"/>
+      <arg name="config_pkg" default="$(arg config_pkg)"/>
   </include>
 
   <!-- Start the GNC system: -->
-<!--  <include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>-->
+  <include file="$(find tauv_common)/launch/gnc/gnc.launch"/>
 
 </launch>

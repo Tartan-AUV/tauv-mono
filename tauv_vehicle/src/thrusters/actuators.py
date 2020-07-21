@@ -87,7 +87,6 @@ class ActuatorController:
             ts = message_filters.TimeSynchronizer(subscribers, 100)
             ts.registerCallback(self.thruster_callback)
 
-
     def start(self):
         r = rospy.Rate(50)  # 50 Hz
         while not rospy.is_shutdown():
@@ -96,14 +95,7 @@ class ActuatorController:
                         or rospy.get_rostime() - self.last_thruster_msg > self.timeout \
                         or not self.armed:
                     # timed out, reset thrusters
-                    #print("last cmd: {}".format(self.last_thruster_msg))
-                    #if self.last_thruster_msg is not None:
-                    #    print("delay: {}".format(rospy.get_rostime() - self.last_thruster_msg > rospy.Duration.from_sec(1)))
-                    #print("armed:  {}".format(self.armed))
                     self.thruster_command = [0] * len(self.thrusters)
-                else:
-                    pass
-                    #print("armed!")
 
                 for channel in self.thrusters:
                     cmd = self.speed_to_pwm(self.thruster_command[channel], channel)
@@ -140,6 +132,7 @@ class ActuatorController:
     def srv_arm(self, req):
         self.armed = req.data
         return SetBoolResponse(True, "")
+
 
 def main():
     rospy.init_node('actuator_controller')

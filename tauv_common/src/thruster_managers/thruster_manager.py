@@ -80,7 +80,7 @@ class ThrusterManager:
                 target, source, rospy.Time(), rospy.Duration(1))
         except Exception, e:
             rospy.loginfo('No transform found between base_link and base_link_ned'
-                  ' for vehicle ' + self.namespace)
+                          ' for vehicle ' + self.namespace)
             rospy.loginfo(str(e))
             self.base_link_ned_to_enu = None
 
@@ -94,7 +94,7 @@ class ThrusterManager:
             rospy.loginfo('base_link transform NED to ENU=\n' + str(self.base_link_ned_to_enu))
 
         rospy.loginfo(
-          'ThrusterManager::update_rate=' + str(self.config['update_rate']))
+            'ThrusterManager::update_rate=' + str(self.config['update_rate']))
 
         # Retrieve the output file path to store the TAM
         # matrix for future use
@@ -104,9 +104,9 @@ class ThrusterManager:
             if not isdir(self.output_dir):
                 raise rospy.ROSException(
                     'Invalid output directory, output_dir=' + self.output_dir)
-            rospy.loginfo('output_dir=' + self.output_dir) 
+            rospy.loginfo('output_dir=' + self.output_dir)
 
-        # Number of thrusters
+            # Number of thrusters
         self.n_thrusters = 0
 
         # Thruster objects used to calculate the right angular velocity command
@@ -133,7 +133,7 @@ class ThrusterManager:
                                              'thrusters')
             for i in range(self.n_thrusters):
                 topic = self.config['thruster_topic_prefix'] + str(i) + \
-                    self.config['thruster_topic_suffix']
+                        self.config['thruster_topic_suffix']
                 if list not in [type(params), type(conv_fcn)]:
                     thruster = Thruster.create_thruster(
                         conv_fcn, i, topic, None, None,
@@ -148,7 +148,7 @@ class ThrusterManager:
                                        'function=%s'
                                        % self.config['conversion_fcn'])
                 self.thrusters.append(thruster)
-            rospy.loginfo('Thruster allocation matrix provided!') 
+            rospy.loginfo('Thruster allocation matrix provided!')
             rospy.loginfo('TAM=')
             rospy.loginfo(self.configuration_matrix)
             self.thrust = numpy.zeros(self.n_thrusters)
@@ -195,15 +195,15 @@ class ThrusterManager:
         idx_thruster_model = 0
 
         if type(self.config['conversion_fcn_params']) == list and \
-            type(self.config['conversion_fcn']) == list:
+                type(self.config['conversion_fcn']) == list:
             if len(self.config['conversion_fcn_params']) != len(
-                self.config['conversion_fcn']):
+                    self.config['conversion_fcn']):
                 raise rospy.ROSException(
                     'Lists of conversion_fcn_params and conversion_fcn'
                     ' must have equal length')
             equal_thrusters = False
 
-        rospy.loginfo('conversion_fcn=' + str(self.config['conversion_fcn'])) 
+        rospy.loginfo('conversion_fcn=' + str(self.config['conversion_fcn']))
         rospy.loginfo('conversion_fcn_params=' + str(self.config['conversion_fcn_params']))
 
         listener = tf.TransformListener()
@@ -216,11 +216,11 @@ class ThrusterManager:
                 rospy.loginfo('transform: ' + base + ' -> ' + frame)
                 now = rospy.Time.now() + rospy.Duration(1.0)
                 listener.waitForTransform(base, frame,
-                                               now, rospy.Duration(30.0))
+                                          now, rospy.Duration(30.0))
                 [pos, quat] = listener.lookupTransform(base, frame, now)
 
                 topic = self.config['thruster_topic_prefix'] + str(i) + \
-                    self.config['thruster_topic_suffix']
+                        self.config['thruster_topic_suffix']
 
                 if equal_thrusters:
                     params = self.config['conversion_fcn_params']
@@ -249,7 +249,7 @@ class ThrusterManager:
                 rospy.loginfo('to: ' + frame)
                 break
 
-        rospy.loginfo(str(self.thrusters)) 
+        rospy.loginfo(str(self.thrusters))
         if len(self.thrusters) == 0:
             return False
 
@@ -270,7 +270,7 @@ class ThrusterManager:
             self.configuration_matrix) < 1e-3] = 0.0
 
         rospy.loginfo('TAM= %s', str(self.configuration_matrix))
-        
+
         # Once we know the configuration matrix we can compute its
         # (pseudo-)inverse:
         self.inverse_configuration_matrix = numpy.linalg.pinv(
@@ -305,6 +305,8 @@ class ThrusterManager:
         if not self.ready:
             return
 
+        max_thrust = self.config['max_thrust']
+
         if frame_id is not None:
             if self.config['base_link'] != frame_id:
                 assert self.base_link_ned_to_enu is not None, 'Transform from'
@@ -321,11 +323,26 @@ class ThrusterManager:
                                                 control_torques)
 
         gen_forces = numpy.hstack(
-            (control_forces, control_torques)).transpose()
-        self.thrust = self.compute_thruster_forces(gen_forces)
+            (control_forces, [0, 0, 0])).transpose()
+        thrust_for_forces = self.compute_thruster_forces(gen_forces, "forces")
+        gen_torques = numpy.hstack(
+            ([0, 0, 0], control_torques)).transpose()
+        thrust_for_torques = self.compute_thruster_forces(gen_torques, "torques")
+
+        thrust_requested = thrust_for_forces + thrust_for_torques
+        max_req_thrust = max(thrust_requested)
+        if max_req_thrust > max_thrust:
+            rospy.logwarn_throttle_identical(1, '[Thruster Manager] Thrusters Saturated! Reducing forces to compensate.')
+            max_lin_thrust = max_thrust - max(thrust_for_torques)
+            scale_factor = max_lin_thrust / max(thrust_for_forces)
+            thrust_for_forces = thrust_for_forces * scale_factor
+
+        self.thrust = thrust_for_forces + thrust_for_torques
+        if max(self.thrust) > max_thrust + 0.1:
+            rospy.logwarn_throttle_identical(1, '[Thruster Manager] Critical error in thrust limiting!')
         self.command_thrusters()
 
-    def compute_thruster_forces(self, gen_forces):
+    def compute_thruster_forces(self, gen_forces, info_string="N/A"):
         """Compute desired thruster forces using the inverse configuration
         matrix.
         """
@@ -334,15 +351,18 @@ class ThrusterManager:
         # Obey limit on max thrust by applying a constant scaling factor to all
         # thrust forces
         limitation_factor = 1.0
-        if type(self.config['max_thrust']) == list:
-            if len(self.config['max_thrust']) != self.n_thrusters:
-                raise rospy.ROSException('max_thrust list must have the length'
-                                         ' equal to the number of thrusters')
-            max_thrust = self.config['max_thrust']
-        else:
-            max_thrust = [self.config['max_thrust'] for _ in range(self.n_thrusters)]
-        for i in range(self.n_thrusters):
-            if abs(thrust[i]) > max_thrust[i]:
-                thrust[i] = numpy.sign(thrust[i]) * max_thrust[i]
-                rospy.logwarn_throttle_identical(1, '[Thruster Manager] Thruster {} Saturated!'.format(i))
+        # if type(self.config['max_thrust']) == list:
+        #     if len(self.config['max_thrust']) != self.n_thrusters:
+        #         raise rospy.ROSException('max_thrust list must have the length'
+        #                                  ' equal to the number of thrusters')
+        #     max_thrust = self.config['max_thrust']
+        # else:
+        max_thrust = self.config['max_thrust']
+
+        highest_req_thrust = max(thrust)
+        if highest_req_thrust > max_thrust:
+            rospy.logwarn_throttle_identical(1, '[Thruster Manager] Thrusters Saturated! Source: {}!'.format(info_string))
+            scale_factor = max_thrust / highest_req_thrust
+            thrust = thrust * scale_factor
+
         return thrust
