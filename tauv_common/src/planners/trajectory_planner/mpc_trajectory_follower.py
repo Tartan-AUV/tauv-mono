@@ -120,15 +120,11 @@ class MpcTrajectoryFollower:
         try:
             return self.get_traj_service(req)
         except rospy.ServiceException as e:
-            print("[MPC Node] Service error! {}".format(e.message))
             return GetTrajResponse(success=False)
 
     # MPC Update step: Get trajectory, compute control input, apply control input.
     def update(self, timer_event):
-        if timer_event.last_duration is not None:
-            print("[{}], expected: {}, last dur: {}".format(timer_event.current_real.to_sec(),
-                                                            timer_event.current_expected.to_sec(),
-                                                            timer_event.last_duration))
+
         if not self.ready:
             rospy.logwarn_throttle(3, '[MPC Trajectory Follower] No odometry received yet! Waiting...')
             return
@@ -142,14 +138,11 @@ class MpcTrajectoryFollower:
         req.header.frame_id = self.odom
         req.curr_time = rospy.Time.now()
 
-        print("Request time: {}".format(req.header.stamp.to_sec()))
-
         traj_response = self.get_traj(req)
 
         if not traj_response.success:
             rospy.logwarn_throttle(3, "[MPC Trajectory Follower] Trajectory Server Error! Waiting...")
             # TODO: error behavior besides quitting
-            print("Dead")
             self.pub_failsafe()
             return
 
