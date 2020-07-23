@@ -40,11 +40,12 @@
     </collision>
   </xacro:macro>
 
-  <xacro:macro name="duo3d_camera" params="namespace parent_link *origin">
-    <link name="duo3d_left_link">
+  <xacro:macro name="stereo_camera" params="namespace parent_link suffix *origin">
+
+    <link name="duo3d_left_link_stabilized_${suffix}">
       <inertial>
         <mass value="0.01"/>
-        <inertia ixx="0" ixy="0.0" ixz="0.0" iyy="0" iyz="0.0" izz="0" />
+        <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001" />
       </inertial>
       <visual>
         <geometry>
@@ -54,16 +55,60 @@
       <xacro:no_collision/>
     </link>
 
-    <joint name="duo3d_joint" type="revolute">
+    <joint name="duo3d_stabilized_joint_${suffix}" type="fixed">
       <xacro:insert_block name="origin" />
-      <parent link="${parent_link}" />
-      <child link="duo3d_left_link" />
+      <preserveFixedJoint>true</preserveFixedJoint>
+      <parent link="${parent_link}"/>
+      <child link="duo3d_left_link_stabilized_${suffix}"/>
+    </joint>
+
+
+    <link name="duo3d_left_link_${suffix}">
+      <inertial>
+        <mass value="0.01"/>
+        <inertia ixx="0" ixy="0.0" ixz="0.0" iyy="0" iyz="0.0" izz="0" />
+      </inertial>
+
+      <xacro:no_collision/>
+    </link>
+
+    <joint name="duo3d_joint_${suffix}" type="fixed">
+      <axis xyz="0 0 1"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <parent link="duo3d_left_link_stabilized_${suffix}" />
+      <child link="duo3d_left_link_${suffix}" />
+      <limit upper="0" lower="0" effort="0" velocity="0" />
+    </joint>
+
+    <joint name="duo3d_optical_joint_${suffix}" type="revolute">
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="duo3d_left_link_${suffix}"/>
+      <child link="duo3d_optical_link_${suffix}"/>
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
 
-    <gazebo reference="duo3d_left_link">
-      <sensor name="camera" type="camera">
+    <link name="duo3d_optical_link_${suffix}">
+      <xacro:box_inertial x="0.0001" y="0.0001" z="0.0001" mass="0.001">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
+      <collision>
+        <!-- todo: gazebo needs a collision volume or it will ignore the pose of
+           the joint that leads to this link (and assume it to be the identity) -->
+        <geometry>
+          <cylinder length="0.000001" radius="0.000001"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
+      </collision>
+      <visual>
+        <geometry>
+          <cylinder length="0.000001" radius="0.000001"/>
+        </geometry>
+      </visual>
+    </link>
+
+    <gazebo reference="duo3d_left_link_${suffix}">
+      <sensor name="camera_${suffix}" type="camera">
       <camera>
         <horizontal_fov>${hfov}</horizontal_fov>
         <image>
@@ -85,14 +130,14 @@
         </distortion>
       </camera>
 
-      <plugin name="left_controller" filename="libgazebo_ros_camera.so">
+      <plugin name="left_controller_${suffix}" filename="libgazebo_ros_camera.so">
         <alwaysOn>true</alwaysOn>
         <updateRate>30.0</updateRate>
-        <cameraName>duo3d_left</cameraName>
-        <imageTopicName>image_raw</imageTopicName>
+        <cameraName>stereo_camera_left_${suffix}</cameraName>
+        <imageTopicName>camera_image</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-        <frameName>duo3d_left_link</frameName>
-        <hackBaseline>0.07</hackBaseline>
+        <frameName>/duo3d_optical_link_${suffix}</frameName>
+        <hackBaseline>0.0</hackBaseline>
         <distortionK1>${k1l}</distortionK1>
         <distortionK2>${k2l}</distortionK2>
         <distortionK3>${k3l}</distortionK3>
@@ -105,7 +150,7 @@
     </sensor>
     </gazebo>
 
-    <link name="duo3d_right_link">
+    <link name="duo3d_right_link_${suffix}">
       <inertial>
         <mass value="0.01"/>
         <inertia ixx="0" ixy="0.0" ixz="0.0" iyy="0" iyz="0.0" izz="0" />
@@ -113,16 +158,43 @@
       <xacro:no_collision/>
     </link>
 
-    <joint name="duo3d_right_joint" type="revolute">
-      <origin xyz="0.0 -0.03 0" rpy="0 0 0"/>
-      <parent link="duo3d_left_link" />
-      <child link="duo3d_right_link" />
+    <joint name="duo3d_right_joint_${suffix}" type="fixed">
+      <origin xyz="0.0 0.03 0.0" rpy="0 0 0"/>
+      <parent link="duo3d_left_link_${suffix}" />
+      <child link="duo3d_right_link_${suffix}" />
+      <limit upper="0" lower="0" effort="0" velocity="0" />
+      <axis xyz="0 0 1"/>
+    </joint>
+
+    <joint name="duo3d_optical_joint_right_${suffix}" type="revolute">
+      <origin xyz="0 0 0" rpy="${-pi/2} 0 ${-pi/2}"/>
+      <parent link="duo3d_right_link_${suffix}"/>
+      <child link="duo3d_optical_link_right_${suffix}"/>
       <limit upper="0" lower="0" effort="0" velocity="0" />
       <axis xyz="1 0 0"/>
     </joint>
 
-    <gazebo reference="duo3d_right_link">
-      <sensor name="camera" type="camera">
+    <link name="duo3d_optical_link_right_${suffix}">
+      <xacro:box_inertial x="0.0001" y="0.0001" z="0.0001" mass="0.001">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+      </xacro:box_inertial>
+      <collision>
+        <!-- todo: gazebo needs a collision volume or it will ignore the pose of
+           the joint that leads to this link (and assume it to be the identity) -->
+        <geometry>
+          <cylinder length="0.000001" radius="0.000001"/>
+        </geometry>
+        <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
+      </collision>
+      <visual>
+        <geometry>
+          <cylinder length="0.000001" radius="0.000001"/>
+        </geometry>
+      </visual>
+    </link>
+
+    <gazebo reference="duo3d_right_link_${suffix}">
+      <sensor name="camera_${suffix}" type="camera">
       <camera>
         <horizontal_fov>${hfov}</horizontal_fov>
         <image>
@@ -144,14 +216,14 @@
         </distortion>
       </camera>
 
-      <plugin name="right_controller" filename="libgazebo_ros_camera.so">
+      <plugin name="right_controller_${suffix}" filename="libgazebo_ros_camera.so">
         <alwaysOn>true</alwaysOn>
         <updateRate>30.0</updateRate>
-        <cameraName>duo3d_right</cameraName>
-        <imageTopicName>image_raw</imageTopicName>
+        <cameraName>stereo_camera_right_${suffix}</cameraName>
+        <imageTopicName>camera_image</imageTopicName>
         <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-        <frameName>duo3d_right_link</frameName>
-        <hackBaseline>0.07</hackBaseline>
+        <frameName>/duo3d_optical_link_right_${suffix}</frameName>
+        <hackBaseline>0.0</hackBaseline>
         <distortionK1>${k1l}</distortionK1>
         <distortionK2>${k2l}</distortionK2>
         <distortionK3>${k3l}</distortionK3>

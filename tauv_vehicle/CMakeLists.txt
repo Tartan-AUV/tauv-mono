@@ -17,8 +17,8 @@ find_package(catkin REQUIRED COMPONENTS
         sensor_msgs
         tf
         phidgets_imu
-        imu_filter_madgwick
         tauv_msgs
+
 )
 
 ## System dependencies are found with CMake's conventions

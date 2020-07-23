@@ -20,12 +20,12 @@
   <arg name="use_gt" default="false"/>
 
   <!-- Default position (for simulation only)  -->
-  <arg name="x" default="15.0"/>
-  <arg name="y" default="0.0"/>
-  <arg name="z" default="0.0"/>
+  <arg name="x" default="28.0"/>
+  <arg name="y" default="-3.0"/>
+  <arg name="z" default="-1.0"/>
   <arg name="roll" default="0.0"/>
   <arg name="pitch" default="0.0"/>
-  <arg name="yaw" default="0.0"/>
+  <arg name="yaw" default="-1.57"/>
 
   <!-- =======================  -->
   <!--       Load Configs       -->
@@ -45,6 +45,10 @@
   <!-- If simulated, upload the vehicle model and the environment model  -->
   <group if="$(arg simulated)">
     <include file="$(arg simulator_environment)"/>
+    <node pkg="tauv_common" type="depth_odometry" name="depth_odometry" clear_params="true" output="screen" ns="gnc">
+                <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
+                <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
+    </node>
   </group>
 
   <!-- if not simulated, upload the vehicle model and start multimaster  -->
@@ -97,5 +101,8 @@
 
   <!-- Start the GNC system: -->
   <include file="$(find tauv_common)/launch/gnc/gnc.launch"/>
+
+  <!-- Start the vision system: -->
+  <include file="$(find tauv_common)/launch/vision/vision.launch"/>
 
 </launch>

@@ -28,7 +28,11 @@ setup_args = generate_distutils_setup(
               'planners.keyboard_planner',
               'planners.teleop_planner',
               'planners.trajectory_planner',
-              'state_estimation',
+              'state_estimation.depth_odometry',
+              'teleop',
+              'vision',
+              'vision.detector_bucket',
+              'vision.detectors',
               'dynamics',
               'tauv_util',
               'motionlib'],
@@ -38,8 +42,11 @@ setup_args = generate_distutils_setup(
     scripts=['scripts/thruster_allocator',
              'scripts/keyboard_planner',
              'scripts/teleop_planner',
-             'scripts/state_estimation',
+             'scripts/depth_odometry',
+             'scripts/detector_bucket',
              'scripts/attitude_controller',
-             'scripts/mpc_traj_follower'],
+             'scripts/mpc_traj_follower',
+             'scripts/dummy_detector'],
+
 )
 setup(**setup_args)

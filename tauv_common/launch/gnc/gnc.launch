@@ -18,11 +18,7 @@
         <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
             <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
-            <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
-        </node>
-
-        <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" output="screen">
-            <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
+            <remap from="sensors/dvl_twist" to="/$(arg model_name)/sensors/dvl_twist" />
             <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
         </node>
 
@@ -32,7 +28,6 @@
 <!--            <remap from="imu_out/data" to="/$(arg model_name)/sensors/imu/data_trans"/>-->
 <!--            <param name="target_frame" value="base_link" />-->
 <!--        </node>-->
-
 
         <!-- Launch controllers -->
         <node pkg="tauv_common" type="attitude_controller" name="attitude_controller" output="screen">

@@ -1,0 +1,35 @@
+<launch>
+    <!-- This launchfile launches the vision system. -->
+    <arg name="model_name" default="albatross"/>
+
+    <!-- path to config package  -->
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+    <group ns="vision">
+        <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" clear_params="true" output="screen">
+            <param name="use_sim_time" value="true" />
+        </node>
+
+        <node pkg="tauv_common" type="dummy_detector" name="dummy_detector" clear_params="true" output="screen">
+            <param name="use_sim_time" value="true" />
+        </node>
+
+        <!-- launch underside stereo camera  -->
+        <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc_under" clear_params="true" output="screen" ns="under">
+            <rosparam command="load" file="$(arg config_pkg)/stereo_proc_params.yaml"/>
+            <remap from="left/image_raw" to="/$(arg model_name)/stereo_camera_left_under/camera_image"/>
+            <remap from="right/image_raw" to="/$(arg model_name)/stereo_camera_right_under/camera_image"/>
+            <remap from="left/camera_info" to="/$(arg model_name)/stereo_camera_left_under/camera_info"/>
+            <remap from="right/camera_info" to="/$(arg model_name)/stereo_camera_right_under/camera_info"/>
+        </node>
+
+        <!-- launch front stereo camera  -->
+        <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc_front" clear_params="true" output="screen" ns="front">
+            <rosparam command="load" file="$(arg config_pkg)/stereo_proc_params.yaml"/>
+            <remap from="left/image_raw" to="/$(arg model_name)/stereo_camera_left_front/camera_image"/>
+            <remap from="right/image_raw" to="/$(arg model_name)/stereo_camera_right_front/camera_image"/>
+            <remap from="left/camera_info" to="/$(arg model_name)/stereo_camera_left_front/camera_info"/>
+            <remap from="right/camera_info" to="/$(arg model_name)/stereo_camera_right_front/camera_info"/>
+        </node>
+    </group>
+</launch>
