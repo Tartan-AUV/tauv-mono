@@ -40,6 +40,7 @@ class Detector_Bucket():
         self.refresh_rate = 0
         self.bucket_list = []
         self.bbox_3d_list = []
+        self.spin_callback = rospy.Timer(rospy.Duration(.1), self.spin)
 
     def similarity_index(self, detection_1, detection_2):
         point_1 = np.asarray([detection_1.position.x, detection_1.position.y, detection_1.position.z])
@@ -64,8 +65,6 @@ class Detector_Bucket():
                 print("Similarity Found")
                 #send updated landmark registration to pose_graph
                 return False
-        #send new landmark to pose_graph
-        print("New Landmark")
         return True
 
     def register_object_detection(self, req):
@@ -84,7 +83,7 @@ class Detector_Bucket():
             return True
         return False
 
-    def spin(self):
+    def spin(self, event):
         bucket_list_msg = BucketList()
         bbox_3d_list_msg = BoundingBoxArray()
         bucket_list_msg.header = Header()
@@ -99,9 +98,9 @@ class Detector_Bucket():
 def main():
     rospy.init_node('detector_bucket', anonymous=True)
     detector_bucket = Detector_Bucket()
-    while not rospy.is_shutdown():
-        detector_bucket.spin()
-        rospy.sleep(.1)
+    rospy.Timer(rospy.Duration(.1), detector_bucket.spin)
+    rospy.spin()
+
 
 
 

@@ -29,11 +29,6 @@
 <!--            <param name="target_frame" value="base_link" />-->
 <!--        </node>-->
 
-        <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" output="screen">
-            <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
-            <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
-        </node>
-
 
         <!-- Load controller params: -->
 <!--        <rosparam file="$(arg config_pkg)/control_params/inertial.yaml" command="load"/>-->

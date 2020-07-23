@@ -2,4 +2,4 @@
 import state_estimation
 
 if __name__ == "__main__":
-    state_estimation.state_estimation.main()
+    state_estimation.depth_odometry.main()

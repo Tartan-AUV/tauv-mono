@@ -1,4 +1,4 @@
-# state_estimation.py
+# Depth Odometry.py
 #
 # This node is the starting point for everything related to state estimation.
 # Currently an EKF runs from the ROS Robot Localization package.
@@ -58,7 +58,7 @@ class Depth_Odom:
         self.depth_odom_pub.publish(odom)
 
 def main():
-    rospy.init_node('state_estimation', anonymous=True)
+    rospy.init_node('depth_odometry', anonymous=True)
     d_odom = Depth_Odom()
     while not rospy.is_shutdown():
         d_odom.spin()

@@ -45,6 +45,10 @@
   <!-- If simulated, upload the vehicle model and the environment model  -->
   <group if="$(arg simulated)">
     <include file="$(arg simulator_environment)"/>
+    <node pkg="tauv_common" type="depth_odometry" name="depth_odometry" clear_params="true" output="screen" ns="gnc">
+                <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
+                <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
+    </node>
   </group>
 
   <!-- if not simulated, upload the vehicle model and start multimaster  -->
@@ -96,11 +100,12 @@
   </include>
 
   <!-- Start the GNC system: -->
-
   <include file="$(find tauv_common)/launch/gnc/gnc.launch"/>
-  <include file="$(find tauv_common)/launch/vision/vision.launch" >
-    <arg name="simulated" value="$(arg simulated)"/>
-  </include>
+
+  <!-- Start the vision system: -->
+  <include file="$(find tauv_common)/launch/vision/vision.launch"/>
+
+
 
 <!--  <include file="$(find tauv_common)/launch/gnc/gnc.launch" ns="gnc"/>-->
 

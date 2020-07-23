@@ -45,24 +45,6 @@
       <uri>model://buoys</uri>
     </include> -->
 
-    <include>
-      <name>buoy31</name>
-      <pose>27.0 -8.0 -4.0 0 0 0</pose>
-      <uri>model://fire_hydrant</uri>
-    </include> -->
-
-    <include>
-      <name>hydrant1</name>
-      <pose>30.0 -7.0 -4.0 0 0 0</pose>
-      <uri>model://fire_hydrant</uri>
-    </include> -->
-
-    <include>
-      <name>person</name>
-      <pose>27.0 -7.0 0 0 0 3.14</pose>
-      <uri>model://person_standing</uri>
-    </include> -->
-
     <plugin name="underwater_current_plugin" filename="libuuv_underwater_current_ros_plugin.so">
       <namespace>hydrodynamics</namespace>
       <constant_current>

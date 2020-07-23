@@ -5,7 +5,6 @@
 #
 # Author: Advaith Sethuraman 2020
 
-
 #!/usr/bin/env python
 import rospy
 import tf
@@ -22,7 +21,7 @@ from nav_msgs.msg import Odometry
 from tf.transformations import *
 from std_msgs.msg import *
 from geometry_msgs.msg import Quaternion
-from tauv_msgs.msg import BucketDetection, BucketList, ObjectDetection
+from tauv_msgs.msg import BucketDetection, BucketList
 from tauv_common.srv import RegisterObjectDetection
 from visualization_msgs.msg import Marker
 
@@ -44,9 +43,9 @@ class Dummy_Detector():
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
         self.left_camera_detections = rospy.Publisher("front_detections", Image, queue_size=10)
         self.arrow_pub = rospy.Publisher("detection_marker", Marker, queue_size=10)
-        self.weights = "/home/advaith/Documents/catkin_robosoob/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights"
-        self.config = "/home/advaith/Documents/catkin_robosoob/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg"
-        self.classes_list = "/home/advaith/Documents/catkin_robosoob/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
+        self.weights = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights"
+        self.config = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg"
+        self.classes_list = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
 
         self.classes = self.prepare_classes()
         self.stereo_proc = cv2.StereoBM_create(numDisparities=16, blockSize=33)
@@ -65,6 +64,7 @@ class Dummy_Detector():
         self.left_img_flag = False
         self.disp_img_flag = False
         self.rate = rospy.Rate(1)
+        self.spin_callback = rospy.Timer(rospy.Duration(.1), self.spin)
 
     # function to get the output layer names
     # in the architecture
@@ -131,6 +131,7 @@ class Dummy_Detector():
             final_detections.append([class_ids[i], (x, y, w, h)])
             self.draw_bounding_box(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
 
+        print("published detections")
         self.left_camera_detections.publish(self.cv_bridge.cv2_to_imgmsg(image))
         return final_detections
 
@@ -217,7 +218,7 @@ class Dummy_Detector():
         self.arrow_pub.publish(m)
         return 0
 
-    def spin(self):
+    def spin(self, event):
         if(self.left_img_flag and self.disp_img_flag):
             self.left_img_flag = False
             self.disp_img_flag = False
@@ -284,8 +285,8 @@ class Dummy_Detector():
 def main():
     rospy.init_node("dummy_detector")
     dummy_detector = Dummy_Detector()
-    while not rospy.is_shutdown():
-        dummy_detector.spin()
+
+    rospy.spin()
 
 
 
