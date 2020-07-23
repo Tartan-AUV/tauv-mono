@@ -34,7 +34,8 @@ class Detector_Bucket():
     def __init__(self):
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
         self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
-        self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, self.register_object_detection)
+        self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, \
+                                              self.register_object_detection)
         self.tf = tf.TransformListener()
         self.cv_bridge = CvBridge()
         self.refresh_rate = 0

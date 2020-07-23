@@ -131,7 +131,6 @@ class Dummy_Detector():
             final_detections.append([class_ids[i], (x, y, w, h)])
             self.draw_bounding_box(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
 
-        print("published detections")
         self.left_camera_detections.publish(self.cv_bridge.cv2_to_imgmsg(image))
         return final_detections
 
@@ -146,30 +145,6 @@ class Dummy_Detector():
     def left_callback(self, msg):
         self.stereo_left = white_balance(self.cv_bridge.imgmsg_to_cv2(msg, "passthrough"))
         self.left_img_flag = True
-
-    def get_feature_centroid(self, depth_map, bbox_detection):
-        x, y, w, h = bbox_detection[1]
-        pixel_locations = np.asarray([y + h //2, x + w // 2]).reshape(1, 2)
-        print("pixels shape", pixel_locations.shape)
-        if(len(pixel_locations) > 0):
-            depths = self.query_depth_map_rectangle(depth_map, bbox_detection)
-            print("Depths shape", depths.shape)
-            camera_instrinsic_matrix = np.asarray(self.left_camera_info.K).reshape((3, 3)).T
-            pixel_homogeneous = np.concatenate((pixel_locations, np.ones((pixel_locations.shape[0], 1)).astype(int)),axis=1)
-            world_locations = camera_instrinsic_matrix.dot(pixel_homogeneous.T).T
-            normalized_world_vectors = (world_locations / np.expand_dims(np.linalg.norm(world_locations, axis=1), axis=1))
-            # raw_3d_points = np.multiply(depths, normalized_world_vectors)
-            # raw_3d_points = raw_3d_points[~np.any(np.isinf(raw_3d_points), axis=1), :]
-            print(normalized_world_vectors.T.shape)
-            print(np.asarray([1]).reshape(1,1).shape)
-            centroid_3d = np.mean(depths, axis=0)*np.concatenate((normalized_world_vectors[:,:2].T, np.asarray([1]).reshape(1,1)), axis=0)
-            print("centr", centroid_3d.shape)
-            #get dimensions
-            height_3d = h * np.linalg.norm(centroid_3d) / self.focal_length
-            width_3d = w * np.linalg.norm(centroid_3d) / self.focal_length
-            return (centroid_3d, height_3d, width_3d)
-        else:
-            return (np.asarray([0, 0, 0]), 0, 0)
 
     def query_depth_map(self, map, pixel):
         return map[pixel[:,1], pixel[:,0]]
@@ -202,10 +177,6 @@ class Dummy_Detector():
                          [0, 0, -1.0/.03, 0]])
         centroid_3d = Q * centroid_2d
         centroid_3d /= centroid_3d[3]
-        print(fx, fy, cx, cy)
-        print(K.shape)
-        print(centroid_2d)
-        print(centroid_3d)
         m = Marker()
         m.header.frame_id = "duo3d_optical_link_front"
         m.id = 0
