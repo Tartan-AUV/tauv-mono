@@ -33,7 +33,7 @@
                 seafloor:
                     plane: [100, 100, 0.1]
                     pose:
-                        position: [0, 0, -1.0]
+                        position: [0, 0, -10.0]
                 north:
                     plane: [0.1, 100, 20]
                     pose:

@@ -11,7 +11,7 @@
     <!-- odom topic to listen on -->
     <arg name="odom_topic" default="odom"/>
     <!-- Planner to use. Possible options: "teleop", "mpc" -->
-    <arg name="planner" default="teleop"/>
+    <arg name="planner" default="mpc"/>
 
     <group ns="gnc">
         <!-- Launch State Estimation -->
@@ -22,20 +22,17 @@
             <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
         </node>
 
+        <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" output="screen">
+            <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
+            <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
+        </node>
+
 <!--        <node pkg="imu_transformer" type="imu_transformer_node" name="imu_optimus_prime"-->
 <!--              output="screen" >-->
 <!--            <remap from="imu_in/data" to="/$(arg model_name)/sensors/imu/data"/>-->
 <!--            <remap from="imu_out/data" to="/$(arg model_name)/sensors/imu/data_trans"/>-->
 <!--            <param name="target_frame" value="base_link" />-->
 <!--        </node>-->
-
-
-        <!-- Load controller params: -->
-<!--        <rosparam file="$(arg config_pkg)/control_params/inertial.yaml" command="load"/>-->
-<!--        <rosparam file="$(arg config_pkg)/control_params/vel_pid_control.yaml" command="load"/>-->
-<!--        <rosparam file="$(arg config_pkg)/control_params/pos_pid_control.yaml" command="load"/>-->
-<!--        <rosparam file="$(arg config_pkg)/control_params/default_config.yaml" command="load"/>-->
-<!--        <rosparam file="$(find tauv_common)/src/planners/planners.yaml" command="load"/>-->
 
         <!-- Launch controllers -->
         <node pkg="tauv_common" type="attitude_controller" name="attitude_controller" output="screen">
@@ -58,7 +55,4 @@
             <remap from="controller_cmd" to="mpc/controller_cmd"/>
         </node>
     </group>
-
-
-
 </launch>

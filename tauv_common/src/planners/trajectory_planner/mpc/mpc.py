@@ -1,3 +1,16 @@
+# MPC.py
+#
+# Python implementation of a Model Predictive Controller (MPC). Suitable for linear
+# mpc problems with linear constraints. Under the hood it uses the OSQP QP solver
+# to compute the optimal control inputs.
+#
+# Ros imports are only necessary for generating Path objects for visualization in rviz,
+# but could be removed.
+#
+# Author: Tom Scherlis
+#
+
+
 import osqp
 import numpy as np
 from scipy import linalg, sparse
@@ -14,6 +27,7 @@ class MPC:
         A = dt * A + np.eye(len(A))
         B = dt * B
         self.N = N
+        num_nonconstrained = 1  # int(round(N / 2))
         self.dt = dt
 
         xdim = len(A)
@@ -24,6 +38,7 @@ class MPC:
 
         INF = 1e10
 
+        x_constraints_inf = np.hstack((-INF * np.ones((xdim, 1)), INF * np.ones((xdim, 1))))
         if x_constraints is None:
             x_constraints = np.hstack((-INF * np.ones((xdim, 1)), INF * np.ones((xdim, 1))))
         if u_constraints is None:
@@ -31,13 +46,14 @@ class MPC:
 
         L_x = np.vstack((np.eye(xdim), -np.eye(xdim)))
         b_x = np.vstack((x_constraints[:, 1][np.newaxis].transpose(), -x_constraints[:, 0][np.newaxis].transpose()))
+        b_x_inf = np.vstack((x_constraints_inf[:, 1][np.newaxis].transpose(), -x_constraints_inf[:, 0][np.newaxis].transpose()))
         L_u = np.vstack((np.eye(udim), -np.eye(udim)))
         b_u = np.vstack((u_constraints[:, 1][np.newaxis].transpose(), -u_constraints[:, 0][np.newaxis].transpose()))
 
         self.L_u_bar = linalg.block_diag(*tuple([L_u] * N))
         self.L_x_bar = linalg.block_diag(*tuple([L_x] * (N + 1)))
         self.b_u_bar = np.vstack(tuple([b_u] * N))
-        self.b_x_bar = np.vstack(tuple([b_x] * (N + 1)))
+        self.b_x_bar = np.vstack((np.vstack(tuple([b_x_inf] * (num_nonconstrained))), np.vstack(tuple([b_x] * (N - num_nonconstrained + 1)))))
         self.Q_bar = linalg.block_diag(*tuple([Q] * (N + 1)))
         self.Q_bar[-xdim - 1:-1, -xdim - 1:-1] = S
         self.R_bar = linalg.block_diag(*tuple([R] * N))
@@ -69,6 +85,10 @@ class MPC:
             self.m.update(q=C.transpose(), l=None, u=b)
 
         res = self.m.solve()
+        if res.info.status_val != 1:
+            rospy.logerr("[MPC Solver] Solver error: " + res.info.status)
+            return None, None
+
         u = res.x
         x = f_bar + np.dot(self.B_bar, u[np.newaxis].transpose())
 

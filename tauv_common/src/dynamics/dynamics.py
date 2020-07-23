@@ -16,7 +16,7 @@ from math import sin, cos, tan
 class Dynamics:
     def __init__(self):
         # TODO: load these from a yaml file in tauv_config (or better, the URDF itself!)
-        self.m = 15  # mass of vehicle
+        self.m = 16  # mass of vehicle
         self.b = 16  # mass of displaced water (b = volume * rho)
         self.r_G = [0, 0, 0]  # defined in body NED frame!
         self.r_B = [0, 0, 0]  # defined in body NED frame!

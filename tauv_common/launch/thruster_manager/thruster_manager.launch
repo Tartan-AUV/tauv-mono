@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <!-- Name of the robot model  -->
-  <arg name="model_name" default="manta"/>
+  <arg name="model_name" default="albatross"/>
   <!-- path to config package  -->
   <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
   <!-- Namespace of the robot in the simulation (it can be different from the original model name) -->

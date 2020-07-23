@@ -21,32 +21,12 @@ from setuptools import find_packages
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['thruster_managers',
-              'thruster_managers.models',
-              'controllers',
-              'planners',
-              'planners.keyboard_planner',
-              'planners.teleop_planner',
-              'planners.trajectory_planner',
-              'state_estimation.depth_odometry',
-              'teleop',
-              'vision',
-              'vision.detector_bucket',
-              'vision.detectors',
-              'dynamics',
-              'tauv_util',
-              'motionlib'],
+    packages=['mission_manager',
+              'tasks',
+              'test_mission_scripts'],
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
-    scripts=['scripts/thruster_allocator',
-             'scripts/keyboard_planner',
-             'scripts/teleop_planner',
-             'scripts/depth_odometry',
-             'scripts/detector_bucket',
-             'scripts/attitude_controller',
-             'scripts/mpc_traj_follower',
-             'scripts/dummy_detector'],
-
+    scripts=['scripts/test_script'],
 )
 setup(**setup_args)
