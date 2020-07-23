@@ -22,11 +22,6 @@
             <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
         </node>
 
-        <node pkg="tauv_common" type="state_estimation" name="state_estimation" clear_params="true" output="screen">
-            <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
-            <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
-        </node>
-
 <!--        <node pkg="imu_transformer" type="imu_transformer_node" name="imu_optimus_prime"-->
 <!--              output="screen" >-->
 <!--            <remap from="imu_in/data" to="/$(arg model_name)/sensors/imu/data"/>-->
