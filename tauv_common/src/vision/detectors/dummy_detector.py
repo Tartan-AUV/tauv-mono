@@ -23,7 +23,7 @@ from std_msgs.msg import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList
 from tauv_common.srv import RegisterObjectDetection
-from visualization_msgs.msg import Marker
+from visualization_msgs.msg import Marker, MarkerArray
 
 def white_balance(img):
     result = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
@@ -42,11 +42,11 @@ class Dummy_Detector():
         self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
         self.left_camera_detections = rospy.Publisher("front_detections", Image, queue_size=10)
-        self.arrow_pub = rospy.Publisher("detection_marker", Marker, queue_size=10)
+        self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
         self.weights = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights"
         self.config = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg"
         self.classes_list = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
-
+        self.arrow_list = []
         self.classes = self.prepare_classes()
         self.stereo_proc = cv2.StereoBM_create(numDisparities=16, blockSize=33)
         self.net = self.load_model()
@@ -159,6 +159,18 @@ class Dummy_Detector():
         disparity_image = self.cv_bridge.imgmsg_to_cv2(msg.image, "passthrough")
         return self.focal_length * self.baseline / disparity_image
 
+    def publish_detection_array(self, centroid):
+        m = Marker()
+        m.header.frame_id = "duo3d_optical_link_front"
+        m.id = 0
+        m.points = [Point(0, 0, 0), Point(centroid[0], centroid[1], centroid[2])]
+        m.color.b = 1.0
+        m.color.a = 1.0
+        m.scale.x = .1
+        m.scale.y = .1
+        m.scale.z = .1
+        self.arrow_list.append(m)
+
     def vector_to_detection_centroid(self, bbox_detection):
         x, y, w, h = bbox_detection[1]
         disp_map = self.cv_bridge.imgmsg_to_cv2(self.disparity.image, "passthrough")
@@ -177,87 +189,70 @@ class Dummy_Detector():
                          [0, 0, -1.0/.03, 0]])
         centroid_3d = Q * centroid_2d
         centroid_3d /= centroid_3d[3]
-        m = Marker()
-        m.header.frame_id = "duo3d_optical_link_front"
-        m.id = 0
-        m.points = [Point(0, 0, 0), Point(centroid_3d[0], centroid_3d[1], centroid_3d[2])]
-        m.color.b = 1.0
-        m.color.a = 1.0
-        m.scale.x = .1
-        m.scale.y = .1
-        m.scale.z = .1
-        self.arrow_pub.publish(m)
-        return 0
+        self.publish_detection_array(centroid_3d)
+        return centroid_3d[0:3]
 
     def spin(self, event):
         if(self.left_img_flag and self.disp_img_flag):
             self.left_img_flag = False
             self.disp_img_flag = False
+            self.arrow_list = []
             detections = self.classify(self.stereo_left)
             for det in detections:
-                detection_bearing = self.vector_to_detection_centroid(det)
-        #         feature_centroid, feature_height, feature_width = self.get_feature_centroid(self.depth_from_disparity(self.disparity), det)
-        #         # print(np.linalg.norm(feature_centroid))
-        #         # print("Diff: ")
-        #         now = rospy.Time(0)
-        #         self.tf.waitForTransform("/base_link", "/duo3d_left_link_front", now, rospy.Duration(4.0))
-        #         (trans1, rot1) = self.tf.lookupTransform("/base_link", "/duo3d_left_link_front", now)
-        #         # landmark_pos = np.asarray([27.5, -5.0, -2.0])
-        #         obj_det = BucketDetection()
-        #         obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
-        #         obj_det.tag = str(self.classes[det[0]])
-        #         bbox_3d = BoundingBox()
-        #         bbox_3d.dimensions = Vector3(feature_width, 1, feature_height)
-        #         (trans, rot) = self.tf.lookupTransform("/odom", "/duo3d_left_link_front", now)
-        #         bbox_pose = Pose()
-        #         print(feature_centroid.shape)
-        #         print(np.asarray(trans).shape)
-        #         print((feature_centroid + np.asarray(trans).reshape(3, 1)).T)
-        #         x, y, z = list((feature_centroid + np.asarray(trans).reshape(3, 1)).T)
-        #         print(x, y, z)
-        #         return
-        #         obj_det.position = Point(x, y, z)
-        #         bbox_pose.position = Point(x, y, z)
-        #         bbox_3d.pose = bbox_pose
-        #         bbox_header = Header()
-        #         bbox_header.frame_id = "odom"
-        #         bbox_3d.header = bbox_header
-        #         obj_det.bbox_3d = bbox_3d
-        #         success = self.registration_service(obj_det)
-        #         print("Submitted for detection:" + str(success))
-        #         #print(np.linalg.norm(np.asarray([27.0, -7.0, -2.5]) + np.asarray(trans1) - landmark_pos))
+                feature_centroid = self.vector_to_detection_centroid(det)
+                print(feature_centroid)
+                now = rospy.Time(0)
+                obj_det = BucketDetection()
+                obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
+                obj_det.tag = str(self.classes[det[0]])
+                bbox_3d = BoundingBox()
+                bbox_3d.dimensions = Vector3(1.0, 1, 1.0)
+                # (trans, rot) = self.tf.lookupTransform("/odom", "/duo3d_optical_link_front", now)
+                bbox_pose = Pose()
+                print(feature_centroid.shape)
+                print(np.asarray(trans).shape)
+                print((feature_centroid + np.asarray(trans).reshape(3, 1)).T)
+                x, y, z = list(np.squeeze(feature_centroid))
+                print(x, y, z)
+                obj_det.position = Point(x, y, z)
+                bbox_pose.position = Point(x, y, z)
+                bbox_3d.pose = bbox_pose
+                bbox_header = Header()
+                bbox_header.frame_id = "duo3d_optical_link_front"
+                bbox_3d.header = bbox_header
+                obj_det.bbox_3d = bbox_3d
+                success = self.registration_service(obj_det)
+                self.arrow_pub.publish(self.arrow_list)
+                print("Submitted for detection:" + str(success))
+                #print(np.linalg.norm(np.asarray([27.0, -7.0, -2.5]) + np.asarray(trans1) - landmark_pos))
 
-            # if(len(keypoints) > 100):
-            #     feature_centroid = self.get_feature_centroid(self.depth_from_disparity(self.disparity), keypoints)
-            #     cv2.imwrite("/home/advaith/Desktop/object_detection_test.png", self.stereo_left)
-            #     cv2.imshow("Features", cv2.drawKeypoints(self.stereo_left, keypoints, None))
-            #     cv2.waitKey(1)
-            #     self.left_img_flag = False
-            #     obj_det = BucketDetection()
-            #     obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
-            #     obj_det.tag = "Testing"
-            #     bbox_3d = BoundingBox()
-            #     bbox_3d.dimensions = Vector3(1, 1, 1)
-            #     now = rospy.Time(0)
-            #     self.tf.waitForTransform("/odom", "/duo3d_left_link_front", now, rospy.Duration(4.0))
-            #     (trans, rot) = self.tf.lookupTransform("/odom", "/duo3d_left_link_front", now)
-            #     bbox_pose = Pose()
-            #     x, y, z = feature_centroid + np.asarray(trans)
-            #     obj_det.position = Point(x, y, z)
-            #     bbox_pose.position = Vector3(x, y, z)
-            #     bbox_3d.pose = bbox_pose
-            #     bbox_header = Header()
-            #     bbox_header.frame_id = "odom"
-            #     bbox_3d.header = bbox_header
-            #     obj_det.bbox_3d = bbox_3d
-            #     success = self.registration_service(obj_det)
-            #     print("Detection transmitted: " + str(success))
+        # if(len(keypoints) > 100):
+        #     feature_centroid = self.get_feature_centroid(self.depth_from_disparity(self.disparity), keypoints)
+        #     cv2.imwrite("/home/advaith/Desktop/object_detection_test.png", self.stereo_left)
+        #     cv2.imshow("Features", cv2.drawKeypoints(self.stereo_left, keypoints, None))
+        #     cv2.waitKey(1)
+        #     self.left_img_flag = False
+        #     obj_det = BucketDetection()
+        #     obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
+        #     obj_det.tag = "Testing"
+        #     bbox_3d = BoundingBox()
+        #     bbox_3d.dimensions = Vector3(1, 1, 1)
+        #     now = rospy.Time(0)
+        #     self.tf.waitForTransform("/odom", "/duo3d_left_link_front", now, rospy.Duration(4.0))
+        #     (trans, rot) = self.tf.lookupTransform("/odom", "/duo3d_left_link_front", now)
+        #     bbox_pose = Pose()
+        #     x, y, z = feature_centroid + np.asarray(trans)
+        #     obj_det.position = Point(x, y, z)
+        #     bbox_pose.position = Vector3(x, y, z)
+        #     bbox_3d.pose = bbox_pose
+        #     bbox_header = Header()
+        #     bbox_header.frame_id = "odom"
+        #     bbox_3d.header = bbox_header
+        #     obj_det.bbox_3d = bbox_3d
+        #     success = self.registration_service(obj_det)
+        #     print("Detection transmitted: " + str(success))
 
 def main():
     rospy.init_node("dummy_detector")
     dummy_detector = Dummy_Detector()
-
     rospy.spin()
-
-
-

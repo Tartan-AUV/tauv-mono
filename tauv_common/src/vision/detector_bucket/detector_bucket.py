@@ -62,8 +62,7 @@ class Detector_Bucket():
         return True
         for detections in self.bucket_list:
             sim_index = self.similarity_index(detections, new_detection)
-            if(sim_index < 1.0):
-                print("Similarity Found")
+            if(sim_index < 1.0): #new landmark
                 #send updated landmark registration to pose_graph
                 return False
         return True
@@ -71,18 +70,9 @@ class Detector_Bucket():
     def register_object_detection(self, req):
         bucket_detection = req.objdet
         bbox_3d_detection = bucket_detection.bbox_3d
-        if(self.is_valid_registration(bucket_detection)):
-            found_in_current = False
-            for det, bbox in zip(self.bucket_list, self.bbox_3d_list):
-                if(bucket_detection.tag == det.tag):
-                    det = bucket_detection
-                    bbox = bbox_3d_detection
-                    found_in_current = True
-            if(not found_in_current):
-                self.bucket_list.append(bucket_detection)
-                self.bbox_3d_list.append(bbox_3d_detection)
-            return True
-        return False
+        self.bucket_list.append(bucket_detection)
+        self.bbox_3d_list.append(bbox_3d_detection)
+        return True
 
     def spin(self, event):
         bucket_list_msg = BucketList()
@@ -94,6 +84,8 @@ class Detector_Bucket():
         bbox_3d_list_msg.boxes = self.bbox_3d_list
         self.bucket_list_pub.publish(bucket_list_msg)
         self.bbox_3d_list_pub.publish(bbox_3d_list_msg)
+        self.bucket_list = []
+        self.bbox_3d_list = []
         return
 
 def main():
