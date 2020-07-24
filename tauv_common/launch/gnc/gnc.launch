@@ -46,8 +46,8 @@
         </node>
 
         <!-- Start MPC node -->
-        <node pkg="tauv_common" type="mpc_traj_follower" name="mpc_trajectory_follower" output="screen">
-            <remap from="controller_cmd" to="mpc/controller_cmd"/>
-        </node>
+<!--        <node pkg="tauv_common" type="mpc_traj_follower" name="mpc_trajectory_follower" output="screen">-->
+<!--            <remap from="controller_cmd" to="mpc/controller_cmd"/>-->
+<!--        </node>-->
     </group>
 </launch>

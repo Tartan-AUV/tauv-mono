@@ -7,11 +7,11 @@
 
     <group ns="vision">
         <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" clear_params="true" output="screen">
-            <param name="use_sim_time" value="true" />
+<!--            <param name="use_sim_time" value="true" />-->
         </node>
 
         <node pkg="tauv_common" type="dummy_detector" name="dummy_detector" clear_params="true" output="screen">
-            <param name="use_sim_time" value="true" />
+<!--            <param name="use_sim_time" value="true" />-->
         </node>
 
         <!-- launch underside stereo camera  -->

@@ -64,7 +64,8 @@ class Dummy_Detector():
         self.left_img_flag = False
         self.disp_img_flag = False
         self.rate = rospy.Rate(1)
-        self.spin_callback = rospy.Timer(rospy.Duration(.1), self.spin)
+        self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
+        self.marker_id = 0
 
     # function to get the output layer names
     # in the architecture
@@ -121,7 +122,7 @@ class Dummy_Detector():
         indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
         final_detections = []
         for i in indices:
-            print("index: " + str(i))
+            #print("index: " + str(i))
             i = i[0]
             box = boxes[i]
             x = box[0]
@@ -159,10 +160,11 @@ class Dummy_Detector():
         disparity_image = self.cv_bridge.imgmsg_to_cv2(msg.image, "passthrough")
         return self.focal_length * self.baseline / disparity_image
 
-    def publish_detection_array(self, centroid):
+    def publish_detection_arrow(self, centroid):
         m = Marker()
         m.header.frame_id = "duo3d_optical_link_front"
-        m.id = 0
+        m.id = self.marker_id
+        self.marker_id += 1
         m.points = [Point(0, 0, 0), Point(centroid[0], centroid[1], centroid[2])]
         m.color.b = 1.0
         m.color.a = 1.0
@@ -189,41 +191,43 @@ class Dummy_Detector():
                          [0, 0, -1.0/.03, 0]])
         centroid_3d = Q * centroid_2d
         centroid_3d /= centroid_3d[3]
-        self.publish_detection_array(centroid_3d)
+        self.publish_detection_arrow(centroid_3d)
         return centroid_3d[0:3]
 
     def spin(self, event):
         if(self.left_img_flag and self.disp_img_flag):
             self.left_img_flag = False
             self.disp_img_flag = False
-            self.arrow_list = []
+            now = rospy.Time(0)
             detections = self.classify(self.stereo_left)
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)
-                print(feature_centroid)
-                now = rospy.Time(0)
+                #print(feature_centroid)
+
                 obj_det = BucketDetection()
                 obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
                 obj_det.tag = str(self.classes[det[0]])
                 bbox_3d = BoundingBox()
                 bbox_3d.dimensions = Vector3(1.0, 1, 1.0)
-                # (trans, rot) = self.tf.lookupTransform("/odom", "/duo3d_optical_link_front", now)
+                (trans, rot) = self.tf.lookupTransform("/odom", "/duo3d_optical_link_front", now)
                 bbox_pose = Pose()
-                print(feature_centroid.shape)
-                print(np.asarray(trans).shape)
-                print((feature_centroid + np.asarray(trans).reshape(3, 1)).T)
-                x, y, z = list(np.squeeze(feature_centroid))
-                print(x, y, z)
+                #print(feature_centroid.shape)
+                x, y, z = list((np.squeeze(feature_centroid) + np.asarray(trans)).T)
+                #print(x, y, z)
                 obj_det.position = Point(x, y, z)
                 bbox_pose.position = Point(x, y, z)
                 bbox_3d.pose = bbox_pose
                 bbox_header = Header()
-                bbox_header.frame_id = "duo3d_optical_link_front"
+                bbox_header.frame_id = "odom"
+                bbox_header.stamp = now
                 bbox_3d.header = bbox_header
                 obj_det.bbox_3d = bbox_3d
+                obj_det.header = Header()
+                obj_det.header.frame_id = bbox_header.frame_id
+                obj_det.header.stamp = now
                 success = self.registration_service(obj_det)
-                self.arrow_pub.publish(self.arrow_list)
-                print("Submitted for detection:" + str(success))
+            #print(len(self.arrow_list))
+               # print("Submitted for detection:" + str(success))
                 #print(np.linalg.norm(np.asarray([27.0, -7.0, -2.5]) + np.asarray(trans1) - landmark_pos))
 
         # if(len(keypoints) > 100):
