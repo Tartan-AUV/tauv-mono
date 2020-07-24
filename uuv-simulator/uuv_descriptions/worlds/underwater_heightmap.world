@@ -47,13 +47,19 @@
 
     <include>
       <name>hydrant3</name>
-      <pose>26.0 -7.0 -5.2 0 0 0</pose>
+      <pose>27.5 -6.0 -2.2 0 0 0</pose>
       <uri>model://fire_hydrant</uri>
     </include>
 
     <include>
       <name>hydrant2</name>
-      <pose>29.0 -7.0 -5.2 0 0 0</pose>
+      <pose>28.0 -7.0 -5.2 0 0 0</pose>
+      <uri>model://fire_hydrant</uri>
+    </include>
+
+    <include>
+      <name>hydrant4</name>
+      <pose>28.0 -8.0 -3.2 0 0 0</pose>
       <uri>model://fire_hydrant</uri>
     </include>
 

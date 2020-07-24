@@ -10,7 +10,7 @@ transform_timeout: 0.0
 print_diagnostics: true
 debug: true
 debug_out_file: /home/Desktop/out_debug.txt
-publish_tf: true
+publish_tf: false
 publish_acceleration: true
 
 

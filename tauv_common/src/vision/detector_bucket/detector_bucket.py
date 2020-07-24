@@ -25,7 +25,8 @@ from tf.transformations import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList
 from tauv_common.srv import RegisterObjectDetection
-
+from visualization_msgs.msg import Marker, MarkerArray
+from scipy.spatial.transform import Rotation as R
 
 
 
@@ -36,6 +37,7 @@ class Detector_Bucket():
         self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
         self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, \
                                               self.register_object_detection)
+        self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
         self.tf = tf.TransformListener()
         self.cv_bridge = CvBridge()
         self.refresh_rate = 0
@@ -43,7 +45,11 @@ class Detector_Bucket():
         self.bbox_3d_list = []
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         self.monotonic_det_id = -1
-        self.nn_threshold = .5
+        self.nn_threshold = .7
+        self.debouncing_threshold = 3
+        self.arrow_dict = {}
+        self.debouncing_tracker_dict = {}
+        self.debounced_detection_dict = {}
 
     def similarity_index(self, detection_1, detection_2):
         point_1 = np.asarray([detection_1.position.x, detection_1.position.y, detection_1.position.z])
@@ -69,44 +75,107 @@ class Detector_Bucket():
                 return False
         return True
 
+    def transform_meas_to_world(self, measurement, world_frame, time):
+        (trans, rot) = self.tf.lookupTransform(world_frame, "duo3d_optical_link_front", time)
+        tf = R.from_quat(np.asarray(rot))
+        detection_pos = tf.apply(measurement) + np.asarray(trans)
+        return detection_pos
+
+    def update_detection_arrows(self, bucket_detection, robot_position, id):
+        pos = bucket_detection.position
+        m = Marker()
+        m.header.frame_id = "odom"
+        m.id = id
+        m.points = [robot_position, pos]
+        m.color.g = 1.0
+        m.color.a = 1.0
+        m.scale.x = .05
+        m.scale.y = .05
+        m.scale.z = .05
+        self.arrow_dict[id] = m
+
     # returns nearest landmark neighbor in bucket or -1 to signify a new marker
+    # Eventually include CBOW and tag information
     def find_nearest_neighbor(self, bucket_detection):
         if len(self.bucket_dict.keys()) > 0:
             curr_det_positions = [self.bucket_dict[id][0].position for id in self.bucket_dict]
-            curr_det_positions = np.asarray(list(map(lambda pos: np.asarray([pos.x, pos.y, pos.z]), curr_det_positions))).T
-            new_det_position = np.asarray([bucket_detection.position.x, bucket_detection.position.y, bucket_detection.position.z]).T
-            print("Current loc: " + str(new_det_position))
-            print("All others: " + str(curr_det_positions))
+            curr_det_positions = np.asarray(list(map(self.point_to_array, curr_det_positions))).T
+            new_det_position = np.asarray(np.asarray([bucket_detection.position.x, bucket_detection.position.y, bucket_detection.position.z])).T
             diff = np.asmatrix(new_det_position[:, None] - curr_det_positions)
-            print("diff:" + str(diff))
-            mahalanobis_distance = np.sqrt(np.diag(diff.T*np.eye(3)*diff))
+            mahalanobis_distance = np.sqrt(np.diag(diff.T*np.eye(3)*diff)) #replace with inverse covariance matrix
             nearest_neighbor = np.argmin(mahalanobis_distance)
-            # print(" Decidision: %d" % nearest_neighbor)
-            print(mahalanobis_distance.size)
-            print("maha:" + str(mahalanobis_distance))
-            if mahalanobis_distance[nearest_neighbor] < self.nn_threshold and False:
+            print("[Debounced Detection Tracker]: " + str(self.debouncing_tracker_dict))
+            if mahalanobis_distance[nearest_neighbor] < self.nn_threshold: #new detection is already seen by system
+                self.debouncing_tracker_dict[nearest_neighbor] += 1
                 return nearest_neighbor
         self.monotonic_det_id += 1
         return self.monotonic_det_id
 
+    def array_to_point(self, arr):
+        p = Point()
+        p.x = arr[0]
+        p.y = arr[1]
+        p.z = arr[2]
+        return p
+
+    def point_to_array(self, point):
+        return np.asarray([point.x, point.y, point.z])
+
     def register_object_detection(self, req):
         bucket_detection = req.objdet
         bbox_3d_detection = bucket_detection.bbox_3d
+
+        #TODO: update to take the time of the detection
+        now = rospy.Time(0)
+
+        #transform into odom and update the detections (temporary, will be published by SLAM backend in odom frame)
+        pos = self.point_to_array(bucket_detection.position)
+        det_in_world = self.array_to_point(self.transform_meas_to_world(pos, "/odom", now))
+        bucket_detection.position = det_in_world
+        bbox_3d_detection.pose.position = det_in_world
+
+        #find nearest neighbor, or add new detection
         det_id = self.find_nearest_neighbor(bucket_detection)
-        print("Decisino: %d", det_id)
+
+        #always add new detections to the bucket_dict, debouncing dict is filtered output
+        if det_id not in self.debouncing_tracker_dict: #new detection
+            self.debouncing_tracker_dict[det_id] = 1
         self.bucket_dict[det_id] = (bucket_detection, bbox_3d_detection)
+
+        print(self.debouncing_tracker_dict)
+        print(len(self.debounced_detection_dict.keys()))
+
+        #only allow detections that persisted for threshold to enter the detections for a time frame
+        if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold:
+            print("Decision: %d" % det_id)
+            self.debounced_detection_dict[det_id] = (bucket_detection, bbox_3d_detection)
+
         return True
 
+    #publish new detections for time stamp to SLAM backend
     def spin(self, event):
-        bucket_list_msg = BucketList()
-        bbox_3d_list_msg = BoundingBoxArray()
-        bucket_list_msg.header = Header()
-        bucket_list_msg.bucket_list = [self.bucket_dict[id][0] for id in self.bucket_dict]
-        bbox_3d_list_msg.header = Header()
-        bbox_3d_list_msg.header.frame_id = "odom"
-        bbox_3d_list_msg.boxes = [self.bucket_dict[id][1] for id in self.bucket_dict]
-        self.bucket_list_pub.publish(bucket_list_msg)
-        self.bbox_3d_list_pub.publish(bbox_3d_list_msg)
+        now = rospy.Time(0)
+        if len(self.debounced_detection_dict.keys()) > 0:
+            robot_in_world = self.array_to_point(self.transform_meas_to_world(np.asarray([0, 0, 0]), "odom", now))
+
+            #update all the arrows for visualization
+            for dd_id in self.debounced_detection_dict:
+                self.update_detection_arrows(self.debounced_detection_dict[dd_id][0], robot_in_world, dd_id)
+
+            bucket_list_msg = BucketList()
+            bbox_3d_list_msg = BoundingBoxArray()
+            bucket_list_msg.header = Header()
+            bucket_list_msg.bucket_list = [self.debounced_detection_dict[id][0] for id in self.debounced_detection_dict]
+            bbox_3d_list_msg.header = Header()
+            bbox_3d_list_msg.header.frame_id = "odom"
+            bbox_3d_list_msg.boxes = [self.debounced_detection_dict[id][1] for id in self.debounced_detection_dict]
+
+            #modify the observations to the world frame
+            for box in bbox_3d_list_msg.boxes:
+                box.header.frame_id = "odom"
+            self.bucket_list_pub.publish(bucket_list_msg)
+            self.bbox_3d_list_pub.publish(bbox_3d_list_msg)
+            self.arrow_pub.publish(self.arrow_dict.values())
         return
 
 def main():

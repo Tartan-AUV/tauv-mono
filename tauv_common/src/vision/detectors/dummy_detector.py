@@ -23,7 +23,8 @@ from std_msgs.msg import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList
 from tauv_common.srv import RegisterObjectDetection
-from visualization_msgs.msg import Marker, MarkerArray
+from scipy.spatial.transform import Rotation as R
+
 
 def white_balance(img):
     result = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
@@ -42,7 +43,7 @@ class Dummy_Detector():
         self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
         self.left_camera_detections = rospy.Publisher("front_detections", Image, queue_size=10)
-        self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
+
         self.weights = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights"
         self.config = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg"
         self.classes_list = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
@@ -160,19 +161,6 @@ class Dummy_Detector():
         disparity_image = self.cv_bridge.imgmsg_to_cv2(msg.image, "passthrough")
         return self.focal_length * self.baseline / disparity_image
 
-    def publish_detection_arrow(self, centroid):
-        m = Marker()
-        m.header.frame_id = "duo3d_optical_link_front"
-        m.id = self.marker_id
-        self.marker_id += 1
-        m.points = [Point(0, 0, 0), Point(centroid[0], centroid[1], centroid[2])]
-        m.color.b = 1.0
-        m.color.a = 1.0
-        m.scale.x = .1
-        m.scale.y = .1
-        m.scale.z = .1
-        self.arrow_list.append(m)
-
     def vector_to_detection_centroid(self, bbox_detection):
         x, y, w, h = bbox_detection[1]
         disp_map = self.cv_bridge.imgmsg_to_cv2(self.disparity.image, "passthrough")
@@ -191,7 +179,6 @@ class Dummy_Detector():
                          [0, 0, -1.0/.03, 0]])
         centroid_3d = Q * centroid_2d
         centroid_3d /= centroid_3d[3]
-        self.publish_detection_arrow(centroid_3d)
         return centroid_3d[0:3]
 
     def spin(self, event):
@@ -203,22 +190,20 @@ class Dummy_Detector():
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)
                 #print(feature_centroid)
-
                 obj_det = BucketDetection()
                 obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
                 obj_det.tag = str(self.classes[det[0]])
                 bbox_3d = BoundingBox()
-                bbox_3d.dimensions = Vector3(1.0, 1, 1.0)
-                (trans, rot) = self.tf.lookupTransform("/odom", "/duo3d_optical_link_front", now)
+                bbox_3d.dimensions = Vector3(.25, .25, 1.0)
                 bbox_pose = Pose()
                 #print(feature_centroid.shape)
-                x, y, z = list((np.squeeze(feature_centroid) + np.asarray(trans)).T)
+                x, y, z = list((np.squeeze(feature_centroid)).T)
                 #print(x, y, z)
                 obj_det.position = Point(x, y, z)
                 bbox_pose.position = Point(x, y, z)
                 bbox_3d.pose = bbox_pose
                 bbox_header = Header()
-                bbox_header.frame_id = "odom"
+                bbox_header.frame_id = "duo3d_optical_link_front"
                 bbox_header.stamp = now
                 bbox_3d.header = bbox_header
                 obj_det.bbox_3d = bbox_3d
@@ -226,9 +211,6 @@ class Dummy_Detector():
                 obj_det.header.frame_id = bbox_header.frame_id
                 obj_det.header.stamp = now
                 success = self.registration_service(obj_det)
-            #print(len(self.arrow_list))
-               # print("Submitted for detection:" + str(success))
-                #print(np.linalg.norm(np.asarray([27.0, -7.0, -2.5]) + np.asarray(trans1) - landmark_pos))
 
         # if(len(keypoints) > 100):
         #     feature_centroid = self.get_feature_centroid(self.depth_from_disparity(self.disparity), keypoints)

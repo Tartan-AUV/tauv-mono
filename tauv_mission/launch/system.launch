@@ -17,7 +17,7 @@
   <arg name="simulated" default="true"/>
 
   <!-- Set this to true if you want to use ground truth data for odom and map instead of built in state estimation!-->
-  <arg name="use_gt" default="false"/>
+  <arg name="use_gt" default="true"/>
 
   <!-- Default position (for simulation only)  -->
   <arg name="x" default="28.0"/>
