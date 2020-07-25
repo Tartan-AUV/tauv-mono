@@ -172,9 +172,7 @@ class gateDetector:
         bbox_3d = BoundingBox()
         bbox_3d.dimensions = Vector3(self.gate_dimensions[0], self.gate_dimensions[1], self.gate_dimensions[2])
         bbox_pose = Pose()
-        #print(feature_centroid.shape)
         x, y, z = list((np.squeeze(centroid)).T)
-        #print(x, y, z)
         obj_det.position = Point(x, y, z)
         bbox_pose.position = Point(x, y, z)
         bbox_3d.pose = bbox_pose
@@ -195,11 +193,6 @@ class gateDetector:
         z = float(self.gate_width)*fx/float((rightBar - leftBar))
         x = centerX*self.gate_width/fx
         centroid_3d = np.asmatrix([x, 0.0, z, 1]).T
-        # Q = np.asmatrix([[z/f, 0, 0, -cx*z/f],
-        #                  [0, 1, 0, -cy],
-        #                  [0, 0, 1, 0],
-        #                  [0, 0, 0, ]])
-        # centroid_3d = Q * centroid_2d
         centroid_3d /= centroid_3d[3]
         return centroid_3d[0:3]
 
@@ -209,9 +202,7 @@ class gateDetector:
             leftBar, rightBar, now = self.findPost(self.stereo_left)
             overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
-            print("Published overlay")
             centroid = self.vector_to_detection_centroid(leftBar, rightBar)
-            print("centroid: " + str(centroid))
             obj_det = self.prepareDetectionRegistration(centroid, now)
             success = self.registration_service(obj_det)
 

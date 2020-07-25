@@ -98,7 +98,8 @@ class Detector_Bucket():
         if len(self.bucket_dict.keys()) > 0:
             curr_det_positions = [self.bucket_dict[id][0].position for id in self.bucket_dict]
             curr_det_positions = np.asarray(list(map(self.point_to_array, curr_det_positions))).T
-            new_det_position = np.asarray(np.asarray([bucket_detection.position.x, bucket_detection.position.y, bucket_detection.position.z])).T
+            new_det_position = np.asarray(np.asarray([bucket_detection.position.x, \
+                                                      bucket_detection.position.y, bucket_detection.position.z])).T
             diff = np.asmatrix(new_det_position[:, None] - curr_det_positions)
             mahalanobis_distance = np.sqrt(np.diag(diff.T*np.eye(3)*diff)) #replace with inverse covariance matrix
             print("curr:" + str(curr_det_positions))
@@ -145,7 +146,6 @@ class Detector_Bucket():
                     override = float(rospy.get_param(tag + "/location_override_z"))
                     det_in_world[2] = override
 
-
                 det_in_world = self.array_to_point(det_in_world)
                 bucket_detection.position = det_in_world
                 bbox_3d_detection.pose.position = det_in_world
@@ -161,7 +161,6 @@ class Detector_Bucket():
                 #only allow detections that persisted for threshold to enter the detections for a time frame
                 if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold:
                     self.debounced_detection_dict[det_id] = (bucket_detection, bbox_3d_detection)
-
                 return True
         return False
 
