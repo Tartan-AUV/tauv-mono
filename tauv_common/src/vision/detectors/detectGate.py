@@ -78,6 +78,7 @@ class gateDetector:
         cv2.line(img1, leftLineTop, leftLineBottom, (0, 255, 0), thickness=2)
         cv2.line(img1, rightLineTop, rightLineBottom, (0, 255, 0), thickness=2)
         cv2.line(img1, centerLineTop, centerLineBottom, (255, 0, 0), thickness=2)
+        return img1
 
     def increaseContrast(self,image):
         scale = 2
@@ -150,8 +151,6 @@ class gateDetector:
         contrastImg = self.increaseContrast(yuvImg)
         binaryImg = self.getBinary(contrastImg)
         (leftBar, rightBar) = self.getBars(binaryImg)
-        print(leftBar, rightBar)
-        self.showImage(img, binaryImg, leftBar, rightBar)
         return (leftBar, rightBar)
 
 
@@ -167,7 +166,7 @@ class gateDetector:
             self.left_img_flag = False
             leftBar, rightBar = self.findPost(self.stereo_left)
             overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
-            self.gate_detection_pub.Publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
+            self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
 
 
 
