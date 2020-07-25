@@ -16,6 +16,10 @@
 <!--            <param name="use_sim_time" value="true" />-->
         </node>
 
+        <node pkg="tauv_common" type="detect_gate" name="detect_gate" clear_params="true" output="screen">
+            <!--            <param name="use_sim_time" value="true" />-->
+        </node>
+
         <!-- launch underside stereo camera  -->
         <node pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc_under" clear_params="true" output="screen" ns="under">
             <rosparam command="load" file="$(arg config_pkg)/stereo_proc_params.yaml"/>

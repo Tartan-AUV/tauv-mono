@@ -92,6 +92,7 @@ class Dummy_Detector():
         return classes
 
     def classify(self, image):
+        now = rospy.Time(0)
         Width = image.shape[1]
         Height = image.shape[0]
         scale = 0.00392
@@ -134,7 +135,7 @@ class Dummy_Detector():
             self.draw_bounding_box(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
 
         self.left_camera_detections.publish(self.cv_bridge.cv2_to_imgmsg(image))
-        return final_detections
+        return final_detections, now
 
     def camera_info_callback(self, msg):
         self.left_camera_info = msg
@@ -181,35 +182,38 @@ class Dummy_Detector():
         centroid_3d /= centroid_3d[3]
         return centroid_3d[0:3]
 
+    def prepare_detection_registration(self, centroid, det, now):
+        obj_det = BucketDetection()
+        obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
+        obj_det.tag = str(self.classes[det[0]])
+        bbox_3d = BoundingBox()
+        bbox_3d.dimensions = Vector3(.25, .25, 1.0)
+        bbox_pose = Pose()
+        #print(feature_centroid.shape)
+        x, y, z = list((np.squeeze(centroid)).T)
+        #print(x, y, z)
+        obj_det.position = Point(x, y, z)
+        bbox_pose.position = Point(x, y, z)
+        bbox_3d.pose = bbox_pose
+        bbox_header = Header()
+        bbox_header.frame_id = "duo3d_optical_link_front"
+        bbox_header.stamp = now
+        bbox_3d.header = bbox_header
+        obj_det.bbox_3d = bbox_3d
+        obj_det.header = Header()
+        obj_det.header.frame_id = bbox_header.frame_id
+        obj_det.header.stamp = now
+        return obj_det
+
     def spin(self, event):
         if(self.left_img_flag and self.disp_img_flag):
             self.left_img_flag = False
             self.disp_img_flag = False
-            now = rospy.Time(0)
-            detections = self.classify(self.stereo_left)
+            detections, now = self.classify(self.stereo_left)
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)
                 #print(feature_centroid)
-                obj_det = BucketDetection()
-                obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
-                obj_det.tag = str(self.classes[det[0]])
-                bbox_3d = BoundingBox()
-                bbox_3d.dimensions = Vector3(.25, .25, 1.0)
-                bbox_pose = Pose()
-                #print(feature_centroid.shape)
-                x, y, z = list((np.squeeze(feature_centroid)).T)
-                #print(x, y, z)
-                obj_det.position = Point(x, y, z)
-                bbox_pose.position = Point(x, y, z)
-                bbox_3d.pose = bbox_pose
-                bbox_header = Header()
-                bbox_header.frame_id = "duo3d_optical_link_front"
-                bbox_header.stamp = now
-                bbox_3d.header = bbox_header
-                obj_det.bbox_3d = bbox_3d
-                obj_det.header = Header()
-                obj_det.header.frame_id = bbox_header.frame_id
-                obj_det.header.stamp = now
+                obj_det = self.prepare_detection_registration(feature_centroid, det, now)
                 success = self.registration_service(obj_det)
 
         # if(len(keypoints) > 100):

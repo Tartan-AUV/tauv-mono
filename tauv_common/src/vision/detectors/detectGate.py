@@ -1,18 +1,49 @@
-import cv2 
+#!/usr/bin/env python
+import cv2
 import numpy as np 
-import sys 
+import sys
+import rospy
+import tf
+import tf_conversions
+import numpy as np
+import itertools
+import cv2
+from cv_bridge import CvBridge
+from sensor_msgs.msg import Imu, Image, CameraInfo
+from stereo_msgs.msg import DisparityImage
+from geometry_msgs.msg import *
+from jsk_recognition_msgs.msg import BoundingBox
+from nav_msgs.msg import Odometry
+from tf.transformations import *
+from std_msgs.msg import *
+from geometry_msgs.msg import Quaternion
+from tauv_msgs.msg import BucketDetection, BucketList
+from tauv_common.srv import RegisterObjectDetection
+from scipy.spatial.transform import Rotation as R
+
 
 class gateDetector: 
     def __init__(self):
         self.numBits = 8
         self.imageWidth = 640
         self.imageHeight = 480
-        self.maxVal = 2**self.numBits - 1 
-        
-    
+        self.maxVal = 2**self.numBits - 1
+
+        self.left_img_flag = False
+        self.stereo_left = Image()
+        self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
+
+        self.cv_bridge = CvBridge()
+        self.gate_detection_pub = rospy.Publisher("gate_detections", Image, queue_size=10)
+        self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
+        rospy.wait_for_service("detector_bucket/register_object_detection")
+        self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetection)
+
     def openImage (self, path):
         img = cv2.imread(path)
-        return img 
+        self.imageWidth, self.imageHeight, _ = img.shape
+        return img
+
     def enhanceRedChroma(self,image):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
         Y, U, V = cv2.split(image)  
@@ -35,12 +66,19 @@ class gateDetector:
         new_image = cv2.cvtColor(new_image,cv2.COLOR_YUV2BGR)
         return new_image
     
-    def showImage(self, img1, img2):
-        cv2.imshow('Original Gate', img1)
-        cv2.imshow('Different Gate', img2)
+    def overlayGateDetection(self, img1, leftBar, rightBar):
+        width, height, _ = img1.shape
+        leftLineTop = leftBar, 0
+        leftLineBottom = leftBar, height
+        rightLineTop = rightBar, 0
+        rightLineBottom = rightBar, height
+        centerLineX = (leftBar + rightBar) // 2
+        centerLineTop = centerLineX, 0
+        centerLineBottom = centerLineX, height
+        cv2.line(img1, leftLineTop, leftLineBottom, (0, 255, 0), thickness=2)
+        cv2.line(img1, rightLineTop, rightLineBottom, (0, 255, 0), thickness=2)
+        cv2.line(img1, centerLineTop, centerLineBottom, (255, 0, 0), thickness=2)
 
-        cv2.waitKey(0) # waits until a key is pressed
-        cv2.destroyAllWindows() # destroys the window showing image
     def increaseContrast(self,image):
         scale = 2
 
@@ -63,6 +101,7 @@ class gateDetector:
 
         new_image = cv2.merge([newB, newG, newR])
         return new_image
+
     def getBinary(self, img):
         blurDim = self.imageHeight//8
         if blurDim % 2 == 0: 
@@ -83,10 +122,8 @@ class gateDetector:
         binImg = cv2.erode(binImg,np.ones((5,1)),iterations = 2)
         binImg = cv2.dilate(binImg,np.ones((1,3)),iterations = 2)
         binImg = cv2.erode(binImg,np.ones((1,3)),iterations = 2)
-
-
-
         return binImg
+
     def getBars(self, img):
         barWidth = self.imageWidth//60
         columnSum = np.sum(img, axis = 0)
@@ -113,16 +150,31 @@ class gateDetector:
         contrastImg = self.increaseContrast(yuvImg)
         binaryImg = self.getBinary(contrastImg)
         (leftBar, rightBar) = self.getBars(binaryImg)
-        # print(leftBar, rightBar)
-        # self.showImage(img, binaryImg)
-
+        print(leftBar, rightBar)
+        self.showImage(img, binaryImg, leftBar, rightBar)
         return (leftBar, rightBar)
 
+
+    def left_callback(self, msg):
+        self.stereo_left = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
+        self.left_img_flag = True
+
+    def prepareDetectionRegistration(self):
+        return
+
+    def spin(self, event):
+        if(self.left_img_flag):
+            self.left_img_flag = False
+            leftBar, rightBar = self.findPost(self.stereo_left)
+            overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
+            self.gate_detection_pub.Publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
+
+
+
 def main():
-    imagePath = sys.argv[1]
+    rospy.init_node('gate_detector', anonymous=True)
     myGateDetector = gateDetector()
-    myImg = myGateDetector.openImage(imagePath)
-    (leftBar, rightBar) = myGateDetector.findPost(myImg)
-    return (leftBar, rightBar)
+    rospy.spin()
+
 if __name__ == '__main__':
     main()

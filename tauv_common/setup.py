@@ -46,7 +46,8 @@ setup_args = generate_distutils_setup(
              'scripts/detector_bucket',
              'scripts/attitude_controller',
              'scripts/mpc_traj_follower',
-             'scripts/dummy_detector'],
+             'scripts/dummy_detector',
+             'scripts/detect_gate'],
 
 )
 setup(**setup_args)
