@@ -47,25 +47,22 @@ class gateDetector:
         img = cv2.imread(path)
         self.imageWidth, self.imageHeight, _ = img.shape
         return img
-
+    # Gate in competition is usually orange in a blue water environment 
+    # Converting to YUV (YCbCr) allows us to enhance the warm V (red/orange)
+    # channel of the image and tone down the cool U (blue) channel
     def enhanceRedChroma(self,image):
         image = cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
         Y, U, V = cv2.split(image)  
-
         scaleU = 1
         scaleV = 3
-
         midPoint = (2**(self.numBits-1)) - 1
-
         meanU = U.mean()
         offsetU = midPoint-scaleU*meanU 
         newU = cv2.convertScaleAbs(U, alpha=scaleU, beta=offsetU)
-
         meanV = V.mean()
         offsetV = midPoint-scaleV*meanV  
+
         newV = cv2.convertScaleAbs(V, alpha=scaleV, beta=offsetV)
-
-
         new_image = cv2.merge([Y, newU, newV])
         new_image = cv2.cvtColor(new_image,cv2.COLOR_YUV2BGR)
         return new_image
@@ -83,12 +80,11 @@ class gateDetector:
         cv2.line(img1, rightLineTop, rightLineBottom, (0, 255, 0), thickness=2)
         cv2.line(img1, centerLineTop, centerLineBottom, (255, 0, 0), thickness=2)
         return img1
-
+    # Amplify all of the channels in the image allowing for greater visibility 
+    # in marine environments 
     def increaseContrast(self,image):
         scale = 2
-
         midPoint = (2**(self.numBits-1)) - 1
-
         B, G, R = cv2.split(image)
 
         meanB = B.mean()
@@ -98,7 +94,6 @@ class gateDetector:
         meanG = G.mean()
         offsetG = midPoint-scale*meanG 
         newG = cv2.convertScaleAbs(G, alpha=scale, beta=offsetG)
- 
 
         meanR = R.mean()
         offsetR = midPoint-scale*meanR  
@@ -106,7 +101,9 @@ class gateDetector:
 
         new_image = cv2.merge([newB, newG, newR])
         return new_image
-
+    # Before thresholding, apply a series of blurs to simplify and generalize 
+    # the image. Afterwards, apply a series of dilations/erosions making the 
+    # binarization more homogenous.  
     def getBinary(self, img):
         blurDim = self.imageHeight//8
         if blurDim % 2 == 0: 
@@ -128,7 +125,8 @@ class gateDetector:
         binImg = cv2.dilate(binImg,np.ones((1,3)),iterations = 2)
         binImg = cv2.erode(binImg,np.ones((1,3)),iterations = 2)
         return binImg
-
+    #Uses the binarized image and finds the column sum index with the minimum sum
+    # indicating where the posts will be. 
     def getBars(self, img):
         barWidth = self.imageWidth//60
         columnSum = np.sum(img, axis = 0)
