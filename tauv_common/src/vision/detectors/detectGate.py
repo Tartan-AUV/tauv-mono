@@ -28,12 +28,14 @@ class gateDetector:
         self.imageWidth = 640
         self.imageHeight = 480
         self.maxVal = 2**self.numBits - 1
-        self.gate_width = 2.0
+        self.gate_dimensions = np.array(rospy.get_param("vision/object_tags/gate/dimensions")).astype(float)
+        self.gate_width = self.gate_dimensions[1]
 
         self.left_img_flag = False
         self.stereo_left = Image()
         self.left_camera_info = CameraInfo()
         self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
+        self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
 
         self.cv_bridge = CvBridge()
         self.gate_detection_pub = rospy.Publisher("gate_detections", Image, queue_size=10)
@@ -166,9 +168,9 @@ class gateDetector:
     def prepareDetectionRegistration(self, centroid, now):
         obj_det = BucketDetection()
         obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
-        obj_det.tag = str("gate")
+        obj_det.tag = "vision/object_tags/gate"
         bbox_3d = BoundingBox()
-        bbox_3d.dimensions = Vector3(.25, .25, 1.0)
+        bbox_3d.dimensions = Vector3(self.gate_dimensions[0], self.gate_dimensions[1], self.gate_dimensions[2])
         bbox_pose = Pose()
         #print(feature_centroid.shape)
         x, y, z = list((np.squeeze(centroid)).T)
@@ -188,16 +190,16 @@ class gateDetector:
 
     def vector_to_detection_centroid(self, leftBar, rightBar):
         centerX = (leftBar+rightBar)//2
-        depth_under_surface = 0.5
         K = np.asarray(self.left_camera_info.K).reshape((3, 3))
         fx, fy, cx, cy = K[0, 0], K[1, 1], K[0, 2], K[1, 2]
-        z = self.gate_width*fx/(rightBar - leftBar)
-        centroid_2d = np.asmatrix([centerX, 0.0, z, 1])
-        Q = np.asmatrix([[1, 0, 0, -cx],
-                         [0, 1, 0, -cy],
-                         [0, 0, 0, ],
-                         [0, 0, 0, fx/z]])
-        centroid_3d = Q * centroid_2d
+        z = float(self.gate_width)*fx/float((rightBar - leftBar))
+        x = centerX*self.gate_width/fx
+        centroid_3d = np.asmatrix([x, 0.0, z, 1]).T
+        # Q = np.asmatrix([[z/f, 0, 0, -cx*z/f],
+        #                  [0, 1, 0, -cy],
+        #                  [0, 0, 1, 0],
+        #                  [0, 0, 0, ]])
+        # centroid_3d = Q * centroid_2d
         centroid_3d /= centroid_3d[3]
         return centroid_3d[0:3]
 
@@ -207,7 +209,9 @@ class gateDetector:
             leftBar, rightBar, now = self.findPost(self.stereo_left)
             overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
+            print("Published overlay")
             centroid = self.vector_to_detection_centroid(leftBar, rightBar)
+            print("centroid: " + str(centroid))
             obj_det = self.prepareDetectionRegistration(centroid, now)
             success = self.registration_service(obj_det)
 

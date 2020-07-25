@@ -71,10 +71,13 @@ class Detector_Bucket():
         return tag
 
     def transform_meas_to_world(self, measurement, child_frame, world_frame, time):
-        (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
-        tf = R.from_quat(np.asarray(rot))
-        detection_pos = tf.apply(measurement) + np.asarray(trans)
-        return detection_pos
+        try:
+            (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
+            tf = R.from_quat(np.asarray(rot))
+            detection_pos = tf.apply(measurement) + np.asarray(trans)
+            return detection_pos
+        except:
+            return np.array([np.nan])
 
     def update_detection_arrows(self, bucket_detection, world_frame, robot_position, id):
         pos = bucket_detection.position
@@ -122,6 +125,7 @@ class Detector_Bucket():
     def register_object_detection(self, req):
         bucket_detection = req.objdet
         bbox_3d_detection = bucket_detection.bbox_3d
+        tag = bucket_detection.tag
 
         if self.is_valid_registration(bucket_detection):
             now = bucket_detection.header.stamp
@@ -129,23 +133,36 @@ class Detector_Bucket():
 
             #transform into odom and update the detections (temporary, will be published by SLAM backend in odom frame)
             pos = self.point_to_array(bucket_detection.position)
-            det_in_world = self.array_to_point(self.transform_meas_to_world(pos, child_frame, "/odom", now))
-            bucket_detection.position = det_in_world
-            bbox_3d_detection.pose.position = det_in_world
+            det_in_world = self.transform_meas_to_world(pos, child_frame, "odom", now)
+            if not np.any(np.isnan(det_in_world)):
+                if rospy.has_param(tag + "/location_override_x"):
+                    override = float(rospy.get_param(tag + "/location_override_x"))
+                    det_in_world[0] = override
+                if rospy.has_param(tag + "/location_override_y"):
+                    override = float(rospy.get_param(tag + "/location_override_y"))
+                    det_in_world[1] = override
+                if rospy.has_param(tag + "/location_override_z"):
+                    override = float(rospy.get_param(tag + "/location_override_z"))
+                    det_in_world[2] = override
 
-            #find nearest neighbor, or add new detection
-            det_id = self.find_nearest_neighbor(bucket_detection)
 
-            #always add new detections to the bucket_dict, debouncing dict is filtered output
-            if det_id not in self.debouncing_tracker_dict: #new detection
-                self.debouncing_tracker_dict[det_id] = 1
-            self.bucket_dict[det_id] = (bucket_detection, bbox_3d_detection)
+                det_in_world = self.array_to_point(det_in_world)
+                bucket_detection.position = det_in_world
+                bbox_3d_detection.pose.position = det_in_world
 
-            #only allow detections that persisted for threshold to enter the detections for a time frame
-            if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold:
-                self.debounced_detection_dict[det_id] = (bucket_detection, bbox_3d_detection)
+                #find nearest neighbor, or add new detection
+                det_id = self.find_nearest_neighbor(bucket_detection)
 
-            return True
+                #always add new detections to the bucket_dict, debouncing dict is filtered output
+                if det_id not in self.debouncing_tracker_dict: #new detection
+                    self.debouncing_tracker_dict[det_id] = 1
+                self.bucket_dict[det_id] = (bucket_detection, bbox_3d_detection)
+
+                #only allow detections that persisted for threshold to enter the detections for a time frame
+                if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold:
+                    self.debounced_detection_dict[det_id] = (bucket_detection, bbox_3d_detection)
+
+                return True
         return False
 
     #publish new detections for time stamp to SLAM backend
@@ -171,6 +188,7 @@ class Detector_Bucket():
             #modify the observations to the world frame
             for box in bbox_3d_list_msg.boxes:
                 box.header.frame_id = "odom"
+
             self.bucket_list_pub.publish(bucket_list_msg)
             self.bbox_3d_list_pub.publish(bbox_3d_list_msg)
             self.arrow_pub.publish(self.arrow_dict.values())
