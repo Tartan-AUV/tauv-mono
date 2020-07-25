@@ -11,7 +11,7 @@
     <!-- odom topic to listen on -->
     <arg name="odom_topic" default="odom"/>
     <!-- Planner to use. Possible options: "teleop", "mpc" -->
-    <arg name="planner" default="mpc"/>
+    <arg name="planner" default="teleop"/>
 
     <group ns="gnc">
         <!-- Launch State Estimation -->

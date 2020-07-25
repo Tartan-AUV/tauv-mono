@@ -123,7 +123,6 @@ class Dummy_Detector():
         indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
         final_detections = []
         for i in indices:
-            #print("index: " + str(i))
             i = i[0]
             box = boxes[i]
             x = box[0]
@@ -145,7 +144,7 @@ class Dummy_Detector():
         self.baseline = msg.T
 
     def left_callback(self, msg):
-        self.stereo_left = white_balance(self.cv_bridge.imgmsg_to_cv2(msg, "passthrough"))
+        self.stereo_left = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
         self.left_img_flag = True
 
     def query_depth_map(self, map, pixel):
@@ -189,28 +188,28 @@ class Dummy_Detector():
             detections = self.classify(self.stereo_left)
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)
-                #print(feature_centroid)
-                obj_det = BucketDetection()
-                obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
-                obj_det.tag = str(self.classes[det[0]])
-                bbox_3d = BoundingBox()
-                bbox_3d.dimensions = Vector3(.25, .25, 1.0)
-                bbox_pose = Pose()
-                #print(feature_centroid.shape)
-                x, y, z = list((np.squeeze(feature_centroid)).T)
-                #print(x, y, z)
-                obj_det.position = Point(x, y, z)
-                bbox_pose.position = Point(x, y, z)
-                bbox_3d.pose = bbox_pose
-                bbox_header = Header()
-                bbox_header.frame_id = "duo3d_optical_link_front"
-                bbox_header.stamp = now
-                bbox_3d.header = bbox_header
-                obj_det.bbox_3d = bbox_3d
-                obj_det.header = Header()
-                obj_det.header.frame_id = bbox_header.frame_id
-                obj_det.header.stamp = now
-                success = self.registration_service(obj_det)
+                if not np.any(np.isnan(feature_centroid)):
+                    obj_det = BucketDetection()
+                    obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
+                    obj_det.tag = str(self.classes[det[0]])
+                    bbox_3d = BoundingBox()
+                    bbox_3d.dimensions = Vector3(.25, .25, 1.0)
+                    bbox_pose = Pose()
+                    #print(feature_centroid.shape)
+                    x, y, z = list((np.squeeze(feature_centroid)).T)
+                    #print(x, y, z)
+                    obj_det.position = Point(x, y, z)
+                    bbox_pose.position = Point(x, y, z)
+                    bbox_3d.pose = bbox_pose
+                    bbox_header = Header()
+                    bbox_header.frame_id = "duo3d_optical_link_front"
+                    bbox_header.stamp = now
+                    bbox_3d.header = bbox_header
+                    obj_det.bbox_3d = bbox_3d
+                    obj_det.header = Header()
+                    obj_det.header.frame_id = bbox_header.frame_id
+                    obj_det.header.stamp = now
+                    success = self.registration_service(obj_det)
 
         # if(len(keypoints) > 100):
         #     feature_centroid = self.get_feature_centroid(self.depth_from_disparity(self.disparity), keypoints)

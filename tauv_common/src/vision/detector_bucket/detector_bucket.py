@@ -45,8 +45,8 @@ class Detector_Bucket():
         self.bbox_3d_list = []
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         self.monotonic_det_id = -1
-        self.nn_threshold = .7
-        self.debouncing_threshold = 3
+        self.nn_threshold = .9
+        self.debouncing_threshold = 10
         self.arrow_dict = {}
         self.debouncing_tracker_dict = {}
         self.debounced_detection_dict = {}
@@ -70,16 +70,16 @@ class Detector_Bucket():
         tag = new_detection.tag != ""
         return tag
 
-    def transform_meas_to_world(self, measurement, world_frame, time):
-        (trans, rot) = self.tf.lookupTransform(world_frame, "duo3d_optical_link_front", time)
+    def transform_meas_to_world(self, measurement, child_frame, world_frame, time):
+        (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
         tf = R.from_quat(np.asarray(rot))
         detection_pos = tf.apply(measurement) + np.asarray(trans)
         return detection_pos
 
-    def update_detection_arrows(self, bucket_detection, robot_position, id):
+    def update_detection_arrows(self, bucket_detection, world_frame, robot_position, id):
         pos = bucket_detection.position
         m = Marker()
-        m.header.frame_id = "odom"
+        m.header.frame_id = world_frame
         m.id = id
         m.points = [robot_position, pos]
         m.color.g = 1.0
@@ -98,6 +98,9 @@ class Detector_Bucket():
             new_det_position = np.asarray(np.asarray([bucket_detection.position.x, bucket_detection.position.y, bucket_detection.position.z])).T
             diff = np.asmatrix(new_det_position[:, None] - curr_det_positions)
             mahalanobis_distance = np.sqrt(np.diag(diff.T*np.eye(3)*diff)) #replace with inverse covariance matrix
+            print("curr:" + str(curr_det_positions))
+            print("new:" + str(new_det_position))
+            print("Maha: "+ str(mahalanobis_distance))
             nearest_neighbor = np.argmin(mahalanobis_distance)
             print("[Debounced Detection Tracker]: " + str(self.debouncing_tracker_dict))
             if mahalanobis_distance[nearest_neighbor] < self.nn_threshold: #new detection is already seen by system
@@ -121,12 +124,12 @@ class Detector_Bucket():
         bbox_3d_detection = bucket_detection.bbox_3d
 
         if self.is_valid_registration(bucket_detection):
-            #TODO: update to take the time of the detection
             now = bucket_detection.header.stamp
+            child_frame = bucket_detection.header.frame_id
 
             #transform into odom and update the detections (temporary, will be published by SLAM backend in odom frame)
             pos = self.point_to_array(bucket_detection.position)
-            det_in_world = self.array_to_point(self.transform_meas_to_world(pos, "/odom", now))
+            det_in_world = self.array_to_point(self.transform_meas_to_world(pos, child_frame, "/odom", now))
             bucket_detection.position = det_in_world
             bbox_3d_detection.pose.position = det_in_world
 
@@ -149,12 +152,14 @@ class Detector_Bucket():
     def spin(self, event):
         now = rospy.Time(0)
         if len(self.debounced_detection_dict.keys()) > 0:
-            robot_in_world = self.array_to_point(self.transform_meas_to_world(np.asarray([0, 0, 0]), "odom", now))
 
             #update all the arrows for visualization
             for dd_id in self.debounced_detection_dict:
-                self.update_detection_arrows(self.debounced_detection_dict[dd_id][0], robot_in_world, dd_id)
-
+                d_det = self.debounced_detection_dict[dd_id][0]
+                ts = d_det.header.stamp
+                child_frame = d_det.header.frame_id
+                robot_in_world = self.array_to_point(self.transform_meas_to_world(np.asarray([0, 0, 0]), child_frame, "odom", ts))
+                self.update_detection_arrows(d_det, "odom", robot_in_world, dd_id)
             bucket_list_msg = BucketList()
             bbox_3d_list_msg = BoundingBoxArray()
             bucket_list_msg.header = Header()
