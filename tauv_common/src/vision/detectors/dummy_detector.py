@@ -184,7 +184,7 @@ class Dummy_Detector():
     def prepare_detection_registration(self, centroid, det, now):
         obj_det = BucketDetection()
         obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
-        obj_det.tag = str("vision/object_tags/" + self.classes[det[0]])
+        obj_det.tag = str("object_tags/" + self.classes[det[0]])
         bbox_3d = BoundingBox()
         bbox_3d.dimensions = Vector3(.25, .25, 1.0)
         bbox_pose = Pose()

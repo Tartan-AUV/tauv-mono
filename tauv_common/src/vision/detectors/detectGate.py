@@ -28,7 +28,7 @@ class gateDetector:
         self.imageWidth = 640
         self.imageHeight = 480
         self.maxVal = 2**self.numBits - 1
-        self.gate_dimensions = np.array(rospy.get_param("vision/object_tags/gate/dimensions")).astype(float)
+        self.gate_dimensions = np.array(rospy.get_param("object_tags/gate/dimensions")).astype(float)
         self.gate_width = self.gate_dimensions[1]
 
         self.left_img_flag = False
@@ -168,7 +168,7 @@ class gateDetector:
     def prepareDetectionRegistration(self, centroid, now):
         obj_det = BucketDetection()
         obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
-        obj_det.tag = "vision/object_tags/gate"
+        obj_det.tag = "object_tags/gate"
         bbox_3d = BoundingBox()
         bbox_3d.dimensions = Vector3(self.gate_dimensions[0], self.gate_dimensions[1], self.gate_dimensions[2])
         bbox_pose = Pose()

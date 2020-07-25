@@ -5,7 +5,7 @@ object_tags: {
           total_number: 4
   },
   gate: {
-          dimensions: [ 2.0, .05, 1.0],
+          dimensions: [3.048, .08, 1.0],
           is_static: true,
           total_number: 1,
           location_override_z: -0.5

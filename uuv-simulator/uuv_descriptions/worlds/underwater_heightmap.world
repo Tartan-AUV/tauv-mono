@@ -38,7 +38,7 @@
 
     <include>
       <name>gate1</name>
-      <pose>27.0 -10.0 -.5 0 0 0</pose>
+      <pose>27.0 -10.0 -4.2 0 0 0</pose>
       <uri>model://gate</uri>
     </include>
 
