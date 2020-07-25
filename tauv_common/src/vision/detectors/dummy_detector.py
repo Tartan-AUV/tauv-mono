@@ -124,7 +124,6 @@ class Dummy_Detector():
         indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
         final_detections = []
         for i in indices:
-            #print("index: " + str(i))
             i = i[0]
             box = boxes[i]
             x = box[0]
@@ -146,7 +145,7 @@ class Dummy_Detector():
         self.baseline = msg.T
 
     def left_callback(self, msg):
-        self.stereo_left = white_balance(self.cv_bridge.imgmsg_to_cv2(msg, "passthrough"))
+        self.stereo_left = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
         self.left_img_flag = True
 
     def query_depth_map(self, map, pixel):
@@ -212,9 +211,9 @@ class Dummy_Detector():
             detections, now = self.classify(self.stereo_left)
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)
-                #print(feature_centroid)
                 obj_det = self.prepare_detection_registration(feature_centroid, det, now)
                 success = self.registration_service(obj_det)
+
 
         # if(len(keypoints) > 100):
         #     feature_centroid = self.get_feature_centroid(self.depth_from_disparity(self.disparity), keypoints)
