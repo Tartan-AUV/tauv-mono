@@ -6,6 +6,8 @@
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
     <group ns="vision">
+
+        <rosparam file="$(arg config_pkg)/visual_detection_params.yaml" command="load"/>
         <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" clear_params="true" output="screen">
 <!--            <param name="use_sim_time" value="true" />-->
         </node>

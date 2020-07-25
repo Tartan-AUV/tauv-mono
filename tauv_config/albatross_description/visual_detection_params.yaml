@@ -1,0 +1,12 @@
+object_tags: {
+  fire_hydrant: {
+          dimensions: [.15, .15, .75],
+          is_static: true,
+          total_number: 4
+  },
+  gate: {
+          dimensions: [.05, 2.0, 1.0],
+          is_static: true,
+          total_number: 1
+  }
+}

@@ -67,13 +67,8 @@ class Detector_Bucket():
         return distance
 
     def is_valid_registration(self, new_detection):
-        return True
-        for detections in self.bucket_list:
-            sim_index = self.similarity_index(detections, new_detection)
-            if(sim_index < 1.0): #new landmark
-                #send updated landmark registration to pose_graph
-                return False
-        return True
+        tag = new_detection.tag != ""
+        return tag
 
     def transform_meas_to_world(self, measurement, world_frame, time):
         (trans, rot) = self.tf.lookupTransform(world_frame, "duo3d_optical_link_front", time)
@@ -95,7 +90,7 @@ class Detector_Bucket():
         self.arrow_dict[id] = m
 
     # returns nearest landmark neighbor in bucket or -1 to signify a new marker
-    # Eventually include CBOW and tag information
+    # Eventually include CBOW and prior object information
     def find_nearest_neighbor(self, bucket_detection):
         if len(self.bucket_dict.keys()) > 0:
             curr_det_positions = [self.bucket_dict[id][0].position for id in self.bucket_dict]
@@ -125,32 +120,30 @@ class Detector_Bucket():
         bucket_detection = req.objdet
         bbox_3d_detection = bucket_detection.bbox_3d
 
-        #TODO: update to take the time of the detection
-        now = rospy.Time(0)
+        if self.is_valid_registration(bucket_detection):
+            #TODO: update to take the time of the detection
+            now = bucket_detection.header.stamp
 
-        #transform into odom and update the detections (temporary, will be published by SLAM backend in odom frame)
-        pos = self.point_to_array(bucket_detection.position)
-        det_in_world = self.array_to_point(self.transform_meas_to_world(pos, "/odom", now))
-        bucket_detection.position = det_in_world
-        bbox_3d_detection.pose.position = det_in_world
+            #transform into odom and update the detections (temporary, will be published by SLAM backend in odom frame)
+            pos = self.point_to_array(bucket_detection.position)
+            det_in_world = self.array_to_point(self.transform_meas_to_world(pos, "/odom", now))
+            bucket_detection.position = det_in_world
+            bbox_3d_detection.pose.position = det_in_world
 
-        #find nearest neighbor, or add new detection
-        det_id = self.find_nearest_neighbor(bucket_detection)
+            #find nearest neighbor, or add new detection
+            det_id = self.find_nearest_neighbor(bucket_detection)
 
-        #always add new detections to the bucket_dict, debouncing dict is filtered output
-        if det_id not in self.debouncing_tracker_dict: #new detection
-            self.debouncing_tracker_dict[det_id] = 1
-        self.bucket_dict[det_id] = (bucket_detection, bbox_3d_detection)
+            #always add new detections to the bucket_dict, debouncing dict is filtered output
+            if det_id not in self.debouncing_tracker_dict: #new detection
+                self.debouncing_tracker_dict[det_id] = 1
+            self.bucket_dict[det_id] = (bucket_detection, bbox_3d_detection)
 
-        print(self.debouncing_tracker_dict)
-        print(len(self.debounced_detection_dict.keys()))
+            #only allow detections that persisted for threshold to enter the detections for a time frame
+            if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold:
+                self.debounced_detection_dict[det_id] = (bucket_detection, bbox_3d_detection)
 
-        #only allow detections that persisted for threshold to enter the detections for a time frame
-        if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold:
-            print("Decision: %d" % det_id)
-            self.debounced_detection_dict[det_id] = (bucket_detection, bbox_3d_detection)
-
-        return True
+            return True
+        return False
 
     #publish new detections for time stamp to SLAM backend
     def spin(self, event):
