@@ -28,9 +28,11 @@ class gateDetector:
         self.imageWidth = 640
         self.imageHeight = 480
         self.maxVal = 2**self.numBits - 1
+        self.gate_width = 2.0
 
         self.left_img_flag = False
         self.stereo_left = Image()
+        self.left_camera_info = CameraInfo()
         self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
 
         self.cv_bridge = CvBridge()
@@ -144,6 +146,7 @@ class gateDetector:
         return (firstBar, secondBar)
 
     def findPost(self, img):
+        now = rospy.Time(0)
         (height, width, channels) = img.shape
         self.imageHeight = height 
         self.imageWidth = width
@@ -151,22 +154,62 @@ class gateDetector:
         contrastImg = self.increaseContrast(yuvImg)
         binaryImg = self.getBinary(contrastImg)
         (leftBar, rightBar) = self.getBars(binaryImg)
-        return (leftBar, rightBar)
+        return (leftBar, rightBar, now)
 
+    def camera_info_callback(self, msg):
+        self.left_camera_info = msg
 
     def left_callback(self, msg):
         self.stereo_left = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
         self.left_img_flag = True
 
-    def prepareDetectionRegistration(self):
-        return
+    def prepareDetectionRegistration(self, centroid, now):
+        obj_det = BucketDetection()
+        obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
+        obj_det.tag = str("gate")
+        bbox_3d = BoundingBox()
+        bbox_3d.dimensions = Vector3(.25, .25, 1.0)
+        bbox_pose = Pose()
+        #print(feature_centroid.shape)
+        x, y, z = list((np.squeeze(centroid)).T)
+        #print(x, y, z)
+        obj_det.position = Point(x, y, z)
+        bbox_pose.position = Point(x, y, z)
+        bbox_3d.pose = bbox_pose
+        bbox_header = Header()
+        bbox_header.frame_id = "duo3d_optical_link_front"
+        bbox_header.stamp = now
+        bbox_3d.header = bbox_header
+        obj_det.bbox_3d = bbox_3d
+        obj_det.header = Header()
+        obj_det.header.frame_id = bbox_header.frame_id
+        obj_det.header.stamp = now
+        return obj_det
+
+    def vector_to_detection_centroid(self, leftBar, rightBar):
+        centerX = (leftBar+rightBar)//2
+        depth_under_surface = 0.5
+        K = np.asarray(self.left_camera_info.K).reshape((3, 3))
+        fx, fy, cx, cy = K[0, 0], K[1, 1], K[0, 2], K[1, 2]
+        z = self.gate_width*fx/(rightBar - leftBar)
+        centroid_2d = np.asmatrix([centerX, 0.0, z, 1])
+        Q = np.asmatrix([[1, 0, 0, -cx],
+                         [0, 1, 0, -cy],
+                         [0, 0, 0, ],
+                         [0, 0, 0, fx/z]])
+        centroid_3d = Q * centroid_2d
+        centroid_3d /= centroid_3d[3]
+        return centroid_3d[0:3]
 
     def spin(self, event):
         if(self.left_img_flag):
             self.left_img_flag = False
-            leftBar, rightBar = self.findPost(self.stereo_left)
+            leftBar, rightBar, now = self.findPost(self.stereo_left)
             overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
+            centroid = self.vector_to_detection_centroid(leftBar, rightBar)
+            obj_det = self.prepareDetectionRegistration(centroid, now)
+            success = self.registration_service(obj_det)
 
 
 

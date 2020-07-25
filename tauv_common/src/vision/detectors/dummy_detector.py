@@ -176,7 +176,7 @@ class Dummy_Detector():
         Q = np.asmatrix([[1, 0, 0, -cx],
                          [0, 1, 0, -cy],
                          [0, 0, 0, fx],
-                         [0, 0, -1.0/.03, 0]])
+                         [0, 0, -1.0/self.baseline, 0]])
         centroid_3d = Q * centroid_2d
         centroid_3d /= centroid_3d[3]
         return centroid_3d[0:3]
