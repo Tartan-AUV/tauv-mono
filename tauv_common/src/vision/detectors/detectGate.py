@@ -136,6 +136,10 @@ class gateDetector:
             if elem < firstMinVal: 
                 firstBar = i 
                 firstMinVal = elem 
+        numWhite = firstMinVal/self.maxVal 
+        fillFactor = numWhite/self.imageHeight 
+        if fillFactor > 0.8: 
+            return (None, None)
         secondMinVal = float('inf')
         for i, elem in enumerate(columnSum):
             if elem < secondMinVal and abs(i - firstBar) > barWidth: 
@@ -143,6 +147,7 @@ class gateDetector:
                 secondMinVal = elem 
         if firstBar > secondBar: 
             firstBar, secondBar = secondBar, firstBar
+        
         return (firstBar, secondBar)
 
     def findPost(self, img):
