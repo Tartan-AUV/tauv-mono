@@ -204,8 +204,6 @@ class gateDetector:
             obj_det = self.prepareDetectionRegistration(centroid, now)
             success = self.registration_service(obj_det)
 
-
-
 def main():
     rospy.init_node('gate_detector', anonymous=True)
     myGateDetector = gateDetector()
