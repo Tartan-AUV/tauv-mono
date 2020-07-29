@@ -56,14 +56,14 @@ class Dummy_Detector():
         self.clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
         self.orb = cv2.ORB_create(300)
         self.focal_length = 0.0
-        self.baseline = 0.0
         self.stereo_left = Image()
         self.stereo_right = []
         self.disparity = DisparityImage()
-        self.baseline = 0
+        self.baseline = 0.03
         self.left_camera_info = CameraInfo()
         self.left_img_flag = False
         self.disp_img_flag = False
+        self.left_info_flag = False
         self.rate = rospy.Rate(1)
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         self.marker_id = 0
@@ -138,6 +138,7 @@ class Dummy_Detector():
 
     def camera_info_callback(self, msg):
         self.left_camera_info = msg
+        self.left_info_flag = True
 
     def disparity_callback(self, msg):
         self.disp_img_flag = True
@@ -176,7 +177,7 @@ class Dummy_Detector():
         Q = np.asmatrix([[1, 0, 0, -cx],
                          [0, 1, 0, -cy],
                          [0, 0, 0, fx],
-                         [0, 0, -1.0/self.baseline, 0]])
+                         [0, 0, -1.0/0.03, 0]])
         centroid_3d = Q * centroid_2d
         centroid_3d /= centroid_3d[3]
         return centroid_3d[0:3]
@@ -185,8 +186,11 @@ class Dummy_Detector():
         obj_det = BucketDetection()
         obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
         obj_det.tag = str("object_tags/" + self.classes[det[0]])
+        bbox_dims = np.asarray([1.0, 1.0, 1.0])
+        if rospy.has_param("object_tags/" + self.classes[det[0]] + "/dimensions"):
+            bbox_dims = np.asarray(rospy.get_param("object_tags/" + self.classes[det[0]] + "/dimensions")).astype(float)
         bbox_3d = BoundingBox()
-        bbox_3d.dimensions = Vector3(.25, .25, 1.0)
+        bbox_3d.dimensions = Vector3(bbox_dims[0], bbox_dims[1], bbox_dims[2])
         bbox_pose = Pose()
         #print(feature_centroid.shape)
         x, y, z = list((np.squeeze(centroid)).T)
@@ -205,9 +209,10 @@ class Dummy_Detector():
         return obj_det
 
     def spin(self, event):
-        if(self.left_img_flag and self.disp_img_flag):
+        if(self.left_img_flag and self.disp_img_flag and self.left_info_flag):
             self.left_img_flag = False
             self.disp_img_flag = False
+            self.left_info_flag = False
             detections, now = self.classify(self.stereo_left)
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)

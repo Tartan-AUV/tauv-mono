@@ -8,6 +8,6 @@ object_tags: {
           dimensions: [3.048, .08, 1.0],
           is_static: true,
           total_number: 1,
-          location_override_z: -1.0
+          location_override_z: -1.5
   }
 }

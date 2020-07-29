@@ -29,7 +29,8 @@ class gateDetector:
         self.imageHeight = 480
         self.maxVal = 2**self.numBits - 1
         self.gate_dimensions = np.array(rospy.get_param("object_tags/gate/dimensions")).astype(float)
-        self.gate_width = self.gate_dimensions[1]
+        self.gate_width = self.gate_dimensions[0]
+        self.gate_height = self.gate_dimensions[2]
 
         self.left_img_flag = False
         self.stereo_left = Image()
@@ -42,6 +43,7 @@ class gateDetector:
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         rospy.wait_for_service("detector_bucket/register_object_detection")
         self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetection)
+        self.prev = [None, None]
 
     def openImage (self, path):
         img = cv2.imread(path)
@@ -79,6 +81,9 @@ class gateDetector:
         cv2.line(img1, leftLineTop, leftLineBottom, (0, 255, 0), thickness=2)
         cv2.line(img1, rightLineTop, rightLineBottom, (0, 255, 0), thickness=2)
         cv2.line(img1, centerLineTop, centerLineBottom, (255, 0, 0), thickness=2)
+        pixel_height = np.ceil((rightBar - leftBar)/self.gate_width*self.gate_height)
+        end_coord = (int(rightLineTop[0]), int(rightLineTop[1] + pixel_height))
+        cv2.rectangle(img1, leftLineTop, end_coord, (0, 255, 0), thickness=2)
         return img1
     # Amplify all of the channels in the image allowing for greater visibility 
     # in marine environments 
@@ -138,7 +143,7 @@ class gateDetector:
                 firstMinVal = elem 
         numWhite = firstMinVal/self.maxVal 
         fillFactor = numWhite/self.imageHeight 
-        if fillFactor > 0.8: 
+        if fillFactor > 0.80:
             return (None, None)
         secondMinVal = float('inf')
         for i, elem in enumerate(columnSum):
@@ -147,7 +152,8 @@ class gateDetector:
                 secondMinVal = elem 
         if firstBar > secondBar: 
             firstBar, secondBar = secondBar, firstBar
-        
+        if abs(secondBar - firstBar) < self.imageWidth // 4:
+            return (None, None)
         return (firstBar, secondBar)
 
     def findPost(self, img):
@@ -193,21 +199,28 @@ class gateDetector:
         centerX = (leftBar+rightBar)//2
         K = np.asarray(self.left_camera_info.K).reshape((3, 3))
         fx, fy, cx, cy = K[0, 0], K[1, 1], K[0, 2], K[1, 2]
-        z = float(self.gate_width)*fx/float((rightBar - leftBar))
-        x = centerX*self.gate_width/fx
-        centroid_3d = np.asmatrix([x, 0.0, z, 1]).T
-        centroid_3d /= centroid_3d[3]
+        z = float(self.gate_width)*fx/float(abs(rightBar - leftBar))
+        x = float(centerX - cx)/float(abs(rightBar - leftBar))*float(self.gate_width)
+        centroid_3d = np.asmatrix([x, -cy, z, 1]).T
+        # centroid_3d /= centroid_3d[3]
         return centroid_3d[0:3]
 
     def spin(self, event):
         if(self.left_img_flag):
             self.left_img_flag = False
             leftBar, rightBar, now = self.findPost(self.stereo_left)
-            overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
+            overlayedImage = self.stereo_left
+            if leftBar != None and rightBar != None:
+                if self.prev[0] == None or self.prev[1] == None:
+                    self.prev = (leftBar, rightBar)
+                else:
+                    leftBar, rightBar = (int((self.prev[0] + leftBar)//2), int((self.prev[1] + rightBar)//2))
+                    self.prev = (leftBar, rightBar)
+                overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
+                centroid = self.vector_to_detection_centroid(leftBar, rightBar)
+                obj_det = self.prepareDetectionRegistration(centroid, now)
+                success = self.registration_service(obj_det)
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
-            centroid = self.vector_to_detection_centroid(leftBar, rightBar)
-            obj_det = self.prepareDetectionRegistration(centroid, now)
-            success = self.registration_service(obj_det)
 
 def main():
     rospy.init_node('gate_detector', anonymous=True)

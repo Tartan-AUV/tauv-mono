@@ -46,10 +46,11 @@ class Detector_Bucket():
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         self.monotonic_det_id = -1
         self.nn_threshold = .9
-        self.debouncing_threshold = 10
+        self.debouncing_threshold = 15
         self.arrow_dict = {}
         self.debouncing_tracker_dict = {}
         self.debounced_detection_dict = {}
+        self.total_number_detection_dict = {}
 
     def similarity_index(self, detection_1, detection_2):
         point_1 = np.asarray([detection_1.position.x, detection_1.position.y, detection_1.position.z])
@@ -107,6 +108,8 @@ class Detector_Bucket():
             print("Maha: "+ str(mahalanobis_distance))
             nearest_neighbor = np.argmin(mahalanobis_distance)
             print("[Debounced Detection Tracker]: " + str(self.debouncing_tracker_dict))
+            tag = bucket_detection.tag
+
             if mahalanobis_distance[nearest_neighbor] < self.nn_threshold: #new detection is already seen by system
                 self.debouncing_tracker_dict[nearest_neighbor] += 1
                 return nearest_neighbor
@@ -158,9 +161,17 @@ class Detector_Bucket():
                     self.debouncing_tracker_dict[det_id] = 1
                 self.bucket_dict[det_id] = (bucket_detection, bbox_3d_detection)
 
+                total_number = float('Inf')
+                if rospy.has_param(tag + "/total_number"):
+                    total_number = float(rospy.get_param(tag + "/total_number"))
+
                 #only allow detections that persisted for threshold to enter the detections for a time frame
-                if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold:
+                if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold and self.total_number_detection_dict.get(bucket_detection.tag, 0) <= total_number:
                     self.debounced_detection_dict[det_id] = (bucket_detection, bbox_3d_detection)
+                    if bucket_detection.tag not in self.total_number_detection_dict:
+                        self.total_number_detection_dict[bucket_detection.tag] = 1
+                    else:
+                        self.total_number_detection_dict[bucket_detection.tag] += 1
                 return True
         return False
 
