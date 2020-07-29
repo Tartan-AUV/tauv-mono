@@ -166,12 +166,13 @@ class Detector_Bucket():
                     total_number = float(rospy.get_param(tag + "/total_number"))
 
                 #only allow detections that persisted for threshold to enter the detections for a time frame
-                if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold and self.total_number_detection_dict.get(bucket_detection.tag, 0) <= total_number:
+                if self.debouncing_tracker_dict[det_id] > self.debouncing_threshold:
+                    #and self.total_number_detection_dict.get(bucket_detection.tag, 0) <= total_number:
                     self.debounced_detection_dict[det_id] = (bucket_detection, bbox_3d_detection)
                     if bucket_detection.tag not in self.total_number_detection_dict:
-                        self.total_number_detection_dict[bucket_detection.tag] = 1
+                        self.total_number_detection_dict[bucket_detection.tag + str(det_id)] = 1
                     else:
-                        self.total_number_detection_dict[bucket_detection.tag] += 1
+                        self.total_number_detection_dict[bucket_detection.tag + ] += 1
                 return True
         return False
 
