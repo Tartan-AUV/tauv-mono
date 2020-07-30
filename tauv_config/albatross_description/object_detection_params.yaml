@@ -1,3 +1,14 @@
+detectors: {
+  total_number: 2,
+  names: ["yolov3", "gate"],
+  yolov3: {
+          type: "vision"
+  },
+  gate: {
+          type: "vision"
+  }
+}
+
 object_tags: {
   fire_hydrant: {
           dimensions: [.15, .15, .75],

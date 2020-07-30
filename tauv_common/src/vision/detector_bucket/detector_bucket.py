@@ -1,9 +1,7 @@
 # detector_bucket
 #
 # This node is the for aggregating the detections from the vision pipeline.
-# The information in the bucket will be broadcast to the mission nodes and used for tasks.
-# Main outputs are a 3D Bounding Box array and a list of bucket detections for mission nodes
-# New detections will be added to observations using a pose graph.
+# Input: Detection
 #
 # Author: Advaith Sethuraman 2020
 
@@ -15,6 +13,7 @@ import tf_conversions
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
+from detector_bucket_utils import *
 from sensor_msgs.msg import Imu
 from std_msgs.msg import Header
 from stereo_msgs.msg import DisparityImage
@@ -28,9 +27,6 @@ from tauv_common.srv import RegisterObjectDetection, RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 
-
-
-
 class Detector_Bucket():
     def __init__(self):
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
@@ -38,6 +34,10 @@ class Detector_Bucket():
         self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, \
                                               self.register_object_detection)
         self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
+        self.num_daemons = 1
+        self.daemon_names = ["default"]
+        self.daemon_dict = {self.daemon_names[0]: Detector_Daemon(self.daemon_names[0])}
+
         self.tf = tf.TransformListener()
         self.cv_bridge = CvBridge()
         self.refresh_rate = 0
@@ -54,22 +54,12 @@ class Detector_Bucket():
         self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 
-
-
-    def similarity_index(self, detection_1, detection_2):
-        point_1 = np.asarray([detection_1.position.x, detection_1.position.y, detection_1.position.z])
-        point_2 = np.asarray([detection_2.position.x, detection_2.position.y, detection_2.position.z])
-        orb = cv2.ORB_create(300)
-        image_1 = self.cv_bridge.imgmsg_to_cv2(detection_1.image, "passthrough")
-        image_2 = self.cv_bridge.imgmsg_to_cv2(detection_2.image, "passthrough")
-        k1, d1 = orb.detectAndCompute(image_1, None)
-        k2, d2 = orb.detectAndCompute(image_2, None)
-        matcher = cv2.BFMatcher()
-        matches = matcher.match(d1,d2)
-
-        distance = (point_1 - point_2).dot((point_1 - point_2).T)
-
-        return distance
+    def init_daemons(self):
+        if rospy.has_param("detectors/total_number"):
+            self.num_daemons = int(rospy.get_param("detectors/total_number"))
+            self.daemon_names = rospy.get_param("detectors/names")
+        self.daemon_dict = {name: Detector_Daemon(name) for name in self.daemon_names}
+        
 
     def is_valid_registration(self, new_detection):
         tag = new_detection.tag != ""

@@ -180,6 +180,7 @@ class gateDetector:
         obj_det = BucketDetection()
         obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
         obj_det.tag = "object_tags/gate"
+        obj_det.detector_tag = "detectors/gate"
         bbox_3d = BoundingBox()
         bbox_3d.dimensions = Vector3(self.gate_dimensions[0], self.gate_dimensions[1], self.gate_dimensions[2])
         bbox_pose = Pose()

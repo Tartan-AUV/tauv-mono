@@ -186,6 +186,7 @@ class Dummy_Detector():
         obj_det = BucketDetection()
         obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
         obj_det.tag = str("object_tags/" + self.classes[det[0]])
+        obj_det.detector_tag = "detectors/yolov3"
         bbox_dims = np.asarray([1.0, 1.0, 1.0])
         if rospy.has_param("object_tags/" + self.classes[det[0]] + "/dimensions"):
             bbox_dims = np.asarray(rospy.get_param("object_tags/" + self.classes[det[0]] + "/dimensions")).astype(float)
