@@ -23,8 +23,8 @@ from geometry_msgs.msg import *
 from nav_msgs.msg import Odometry
 from tf.transformations import *
 from geometry_msgs.msg import Quaternion
-from tauv_msgs.msg import BucketDetection, BucketList
-from tauv_common.srv import RegisterObjectDetection
+from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
+from tauv_common.srv import RegisterObjectDetection, RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 
@@ -45,12 +45,16 @@ class Detector_Bucket():
         self.bbox_3d_list = []
         self.monotonic_det_id = -1
         self.nn_threshold = .9
-        self.debouncing_threshold = 15
+        self.debouncing_threshold = 10
         self.arrow_dict = {}
         self.debouncing_tracker_dict = {}
         self.debounced_detection_dict = {}
         self.total_number_detection_dict = {}
+        rospy.wait_for_service("/gnc/pose_graph/register_measurement")
+        self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
+
+
 
     def similarity_index(self, detection_1, detection_2):
         point_1 = np.asarray([detection_1.position.x, detection_1.position.y, detection_1.position.z])
@@ -102,12 +106,12 @@ class Detector_Bucket():
             new_det_position = np.asarray(np.asarray([bucket_detection.position.x, \
                                                       bucket_detection.position.y, bucket_detection.position.z])).T
             diff = np.asmatrix(new_det_position[:, None] - curr_det_positions)
-            mahalanobis_distance = np.sqrt(np.diag(diff.T*np.eye(3)*diff)) #replace with inverse covariance matrix
-            print("curr:" + str(curr_det_positions))
-            print("new:" + str(new_det_position))
-            print("Maha: "+ str(mahalanobis_distance))
+            mahalanobis_distance = np.sqrt(np.diag(diff.T*np.diag([.3, .3, .3])*diff)) #replace with inverse covariance matrix
+            # print("curr:" + str(curr_det_positions))
+            # print("new:" + str(new_det_position))
+            # print("Maha: "+ str(mahalanobis_distance))
             nearest_neighbor = np.argmin(mahalanobis_distance)
-            print("[Debounced Detection Tracker]: " + str(self.debouncing_tracker_dict))
+            # print("[Debounced Detection Tracker]: " + str(self.debouncing_tracker_dict))
             tag = bucket_detection.tag
 
             if mahalanobis_distance[nearest_neighbor] < self.nn_threshold: #new detection is already seen by system
@@ -178,6 +182,7 @@ class Detector_Bucket():
 
     #publish new detections for time stamp to SLAM backend
     def spin(self, event):
+        print("IN SPIN")
         now = rospy.Time(0)
         if len(self.debounced_detection_dict.keys()) > 0:
 
@@ -188,6 +193,11 @@ class Detector_Bucket():
                 child_frame = d_det.header.frame_id
                 robot_in_world = self.array_to_point(self.transform_meas_to_world(np.asarray([0, 0, 0]), child_frame, "odom", ts))
                 self.update_detection_arrows(d_det, "odom", robot_in_world, dd_id)
+                pg_meas = PoseGraphMeasurement()
+                pg_meas.header = d_det.header
+                pg_meas.position = d_det.position
+                pg_meas.landmark_id = dd_id
+                success = self.meas_reg_service(pg_meas)
             bucket_list_msg = BucketList()
             bbox_3d_list_msg = BoundingBoxArray()
             bucket_list_msg.header = Header()
@@ -203,6 +213,7 @@ class Detector_Bucket():
             self.bucket_list_pub.publish(bucket_list_msg)
             self.bbox_3d_list_pub.publish(bbox_3d_list_msg)
             self.arrow_pub.publish(self.arrow_dict.values())
+
         return
 
 def main():

@@ -21,8 +21,8 @@ from geometry_msgs.msg import *
 from nav_msgs.msg import Odometry
 from tf.transformations import *
 from geometry_msgs.msg import Quaternion
-from tauv_msgs.msg import BucketDetection, BucketList
-from tauv_common.srv import RegisterObjectDetection
+from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
+from tauv_common.srv import RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 
@@ -61,7 +61,39 @@ class Pose_Graph():
         self.marker_pub = rospy.Publisher("pose_marker", MarkerArray, queue_size=10)
         self.marker_dict = {}
         self.marker_id = 0
+        self.new_measurement = False
+        self.measurement_server = rospy.Service("pose_graph/register_measurement", RegisterMeasurement, \
+                                              self.register_measurement)
         self.marker_callback = rospy.Timer(rospy.Duration(.1), self.publish_sampled_odom_poses)
+
+    def array_to_point(self, arr):
+        p = Point()
+        p.x = arr[0]
+        p.y = arr[1]
+        p.z = arr[2]
+        return p
+
+    def point_to_array(self, point):
+        return np.asarray([point.x, point.y, point.z])
+
+    def transform_meas_to_frame(self, measurement, child_frame, world_frame, time):
+        try:
+            (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
+            tf = R.from_quat(np.asarray(rot))
+            detection_pos = tf.apply(measurement) + np.asarray(trans)
+            return detection_pos
+        except:
+            return np.array([np.nan])
+
+    def register_measurement(self, req):
+        print("In server")
+        meas = req.pg_meas
+        pos = meas.position
+        id = meas.landmark_id
+        pos = np.asarray([pos.x, pos.y, pos.z])
+        print(pos, id)
+        return True
+
 
     def add_pose_node(self):
         #adds a new pose after a given space/time
@@ -85,7 +117,11 @@ class Pose_Graph():
 
     def publish_sampled_odom_poses(self, event):
         now = rospy.Time(0)
-        (trans, rot) = self.tf.lookupTransform("odom", "base_link", now)
+        try:
+            (trans, rot) = self.tf.lookupTransform("odom", "base_link", now)
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            return
+
         pos = np.asarray(trans)
         self.create_marker(pos, self.marker_id % 50)
         self.marker_id += 1

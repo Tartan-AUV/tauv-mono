@@ -26,6 +26,7 @@ add_service_files(
     SetThrusterManagerConfig.srv
     GetThrusterManagerConfig.srv
     RegisterObjectDetection.srv
+    RegisterMeasurement.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
