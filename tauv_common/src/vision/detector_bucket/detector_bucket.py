@@ -156,6 +156,8 @@ class Detector_Bucket():
                 det_in_world = self.array_to_point(det_in_world)
                 bucket_detection.position = det_in_world
                 bbox_3d_detection.pose.position = det_in_world
+                bucket_detection.header.frame_id = "odom"
+                bbox_3d_detection.header.frame_id = "odom"
 
                 #find nearest neighbor, or add new detection
                 det_id = self.find_nearest_neighbor(bucket_detection)
@@ -191,13 +193,15 @@ class Detector_Bucket():
                 d_det = self.debounced_detection_dict[dd_id][0]
                 ts = d_det.header.stamp
                 child_frame = d_det.header.frame_id
-                robot_in_world = self.array_to_point(self.transform_meas_to_world(np.asarray([0, 0, 0]), child_frame, "odom", ts))
+                robot_in_world = self.array_to_point(self.transform_meas_to_world(np.asarray([0, 0, 0]), "base_link", "odom", ts))
                 self.update_detection_arrows(d_det, "odom", robot_in_world, dd_id)
                 pg_meas = PoseGraphMeasurement()
                 pg_meas.header = d_det.header
+                pg_meas.header.stamp = ts
                 pg_meas.position = d_det.position
                 pg_meas.landmark_id = dd_id
                 success = self.meas_reg_service(pg_meas)
+
             bucket_list_msg = BucketList()
             bbox_3d_list_msg = BoundingBoxArray()
             bucket_list_msg.header = Header()
@@ -205,10 +209,6 @@ class Detector_Bucket():
             bbox_3d_list_msg.header = Header()
             bbox_3d_list_msg.header.frame_id = "odom"
             bbox_3d_list_msg.boxes = [self.debounced_detection_dict[id][1] for id in self.debounced_detection_dict]
-
-            #modify the observations to the world frame
-            for box in bbox_3d_list_msg.boxes:
-                box.header.frame_id = "odom"
 
             self.bucket_list_pub.publish(bucket_list_msg)
             self.bbox_3d_list_pub.publish(bbox_3d_list_msg)

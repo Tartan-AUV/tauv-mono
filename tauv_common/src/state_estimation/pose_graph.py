@@ -88,9 +88,9 @@ class Pose_Graph():
     def register_measurement(self, req):
         print("In server")
         meas = req.pg_meas
-        pos = meas.position
+        pos = self.point_to_array(meas.position)
         id = meas.landmark_id
-        pos = np.asarray([pos.x, pos.y, pos.z])
+        pos = np.asarray(self.transform_meas_to_frame(pos, meas.header.frame_id, "base_link", meas.header.stamp))
         print(pos, id)
         return True
 
