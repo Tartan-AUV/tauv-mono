@@ -38,12 +38,14 @@ class gateDetector:
         self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
 
+        self.prev = [None, None]
         self.cv_bridge = CvBridge()
         self.gate_detection_pub = rospy.Publisher("gate_detections", Image, queue_size=10)
-        self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         rospy.wait_for_service("detector_bucket/register_object_detection")
         self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetection)
-        self.prev = [None, None]
+        self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
+
+
 
     def openImage (self, path):
         img = cv2.imread(path)
@@ -212,10 +214,10 @@ class gateDetector:
             overlayedImage = self.stereo_left
             if leftBar != None and rightBar != None:
                 if self.prev[0] == None or self.prev[1] == None:
-                    self.prev = (leftBar, rightBar)
+                    self.prev = [leftBar, rightBar]
                 else:
                     leftBar, rightBar = (int((self.prev[0] + leftBar)//2), int((self.prev[1] + rightBar)//2))
-                    self.prev = (leftBar, rightBar)
+                    self.prev = [leftBar, rightBar]
                 overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
                 centroid = self.vector_to_detection_centroid(leftBar, rightBar)
                 obj_det = self.prepareDetectionRegistration(centroid, now)

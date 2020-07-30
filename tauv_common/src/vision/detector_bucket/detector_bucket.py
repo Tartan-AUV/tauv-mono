@@ -43,7 +43,6 @@ class Detector_Bucket():
         self.refresh_rate = 0
         self.bucket_dict = dict()
         self.bbox_3d_list = []
-        self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         self.monotonic_det_id = -1
         self.nn_threshold = .9
         self.debouncing_threshold = 15
@@ -51,6 +50,7 @@ class Detector_Bucket():
         self.debouncing_tracker_dict = {}
         self.debounced_detection_dict = {}
         self.total_number_detection_dict = {}
+        self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 
     def similarity_index(self, detection_1, detection_2):
         point_1 = np.asarray([detection_1.position.x, detection_1.position.y, detection_1.position.z])
@@ -170,9 +170,9 @@ class Detector_Bucket():
                     #and self.total_number_detection_dict.get(bucket_detection.tag, 0) <= total_number:
                     self.debounced_detection_dict[det_id] = (bucket_detection, bbox_3d_detection)
                     if bucket_detection.tag not in self.total_number_detection_dict:
-                        self.total_number_detection_dict[bucket_detection.tag + str(det_id)] = 1
+                        self.total_number_detection_dict[bucket_detection.tag] = 1
                     else:
-                        self.total_number_detection_dict[bucket_detection.tag + ] += 1
+                        self.total_number_detection_dict[bucket_detection.tag] += 1
                 return True
         return False
 
@@ -208,7 +208,6 @@ class Detector_Bucket():
 def main():
     rospy.init_node('detector_bucket', anonymous=True)
     detector_bucket = Detector_Bucket()
-    rospy.Timer(rospy.Duration(.1), detector_bucket.spin)
     rospy.spin()
 
 
