@@ -25,7 +25,7 @@ add_service_files(
     ThrusterManagerInfo.srv
     SetThrusterManagerConfig.srv
     GetThrusterManagerConfig.srv
-    RegisterObjectDetection.srv
+    RegisterObjectDetections.srv
     RegisterMeasurement.srv
 )
 

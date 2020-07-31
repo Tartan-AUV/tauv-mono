@@ -8,5 +8,4 @@ sensor_msgs/Image image
 vision_msgs/BoundingBox2D bbox_2d
 jsk_recognition_msgs/BoundingBox bbox_3d
 string tag
-string detector_tag
 uint32 detection_number

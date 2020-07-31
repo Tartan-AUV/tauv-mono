@@ -22,7 +22,7 @@ from tf.transformations import *
 from std_msgs.msg import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList
-from tauv_common.srv import RegisterObjectDetection
+from tauv_common.srv import RegisterObjectDetections
 from scipy.spatial.transform import Rotation as R
 
 
@@ -38,7 +38,7 @@ def white_balance(img):
 class Dummy_Detector():
     def __init__(self):
         rospy.wait_for_service("detector_bucket/register_object_detection")
-        self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetection)
+        self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetections)
         self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
         self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
@@ -215,10 +215,11 @@ class Dummy_Detector():
             self.disp_img_flag = False
             self.left_info_flag = False
             detections, now = self.classify(self.stereo_left)
+            det_packet = []
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)
-                obj_det = self.prepare_detection_registration(feature_centroid, det, now)
-                success = self.registration_service(obj_det)
+                det_packet.append(self.prepare_detection_registration(feature_centroid, det, now))
+            success = self.registration_service(det_packet)
 
 
         # if(len(keypoints) > 100):

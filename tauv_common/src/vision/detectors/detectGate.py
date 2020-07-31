@@ -18,7 +18,7 @@ from tf.transformations import *
 from std_msgs.msg import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList
-from tauv_common.srv import RegisterObjectDetection
+from tauv_common.srv import RegisterObjectDetections
 from scipy.spatial.transform import Rotation as R
 
 
@@ -42,7 +42,7 @@ class gateDetector:
         self.cv_bridge = CvBridge()
         self.gate_detection_pub = rospy.Publisher("gate_detections", Image, queue_size=10)
         rospy.wait_for_service("detector_bucket/register_object_detection")
-        self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetection)
+        self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetections)
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 
 
@@ -222,7 +222,7 @@ class gateDetector:
                 overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
                 centroid = self.vector_to_detection_centroid(leftBar, rightBar)
                 obj_det = self.prepareDetectionRegistration(centroid, now)
-                success = self.registration_service(obj_det)
+                success = self.registration_service([obj_det])
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
 
 def main():

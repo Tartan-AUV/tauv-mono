@@ -23,7 +23,7 @@ from nav_msgs.msg import Odometry
 from tf.transformations import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
-from tauv_common.srv import RegisterObjectDetection, RegisterMeasurement
+from tauv_common.srv import RegisterObjectDetections, RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 
@@ -31,12 +31,16 @@ class Detector_Bucket():
     def __init__(self):
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
         self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
-        self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, \
+        self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetections, \
                                               self.register_object_detection)
         self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
+
         self.num_daemons = 1
         self.daemon_names = ["default"]
         self.daemon_dict = {self.daemon_names[0]: Detector_Daemon(self.daemon_names[0])}
+        if not self.init_daemons():
+            rospy.logerr("[Detector Bucket]: Unable to initialize detector daemons, invalid information!")
+
 
         self.tf = tf.TransformListener()
         self.cv_bridge = CvBridge()
@@ -50,16 +54,18 @@ class Detector_Bucket():
         self.debouncing_tracker_dict = {}
         self.debounced_detection_dict = {}
         self.total_number_detection_dict = {}
-        rospy.wait_for_service("/gnc/pose_graph/register_measurement")
-        self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
+
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 
     def init_daemons(self):
         if rospy.has_param("detectors/total_number"):
             self.num_daemons = int(rospy.get_param("detectors/total_number"))
             self.daemon_names = rospy.get_param("detectors/names")
-        self.daemon_dict = {name: Detector_Daemon(name) for name in self.daemon_names}
-        
+            self.daemon_dict = {name: Detector_Daemon(name, ii) for ii, name in enumerate(self.daemon_names)}
+            return True
+        else:
+            return False
+
 
     def is_valid_registration(self, new_detection):
         tag = new_detection.tag != ""
@@ -120,7 +126,17 @@ class Detector_Bucket():
     def point_to_array(self, point):
         return np.asarray([point.x, point.y, point.z])
 
+    def update_daemon_service(self, req):
+        data_frame = req.objdets
+        daemon_name = req.detector_tag
+        daemon = self.daemon_dict[daemon_name]
+        daemon.mutex.acquire()
+        daemon.update_detection_buffer(data_frame)
+        daemon.mutex.release()
+
+    #update the daemons here, need to update to handle lists of detections
     def register_object_detection(self, req):
+        return True
         bucket_detection = req.objdet
         bbox_3d_detection = bucket_detection.bbox_3d
         tag = bucket_detection.tag
@@ -174,7 +190,6 @@ class Detector_Bucket():
 
     #publish new detections for time stamp to SLAM backend
     def spin(self, event):
-        print("IN SPIN")
         now = rospy.Time(0)
         if len(self.debounced_detection_dict.keys()) > 0:
 
