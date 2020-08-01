@@ -128,6 +128,9 @@ class Detector_Daemon():
         self.new_data = False
 
         self.debouncing_threshold = 10
+        if rospy.has_param("detectors/" + self.detector_name + "/debouncing_threshold"):
+            rospy.loginfo("[Detector Daemon]: %s. Obtained debouncing threshold", self.detector_name)
+            self.debouncing_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/debouncing_threshold"))
         self.tracker_list = []
         self.trackers_to_publish = {}
 
