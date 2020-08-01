@@ -39,6 +39,7 @@ def array_to_point(arr):
 def point_to_array(point):
     return np.asarray([point.x, point.y, point.z])
 
+# constant position Kalman Filter for stationary object tracking
 class Detection_Tracker_Kalman():
     def __init__(self):
         self.id = -1
@@ -60,13 +61,13 @@ class Detection_Tracker_Kalman():
                               [0, 0, 1]])  # z = zz
 
         # State covariance, initialize to very large number
-        self.P = 10000*np.eye(3)
+        self.P = 100000*np.eye(3)
 
         # Process noise covariance
         self.Q = .0001*np.eye(3)
 
         # Measurement covariance (x,y,z), assume the sensor is very noisy
-        self.R = 10000*np.eye(3)
+        self.R = 100000*np.eye(3)
 
         #need a override covariance for when no measurements are available
         self.R_override = (10**10)*np.eye(3)
@@ -126,7 +127,7 @@ class Detector_Daemon():
         self.detection_buffer = []
         self.new_data = False
 
-        self.debouncing_threshold = 3
+        self.debouncing_threshold = 10
         self.tracker_list = []
         self.trackers_to_publish = {}
 
@@ -134,14 +135,14 @@ class Detector_Daemon():
         self.marker_dict = {}
 
     def update_detection_buffer(self, data_frame):
-        rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
+        #rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
         self.detection_buffer.append(data_frame)
         self.new_data = True
 
     # performs assignment to trackers and detections
     # returns (matches, unmatched detections, unmatched trackers)
     def map_det_to_tracker(self, trackers, dets):
-        rospy.loginfo("Finding map function in %s daemon", self.detector_name)
+        #rospy.loginfo("Finding map function in %s daemon", self.detector_name)
         trackers_len = len(trackers)
         dets_len = len(dets)
 
@@ -260,7 +261,7 @@ class Detector_Daemon():
                             temp_tracker_holder.append(new_x[0])
 
                     if len(unmatch_tracks) > 0:
-                        #print("INE 3")
+                        print("INE 3")
                         for tracker_ind in unmatch_tracks:
                             tracker = self.tracker_list[tracker_ind]
                             #print("LOST TRACKLER" + str(tracker_ind) + str(tracker.estimated_point))
@@ -283,7 +284,7 @@ class Detector_Daemon():
                         pos = self.trackers_to_publish[tracker][1]
                         self.create_marker(pos, tracker)
                     self.marker_pub.publish(self.marker_dict.values())
-                    print(self.trackers_to_publish)
+                    #print(self.trackers_to_publish)
                     #TODO: transfrom all the detections back into the sensor frame before publishing to pose_graph
             self.new_data = False
 
@@ -291,15 +292,15 @@ class Detector_Daemon():
         m = Marker()
         m.header.frame_id = "odom"
         m.id = id
-        m.type = 2
+        m.type = 1
         m.pose.position.x = pos[0]
         m.pose.position.y = pos[1]
         m.pose.position.z = pos[2]
         m.color.g = 1.0
         m.color.a = 1.0
-        m.scale.x = 1
-        m.scale.y = 1
-        m.scale.z = 1
+        m.scale.x = .5
+        m.scale.y = .5
+        m.scale.z = .5
         self.marker_dict[id] = m
 
 

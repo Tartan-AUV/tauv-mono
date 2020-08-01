@@ -24,16 +24,8 @@ from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList
 from tauv_common.srv import RegisterObjectDetections
 from scipy.spatial.transform import Rotation as R
+import time
 
-
-def white_balance(img):
-    result = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-    avg_a = np.average(result[:, :, 1])
-    avg_b = np.average(result[:, :, 2])
-    result[:, :, 1] = result[:, :, 1] - ((avg_a - 128) * (result[:, :, 0] / 255.0) * 1.1)
-    result[:, :, 2] = result[:, :, 2] - ((avg_b - 128) * (result[:, :, 0] / 255.0) * 1.1)
-    result = cv2.cvtColor(result, cv2.COLOR_LAB2BGR)
-    return result
 
 class Dummy_Detector():
     def __init__(self):
@@ -42,7 +34,7 @@ class Dummy_Detector():
         self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
         self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
-        self.left_camera_detections = rospy.Publisher("front_detections", Image, queue_size=10)
+        self.left_camera_detections = rospy.Publisher("cnn_detections", Image, queue_size=10)
         self.detector_id = "yolov3"
         self.weights = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights"
         self.config = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg"
@@ -98,7 +90,10 @@ class Dummy_Detector():
         scale = 0.00392
         blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)
         self.net.setInput(blob)
+        a = time.time()
         outs = self.net.forward(self.get_output_layers())
+        b = time.time()
+        rospy.loginfo("Detection in: %f", b-a)
         class_ids = []
         confidences = []
         boxes = []
@@ -213,7 +208,9 @@ class Dummy_Detector():
             self.left_img_flag = False
             self.disp_img_flag = False
             self.left_info_flag = False
+
             detections, now = self.classify(self.stereo_left)
+
             det_packet = []
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)

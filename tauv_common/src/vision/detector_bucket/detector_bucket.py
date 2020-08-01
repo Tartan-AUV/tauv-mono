@@ -37,11 +37,11 @@ class Detector_Bucket():
         self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
 
         self.num_daemons = 1
-        self.daemon_names = ["default"]
-        self.daemon_dict = {self.daemon_names[0]: Detector_Daemon(self.daemon_names[0], -1)}
+        self.daemon_names = None
+        self.daemon_dict = {}
         if not self.init_daemons():
             rospy.logerr("[Detector Bucket]: Unable to initialize detector daemons, invalid information!")
-        rospy.loginfo("[Detector Bucket]: Bringing Daemons: " + str(self.daemon_names))
+        rospy.loginfo("[Detector Bucket]: Summoning Daemons: " + str(self.daemon_names))
         self.tf = tf.TransformListener()
         self.cv_bridge = CvBridge()
         self.refresh_rate = 0
@@ -94,17 +94,6 @@ class Detector_Bucket():
         m.scale.y = .05
         m.scale.z = .05
         self.arrow_dict[id] = m
-
-
-    def array_to_point(self, arr):
-        p = Point()
-        p.x = arr[0]
-        p.y = arr[1]
-        p.z = arr[2]
-        return p
-
-    def point_to_array(self, point):
-        return np.asarray([point.x, point.y, point.z])
 
     def update_daemon_service(self, req):
         data_frame = req.objdets

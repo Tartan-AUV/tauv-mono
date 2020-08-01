@@ -3,11 +3,11 @@ detectors: {
   names: ["yolov3", "gate"],
   yolov3: {
           type: "vision",
-          mahalanobis_threshold: 2.0
+          mahalanobis_threshold: 4.0
   },
   gate: {
           type: "vision",
-          mahalanobis_threshold: 5.0
+          mahalanobis_threshold: 3.0
   }
 }
 

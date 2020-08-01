@@ -206,6 +206,8 @@ class gateDetector:
         x = float(centerX - cx)/float(abs(rightBar - leftBar))*float(self.gate_width)
         centroid_3d = np.asmatrix([x, -cy, z, 1]).T
         # centroid_3d /= centroid_3d[3]
+        if z < 4.0:
+            return np.asmatrix([0, 0, 0])
         return centroid_3d[0:3]
 
     def spin(self, event):
@@ -221,8 +223,12 @@ class gateDetector:
                     self.prev = [leftBar, rightBar]
                 overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
                 centroid = self.vector_to_detection_centroid(leftBar, rightBar)
-                obj_det = self.prepareDetectionRegistration(centroid, now)
-                success = self.registration_service([obj_det], self.detector_name)
+                if np.all(centroid == [0, 0, 0]):
+                    rospy.loginfo("Ignoring det")
+                    pass
+                else:
+                    obj_det = self.prepareDetectionRegistration(centroid, now)
+                    success = self.registration_service([obj_det], self.detector_name)
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
 
 def main():
