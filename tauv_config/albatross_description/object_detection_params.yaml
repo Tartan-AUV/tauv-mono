@@ -2,10 +2,12 @@ detectors: {
   total_number: 2,
   names: ["yolov3", "gate"],
   yolov3: {
-          type: "vision"
+          type: "vision",
+          mahalanobis_threshold: 2.0
   },
   gate: {
-          type: "vision"
+          type: "vision",
+          mahalanobis_threshold: 5.0
   }
 }
 

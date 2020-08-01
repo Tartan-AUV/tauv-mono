@@ -43,7 +43,7 @@ class Dummy_Detector():
         self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
         self.left_camera_detections = rospy.Publisher("front_detections", Image, queue_size=10)
-
+        self.detector_id = "yolov3"
         self.weights = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights"
         self.config = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg"
         self.classes_list = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
@@ -186,7 +186,6 @@ class Dummy_Detector():
         obj_det = BucketDetection()
         obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
         obj_det.tag = str("object_tags/" + self.classes[det[0]])
-        obj_det.detector_tag = "detectors/yolov3"
         bbox_dims = np.asarray([1.0, 1.0, 1.0])
         if rospy.has_param("object_tags/" + self.classes[det[0]] + "/dimensions"):
             bbox_dims = np.asarray(rospy.get_param("object_tags/" + self.classes[det[0]] + "/dimensions")).astype(float)
@@ -219,7 +218,7 @@ class Dummy_Detector():
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)
                 det_packet.append(self.prepare_detection_registration(feature_centroid, det, now))
-            success = self.registration_service(det_packet)
+            success = self.registration_service(det_packet, self.detector_id)
 
 
         # if(len(keypoints) > 100):

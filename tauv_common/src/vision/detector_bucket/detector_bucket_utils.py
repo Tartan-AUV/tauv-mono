@@ -116,8 +116,11 @@ class Detector_Daemon():
         #each daemon will call the service to report a measurement
         rospy.wait_for_service("/gnc/pose_graph/register_measurement")
         self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
-
-        self.marker_pub = rospy.Publisher(self.detector_name + "_daemon/filtered_dets", MarkerArray, queue_size=10)
+        self.mahalanobis_threshold = 1
+        if rospy.has_param("detectors/" + self.detector_name + "/mahalanobis_threshold"):
+            rospy.loginfo("[Detector Daemon]: %s. Obtained mahalanobis threshold", self.detector_name)
+            self.mahalanobis_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/mahalanobis_threshold"))
+        self.marker_pub = rospy.Publisher(self.detector_name + "_daemon/filtered_det_marker", MarkerArray, queue_size=10)
 
         #list of detections for this daemon
         self.detection_buffer = []
@@ -126,10 +129,9 @@ class Detector_Daemon():
         self.debouncing_threshold = 3
         self.tracker_list = []
         self.trackers_to_publish = {}
-        self.mahalanobis_threshold = 1
+
         self.tracker_id = 0
         self.marker_dict = {}
-        self.marker_pub = rospy.Publisher(self.detector_name + "_detection_marker", MarkerArray, queue_size=10)
 
     def update_detection_buffer(self, data_frame):
         rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
@@ -172,7 +174,7 @@ class Detector_Daemon():
         elif len(matches) == 1:
             matches = np.asmatrix(matches)
         else:
-            matches = np.concatenate(matches,axis=0)
+            matches = np.stack(matches,axis=0)
 
         return matches, np.array(unmatch_dets), np.array(unmatch_tracks)
 
@@ -193,7 +195,7 @@ class Detector_Daemon():
 
     # performs association and updates Kalman trackers, then publishes them to pose graph
     def spin(self):
-        rospy.loginfo("In Daemon spin")
+        #rospy.loginfo("In Daemon spin")
         if self.new_data:
             while len(self.detection_buffer) > 0:
                 # gather data
@@ -213,13 +215,13 @@ class Detector_Daemon():
                     #print(matches, unmatch_dets, unmatch_tracks)
                     if matches.size > 0:
                         for ii in range(len(matches)):
-                            print("MATCHED" + str(matches[ii]))
+                            print(("MATCHED in %s" + str(matches[ii])), self.detector_name)
                             #print("INE 1")
                             #print(matches[ii])
                             tracker_ind = matches[ii, 0]
                             detection_ind = matches[ii, 1]
                             measurement = measurements[detection_ind]
-                            print("MEAS: " + str(measurement) + "SIZE" + str(measurement.shape))
+                            #print("MEAS: " + str(measurement) + "SIZE" + str(measurement.shape))
                             measurement = np.asmatrix(measurement).T
                             #print(measurement.shape)
                             #kalman update and predict
@@ -236,10 +238,10 @@ class Detector_Daemon():
                         for detection_ind in unmatch_dets:
                             measurement = measurements[detection_ind]
                             measurement = measurement.T
-                            print(measurement)
+                            #print(measurement)
 
                             #create new tracker
-                            print("NEW TRACKER: " + str(measurement))
+                            #print("NEW TRACKER: " + str(measurement))
                             new_tracker = Detection_Tracker_Kalman()
                             new_tracker.estimated_point = np.asmatrix(measurement)
                             #print(new_tracker.estimated_point.shape)
@@ -261,7 +263,7 @@ class Detector_Daemon():
                         #print("INE 3")
                         for tracker_ind in unmatch_tracks:
                             tracker = self.tracker_list[tracker_ind]
-                            print("LOST TRACKLER" + str(tracker_ind) + str(tracker.estimated_point))
+                            #print("LOST TRACKLER" + str(tracker_ind) + str(tracker.estimated_point))
                             #override the update
                             tracker.kalman_predict_and_update(np.asmatrix([0, 0, 0]).T, True)
                             new_x = tracker.estimated_point
@@ -282,7 +284,7 @@ class Detector_Daemon():
                         self.create_marker(pos, tracker)
                     self.marker_pub.publish(self.marker_dict.values())
                     print(self.trackers_to_publish)
-                    #TODO: transfrom all the detections back into the sensor frame before publishing
+                    #TODO: transfrom all the detections back into the sensor frame before publishing to pose_graph
             self.new_data = False
 
     def create_marker(self, pos, id):
@@ -293,11 +295,11 @@ class Detector_Daemon():
         m.pose.position.x = pos[0]
         m.pose.position.y = pos[1]
         m.pose.position.z = pos[2]
-        m.color.r = 1.0
+        m.color.g = 1.0
         m.color.a = 1.0
-        m.scale.x = .5
-        m.scale.y = .5
-        m.scale.z = .5
+        m.scale.x = 1
+        m.scale.y = 1
+        m.scale.z = 1
         self.marker_dict[id] = m
 
 
@@ -338,8 +340,3 @@ class Detector_Daemon():
     #     return self.monotonic_det_id
 
 
-
-dd = Detector_Daemon("john", 0)
-dets = [[1, 1, 1], [1.25, 1.25, 1.25], [3, 3, 3]]
-tracks = [[1.1, 1.1, 1.1], [3.5, 3.5, 3]]
-matches, ud, ut = dd.map_det_to_tracker(tracks, dets)
