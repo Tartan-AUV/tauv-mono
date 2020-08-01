@@ -6,26 +6,28 @@
 
 
 #!/usr/bin/env python
-import rospy
-import tf
-import tf_conversions
+# import rospy
+# import tf
+# import tf_conversions
 import numpy as np
-import cv2
-from cv_bridge import CvBridge
-from sensor_msgs.msg import Imu
-from std_msgs.msg import Header
-from stereo_msgs.msg import DisparityImage
-from jsk_recognition_msgs.msg import BoundingBoxArray
-from geometry_msgs.msg import *
-from nav_msgs.msg import Odometry
-from tf.transformations import *
-from geometry_msgs.msg import Quaternion
-from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
-from tauv_common.srv import RegisterObjectDetections, RegisterMeasurement
-from visualization_msgs.msg import Marker, MarkerArray
-from scipy.spatial.transform import Rotation as R
+#import cv2
+# from cv_bridge import CvBridge
+# from sensor_msgs.msg import Imu
+# from std_msgs.msg import Header
+# from stereo_msgs.msg import DisparityImage
+# from jsk_recognition_msgs.msg import BoundingBoxArray
+# from geometry_msgs.msg import *
+# from nav_msgs.msg import Odometry
+# from tf.transformations import *
+# from geometry_msgs.msg import Quaternion
+# from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
+# from tauv_common.srv import RegisterObjectDetections, RegisterMeasurement
+# from visualization_msgs.msg import Marker, MarkerArray
+# from scipy.spatial.transform import Rotation as R
 from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
+from scipy.optimize import linear_sum_assignment
+
 
 def array_to_point(self, arr):
     p = Point()
@@ -39,7 +41,7 @@ def point_to_array(self, point):
 
 class Detection_Tracker_Kalman():
     def __init__(self):
-        self.id = 0
+        self.id = -1
         self.state_space_dim = 3
         self.localized_point = np.zeros(self.state_space_dim, 1)
         self.detections = 0
@@ -107,8 +109,8 @@ class Detector_Daemon():
         self.mutex = Lock()
 
         #each daemon will call the service to report a measurement
-        rospy.wait_for_service("/gnc/pose_graph/register_measurement")
-        self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
+        # rospy.wait_for_service("/gnc/pose_graph/register_measurement")
+        # self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
 
         #list of detections for this daemon
         self.detection_buffer = []
@@ -125,7 +127,36 @@ class Detector_Daemon():
     # performs assignment to trackers and detections
     # returns (matches, unmatched detections, unmatched trackers)
     def map_det_to_tracker(self, trackers, dets):
-        return
+        trackers_len = len(trackers)
+        dets_len = len(dets)
+        trackers_tiled = np.tile(trackers, (dets_len, 1))
+        dets_repeated = np.repeat(dets, trackers_len, axis=0)
+        adjacency_cost_matrix = np.reshape(np.linalg.norm(trackers_tiled - dets_repeated, axis=1), (trackers_len, dets_len))
+        tracker_matches, det_matches = linear_sum_assignment(adjacency_cost_matrix)
+
+        unmatch_tracks, unmatch_dets = [], []
+        whole_trackers = set(list(range(trackers_len)))
+        whole_dets = set(list(range(dets_len)))
+        unmatch_tracks = np.array(whole_trackers - set(tracker_matches))
+        unmatch_dets = np.array(whole_dets - set(det_matches))
+
+        matches = []
+        for match in range(len(tracker_matches)):
+            i = tracker_matches[match]
+            j = det_matches[match]
+            if adjacency_cost_matrix[i, j] < self.mahalanobis_threshold:
+                matches.append(np.array([i, j]))
+            else:
+                unmatch_tracks.append(i)
+                unmatch_dets.append(j)
+
+        if(len(matches)==0):
+            matches = np.empty((0,2),dtype=int)
+        else:
+            matches = np.concatenate(matches,axis=0)
+
+        return matches, np.array(unmatch_dets), np.array(unmatch_tracks)
+
 
     # performs association and updates Kalman trackers, then publishes them to pose graph
     def spin(self):
@@ -134,7 +165,7 @@ class Detector_Daemon():
             while len(self.detection_buffer) > 0:
                 # gather data
                 data_frame = self.detection_buffer.pop(0)
-                measurements = [point_to_array(datum.position) for datum in data_frame]
+                measurements = [datum for datum in data_frame]
                 time_stamp = data_frame[0].header.stamp
 
                 # match trackers and detections
@@ -146,6 +177,8 @@ class Detector_Daemon():
                     for tracker_ind, detection_ind in matches:
                         measurement = measurements[detection_ind]
                         measurement = np.expand_dims(measurement, axis=0).T
+
+                        #kalman update and predict
                         tracker = self.tracker_list[tracker_ind]
                         tracker.kalman_predict_and_update(measurement)
                         new_x = tracker.estimated_point.T[0].tolist()
@@ -157,13 +190,19 @@ class Detector_Daemon():
                     for detection_ind in unmatch_dets:
                         measurement = measurements[detection_ind]
                         measurement = np.expand_dims(measurement, axis=0).T
+
+                        #create new tracker
                         new_tracker = Detection_Tracker_Kalman()
                         new_tracker.estimated_point = measurement
                         new_tracker.kalman_predict()
+
+                        #update state and id
                         new_x = new_tracker.estimated_point
                         new_x = new_x.T[0].tolist()
                         new_tracker.localized_point = new_x
                         new_tracker.id = self.tracker_id
+
+                        #add to list
                         self.tracker_id += 1
                         self.tracker_list.append(new_tracker)
                         temp_tracker_holder.append(new_x)
@@ -171,40 +210,58 @@ class Detector_Daemon():
                 if len(unmatch_tracks) > 0:
                     for tracker_ind in unmatch_tracks:
                         tracker = self.tracker_list[tracker_ind]
+
+                        #override the update
                         tracker.kalman_predict_and_update(np.asarray([0, 0, 0]), True)
+                        new_x = tracker.estimated_point
+                        new_x = new_x.T[0].tolist()
+                        tracker.localized_point = new_x
+                        temp_tracker_holder[tracker_ind] = new_x
+
+                trackers_to_be_published = []
+                for tracker in self.tracker_list:
+                    if tracker.detections >= self.debouncing_threshold:
+                        trackers_to_be_published.append(tracker)
 
 
 
-    # transform a 3D measurement from child frame to world frame
-    def transform_meas_to_world(self, measurement, child_frame, world_frame, time):
-        try:
-            (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
-            tf = R.from_quat(np.asarray(rot))
-            detection_pos = tf.apply(measurement) + np.asarray(trans)
-            return detection_pos
-        except:
-            return np.array([np.nan])
 
 
-    def find_nearest_neighbor(self, bucket_detection):
-        if len(self.bucket_dict.keys()) > 0:
-            curr_det_positions = [self.bucket_dict[id][0].position for id in self.bucket_dict]
-            curr_det_positions = np.asarray(list(map(self.point_to_array, curr_det_positions))).T
-            new_det_position = np.asarray(np.asarray([bucket_detection.position.x, \
-                                                      bucket_detection.position.y, bucket_detection.position.z])).T
-            diff = np.asmatrix(new_det_position[:, None] - curr_det_positions)
-            mahalanobis_distance = np.sqrt(np.diag(diff.T*np.diag([.3, .3, .3])*diff)) #replace with inverse covariance matrix
-            # print("curr:" + str(curr_det_positions))
-            # print("new:" + str(new_det_position))
-            # print("Maha: "+ str(mahalanobis_distance))
-            nearest_neighbor = np.argmin(mahalanobis_distance)
-            # print("[Debounced Detection Tracker]: " + str(self.debouncing_tracker_dict))
-            tag = bucket_detection.tag
-
-            if mahalanobis_distance[nearest_neighbor] < self.nn_threshold: #new detection is already seen by system
-                self.debouncing_tracker_dict[nearest_neighbor] += 1
-                return nearest_neighbor
-        self.monotonic_det_id += 1
-        return self.monotonic_det_id
+    # # transform a 3D measurement from child frame to world frame
+    # def transform_meas_to_world(self, measurement, child_frame, world_frame, time):
+    #     try:
+    #         (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
+    #         tf = R.from_quat(np.asarray(rot))
+    #         detection_pos = tf.apply(measurement) + np.asarray(trans)
+    #         return detection_pos
+    #     except:
+    #         return np.array([np.nan])
 
 
+    # def find_nearest_neighbor(self, bucket_detection):
+    #     if len(self.bucket_dict.keys()) > 0:
+    #         curr_det_positions = [self.bucket_dict[id][0].position for id in self.bucket_dict]
+    #         curr_det_positions = np.asarray(list(map(self.point_to_array, curr_det_positions))).T
+    #         new_det_position = np.asarray(np.asarray([bucket_detection.position.x, \
+    #                                                   bucket_detection.position.y, bucket_detection.position.z])).T
+    #         diff = np.asmatrix(new_det_position[:, None] - curr_det_positions)
+    #         mahalanobis_distance = np.sqrt(np.diag(diff.T*np.diag([.3, .3, .3])*diff)) #replace with inverse covariance matrix
+    #         # print("curr:" + str(curr_det_positions))
+    #         # print("new:" + str(new_det_position))
+    #         # print("Maha: "+ str(mahalanobis_distance))
+    #         nearest_neighbor = np.argmin(mahalanobis_distance)
+    #         # print("[Debounced Detection Tracker]: " + str(self.debouncing_tracker_dict))
+    #         tag = bucket_detection.tag
+    #
+    #         if mahalanobis_distance[nearest_neighbor] < self.nn_threshold: #new detection is already seen by system
+    #             self.debouncing_tracker_dict[nearest_neighbor] += 1
+    #             return nearest_neighbor
+    #     self.monotonic_det_id += 1
+    #     return self.monotonic_det_id
+
+
+
+dd = Detector_Daemon("john", 0)
+dets = [[1, 1, 1], [1.25, 1.25, 1.25], [3, 3, 3]]
+tracks = [[1.1, 1.1, 1.1], [3.5, 3.5, 3]]
+matches, ud, ut = dd.map_det_to_tracker(tracks, dets)
