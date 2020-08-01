@@ -24,6 +24,7 @@ from scipy.spatial.transform import Rotation as R
 
 class gateDetector: 
     def __init__(self):
+        self.detector_name = "gate"
         self.numBits = 8
         self.imageWidth = 640
         self.imageHeight = 480
@@ -180,7 +181,6 @@ class gateDetector:
         obj_det = BucketDetection()
         obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
         obj_det.tag = "object_tags/gate"
-        obj_det.detector_tag = "detectors/gate"
         bbox_3d = BoundingBox()
         bbox_3d.dimensions = Vector3(self.gate_dimensions[0], self.gate_dimensions[1], self.gate_dimensions[2])
         bbox_pose = Pose()
@@ -222,7 +222,7 @@ class gateDetector:
                 overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
                 centroid = self.vector_to_detection_centroid(leftBar, rightBar)
                 obj_det = self.prepareDetectionRegistration(centroid, now)
-                success = self.registration_service([obj_det])
+                success = self.registration_service([obj_det], self.detector_name)
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
 
 def main():
