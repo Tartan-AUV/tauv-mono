@@ -1,6 +1,6 @@
 # cnn_detector
 #
-# This node is for testing the vision bucket registration services
+# This node is for CNN object detection
 #
 #
 # Author: Advaith Sethuraman 2020
@@ -14,9 +14,6 @@ import numpy as np
 import itertools
 import cv2
 from cv_bridge import CvBridge
-
-#yolo pytorch
-
 from models import *
 from utils.utils import *
 from utils.datasets import *
@@ -25,14 +22,11 @@ import sys
 import time
 import datetime
 import argparse
-
 from PIL import Image
-
 import torch
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torch.autograd import Variable
-
 from sensor_msgs.msg import Imu, Image, CameraInfo
 from stereo_msgs.msg import DisparityImage
 from geometry_msgs.msg import *

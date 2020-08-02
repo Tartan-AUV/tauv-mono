@@ -219,7 +219,7 @@ class Detector_Daemon():
                     #print(matches, unmatch_dets, unmatch_tracks)
                     if matches.size > 0:
                         for ii in range(len(matches)):
-                            print(("MATCHED in %s" + str(matches[ii])), self.detector_name)
+                            #print(("MATCHED in %s" + str(matches[ii])), self.detector_name)
                             #print("INE 1")
                             #print(matches[ii])
                             tracker_ind = matches[ii, 0]
@@ -264,7 +264,7 @@ class Detector_Daemon():
                             temp_tracker_holder.append(new_x[0])
 
                     if len(unmatch_tracks) > 0:
-                        print("INE 3")
+                        #print("INE 3")
                         for tracker_ind in unmatch_tracks:
                             tracker = self.tracker_list[tracker_ind]
                             #print("LOST TRACKLER" + str(tracker_ind) + str(tracker.estimated_point))
