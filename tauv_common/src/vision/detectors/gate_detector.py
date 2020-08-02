@@ -205,7 +205,6 @@ class gateDetector:
         z = float(self.gate_width)*fx/float(abs(rightBar - leftBar))
         x = float(centerX - cx)/float(abs(rightBar - leftBar))*float(self.gate_width)
         centroid_3d = np.asmatrix([x, -cy, z, 1]).T
-        # centroid_3d /= centroid_3d[3]
         if z < 4.0:
             return np.asmatrix([0, 0, 0])
         return centroid_3d[0:3]

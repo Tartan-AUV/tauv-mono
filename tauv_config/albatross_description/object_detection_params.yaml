@@ -4,7 +4,10 @@ detectors: {
   yolov3: {
           type: "vision",
           mahalanobis_threshold: 5.0,
-          debouncing_threshold: 100
+          debouncing_threshold: 100,
+          config_path: "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg",
+          weights_path: "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights",
+          classes_path: "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
   },
   gate: {
           type: "vision",
@@ -14,15 +17,17 @@ detectors: {
 }
 
 object_tags: {
-  fire_hydrant: {
+  fire hydrant: {
           dimensions: [.15, .15, .75],
           is_static: true,
-          total_number: 4
+          total_number: 4,
+          color: [0.062, 0.105, 0.898, .75]
   },
   gate: {
           dimensions: [3.048, .08, 1.0],
           is_static: true,
           total_number: 1,
-          location_override_z: -1.5
+          location_override_z: -1.5,
+          color: [0.082, .494, 0.819, .75]
   }
 }

@@ -135,8 +135,8 @@ class Pose_Graph():
         m.pose.position.x = pos[0]
         m.pose.position.y = pos[1]
         m.pose.position.z = pos[2]
-        m.color.r = 1.0
-        m.color.a = 1.0
+        m.color.g = 1.0
+        m.color.a = 0.75
         m.scale.x = .1
         m.scale.y = .1
         m.scale.z = .1

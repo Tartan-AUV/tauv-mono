@@ -16,7 +16,7 @@
 <!--            <param name="use_sim_time" value="true" />-->
         </node>
 
-        <node pkg="tauv_common" type="detect_gate" name="detect_gate" clear_params="true" output="screen">
+        <node pkg="tauv_common" type="gate_detector" name="gate_detector" clear_params="true" output="screen">
             <!--            <param name="use_sim_time" value="true" />-->
         </node>
 

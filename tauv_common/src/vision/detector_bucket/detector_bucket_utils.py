@@ -1,6 +1,9 @@
 # detector_bucket_utils
 #
 # Provides all the libraries necessary for carrying out data association from the detector_bucket
+# Contains a 3-D constant position model Kalman Filter Tracker
+# Contains a generic detector Daemon, each is assigned to one sensor to keep track of its detections
+# This allows asynchronous sensor updates to the pose graph, and will reduce bottlenecking
 #
 # Author: Advaith Sethuraman 2020
 
@@ -41,11 +44,12 @@ def point_to_array(point):
 
 # constant position Kalman Filter for stationary object tracking
 class Detection_Tracker_Kalman():
-    def __init__(self):
+    def __init__(self, tag):
         self.id = -1
         self.state_space_dim = 3
         self.localized_point = np.zeros((self.state_space_dim, 1))
         self.detections = 0
+        self.tag = tag
         self.estimated_point = np.zeros((self.state_space_dim, 1))
         self.last_updated_time = 0.0
 
@@ -246,7 +250,8 @@ class Detector_Daemon():
 
                             #create new tracker
                             #print("NEW TRACKER: " + str(measurement))
-                            new_tracker = Detection_Tracker_Kalman()
+                            tag = data_frame[detection_ind].tag
+                            new_tracker = Detection_Tracker_Kalman(tag)
                             new_tracker.estimated_point = np.asmatrix(measurement)
                             #print(new_tracker.estimated_point.shape)
                             new_tracker.kalman_predict()
@@ -282,16 +287,24 @@ class Detector_Daemon():
                         if tracker.detections >= self.debouncing_threshold:
                             trackers_to_be_published.append(tracker)
 
-                    self.trackers_to_publish = {tracker.id: (time_stamp, tracker.localized_point) for tracker in trackers_to_be_published}
+                    self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
                     for tracker in self.trackers_to_publish:
-                        pos = self.trackers_to_publish[tracker][1]
-                        self.create_marker(pos, tracker)
+                        self.create_marker(self.trackers_to_publish[tracker], tracker)
                     self.marker_pub.publish(self.marker_dict.values())
                     #print(self.trackers_to_publish)
                     #TODO: transfrom all the detections back into the sensor frame before publishing to pose_graph
             self.new_data = False
 
-    def create_marker(self, pos, id):
+    def create_marker(self, tracker, id):
+        tag = tracker[1]
+        pos = tracker[2]
+        marker_dims = [1.0, 1.0, 1.0]
+        marker_color = [1.0, 0.0, 0.0, 1.0]
+        if rospy.has_param(tag + "/dimensions"):
+            marker_dims = np.asarray(rospy.get_param(tag + "/dimensions")).astype(float)
+        if rospy.has_param(tag + "/color"):
+            marker_color = np.asarray(rospy.get_param(tag + "/color")).astype(float)
+
         m = Marker()
         m.header.frame_id = "odom"
         m.id = id
@@ -299,11 +312,15 @@ class Detector_Daemon():
         m.pose.position.x = pos[0]
         m.pose.position.y = pos[1]
         m.pose.position.z = pos[2]
-        m.color.g = 1.0
-        m.color.a = 1.0
-        m.scale.x = .5
-        m.scale.y = .5
-        m.scale.z = .5
+
+        m.color.b = marker_color[0]
+        m.color.g = marker_color[1]
+        m.color.r = marker_color[2]
+        m.color.a = marker_color[3]
+
+        m.scale.x = marker_dims[0]
+        m.scale.y = marker_dims[1]
+        m.scale.z = marker_dims[2]
         self.marker_dict[id] = m
 
 

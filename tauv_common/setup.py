@@ -49,7 +49,7 @@ setup_args = generate_distutils_setup(
              'scripts/attitude_controller',
              'scripts/mpc_traj_follower',
              'scripts/cnn_detector',
-             'scripts/detect_gate'],
+             'scripts/gate_detector'],
 
 )
 setup(**setup_args)

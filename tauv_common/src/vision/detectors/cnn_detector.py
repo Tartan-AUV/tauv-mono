@@ -43,10 +43,22 @@ import time
 
 class Dummy_Detector():
     def __init__(self):
+        self.detector_id = "yolov3"
+
         #CNN params
-        self.weights = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights"
-        self.config = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg"
-        self.classes_list = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
+        self.weights = "./yolov3.weights"
+        self.config = "./yolov3.cfg"
+        self.classes_list = "./yolov3.txt"
+        if rospy.has_param("detectors/" + self.detector_id + "/config_path"):
+            self.config = str(rospy.get_param("detectors/" + self.detector_id + "/config_path"))
+        rospy.loginfo("[CNN Detector]: Loading CNN Config from: %s..." % self.config)
+        if rospy.has_param("detectors/" + self.detector_id + "/weights_path"):
+            self.weights = str(rospy.get_param("detectors/" + self.detector_id + "/weights_path"))
+        rospy.loginfo("[CNN Detector]: Loading CNN Weights from: %s..." % self.weights)
+        if rospy.has_param("detectors/" + self.detector_id + "/classes_path"):
+            self.classes_list = str(rospy.get_param("detectors/" + self.detector_id + "/classes_path"))
+        rospy.loginfo("[CNN Detector]: Loading CNN Classes from: %s..." % self.classes_list)
+
         self.conf_threshold = 0.8
         self.nms_threshold = 0.4
         self.img_size = 416
@@ -82,7 +94,7 @@ class Dummy_Detector():
         self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
         self.left_camera_detections = rospy.Publisher("cnn_detections", Image, queue_size=10)
-        self.detector_id = "yolov3"
+
 
     # function to get the output layer names
     # in the architecture
@@ -130,13 +142,11 @@ class Dummy_Detector():
         confidences = []
         boxes = []
 
-
-
         for det in detections:
             if det != None:
                 outs = rescale_boxes(det, self.img_size, image.shape[:2])
                 for x1, y1, x2, y2, conf, cls_conf, cls_pred in outs:
-                    if conf > 0.5:
+                    if conf > self.conf_threshold:
                         w = x2 - x1
                         h = y2 - y1
                         x = x1
@@ -274,6 +284,6 @@ class Dummy_Detector():
         #     print("Detection transmitted: " + str(success))
 
 def main():
-    rospy.init_node("dummy_detector")
+    rospy.init_node("cnn_detector")
     dummy_detector = Dummy_Detector()
     rospy.spin()
