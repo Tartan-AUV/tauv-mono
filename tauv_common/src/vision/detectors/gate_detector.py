@@ -52,6 +52,7 @@ class gateDetector:
         img = cv2.imread(path)
         self.imageWidth, self.imageHeight, _ = img.shape
         return img
+
     # Gate in competition is usually orange in a blue water environment 
     # Converting to YUV (YCbCr) allows us to enhance the warm V (red/orange)
     # channel of the image and tone down the cool U (blue) channel
@@ -205,7 +206,7 @@ class gateDetector:
         z = float(self.gate_width)*fx/float(abs(rightBar - leftBar))
         x = float(centerX - cx)/float(abs(rightBar - leftBar))*float(self.gate_width)
         centroid_3d = np.asmatrix([x, -cy, z, 1]).T
-        if z < 4.0:
+        if z < 1.0:
             return np.asmatrix([0, 0, 0])
         return centroid_3d[0:3]
 
@@ -222,12 +223,13 @@ class gateDetector:
                     self.prev = [leftBar, rightBar]
                 overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
                 centroid = self.vector_to_detection_centroid(leftBar, rightBar)
+                print(centroid)
                 if np.all(centroid == [0, 0, 0]):
-                    rospy.loginfo("Ignoring det")
                     pass
                 else:
                     obj_det = self.prepareDetectionRegistration(centroid, now)
                     success = self.registration_service([obj_det], self.detector_name)
+                    print("sent gate")
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
 
 def main():

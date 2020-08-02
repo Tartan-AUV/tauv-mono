@@ -201,11 +201,8 @@ class Dummy_Detector():
         disp_map = self.cv_bridge.imgmsg_to_cv2(self.disparity.image, "passthrough")
         x_cnt = int(x+w/2)
         y_cnt = int(y+h/2)
-        d = disp_map[y_cnt, x_cnt]
         d = np.mean(self.query_depth_map_rectangle(disp_map, bbox_detection))
-
         centroid_2d = np.asmatrix([x_cnt, y_cnt, d, 1]).T
-
         K = np.asarray(self.left_camera_info.K).reshape((3, 3))
         fx, fy, cx, cy = K[0, 0], K[1, 1], K[0, 2], K[1, 2]
         Q = np.asmatrix([[1, 0, 0, -cx],
@@ -226,9 +223,7 @@ class Dummy_Detector():
         bbox_3d = BoundingBox()
         bbox_3d.dimensions = Vector3(bbox_dims[0], bbox_dims[1], bbox_dims[2])
         bbox_pose = Pose()
-        #print(feature_centroid.shape)
         x, y, z = list((np.squeeze(centroid)).T)
-        #print(x, y, z)
         obj_det.position = Point(x, y, z)
         bbox_pose.position = Point(x, y, z)
         bbox_3d.pose = bbox_pose
@@ -247,9 +242,7 @@ class Dummy_Detector():
             self.left_img_flag = False
             self.disp_img_flag = False
             self.left_info_flag = False
-
             detections, now = self.classify(self.stereo_left)
-
             det_packet = []
             for det in detections:
                 feature_centroid = self.vector_to_detection_centroid(det)

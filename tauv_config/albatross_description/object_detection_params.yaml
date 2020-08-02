@@ -18,16 +18,16 @@ detectors: {
 
 object_tags: {
   fire hydrant: {
-          dimensions: [.15, .15, .75],
+          dimensions: [.15, .15, .15],
           is_static: true,
           total_number: 4,
-          color: [0.062, 0.105, 0.898, .75]
+          color: [0.062, 0.105, 0.898, 1.0]
   },
   gate: {
-          dimensions: [3.048, .08, 1.0],
+          dimensions: [1.0, 1.0, 1.0],
           is_static: true,
           total_number: 1,
           location_override_z: -1.5,
-          color: [0.082, .494, 0.819, .75]
+          color: [0.082, .494, 0.819, 1.0]
   }
 }

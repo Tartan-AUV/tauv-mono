@@ -105,6 +105,7 @@ class Detector_Bucket():
             datum.position = array_to_point(pos_in_world)
             datum.header.frame_id = "odom"
 
+        # acquire and update data buffer on daemon
         daemon_name = req.detector_tag
         if daemon_name in self.daemon_dict:
             daemon = self.daemon_dict[daemon_name]

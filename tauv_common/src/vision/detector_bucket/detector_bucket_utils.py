@@ -140,6 +140,7 @@ class Detector_Daemon():
 
         self.tracker_id = 0
         self.marker_dict = {}
+        self.labels_dict = {}
 
     def update_detection_buffer(self, data_frame):
         #rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
@@ -155,11 +156,12 @@ class Detector_Daemon():
 
         trackers_tiled = np.tile(trackers, (dets_len, 1))
         dets_repeated = np.repeat(dets, trackers_len, axis=0)
-        if trackers_len < 1 or dets_len < 0:
-            tracker_matches, det_matches = np.array([]), np.array([])
-        elif trackers_len > 0 and dets_len > 0:
+        if trackers_len > 0 and dets_len > 0 and \
+                not (np.any(np.isinf(trackers)) | np.any(np.isnan(trackers)) |  np.any(np.isinf(dets)) | np.any(np.isnan(dets))):
             adjacency_cost_matrix = np.reshape(np.linalg.norm(trackers_tiled - dets_repeated, axis=1), (trackers_len, dets_len))
             tracker_matches, det_matches = linear_sum_assignment(adjacency_cost_matrix)
+        else:
+            tracker_matches, det_matches = np.array([]), np.array([])
 
         unmatch_tracks, unmatch_dets = [], []
         whole_trackers = set(list(range(trackers_len)))
@@ -291,7 +293,8 @@ class Detector_Daemon():
                     for tracker in self.trackers_to_publish:
                         self.create_marker(self.trackers_to_publish[tracker], tracker)
                     self.marker_pub.publish(self.marker_dict.values())
-                    #print(self.trackers_to_publish)
+                    self.marker_pub.publish(self.labels_dict.values())
+                    print(self.trackers_to_publish)
                     #TODO: transfrom all the detections back into the sensor frame before publishing to pose_graph
             self.new_data = False
 
@@ -308,7 +311,8 @@ class Detector_Daemon():
         m = Marker()
         m.header.frame_id = "odom"
         m.id = id
-        m.type = 1
+        m.ns = tag
+        m.type = 2
         m.pose.position.x = pos[0]
         m.pose.position.y = pos[1]
         m.pose.position.z = pos[2]
@@ -321,7 +325,25 @@ class Detector_Daemon():
         m.scale.x = marker_dims[0]
         m.scale.y = marker_dims[1]
         m.scale.z = marker_dims[2]
+
+        l = Marker()
+        l.header.frame_id = "odom"
+        l.id = id
+        l.ns = tag + "_label"
+        l.type = 9
+        l.text = tag
+        l.pose.position.x = pos[0]
+        l.pose.position.y = pos[1]
+        l.pose.position.z = pos[2] + 0.25
+
+        l.color.b = 1.0
+        l.color.g = 1.0
+        l.color.r = 1.0
+        l.color.a = 1.0
+
+        l.scale.z = 0.25
         self.marker_dict[id] = m
+        self.labels_dict[id] = l
 
 
 
