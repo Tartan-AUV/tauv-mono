@@ -1,4 +1,4 @@
-# dummy_detector
+# cnn_detector
 #
 # This node is for testing the vision bucket registration services
 #
@@ -6,6 +6,7 @@
 # Author: Advaith Sethuraman 2020
 
 #!/usr/bin/env python
+from __future__ import division
 import rospy
 import tf
 import tf_conversions
@@ -13,6 +14,25 @@ import numpy as np
 import itertools
 import cv2
 from cv_bridge import CvBridge
+
+#yolo pytorch
+
+from models import *
+from utils.utils import *
+from utils.datasets import *
+import os
+import sys
+import time
+import datetime
+import argparse
+
+from PIL import Image
+
+import torch
+from torch.utils.data import DataLoader
+from torchvision import datasets
+from torch.autograd import Variable
+
 from sensor_msgs.msg import Imu, Image, CameraInfo
 from stereo_msgs.msg import DisparityImage
 from geometry_msgs.msg import *
@@ -29,20 +49,22 @@ import time
 
 class Dummy_Detector():
     def __init__(self):
-        rospy.wait_for_service("detector_bucket/register_object_detection")
-        self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetections)
-        self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
-        self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
-        self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
-        self.left_camera_detections = rospy.Publisher("cnn_detections", Image, queue_size=10)
-        self.detector_id = "yolov3"
+        #CNN params
         self.weights = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights"
         self.config = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg"
         self.classes_list = "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
+        self.conf_threshold = 0.8
+        self.nms_threshold = 0.4
+        self.img_size = 416
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.net = Darknet(self.config, img_size=self.img_size).to(self.device)
+        self.net.load_darknet_weights(self.weights)
+        self.net.eval()
+        self.Tensor = torch.cuda.FloatTensor if torch.cuda.is_available() else torch.FloatTensor
+
         self.arrow_list = []
         self.classes = self.prepare_classes()
         self.stereo_proc = cv2.StereoBM_create(numDisparities=16, blockSize=33)
-        self.net = self.load_model()
         self.tf = tf.TransformListener()
         self.cv_bridge = CvBridge()
         self.clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
@@ -59,6 +81,14 @@ class Dummy_Detector():
         self.rate = rospy.Rate(1)
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         self.marker_id = 0
+
+        rospy.wait_for_service("detector_bucket/register_object_detection")
+        self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetections)
+        self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
+        self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
+        self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
+        self.left_camera_detections = rospy.Publisher("cnn_detections", Image, queue_size=10)
+        self.detector_id = "yolov3"
 
     # function to get the output layer names
     # in the architecture
@@ -89,44 +119,49 @@ class Dummy_Detector():
         Height = image.shape[0]
         scale = 0.00392
         blob = cv2.dnn.blobFromImage(image, scale, (416,416), (0,0,0), True, crop=False)
-        self.net.setInput(blob)
+        norm_image = cv2.normalize(image, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_64F)
+        pad_x = int(max(Height - Width, 0) // 2)
+        pad_y = int(max(Width - Height, 0) // 2)
+        padded_img = cv2.copyMakeBorder(norm_image, pad_y, pad_y, pad_x, pad_x, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+        resized_img = cv2.resize(padded_img, (self.img_size, self.img_size))
+        popped_tensor = torch.unsqueeze(torch.tensor(resized_img), dim=0).permute(0, 3, 1, 2)
+        input_img = Variable(popped_tensor.type(self.Tensor))
         a = time.time()
-        outs = self.net.forward(self.get_output_layers())
+        with torch.no_grad():
+            detections = self.net(input_img)
+            detections = non_max_suppression(detections, self.conf_threshold, self.nms_threshold)
+
         b = time.time()
-        rospy.loginfo("Detection in: %f", b-a)
         class_ids = []
         confidences = []
         boxes = []
-        conf_threshold = 0.5
-        nms_threshold = 0.4
 
-        for out in outs:
-            for detection in out:
-                scores = detection[5:]
-                class_id = np.argmax(scores)
-                confidence = scores[class_id]
-                if confidence > 0.5:
-                    center_x = int(detection[0] * Width)
-                    center_y = int(detection[1] * Height)
-                    w = int(detection[2] * Width)
-                    h = int(detection[3] * Height)
-                    x = center_x - w / 2
-                    y = center_y - h / 2
-                    class_ids.append(class_id)
-                    confidences.append(float(confidence))
-                    boxes.append([x, y, w, h])
 
-        indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
+
+        for det in detections:
+            if det != None:
+                outs = rescale_boxes(det, self.img_size, image.shape[:2])
+                for x1, y1, x2, y2, conf, cls_conf, cls_pred in outs:
+                    if conf > 0.5:
+                        w = x2 - x1
+                        h = y2 - y1
+                        x = x1
+                        y = y1
+                        class_ids.append(int(cls_pred))
+                        confidences.append(float(conf))
+                        boxes.append([x, y, w, h])
+
         final_detections = []
-        for i in indices:
-            i = i[0]
-            box = boxes[i]
+        for bi, box in enumerate(boxes):
             x = box[0]
             y = box[1]
             w = box[2]
             h = box[3]
-            final_detections.append([class_ids[i], (x, y, w, h)])
-            self.draw_bounding_box(image, class_ids[i], confidences[i], round(x), round(y), round(x+w), round(y+h))
+            class_id = class_ids[bi]
+            confidence = confidences[bi]
+            if not np.any(np.isnan(np.array([x, y, w, h]))):
+                final_detections.append([class_id, (int(x), int(y), int(w), int(h))])
+                self.draw_bounding_box(image, class_id, confidence, round(x), round(y), round(x+w), round(y+h))
 
         self.left_camera_detections.publish(self.cv_bridge.cv2_to_imgmsg(image))
         return final_detections, now
@@ -160,8 +195,8 @@ class Dummy_Detector():
     def vector_to_detection_centroid(self, bbox_detection):
         x, y, w, h = bbox_detection[1]
         disp_map = self.cv_bridge.imgmsg_to_cv2(self.disparity.image, "passthrough")
-        x_cnt = x+w/2
-        y_cnt = y+h/2
+        x_cnt = int(x+w/2)
+        y_cnt = int(y+h/2)
         d = disp_map[y_cnt, x_cnt]
         d = np.mean(self.query_depth_map_rectangle(disp_map, bbox_detection))
 
