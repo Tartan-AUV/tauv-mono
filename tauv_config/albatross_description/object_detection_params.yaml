@@ -4,7 +4,7 @@ detectors: {
   yolov3: {
           type: "vision",
           mahalanobis_threshold: 5.0,
-          debouncing_threshold: 10
+          debouncing_threshold: 100
   },
   gate: {
           type: "vision",

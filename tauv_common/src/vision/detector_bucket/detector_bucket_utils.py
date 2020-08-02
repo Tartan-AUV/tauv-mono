@@ -151,9 +151,9 @@ class Detector_Daemon():
 
         trackers_tiled = np.tile(trackers, (dets_len, 1))
         dets_repeated = np.repeat(dets, trackers_len, axis=0)
-        if trackers_len < 1:
+        if trackers_len < 1 or dets_len < 0:
             tracker_matches, det_matches = np.array([]), np.array([])
-        else:
+        elif trackers_len > 0 and dets_len > 0:
             adjacency_cost_matrix = np.reshape(np.linalg.norm(trackers_tiled - dets_repeated, axis=1), (trackers_len, dets_len))
             tracker_matches, det_matches = linear_sum_assignment(adjacency_cost_matrix)
 
