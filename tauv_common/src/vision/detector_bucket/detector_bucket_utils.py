@@ -4,6 +4,7 @@
 # Contains a 3-D constant position model Kalman Filter Tracker
 # Contains a generic detector Daemon, each is assigned to one sensor to keep track of its detections
 # This allows asynchronous sensor updates to the pose graph, and will reduce bottlenecking
+# Everything is done here in the world frame, as data association needs to happen in a fixed frame
 #
 # Author: Advaith Sethuraman 2020
 
@@ -294,7 +295,7 @@ class Detector_Daemon():
                         self.create_marker(self.trackers_to_publish[tracker], tracker)
                     self.marker_pub.publish(self.marker_dict.values())
                     self.marker_pub.publish(self.labels_dict.values())
-                    print(self.trackers_to_publish)
+                    #print(self.trackers_to_publish)
                     #TODO: transfrom all the detections back into the sensor frame before publishing to pose_graph
             self.new_data = False
 
@@ -303,16 +304,20 @@ class Detector_Daemon():
         pos = tracker[2]
         marker_dims = [1.0, 1.0, 1.0]
         marker_color = [1.0, 0.0, 0.0, 1.0]
-        if rospy.has_param(tag + "/dimensions"):
-            marker_dims = np.asarray(rospy.get_param(tag + "/dimensions")).astype(float)
-        if rospy.has_param(tag + "/color"):
-            marker_color = np.asarray(rospy.get_param(tag + "/color")).astype(float)
+        marker_type = 2
+        if rospy.has_param(tag + "/marker_dims"):
+            marker_dims = np.asarray(rospy.get_param(tag + "/marker_dims")).astype(float)
+        if rospy.has_param(tag + "/marker_color"):
+            marker_color = np.asarray(rospy.get_param(tag + "/marker_color")).astype(float)
+        if rospy.has_param(tag + "/marker_type"):
+            marker_type = np.asarray(rospy.get_param(tag + "/marker_type")).astype(int)
 
+        # create detection marker
         m = Marker()
         m.header.frame_id = "odom"
         m.id = id
         m.ns = tag
-        m.type = 2
+        m.type = marker_type
         m.pose.position.x = pos[0]
         m.pose.position.y = pos[1]
         m.pose.position.z = pos[2]
@@ -326,6 +331,7 @@ class Detector_Daemon():
         m.scale.y = marker_dims[1]
         m.scale.z = marker_dims[2]
 
+        # create text marker
         l = Marker()
         l.header.frame_id = "odom"
         l.id = id
@@ -347,39 +353,5 @@ class Detector_Daemon():
 
 
 
-
-
-
-    # # transform a 3D measurement from child frame to world frame
-    # def transform_meas_to_world(self, measurement, child_frame, world_frame, time):
-    #     try:
-    #         (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
-    #         tf = R.from_quat(np.asarray(rot))
-    #         detection_pos = tf.apply(measurement) + np.asarray(trans)
-    #         return detection_pos
-    #     except:
-    #         return np.array([np.nan])
-
-
-    # def find_nearest_neighbor(self, bucket_detection):
-    #     if len(self.bucket_dict.keys()) > 0:
-    #         curr_det_positions = [self.bucket_dict[id][0].position for id in self.bucket_dict]
-    #         curr_det_positions = np.asarray(list(map(self.point_to_array, curr_det_positions))).T
-    #         new_det_position = np.asarray(np.asarray([bucket_detection.position.x, \
-    #                                                   bucket_detection.position.y, bucket_detection.position.z])).T
-    #         diff = np.asmatrix(new_det_position[:, None] - curr_det_positions)
-    #         mahalanobis_distance = np.sqrt(np.diag(diff.T*np.diag([.3, .3, .3])*diff)) #replace with inverse covariance matrix
-    #         # #print("curr:" + str(curr_det_positions))
-    #         # #print("new:" + str(new_det_position))
-    #         # #print("Maha: "+ str(mahalanobis_distance))
-    #         nearest_neighbor = np.argmin(mahalanobis_distance)
-    #         # #print("[Debounced Detection Tracker]: " + str(self.debouncing_tracker_dict))
-    #         tag = bucket_detection.tag
-    #
-    #         if mahalanobis_distance[nearest_neighbor] < self.nn_threshold: #new detection is already seen by system
-    #             self.debouncing_tracker_dict[nearest_neighbor] += 1
-    #             return nearest_neighbor
-    #     self.monotonic_det_id += 1
-    #     return self.monotonic_det_id
 
 

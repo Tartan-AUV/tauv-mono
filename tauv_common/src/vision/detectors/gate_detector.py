@@ -1,3 +1,12 @@
+# gate_detector
+#
+# This node is the detector for the gate.
+# Input: Image
+# Output: Gate detection in 3D.
+# Uses basic geometric rations to estimate the 3D localized point of the center of the gate.
+# Author: Rishabh 2020
+
+
 #!/usr/bin/env python
 import cv2
 import numpy as np 
@@ -229,7 +238,6 @@ class gateDetector:
                 else:
                     obj_det = self.prepareDetectionRegistration(centroid, now)
                     success = self.registration_service([obj_det], self.detector_name)
-                    print("sent gate")
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
 
 def main():
