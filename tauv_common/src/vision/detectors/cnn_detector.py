@@ -95,9 +95,7 @@ class Dummy_Detector():
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
         self.left_camera_detections = rospy.Publisher("cnn_detections", Image, queue_size=10)
 
-
     # function to get the output layer names
-    # in the architecture
     def get_output_layers(self):
         layer_names = self.net.getLayerNames()
         output_layers = [layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]

@@ -2,7 +2,7 @@
 #
 # This node is the for aggregating the detections from the vision pipeline.
 # Input: Detection
-#
+# Output: Daemons publish individual detections to pose_graph
 # Author: Advaith Sethuraman 2020
 
 
@@ -30,12 +30,6 @@ from scipy.spatial.transform import Rotation as R
 
 class Detector_Bucket():
     def __init__(self):
-        self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
-        self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
-        self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetections, \
-                                              self.update_daemon_service)
-        self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
-
         self.num_daemons = 1
         self.daemon_names = None
         self.daemon_dict = {}
@@ -56,6 +50,11 @@ class Detector_Bucket():
         self.debounced_detection_dict = {}
         self.total_number_detection_dict = {}
 
+        self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
+        self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
+        self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetections, \
+                                              self.update_daemon_service)
+        self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 
     def init_daemons(self):
@@ -115,8 +114,8 @@ class Detector_Bucket():
             return True
         return False
 
+    #iterate through all daemons and call spin function to update tracking
     def spin(self, event):
-        #iterate through all daemons and call spin function to update tracking
         for daemon_name in self.daemon_dict:
             daemon = self.daemon_dict[daemon_name]
             daemon.mutex.acquire()

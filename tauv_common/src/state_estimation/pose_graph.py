@@ -25,6 +25,7 @@ from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
 from tauv_common.srv import RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
+from vision.detector_bucket.detector_bucket_utils import *
 
 class Pose_Graph_Edge():
     def __init__(self, type, parent_id, child_id):
@@ -64,17 +65,8 @@ class Pose_Graph():
         self.new_measurement = False
         self.measurement_server = rospy.Service("pose_graph/register_measurement", RegisterMeasurement, \
                                               self.register_measurement)
-        self.marker_callback = rospy.Timer(rospy.Duration(.1), self.publish_sampled_odom_poses)
+        self.marker_callback = rospy.Timer(rospy.Duration(.2), self.publish_sampled_odom_poses)
 
-    def array_to_point(self, arr):
-        p = Point()
-        p.x = arr[0]
-        p.y = arr[1]
-        p.z = arr[2]
-        return p
-
-    def point_to_array(self, point):
-        return np.asarray([point.x, point.y, point.z])
 
     def transform_meas_to_frame(self, measurement, child_frame, world_frame, time):
         try:
@@ -88,12 +80,11 @@ class Pose_Graph():
     def register_measurement(self, req):
         print("In server")
         meas = req.pg_meas
-        pos = self.point_to_array(meas.position)
+        pos = point_to_array(meas.position)
         id = meas.landmark_id
         pos = np.asarray(self.transform_meas_to_frame(pos, meas.header.frame_id, "base_link", meas.header.stamp))
         print(pos, id)
         return True
-
 
     def add_pose_node(self):
         #adds a new pose after a given space/time
@@ -150,7 +141,8 @@ class Pose_Graph():
         #update internal node states
         return
 
-    def run_grapher(self):
+    # pose_graph spin loop optimizes at a set frequency
+    def spin(self):
         return
 
 
