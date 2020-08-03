@@ -149,9 +149,7 @@ class Detector_Daemon():
         self.new_data = True
 
     # performs assignment to trackers and detections
-    # returns (matches, unmatched detections, unmatched trackers)
     def map_det_to_tracker(self, trackers, dets):
-        #rospy.loginfo("Finding map function in %s daemon", self.detector_name)
         trackers_len = len(trackers)
         dets_len = len(dets)
 
@@ -189,6 +187,7 @@ class Detector_Daemon():
 
         return matches, np.array(unmatch_dets), np.array(unmatch_tracks)
 
+    # incorporates any priors about the landmark position
     def override_localization(self, dets):
         for det in dets:
             tag = det.tag
@@ -204,7 +203,7 @@ class Detector_Daemon():
                 det_in_world[2] = override
             det.position = array_to_point(det_in_world)
 
-    # performs association and updates Kalman trackers, then publishes them to pose graph
+    # performs association, finds matches and updates Kalman trackers, then publishes them to pose graph
     def spin(self):
         #rospy.loginfo("In Daemon spin")
         if self.new_data:
@@ -214,55 +213,42 @@ class Detector_Daemon():
                 if len(data_frame) > 0:
                     self.override_localization(data_frame)
                     measurements = np.asmatrix([point_to_array(datum.position) for datum in data_frame])
-                    #print("Meas:" + str(measurements))
                     time_stamp = data_frame[0].header.stamp
 
                     # match trackers and detections
-                    #print(self.tracker_list)
                     temp_tracker_holder = [tracker.localized_point for tracker in self.tracker_list]
-                    #print("Tmp:" + str(temp_tracker_holder))
                     matches, unmatch_dets, unmatch_tracks = \
                         self.map_det_to_tracker(temp_tracker_holder, measurements)
-                    #print(matches, unmatch_dets, unmatch_tracks)
                     if matches.size > 0:
                         for ii in range(len(matches)):
-                            #print(("MATCHED in %s" + str(matches[ii])), self.detector_name)
-                            #print("INE 1")
-                            #print(matches[ii])
                             tracker_ind = matches[ii, 0]
                             detection_ind = matches[ii, 1]
                             measurement = measurements[detection_ind]
-                            #print("MEAS: " + str(measurement) + "SIZE" + str(measurement.shape))
                             measurement = np.asmatrix(measurement).T
-                            #print(measurement.shape)
+
                             #kalman update and predict
                             tracker = self.tracker_list[tracker_ind]
                             tracker.kalman_predict_and_update(measurement)
                             new_x = tracker.estimated_point.T[0].tolist()
-                            #print("new_x:" + str(new_x[0]))
+
                             temp_tracker_holder[tracker_ind] = new_x[0]
                             tracker.localized_point = new_x[0]
                             tracker.detections += 1
 
                     if len(unmatch_dets) > 0:
-                        #print("INE 2")
                         for detection_ind in unmatch_dets:
                             measurement = measurements[detection_ind]
                             measurement = measurement.T
-                            #print(measurement)
 
                             #create new tracker
-                            #print("NEW TRACKER: " + str(measurement))
                             tag = data_frame[detection_ind].tag
                             new_tracker = Detection_Tracker_Kalman(tag)
                             new_tracker.estimated_point = np.asmatrix(measurement)
-                            #print(new_tracker.estimated_point.shape)
                             new_tracker.kalman_predict()
 
                             #update state and id
                             new_x = new_tracker.estimated_point
                             new_x = new_x.T[0].tolist()
-                            #print("new_x:" + str(new_x[0]))
                             new_tracker.localized_point = new_x[0]
                             new_tracker.id = self.tracker_id
 
@@ -272,17 +258,15 @@ class Detector_Daemon():
                             temp_tracker_holder.append(new_x[0])
 
                     if len(unmatch_tracks) > 0:
-                        #print("INE 3")
                         for tracker_ind in unmatch_tracks:
                             tracker = self.tracker_list[tracker_ind]
-                            #print("LOST TRACKLER" + str(tracker_ind) + str(tracker.estimated_point))
+
                             #override the update
                             tracker.kalman_predict_and_update(np.asmatrix([0, 0, 0]).T, True)
                             new_x = tracker.estimated_point
-                            #print(new_x.shape)
+
                             new_x = new_x.T[0].tolist()
                             tracker.localized_point = new_x[0]
-                            #print("new_x:" + str(new_x[0]))
                             temp_tracker_holder[tracker_ind] = new_x[0]
 
                     trackers_to_be_published = []
@@ -295,8 +279,6 @@ class Detector_Daemon():
                         self.create_marker(self.trackers_to_publish[tracker], tracker)
                     self.marker_pub.publish(self.marker_dict.values())
                     self.marker_pub.publish(self.labels_dict.values())
-                    #print(self.trackers_to_publish)
-                    #TODO: transfrom all the detections back into the sensor frame before publishing to pose_graph
             self.new_data = False
 
     def create_marker(self, tracker, id):
@@ -347,7 +329,7 @@ class Detector_Daemon():
         l.color.r = 1.0
         l.color.a = 1.0
 
-        l.scale.z = 0.25
+        l.scale.z = 0.30
         self.marker_dict[id] = m
         self.labels_dict[id] = l
 

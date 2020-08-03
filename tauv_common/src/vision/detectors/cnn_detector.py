@@ -120,7 +120,7 @@ class Dummy_Detector():
         return classes
 
     def classify(self, image):
-        now = rospy.Time(0)
+        now = rospy.Time.now()
         Width = image.shape[1]
         Height = image.shape[0]
         scale = 0.00392
@@ -132,12 +132,10 @@ class Dummy_Detector():
         resized_img = cv2.resize(padded_img, (self.img_size, self.img_size))
         popped_tensor = torch.unsqueeze(torch.tensor(resized_img), dim=0).permute(0, 3, 1, 2)
         input_img = Variable(popped_tensor.type(self.Tensor))
-        a = time.time()
         with torch.no_grad():
             detections = self.net(input_img)
             detections = non_max_suppression(detections, self.conf_threshold, self.nms_threshold)
 
-        b = time.time()
         class_ids = []
         confidences = []
         boxes = []
@@ -167,6 +165,9 @@ class Dummy_Detector():
                 final_detections.append([class_id, (int(x), int(y), int(w), int(h))])
                 self.draw_bounding_box(image, class_id, confidence, round(x), round(y), round(x+w), round(y+h))
 
+        image = cv2.putText(image, "[%s] : %f" % (self.detector_id, now.to_sec()), \
+                             (Width - 170, Height - 15), cv2.FONT_HERSHEY_SIMPLEX, \
+                             .5, (0, 0, 255), 2)
         self.left_camera_detections.publish(self.cv_bridge.cv2_to_imgmsg(image))
         return final_detections, now
 

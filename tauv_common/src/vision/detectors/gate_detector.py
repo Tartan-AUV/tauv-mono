@@ -33,7 +33,7 @@ from scipy.spatial.transform import Rotation as R
 
 class gateDetector: 
     def __init__(self):
-        self.detector_name = "gate"
+        self.detector_id = "gate"
         self.numBits = 8
         self.imageWidth = 640
         self.imageHeight = 480
@@ -91,12 +91,12 @@ class gateDetector:
         centerLineX = (leftBar + rightBar) // 2
         centerLineTop = centerLineX, 0
         centerLineBottom = centerLineX, height
-        cv2.line(img1, leftLineTop, leftLineBottom, (0, 255, 0), thickness=2)
-        cv2.line(img1, rightLineTop, rightLineBottom, (0, 255, 0), thickness=2)
-        cv2.line(img1, centerLineTop, centerLineBottom, (255, 0, 0), thickness=2)
+        cv2.line(img1, leftLineTop, leftLineBottom, (0, 255, 0), thickness=4)
+        cv2.line(img1, rightLineTop, rightLineBottom, (0, 255, 0), thickness=4)
+        cv2.line(img1, centerLineTop, centerLineBottom, (255, 0, 0), thickness=4)
         pixel_height = np.ceil((rightBar - leftBar)/self.gate_width*self.gate_height)
         end_coord = (int(rightLineTop[0]), int(rightLineTop[1] + pixel_height))
-        cv2.rectangle(img1, leftLineTop, end_coord, (0, 255, 0), thickness=2)
+        cv2.rectangle(img1, leftLineTop, end_coord, (0, 255, 0), thickness=4)
         return img1
     # Amplify all of the channels in the image allowing for greater visibility 
     # in marine environments 
@@ -170,7 +170,7 @@ class gateDetector:
         return (firstBar, secondBar)
 
     def findPost(self, img):
-        now = rospy.Time(0)
+        now = rospy.Time.now()
         (height, width, channels) = img.shape
         self.imageHeight = height 
         self.imageWidth = width
@@ -224,6 +224,7 @@ class gateDetector:
             self.left_img_flag = False
             leftBar, rightBar, now = self.findPost(self.stereo_left)
             overlayedImage = self.stereo_left
+            Height, Width = overlayedImage.shape[:2]
             if leftBar != None and rightBar != None:
                 if self.prev[0] == None or self.prev[1] == None:
                     self.prev = [leftBar, rightBar]
@@ -231,13 +232,15 @@ class gateDetector:
                     leftBar, rightBar = (int((self.prev[0] + leftBar)//2), int((self.prev[1] + rightBar)//2))
                     self.prev = [leftBar, rightBar]
                 overlayedImage = self.overlayGateDetection(self.stereo_left, leftBar, rightBar)
+                overlayedImage = cv2.putText(overlayedImage, "[%s] : %f" % (self.detector_id, now.to_sec()), \
+                                             (Width - 170, Height - 15), cv2.FONT_HERSHEY_SIMPLEX, \
+                                             .5, (0, 0, 255), 2)
                 centroid = self.vector_to_detection_centroid(leftBar, rightBar)
-                print(centroid)
                 if np.all(centroid == [0, 0, 0]):
                     pass
                 else:
                     obj_det = self.prepareDetectionRegistration(centroid, now)
-                    success = self.registration_service([obj_det], self.detector_name)
+                    success = self.registration_service([obj_det], self.detector_id)
             self.gate_detection_pub.publish(self.cv_bridge.cv2_to_imgmsg(overlayedImage))
 
 def main():

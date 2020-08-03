@@ -73,6 +73,7 @@ class Detector_Bucket():
         return tag
 
     def transform_meas_to_world(self, measurement, child_frame, world_frame, time):
+        self.tf.waitForTransform(world_frame, child_frame, time, rospy.Duration(4.0))
         try:
             (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
             tf = R.from_quat(np.asarray(rot))
