@@ -1,4 +1,4 @@
-# twist_transformer.py
+# twist_transformer
 #
 # Transforms twists in base_link to a global frame
 #
@@ -39,11 +39,9 @@ class Twist_Transformer:
         return
 
 def main():
-    rospy.init_node('depth_odometry', anonymous=True)
-    d_odom = Depth_Odom()
-    while not rospy.is_shutdown():
-        d_odom.spin()
-        rospy.sleep(.1)
+    rospy.init_node('twist_transformer', anonymous=True)
+    twist_transformer = Twist_Transformer()
+    rospy.spin()
 
 
 
