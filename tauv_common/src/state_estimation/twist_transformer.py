@@ -30,7 +30,7 @@ depth_data = 0
 class Twist_Transformer:
     def __init__(self):
         self.rotated_twist_pub = rospy.Publisher("rotated_twist", Twist, queue_size=50)
-        self.ekf_sub = rospy.Subscriber()
+        #self.ekf_sub = rospy.Subscriber()
         self.tf = tf.TransformListener()
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 

@@ -41,6 +41,18 @@
       <uri>model://gate</uri>
     </include>
 
+    <include>
+      <name>f1</name>
+      <pose>28.0 -8.0 -5.0 0 0 0</pose>
+      <uri>model://fire_hydrant</uri>
+    </include>
+
+    <include>
+          <name>f2</name>
+          <pose>29.5 -8.0 -5.0 0 0 0</pose>
+          <uri>model://fire_hydrant</uri>
+        </include>
+
 
 
     <plugin name="underwater_current_plugin" filename="libuuv_underwater_current_ros_plugin.so">

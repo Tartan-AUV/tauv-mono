@@ -30,8 +30,8 @@ object_tags: {
           is_static: true,
           total_number: 1,
           location_override_z: -1.5,
-          marker_dims: [1.0, 1.0, 1.0],
+          marker_dims: [3.048, .08, 1.0],
           marker_color: [0.082, .494, 0.819, .75],
-          marker_type: 2
+          marker_type: 1
   }
 }
