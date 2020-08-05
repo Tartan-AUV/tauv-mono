@@ -71,16 +71,6 @@ class Detector_Bucket():
         tag = new_detection.tag != ""
         return tag
 
-    def transform_meas_to_world(self, measurement, child_frame, world_frame, time):
-        self.tf.waitForTransform(world_frame, child_frame, time, rospy.Duration(4.0))
-        try:
-            (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
-            tf = R.from_quat(np.asarray(rot))
-            detection_pos = tf.apply(measurement) + np.asarray(trans)
-            return detection_pos
-        except:
-            return np.array([np.nan])
-
     def update_detection_arrows(self, bucket_detection, world_frame, robot_position, id):
         pos = bucket_detection.position
         m = Marker()
@@ -99,7 +89,7 @@ class Detector_Bucket():
 
         # transform detections to world frame
         for datum in data_frame:
-            pos_in_world = self.transform_meas_to_world(point_to_array(datum.position), \
+            pos_in_world = transform_meas_to_world(point_to_array(datum.position), \
                                                         datum.header.frame_id, "odom", datum.header.stamp)
             datum.position = array_to_point(pos_in_world)
             datum.header.frame_id = "odom"

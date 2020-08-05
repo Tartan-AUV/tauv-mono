@@ -32,6 +32,17 @@ from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
 from scipy.optimize import linear_sum_assignment
 
+def transform_meas_to_world(self, measurement, child_frame, world_frame, time, translate=True):
+    self.tf.waitForTransform(world_frame, child_frame, time, rospy.Duration(4.0))
+    try:
+        (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
+        tf = R.from_quat(np.asarray(rot))
+        detection_pos = tf.apply(measurement)
+        if translate:
+            detection_pos += np.asarray(trans)
+        return detection_pos
+    except:
+        return np.array([np.nan])
 
 def array_to_point(arr):
     p = Point()
@@ -156,7 +167,8 @@ class Detector_Daemon():
         trackers_tiled = np.tile(trackers, (dets_len, 1))
         dets_repeated = np.repeat(dets, trackers_len, axis=0)
         if trackers_len > 0 and dets_len > 0 and \
-                not (np.any(np.isinf(trackers)) | np.any(np.isnan(trackers)) |  np.any(np.isinf(dets)) | np.any(np.isnan(dets))):
+            not (np.any(np.isinf(trackers)) | np.any(np.isnan(trackers)) \
+             |  np.any(np.isinf(dets)) | np.any(np.isnan(dets))):
             adjacency_cost_matrix = np.reshape(np.linalg.norm(trackers_tiled - dets_repeated, axis=1), (trackers_len, dets_len))
             tracker_matches, det_matches = linear_sum_assignment(adjacency_cost_matrix)
         else:
