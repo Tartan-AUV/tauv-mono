@@ -12,6 +12,7 @@ add_message_files(
   InertialVals.msg
   PidVals.msg
   SonarPulse.msg
+  PoseGraphMeasurement.msg
 )
 
 add_service_files(

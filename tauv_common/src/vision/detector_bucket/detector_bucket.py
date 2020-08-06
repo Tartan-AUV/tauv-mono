@@ -1,10 +1,8 @@
 # detector_bucket
 #
 # This node is the for aggregating the detections from the vision pipeline.
-# The information in the bucket will be broadcast to the mission nodes and used for tasks.
-# Main outputs are a 3D Bounding Box array and a list of bucket detections for mission nodes
-# New detections will be added to observations using a pose graph.
-#
+# Input: Detection
+# Output: Daemons publish individual detections to pose_graph
 # Author: Advaith Sethuraman 2020
 
 
@@ -15,6 +13,7 @@ import tf_conversions
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
+from detector_bucket_utils import *
 from sensor_msgs.msg import Imu
 from std_msgs.msg import Header
 from stereo_msgs.msg import DisparityImage
@@ -23,83 +22,111 @@ from geometry_msgs.msg import *
 from nav_msgs.msg import Odometry
 from tf.transformations import *
 from geometry_msgs.msg import Quaternion
-from tauv_msgs.msg import BucketDetection, BucketList
-from tauv_common.srv import RegisterObjectDetection
-
-
-
+from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
+from tauv_common.srv import RegisterObjectDetections, RegisterMeasurement
+from visualization_msgs.msg import Marker, MarkerArray
+from scipy.spatial.transform import Rotation as R
 
 
 class Detector_Bucket():
     def __init__(self):
-        self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
-        self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
-        self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetection, \
-                                              self.register_object_detection)
+        self.num_daemons = 1
+        self.daemon_names = None
+        self.daemon_dict = {}
+        if not self.init_daemons():
+            rospy.logerr("[Detector Bucket]: Unable to initialize detector daemons, invalid information!")
+        rospy.loginfo("[Detector Bucket]: Summoning Daemons: " + str(self.daemon_names))
+
         self.tf = tf.TransformListener()
         self.cv_bridge = CvBridge()
         self.refresh_rate = 0
-        self.bucket_list = []
+        self.bucket_dict = dict()
         self.bbox_3d_list = []
-        self.spin_callback = rospy.Timer(rospy.Duration(.1), self.spin)
+        self.monotonic_det_id = -1
+        self.nn_threshold = .9
+        self.debouncing_threshold = 10
+        self.arrow_dict = {}
+        self.debouncing_tracker_dict = {}
+        self.debounced_detection_dict = {}
+        self.total_number_detection_dict = {}
 
-    def similarity_index(self, detection_1, detection_2):
-        point_1 = np.asarray([detection_1.position.x, detection_1.position.y, detection_1.position.z])
-        point_2 = np.asarray([detection_2.position.x, detection_2.position.y, detection_2.position.z])
-        orb = cv2.ORB_create(300)
-        image_1 = self.cv_bridge.imgmsg_to_cv2(detection_1.image, "passthrough")
-        image_2 = self.cv_bridge.imgmsg_to_cv2(detection_2.image, "passthrough")
-        k1, d1 = orb.detectAndCompute(image_1, None)
-        k2, d2 = orb.detectAndCompute(image_2, None)
-        matcher = cv2.BFMatcher()
-        matches = matcher.match(d1,d2)
+        self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
+        self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
+        self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetections, \
+                                              self.update_daemon_service)
+        self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
+        self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 
-        distance = (point_1 - point_2).dot((point_1 - point_2).T)
-
-        return distance
+    def init_daemons(self):
+        if rospy.has_param("detectors/total_number"):
+            self.num_daemons = int(rospy.get_param("detectors/total_number"))
+            rospy.loginfo("[Detector Bucket]: Initializing %d Daemons", self.num_daemons)
+            self.daemon_names = rospy.get_param("detectors/names")
+            self.daemon_dict = {name: Detector_Daemon(name, ii) for ii, name in enumerate(self.daemon_names)}
+            return True
+        else:
+            return False
 
     def is_valid_registration(self, new_detection):
-        return True
-        for detections in self.bucket_list:
-            sim_index = self.similarity_index(detections, new_detection)
-            if(sim_index < 1.0):
-                print("Similarity Found")
-                #send updated landmark registration to pose_graph
-                return False
-        return True
+        tag = new_detection.tag != ""
+        return tag
 
-    def register_object_detection(self, req):
-        bucket_detection = req.objdet
-        bbox_3d_detection = bucket_detection.bbox_3d
-        if(self.is_valid_registration(bucket_detection)):
-            found_in_current = False
-            for det, bbox in zip(self.bucket_list, self.bbox_3d_list):
-                if(bucket_detection.tag == det.tag):
-                    det = bucket_detection
-                    bbox = bbox_3d_detection
-                    found_in_current = True
-            if(not found_in_current):
-                self.bucket_list.append(bucket_detection)
-                self.bbox_3d_list.append(bbox_3d_detection)
+    def update_detection_arrows(self, bucket_detection, world_frame, robot_position, id):
+        pos = bucket_detection.position
+        m = Marker()
+        m.header.frame_id = world_frame
+        m.id = id
+        m.points = [robot_position, pos]
+        m.color.g = 1.0
+        m.color.a = 1.0
+        m.scale.x = .05
+        m.scale.y = .05
+        m.scale.z = .05
+        self.arrow_dict[id] = m
+
+    def transform_meas_to_world(self, measurement, child_frame, world_frame, time, translate=True):
+        self.tf.waitForTransform(world_frame, child_frame, time, rospy.Duration(4.0))
+        try:
+            (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
+            tf = R.from_quat(np.asarray(rot))
+            detection_pos = tf.apply(measurement)
+            if translate:
+                detection_pos += np.asarray(trans)
+            return detection_pos
+        except:
+            return np.array([np.nan])
+
+    def update_daemon_service(self, req):
+        data_frame = req.objdets
+
+        # transform detections to world frame
+        for datum in data_frame:
+            pos_in_world = self.transform_meas_to_world(point_to_array(datum.position), \
+                                                        datum.header.frame_id, "odom", datum.header.stamp)
+            datum.position = array_to_point(pos_in_world)
+            datum.header.frame_id = "odom"
+
+        # acquire and update data buffer on daemon
+        daemon_name = req.detector_tag
+        if daemon_name in self.daemon_dict:
+            daemon = self.daemon_dict[daemon_name]
+            daemon.mutex.acquire()
+            daemon.update_detection_buffer(data_frame)
+            daemon.mutex.release()
             return True
         return False
 
+    #iterate through all daemons and call spin function to update tracking
     def spin(self, event):
-        bucket_list_msg = BucketList()
-        bbox_3d_list_msg = BoundingBoxArray()
-        bucket_list_msg.header = Header()
-        bucket_list_msg.bucket_list = self.bucket_list
-        bbox_3d_list_msg.header = Header()
-        bbox_3d_list_msg.header.frame_id = "odom"
-        bbox_3d_list_msg.boxes = self.bbox_3d_list
-        self.bucket_list_pub.publish(bucket_list_msg)
-        self.bbox_3d_list_pub.publish(bbox_3d_list_msg)
-        return
+        for daemon_name in self.daemon_dict:
+            daemon = self.daemon_dict[daemon_name]
+            daemon.mutex.acquire()
+            daemon.spin()
+            daemon.mutex.release()
 
 def main():
     rospy.init_node('detector_bucket', anonymous=True)
     detector_bucket = Detector_Bucket()
-    rospy.Timer(rospy.Duration(.1), detector_bucket.spin)
     rospy.spin()
 
 

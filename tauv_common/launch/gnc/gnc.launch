@@ -11,7 +11,7 @@
     <!-- odom topic to listen on -->
     <arg name="odom_topic" default="odom"/>
     <!-- Planner to use. Possible options: "teleop", "mpc" -->
-    <arg name="planner" default="mpc"/>
+    <arg name="planner" default="teleop"/>
 
     <group ns="gnc">
         <!-- Launch State Estimation -->
@@ -28,6 +28,13 @@
 <!--            <remap from="imu_out/data" to="/$(arg model_name)/sensors/imu/data_trans"/>-->
 <!--            <param name="target_frame" value="base_link" />-->
 <!--        </node>-->
+
+        <node pkg="tauv_common" type="pose_graph" name="pose_graph" output="screen">
+        </node>
+
+        <node pkg="tauv_common" type="twist_transformer" name="twist_transformer" output="screen">
+
+        </node>
 
         <!-- Launch controllers -->
         <node pkg="tauv_common" type="attitude_controller" name="attitude_controller" output="screen">
@@ -46,8 +53,8 @@
         </node>
 
         <!-- Start MPC node -->
-        <node pkg="tauv_common" type="mpc_traj_follower" name="mpc_trajectory_follower" output="screen">
-            <remap from="controller_cmd" to="mpc/controller_cmd"/>
-        </node>
+<!--        <node pkg="tauv_common" type="mpc_traj_follower" name="mpc_trajectory_follower" output="screen">-->
+<!--            <remap from="controller_cmd" to="mpc/controller_cmd"/>-->
+<!--        </node>-->
     </group>
 </launch>

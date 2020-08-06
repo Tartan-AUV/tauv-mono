@@ -2,7 +2,7 @@
 #     Copyright (c) 2020 Tartan AUV
 #     All rights reserved.
 
-stereo_algorithm: StereoSGBM
+stereo_algorithm: 1
 approximate_sync: true
 queue_size: 10
 prefilter_size: 13

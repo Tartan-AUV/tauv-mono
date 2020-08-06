@@ -29,6 +29,8 @@ setup_args = generate_distutils_setup(
               'planners.teleop_planner',
               'planners.trajectory_planner',
               'state_estimation.depth_odometry',
+              'state_estimation.twist_transformer',
+              'state_estimation.pose_graph',
               'teleop',
               'vision',
               'vision.detector_bucket',
@@ -43,10 +45,13 @@ setup_args = generate_distutils_setup(
              'scripts/keyboard_planner',
              'scripts/teleop_planner',
              'scripts/depth_odometry',
+             'scripts/twist_transformer',
+             'scripts/pose_graph',
              'scripts/detector_bucket',
              'scripts/attitude_controller',
              'scripts/mpc_traj_follower',
-             'scripts/dummy_detector'],
+             'scripts/cnn_detector',
+             'scripts/gate_detector'],
 
 )
 setup(**setup_args)
