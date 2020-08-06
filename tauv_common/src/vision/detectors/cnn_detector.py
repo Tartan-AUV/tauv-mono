@@ -241,10 +241,13 @@ class Dummy_Detector():
             self.left_info_flag = False
             detections, now = self.classify(self.stereo_left)
             det_packet = []
-            for det in detections:
-                feature_centroid = self.vector_to_detection_centroid(det)
-                det_packet.append(self.prepare_detection_registration(feature_centroid, det, now))
-            success = self.registration_service(det_packet, self.detector_id)
+            try:
+                for det in detections:
+                    feature_centroid = self.vector_to_detection_centroid(det)
+                    det_packet.append(self.prepare_detection_registration(feature_centroid, det, now))
+                success = self.registration_service(det_packet, self.detector_id)
+            except:
+                pass
 
 
 def main():

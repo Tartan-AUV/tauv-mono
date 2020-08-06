@@ -60,12 +60,18 @@ class Pose_Graph():
         self.nodes = {"landmarks":dict(), "poses":dict()}
         self.tf = tf.TransformListener()
         self.marker_pub = rospy.Publisher("pose_marker", MarkerArray, queue_size=10)
+        self.detection_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
+        self.detection_marker_dict = {}
         self.marker_dict = {}
+        self.detections_dict = {}
+        self.color_cycle = [[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0]]
+        self.flip = 0
         self.marker_id = 0
         self.new_measurement = False
         self.measurement_server = rospy.Service("pose_graph/register_measurement", RegisterMeasurement, \
                                               self.register_measurement)
-        self.marker_callback = rospy.Timer(rospy.Duration(.2), self.publish_sampled_odom_poses)
+        self.marker_callback = rospy.Timer(rospy.Duration(.010), self.spin)
+
 
 
     def transform_meas_to_frame(self, measurement, child_frame, world_frame, time):
@@ -79,11 +85,13 @@ class Pose_Graph():
 
     def register_measurement(self, req):
         print("In server")
-        for datum in req:
-            pos = point_to_array(datum.position)
+        self.detections_dict = {}
+        for datum in req.pg_measurements:
             id = datum.landmark_id
-            pos = np.asarray(self.transform_meas_to_frame(pos, datum.header.frame_id, "base_link", datum.header.stamp))
-            print(pos, id)
+            frame_id = datum.header.frame_id
+            pos = self.transform_meas_to_frame(point_to_array(datum.position), frame_id, "odom", datum.header.stamp)
+            self.detections_dict[id] = (pos, frame_id)
+            print(pos, frame_id, id)
         return True
 
     def add_pose_node(self):
@@ -106,7 +114,7 @@ class Pose_Graph():
         #for pruning the pose graph
         return
 
-    def publish_sampled_odom_poses(self, event):
+    def publish_sampled_odom_poses(self):
         now = rospy.Time(0)
         try:
             (trans, rot) = self.tf.lookupTransform("odom", "base_link", now)
@@ -114,24 +122,35 @@ class Pose_Graph():
             return
 
         pos = np.asarray(trans)
-        self.create_marker(pos, self.marker_id % 50)
+        self.create_marker(pos, self.marker_id % 500, "odom", self.marker_dict, [0, 1, 0, .75])
         self.marker_id += 1
         self.marker_pub.publish(self.marker_dict.values())
 
-    def create_marker(self, pos, id):
+    def publish_detections(self):
+        for det_id in self.detections_dict:
+            pos = self.detections_dict[det_id][0]
+            frame_id = self.detections_dict[det_id][1]
+            self.create_marker(pos, det_id, "odom", self.detection_marker_dict, self.color_cycle[self.flip % 2])
+        self.flip += 1
+        self.detection_pub.publish(self.detection_marker_dict.values())
+
+
+    def create_marker(self, pos, id, frame, dict, color):
         m = Marker()
-        m.header.frame_id = "odom"
+        m.header.frame_id = frame
         m.id = id
         m.type = 2
         m.pose.position.x = pos[0]
         m.pose.position.y = pos[1]
         m.pose.position.z = pos[2]
-        m.color.g = 1.0
-        m.color.a = 0.75
+        m.color.r = color[0]
+        m.color.g = color[1]
+        m.color.b = color[2]
+        m.color.a = color[3]
         m.scale.x = .1
         m.scale.y = .1
         m.scale.z = .1
-        self.marker_dict[id] = m
+        dict[id] = m
 
     def create_system(self):
         #create structures needed to solve states
@@ -142,8 +161,9 @@ class Pose_Graph():
         return
 
     # pose_graph spin loop optimizes at a set frequency
-    def spin(self):
-        return
+    def spin(self, event):
+        self.publish_sampled_odom_poses()
+        self.publish_detections()
 
 
 def main():
