@@ -32,6 +32,10 @@
         <node pkg="tauv_common" type="pose_graph" name="pose_graph" output="screen">
         </node>
 
+        <node pkg="tauv_common" type="twist_transformer" name="twist_transformer" output="screen">
+
+        </node>
+
         <!-- Launch controllers -->
         <node pkg="tauv_common" type="attitude_controller" name="attitude_controller" output="screen">
             <remap from="odom" to="$(arg odom_topic)"/>

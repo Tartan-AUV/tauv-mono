@@ -32,17 +32,7 @@ from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
 from scipy.optimize import linear_sum_assignment
 
-def transform_meas_to_world(self, measurement, child_frame, world_frame, time, translate=True):
-    self.tf.waitForTransform(world_frame, child_frame, time, rospy.Duration(4.0))
-    try:
-        (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
-        tf = R.from_quat(np.asarray(rot))
-        detection_pos = tf.apply(measurement)
-        if translate:
-            detection_pos += np.asarray(trans)
-        return detection_pos
-    except:
-        return np.array([np.nan])
+
 
 def array_to_point(arr):
     p = Point()
