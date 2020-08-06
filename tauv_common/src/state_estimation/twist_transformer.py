@@ -52,8 +52,8 @@ class Twist_Transformer:
         angular_twist = twist.twist.angular
 
         twist_rotated = TwistWithCovariance()
-        transformed_linear = self.transform_meas_to_world(tl(linear_twist), odom.child_frame_id, odom.header.frame_id, odom.header.stamp, False)
-        transformed_angular = self.transform_meas_to_world(tl(angular_twist), odom.child_frame_id, odom.header.frame_id, odom.header.stamp, False)
+        transformed_linear = self.transform_meas_to_world(tl(linear_twist), odom.child_frame_id, odom.header.frame_id, rospy.Time(0), False)
+        transformed_angular = self.transform_meas_to_world(tl(angular_twist), odom.child_frame_id, odom.header.frame_id, rospy.Time(0), False)
         twist_rotated.twist.linear = tm(transformed_linear, Vector3)
         twist_rotated.twist.angular = tm(transformed_angular, Vector3)
         twist_rotated.covariance = twist.covariance #may need to be transformed
