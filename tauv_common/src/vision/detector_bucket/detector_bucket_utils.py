@@ -32,7 +32,7 @@ from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
 from scipy.optimize import linear_sum_assignment
 
-
+tracker_id = 0
 
 def array_to_point(arr):
     p = Point()
@@ -44,10 +44,13 @@ def array_to_point(arr):
 def point_to_array(point):
     return np.asarray([point.x, point.y, point.z])
 
+
+
 # constant position Kalman Filter for stationary object tracking
 class Detection_Tracker_Kalman():
     def __init__(self, tag):
         self.id = -1
+        self.updated_now = False
         self.state_space_dim = 3
         self.localized_point = np.zeros((self.state_space_dim, 1))
         self.detections = 0
@@ -123,6 +126,7 @@ class Detector_Daemon():
             rospy.loginfo("[Detector Daemon]: %s. Obtained mahalanobis threshold", self.detector_name)
             self.mahalanobis_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/mahalanobis_threshold"))
         self.marker_pub = rospy.Publisher(self.detector_name + "_daemon/filtered_det_marker", MarkerArray, queue_size=10)
+        self.tf = tf.TransformListener()
 
         #list of detections for this daemon
         self.detection_buffer = []
@@ -134,6 +138,13 @@ class Detector_Daemon():
             self.debouncing_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/debouncing_threshold"))
         self.tracker_list = []
         self.trackers_to_publish = {}
+
+        self.frame_id = "odom"
+        if rospy.has_param("detectors/" + self.detector_name + "/frame_id"):
+            rospy.loginfo("[Detector Daemon]: %s. Obtained detector frame_id", self.detector_name)
+            self.frame_id = str(rospy.get_param("detectors/" + self.detector_name + "/frame_id"))
+        else:
+            rospy.logerr("[Detector Daemon]: %s: Detector frame_id not specified!" % self.detector_name)
 
         self.tracker_id = 0
         self.marker_dict = {}
@@ -231,6 +242,7 @@ class Detector_Daemon():
                             temp_tracker_holder[tracker_ind] = new_x[0]
                             tracker.localized_point = new_x[0]
                             tracker.detections += 1
+                            tracker.updated_now = True
 
                     if len(unmatch_dets) > 0:
                         for detection_ind in unmatch_dets:
@@ -247,10 +259,11 @@ class Detector_Daemon():
                             new_x = new_tracker.estimated_point
                             new_x = new_x.T[0].tolist()
                             new_tracker.localized_point = new_x[0]
-                            new_tracker.id = self.tracker_id
+                            global tracker_id
+                            new_tracker.id = tracker_id
 
                             #add to list
-                            self.tracker_id += 1
+                            tracker_id += 1
                             self.tracker_list.append(new_tracker)
                             temp_tracker_holder.append(new_x[0])
 
@@ -267,16 +280,44 @@ class Detector_Daemon():
                             temp_tracker_holder[tracker_ind] = new_x[0]
 
                     trackers_to_be_published = []
+                    detections_for_time_step = []
                     for tracker in self.tracker_list:
                         if tracker.detections >= self.debouncing_threshold:
                             trackers_to_be_published.append(tracker)
+                            if tracker.updated_now:
+                                detections_for_time_step.append(self.create_pg_measurement(tracker, time_stamp))
+                        tracker.updated_now = False
+
 
                     self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
                     for tracker in self.trackers_to_publish:
                         self.create_marker(self.trackers_to_publish[tracker], tracker)
                     self.marker_pub.publish(self.marker_dict.values())
                     self.marker_pub.publish(self.labels_dict.values())
+
             self.new_data = False
+
+    def transform_meas_to_world(self, measurement, child_frame, world_frame, time, translate=True):
+        self.tf.waitForTransform(world_frame, child_frame, time, rospy.Duration(4.0))
+        try:
+            (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
+            tf = R.from_quat(np.asarray(rot))
+            detection_pos = tf.apply(measurement)
+            if translate:
+                detection_pos += np.asarray(trans)
+            return detection_pos
+        except:
+            return np.array([np.nan])
+
+    def create_pg_measurement(self, tracker, time_stamp):
+        id = tracker.id
+        pos = tracker.localized_point
+        pg_meas = PoseGraphMeasurement()
+        pg_meas.header.frame_id = self.frame_id
+        pg_meas.header.stamp = time_stamp
+        pg_meas.landmark_id = id
+        pg_meas.position = array_to_point(self.transform_meas_to_world(pos, "odom", self.frame_id, time_stamp))
+        return pg_meas
 
     def create_marker(self, tracker, id):
         tag = tracker[1]

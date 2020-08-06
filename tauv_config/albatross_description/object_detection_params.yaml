@@ -7,12 +7,14 @@ detectors: {
           debouncing_threshold: 100,
           config_path: "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg",
           weights_path: "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights",
-          classes_path: "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt"
+          classes_path: "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.txt",
+          frame_id: "duo3d_optical_link_front"
   },
   gate: {
           type: "vision",
           mahalanobis_threshold: 3.0,
-          debouncing_threshold: 75
+          debouncing_threshold: 75,
+          frame_id: "duo3d_optical_link_front"
   }
 }
 
