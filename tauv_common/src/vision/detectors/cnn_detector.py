@@ -95,13 +95,11 @@ class Dummy_Detector():
         self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
         self.left_camera_detections = rospy.Publisher("cnn_detections", Image, queue_size=10)
 
-    # function to get the output layer names
     def get_output_layers(self):
         layer_names = self.net.getLayerNames()
         output_layers = [layer_names[i[0] - 1] for i in self.net.getUnconnectedOutLayers()]
         return output_layers
 
-    # function to draw bounding box on the detected object with class name
     def draw_bounding_box(self, img, class_id, confidence, x, y, x_plus_w, y_plus_h):
         label = str(self.classes[class_id])
         color = [0, 0, 255]
@@ -248,32 +246,6 @@ class Dummy_Detector():
                 det_packet.append(self.prepare_detection_registration(feature_centroid, det, now))
             success = self.registration_service(det_packet, self.detector_id)
 
-
-        # if(len(keypoints) > 100):
-        #     feature_centroid = self.get_feature_centroid(self.depth_from_disparity(self.disparity), keypoints)
-        #     cv2.imwrite("/home/advaith/Desktop/object_detection_test.png", self.stereo_left)
-        #     cv2.imshow("Features", cv2.drawKeypoints(self.stereo_left, keypoints, None))
-        #     cv2.waitKey(1)
-        #     self.left_img_flag = False
-        #     obj_det = BucketDetection()
-        #     obj_det.image = self.cv_bridge.cv2_to_imgmsg(self.stereo_left, "bgr8")
-        #     obj_det.tag = "Testing"
-        #     bbox_3d = BoundingBox()
-        #     bbox_3d.dimensions = Vector3(1, 1, 1)
-        #     now = rospy.Time(0)
-        #     self.tf.waitForTransform("/odom", "/duo3d_left_link_front", now, rospy.Duration(4.0))
-        #     (trans, rot) = self.tf.lookupTransform("/odom", "/duo3d_left_link_front", now)
-        #     bbox_pose = Pose()
-        #     x, y, z = feature_centroid + np.asarray(trans)
-        #     obj_det.position = Point(x, y, z)
-        #     bbox_pose.position = Vector3(x, y, z)
-        #     bbox_3d.pose = bbox_pose
-        #     bbox_header = Header()
-        #     bbox_header.frame_id = "odom"
-        #     bbox_3d.header = bbox_header
-        #     obj_det.bbox_3d = bbox_3d
-        #     success = self.registration_service(obj_det)
-        #     print("Detection transmitted: " + str(success))
 
 def main():
     rospy.init_node("cnn_detector")

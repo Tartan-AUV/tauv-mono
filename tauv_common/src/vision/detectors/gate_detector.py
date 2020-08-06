@@ -55,8 +55,6 @@ class gateDetector:
         self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetections)
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 
-
-
     def openImage (self, path):
         img = cv2.imread(path)
         self.imageWidth, self.imageHeight, _ = img.shape
@@ -247,6 +245,3 @@ def main():
     rospy.init_node('gate_detector', anonymous=True)
     myGateDetector = gateDetector()
     rospy.spin()
-
-if __name__ == '__main__':
-    main()

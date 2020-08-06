@@ -82,8 +82,7 @@ class Detection_Tracker_Kalman():
     # measurement is of the form [x, y, z] in the world frame
     def kalman_predict_and_update(self, measurement, override=False):
         x = self.estimated_point
-        #print(measurement)
-        #print(measurement.shape)
+
         # Kalman Predict
         x = self.F * x # predict state
         self.P = self.F * self.P * self.F.T + self.Q # predict state cov
@@ -95,10 +94,7 @@ class Detection_Tracker_Kalman():
             S = self.H * self.P * self.H.T + self.R
 
         K = self.P * self.H.T * inv(S) #Kalman gain
-        #print(K.shape)
         y = measurement - self.H * x #Residual
-        #print(x.shape)
-        #print((K*y).shape)
         x += K * y
         self.P = self.P - K * self.H * self.P
         self.estimated_point = x
@@ -109,7 +105,6 @@ class Detection_Tracker_Kalman():
         self.P = self.F * self.P * self.F.T + self.Q
         self.estimated_point = x
 
-    #need to update
     def update_dt(self, new_measurement_time):
         self.dt = new_measurement_time - self.last_updated_time
         self.last_updated_time = new_measurement_time
@@ -159,7 +154,8 @@ class Detector_Daemon():
         if trackers_len > 0 and dets_len > 0 and \
             not (np.any(np.isinf(trackers)) | np.any(np.isnan(trackers)) \
              |  np.any(np.isinf(dets)) | np.any(np.isnan(dets))):
-            adjacency_cost_matrix = np.reshape(np.linalg.norm(trackers_tiled - dets_repeated, axis=1), (trackers_len, dets_len))
+            adjacency_cost_matrix = np.reshape(np.linalg.norm(trackers_tiled - dets_repeated, axis=1), \
+                                               (trackers_len, dets_len))
             tracker_matches, det_matches = linear_sum_assignment(adjacency_cost_matrix)
         else:
             tracker_matches, det_matches = np.array([]), np.array([])
@@ -207,10 +203,8 @@ class Detector_Daemon():
 
     # performs association, finds matches and updates Kalman trackers, then publishes them to pose graph
     def spin(self):
-        #rospy.loginfo("In Daemon spin")
         if self.new_data:
             while len(self.detection_buffer) > 0:
-                # gather data
                 data_frame = self.detection_buffer.pop(0)
                 if len(data_frame) > 0:
                     self.override_localization(data_frame)
@@ -221,6 +215,7 @@ class Detector_Daemon():
                     temp_tracker_holder = [tracker.localized_point for tracker in self.tracker_list]
                     matches, unmatch_dets, unmatch_tracks = \
                         self.map_det_to_tracker(temp_tracker_holder, measurements)
+
                     if matches.size > 0:
                         for ii in range(len(matches)):
                             tracker_ind = matches[ii, 0]
