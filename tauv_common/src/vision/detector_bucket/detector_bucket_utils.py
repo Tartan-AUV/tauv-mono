@@ -292,6 +292,11 @@ class Detector_Daemon():
                     self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
                     for tracker in self.trackers_to_publish:
                         self.create_marker(self.trackers_to_publish[tracker], tracker)
+
+                    if len(detections_for_time_step) > 0:
+                        print(detections_for_time_step)
+                        success = self.meas_reg_service(detections_for_time_step)
+                        print(success)
                     self.marker_pub.publish(self.marker_dict.values())
                     self.marker_pub.publish(self.labels_dict.values())
 
