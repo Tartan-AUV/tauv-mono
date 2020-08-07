@@ -7,7 +7,7 @@ detectors: {
   names: ["yolov3", "gate"],
   yolov3: {
           type: "vision",
-          mahalanobis_threshold: 4.0,
+          mahalanobis_threshold: 3.0,
           debouncing_threshold: 100,
           config_path: "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.cfg",
           weights_path: "/home/advaiths/foreign_disk/catkin_robosub/src/TAUV-ROS-Packages/tauv_common/src/vision/detectors/yolov3.weights",

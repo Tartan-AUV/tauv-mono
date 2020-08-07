@@ -26,6 +26,7 @@ from tauv_common.srv import RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 from vision.detector_bucket.detector_bucket_utils import *
+import torch
 
 class Pose_Graph_Edge():
     def __init__(self, type, parent_id, child_id):
@@ -70,9 +71,24 @@ class Pose_Graph():
         self.new_measurement = False
         self.measurement_server = rospy.Service("pose_graph/register_measurement", RegisterMeasurement, \
                                               self.register_measurement)
+        self.prev_state = torch.zeros(0)
+        self.got_prev = False
+        self.state_dim = 7
+        self.meas_dim = 3
+        self.landmark_offset = 0
+        self.num_poses = 0
+        self.num_landmarks = 0
+        self.time_step = 0
+
+        self.indices = torch.LongTensor()
+        self.values = torch.FloatTensor()
+        self.J = torch.sparse.FloatTensor()
+        self.virtual_obs = torch.FloatTensor() # use estimate to calculate virtual obs
+        self.real_obs = torch.FloatTensor() # take difference in poses, take actual landmark measurements
+        self.estimate = torch.FloatTensor() # has state_dim*num_poses + meas_dum*num_landmarks values
+        #offset @ state_dim*num_poses
+
         self.marker_callback = rospy.Timer(rospy.Duration(.010), self.spin)
-
-
 
     def transform_meas_to_frame(self, measurement, child_frame, world_frame, time):
         try:
@@ -84,15 +100,27 @@ class Pose_Graph():
             return np.array([np.nan])
 
     def register_measurement(self, req):
-        print("In server")
-        self.detections_dict = {}
+
         for datum in req.pg_measurements:
             id = datum.landmark_id
             frame_id = datum.header.frame_id
             pos = self.transform_meas_to_frame(point_to_array(datum.position), frame_id, "odom", datum.header.stamp)
             self.detections_dict[id] = (pos, frame_id)
-            print(pos, frame_id, id)
         return True
+
+    def get_current_state(self):
+        try:
+            (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
+            return np.concatenate([trans, rot])
+        except:
+            return np.array(self.state_dim*[np.nan])
+
+    def insert_virtual_obs(self, detections_dict, curr_state):
+        #insert virtual observation using
+        return
+
+    def insert_real_obs(self, detections_dict):
+        return
 
     def add_pose_node(self):
         #adds a new pose after a given space/time
@@ -133,7 +161,6 @@ class Pose_Graph():
             self.create_marker(pos, det_id, "odom", self.detection_marker_dict, self.color_cycle[self.flip % 2])
         self.flip += 1
         self.detection_pub.publish(self.detection_marker_dict.values())
-
 
     def create_marker(self, pos, id, frame, dict, color):
         m = Marker()
