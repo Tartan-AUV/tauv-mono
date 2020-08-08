@@ -118,6 +118,7 @@ class Detector_Daemon():
         self.daemon_id = daemon_id
         self.mutex = Lock()
 
+
         #each daemon will call the service to report a measurement
         rospy.wait_for_service("/gnc/pose_graph/register_measurement")
         self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
@@ -289,6 +290,7 @@ class Detector_Daemon():
                         tracker.updated_now = False
 
                     self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
+                    rospy.loginfo("[Detector Daemon]: %s: Matched and Tracked Objects: " + str(self.trackers_to_publish))
                     for tracker in self.trackers_to_publish:
                         self.create_marker(self.trackers_to_publish[tracker], tracker)
                         

@@ -48,10 +48,16 @@
     </include>
 
     <include>
-          <name>f2</name>
-          <pose>29.5 -8.0 -5.0 0 0 0</pose>
-          <uri>model://fire_hydrant</uri>
-        </include>
+      <name>f3</name>
+      <pose>28.0 -5.0 -5.0 0 0 0</pose>
+      <uri>model://fire_hydrant</uri>
+    </include>
+
+    <include>
+      <name>f2</name>
+      <pose>29.5 -8.0 -5.0 0 0 0</pose>
+      <uri>model://fire_hydrant</uri>
+    </include>
 
 
 

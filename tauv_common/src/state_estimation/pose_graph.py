@@ -26,6 +26,7 @@ from tauv_common.srv import RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 from vision.detector_bucket.detector_bucket_utils import *
+from threading import Thread, Lock
 import torch
 
 class Pose_Graph_Edge():
@@ -65,6 +66,7 @@ class Pose_Graph():
         self.detection_marker_dict = {}
         self.marker_dict = {}
         self.detections_dict = {}
+        self.data_mutex = Lock()
         self.color_cycle = [[1.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 1.0]]
         self.flip = 0
         self.marker_id = 0
@@ -79,6 +81,8 @@ class Pose_Graph():
         self.num_poses = 0
         self.num_landmarks = 0
         self.time_step = 0
+        self.clear_mark = Marker()
+        self.clear_mark.action = 3
 
         self.indices = torch.LongTensor()
         self.values = torch.FloatTensor()
@@ -100,12 +104,14 @@ class Pose_Graph():
             return np.array([np.nan])
 
     def register_measurement(self, req):
-
+        self.data_mutex.acquire()
+        self.detections_dict = {}
         for datum in req.pg_measurements:
             id = datum.landmark_id
             frame_id = datum.header.frame_id
             pos = self.transform_meas_to_frame(point_to_array(datum.position), frame_id, "odom", datum.header.stamp)
             self.detections_dict[id] = (pos, frame_id)
+        self.data_mutex.release()
         return True
 
     def get_current_state(self):
@@ -155,25 +161,39 @@ class Pose_Graph():
         self.marker_pub.publish(self.marker_dict.values())
 
     def publish_detections(self):
+        self.data_mutex.acquire()
         for det_id in self.detections_dict:
             pos = self.detections_dict[det_id][0]
             frame_id = self.detections_dict[det_id][1]
-            self.create_marker(pos, det_id, "odom", self.detection_marker_dict, self.color_cycle[self.flip % 2])
+            self.create_marker(pos, det_id, "odom", self.detection_marker_dict, self.color_cycle[self.flip % 2], True)
+        self.data_mutex.release()
         self.flip += 1
-        self.detection_pub.publish(self.detection_marker_dict.values())
+        if len(self.detection_marker_dict.keys()) > 0:
+            self.detection_pub.publish(self.detection_marker_dict.values())
+        else:
+            self.detection_pub.publish([self.clear_mark])
 
-    def create_marker(self, pos, id, frame, dict, color):
+    def create_marker(self, pos, id, frame, dict, color, arrow=False):
         m = Marker()
         m.header.frame_id = frame
         m.id = id
         m.type = 2
-        m.pose.position.x = pos[0]
-        m.pose.position.y = pos[1]
-        m.pose.position.z = pos[2]
+
+        if arrow:
+            m.type = 0
+
+        if arrow:
+            (trans, rot) = self.tf.lookupTransform("odom", "base_link", rospy.Time(0))
+            m.points = [array_to_point(trans), array_to_point(pos)]
+        else:
+            m.pose.position.x = pos[0]
+            m.pose.position.y = pos[1]
+            m.pose.position.z = pos[2]
+
         m.color.r = color[0]
         m.color.g = color[1]
         m.color.b = color[2]
-        m.color.a = color[3]
+        m.color.a = .50
         m.scale.x = .1
         m.scale.y = .1
         m.scale.z = .1
