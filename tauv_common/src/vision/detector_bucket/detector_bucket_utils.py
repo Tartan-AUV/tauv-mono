@@ -31,6 +31,8 @@ from scipy.spatial.transform import Rotation as R
 from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
 from scipy.optimize import linear_sum_assignment
+from motionlib.trajectories import *
+from motionlib.motion_utils import *
 
 tracker_id = 0
 
@@ -117,6 +119,7 @@ class Detector_Daemon():
         self.detector_name = detector_name
         self.daemon_id = daemon_id
         self.mutex = Lock()
+        self.sent_gate = False
 
         #each daemon will call the service to report a measurement
         rospy.wait_for_service("/gnc/pose_graph/register_measurement")
@@ -128,6 +131,10 @@ class Detector_Daemon():
         self.marker_pub = rospy.Publisher(self.detector_name + "_daemon/filtered_det_marker", MarkerArray, queue_size=10)
 
         self.tf = tf.TransformListener()
+
+        if self.detector_name == "gate":
+            self.mu = MotionUtils()
+            print("Sent traj")
 
         #list of detections for this daemon
         self.detection_buffer = []
@@ -295,6 +302,21 @@ class Detector_Daemon():
                     rospy.loginfo("[Detector Daemon]: %s: Matched and Tracked Objects: " + str(self.trackers_to_publish))
                     for tracker in self.trackers_to_publish:
                         self.create_marker(self.trackers_to_publish[tracker], tracker)
+
+                        if self.trackers_to_publish[tracker][1] == "object_tags/gate" and not self.sent_gate:
+                            goal = self.trackers_to_publish[tracker][2]
+                            goal[1] -= 2.0
+                            #follow_through = [goal[0], goal[1] - 2.0, goal[2]] # go through the gate a bit more
+                            start_pose = Pose()
+                            (trans, rot) = self.tf.lookupTransform("odom", "base_link", rospy.Time(0))
+                            start_pose.position = array_to_point(trans)
+                            start_pose.orientation = Quaternion(rot[0], rot[1], rot[2], rot[3])
+                            start_twist = Twist()
+                            start_twist.linear = Vector3(0, 0, -.3)
+                            start_twist.angular = Vector3(0, 0, 0)
+                            traj = LinearTrajectory(start_pose, start_twist, [array_to_point(goal)], v=0.4)
+                            self.mu.set_trajectory(traj)
+                            self.sent_gate = True
                         
                     self.marker_pub.publish(self.marker_dict.values())
                     self.marker_pub.publish(self.labels_dict.values())

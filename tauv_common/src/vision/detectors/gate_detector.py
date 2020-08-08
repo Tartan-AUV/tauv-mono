@@ -45,8 +45,8 @@ class gateDetector:
         self.left_img_flag = False
         self.stereo_left = Image()
         self.left_camera_info = CameraInfo()
-        self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
-        self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
+        self.left_stream = rospy.Subscriber("/kingfisher/stereo_camera_left_front/camera_image", Image, self.left_callback)
+        self.left_camera_info = rospy.Subscriber("/kingfisher/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
 
         self.prev = [None, None]
         self.cv_bridge = CvBridge()

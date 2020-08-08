@@ -64,7 +64,7 @@
   </group>
 
   <group unless="$(arg use_gt)">
-    <node pkg="topic_tools" type="relay" name="gt_to_odom_topic" args="/gnc/odometry/filtered /gnc/odom"/>
+    <node pkg="topic_tools" type="relay" name="gt_to_odom_topic" args="/gnc/odometry/filtered/rotated /gnc/odom"/>
   </group>
 
   <!-- =======================  -->

@@ -53,9 +53,9 @@
 
   </xacro:stereo_camera>
 
-  <xacro:forward_multibeam_sonar_m450_130 namespace="" parent_link="base_link" suffix="topside">
-    <origin xyz=".32 0.0 .5" rpy="0 0 0"/>
-  </xacro:forward_multibeam_sonar_m450_130 >
+<!--  <xacro:forward_multibeam_sonar_m450_130 namespace="" parent_link="base_link" suffix="topside">-->
+<!--    <origin xyz=".32 0.0 .5" rpy="0 0 0"/>-->
+<!--  </xacro:forward_multibeam_sonar_m450_130 >-->
 <!--  <xacro:default_camera namespace="" parent_link="base_link" suffix="front">-->
 <!--    <origin xyz="0.32 0.0 0.0" rpy="0 0 0"/>-->
 <!--  </xacro:default_camera>-->

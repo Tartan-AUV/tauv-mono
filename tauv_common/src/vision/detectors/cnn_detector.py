@@ -90,9 +90,9 @@ class Dummy_Detector():
 
         rospy.wait_for_service("detector_bucket/register_object_detection")
         self.registration_service = rospy.ServiceProxy("detector_bucket/register_object_detection", RegisterObjectDetections)
-        self.left_stream = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_image", Image, self.left_callback)
+        self.left_stream = rospy.Subscriber("/kingfisher/stereo_camera_left_front/camera_image", Image, self.left_callback)
         self.disparity_stream = rospy.Subscriber("/vision/front/disparity", DisparityImage, self.disparity_callback)
-        self.left_camera_info = rospy.Subscriber("/albatross/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
+        self.left_camera_info = rospy.Subscriber("/kingfisher/stereo_camera_left_front/camera_info", CameraInfo, self.camera_info_callback)
         self.left_camera_detections = rospy.Publisher("cnn_detections", Image, queue_size=10)
 
     def get_output_layers(self):

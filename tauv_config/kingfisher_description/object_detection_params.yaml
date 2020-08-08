@@ -17,7 +17,7 @@ detectors: {
   gate: {
           type: "vision",
           mahalanobis_threshold: 3.0,
-          debouncing_threshold: 75,
+          debouncing_threshold: 50,
           frame_id: "duo3d_optical_link_front"
   }
 }

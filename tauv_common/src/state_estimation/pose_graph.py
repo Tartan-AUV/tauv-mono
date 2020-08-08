@@ -26,8 +26,7 @@ from tauv_common.srv import RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 from vision.detector_bucket.detector_bucket_utils import *
-from motionlib.trajectories import *
-from motionlib.motion_utils import *
+
 
 from threading import Thread, Lock
 import torch
@@ -79,20 +78,7 @@ class Pose_Graph():
 
         #begin test trajectory
         #
-        mu = MotionUtils()
 
-        start_pose = Pose()
-        start_pose.position = Point(0, 0, 0)
-        start_pose.orientation = Quaternion(0, 0, 0, 1)
-        start_twist = Twist()
-        start_twist.linear = Vector3(0, 0, 0)
-        start_twist.angular = Vector3(0, 0, 0)
-        traj = MinSnapTrajectory(start_pose, start_twist, [Point(1.5, -3, -2)])
-        print(traj.status)
-        print(traj.T)
-
-        mu.set_trajectory(traj)
-        print("Sent traj")
 
         self.prev_state = torch.zeros(0)
         self.got_prev = False
