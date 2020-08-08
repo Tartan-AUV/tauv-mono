@@ -35,20 +35,6 @@ class TrajectoryStatus(Enum):
 class Trajectory(object):
     __metaclass__ = abc.ABCMeta
 
-    # @abc.abstractmethod
-    # def initialize(self, pose, twist):
-    #     # Compute the initial trajectory if necessary. This may be useful for complex
-    #     # trajectories that require expensive precomputing before use online.
-    #     #
-    #     # Note: this function is different from __init__, since it is called after
-    #     # instantiation and is provided pose and twist. Some trajectories do not care
-    #     # about initial pose and twist, so all precomputation could happen in __init__
-    #     # instead.
-    #     #
-    #     # Returns nothing.
-    #     #
-    #     pass
-
     @abc.abstractmethod
     def get_points(self, request):
         # Return n points for the mpc controller to use as its reference trajectory.
@@ -74,6 +60,11 @@ class Trajectory(object):
         pass
 
     @abc.abstractmethod
+    def set_executing(self):
+        # Should set the trajectory status to EXECUTING.
+        pass
+
+    @abc.abstractmethod
     def get_status(self):
         # Return a TrajectoryStatus enum indicating progress
         pass
@@ -82,14 +73,3 @@ class Trajectory(object):
     def as_path(self, dt=0.1):
         # Return a Path object for visualization in rviz
         pass
-
-# Uses linear segments between waypoints, with a trapezoidal velocity
-# profile for each waypoint. These trajectories are NOT smooth, and require
-# stopping at each point. Initial velocity in the direction of the first segment is
-# accounted for, however velocity perpendicular to the first segment is not.
-# class LinearTrapezoidalTrajectory(Trajectory):
-#     def __init__(self, waypoints, speed=1, stab_threshold=0.05, timeout=5):
-#         self.state = TrajectoryStatus.PENDING
-#
-#     def get_points(self, request):
-#         pass

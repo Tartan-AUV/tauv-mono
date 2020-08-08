@@ -32,7 +32,11 @@ from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
 from scipy.optimize import linear_sum_assignment
 
+<<<<<<< HEAD
 tracker_id = 0
+=======
+
+>>>>>>> b8899c5d840d209a0ac6fbb4c80de4a5db898f1e
 
 def array_to_point(arr):
     p = Point()
@@ -44,13 +48,19 @@ def array_to_point(arr):
 def point_to_array(point):
     return np.asarray([point.x, point.y, point.z])
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> b8899c5d840d209a0ac6fbb4c80de4a5db898f1e
 # constant position Kalman Filter for stationary object tracking
 class Detection_Tracker_Kalman():
     def __init__(self, tag):
         self.id = -1
+<<<<<<< HEAD
         self.updated_now = False
+=======
+>>>>>>> b8899c5d840d209a0ac6fbb4c80de4a5db898f1e
         self.state_space_dim = 3
         self.localized_point = np.zeros((self.state_space_dim, 1))
         self.detections = 0
@@ -118,7 +128,6 @@ class Detector_Daemon():
         self.daemon_id = daemon_id
         self.mutex = Lock()
 
-
         #each daemon will call the service to report a measurement
         rospy.wait_for_service("/gnc/pose_graph/register_measurement")
         self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
@@ -127,6 +136,7 @@ class Detector_Daemon():
             rospy.loginfo("[Detector Daemon]: %s. Obtained mahalanobis threshold", self.detector_name)
             self.mahalanobis_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/mahalanobis_threshold"))
         self.marker_pub = rospy.Publisher(self.detector_name + "_daemon/filtered_det_marker", MarkerArray, queue_size=10)
+
         self.tf = tf.TransformListener()
 
         #list of detections for this daemon
@@ -245,6 +255,7 @@ class Detector_Daemon():
                             tracker.detections += 1
                             tracker.updated_now = True
 
+
                     if len(unmatch_dets) > 0:
                         for detection_ind in unmatch_dets:
                             measurement = measurements[detection_ind]
@@ -260,6 +271,7 @@ class Detector_Daemon():
                             new_x = new_tracker.estimated_point
                             new_x = new_x.T[0].tolist()
                             new_tracker.localized_point = new_x[0]
+
                             global tracker_id
                             new_tracker.id = tracker_id
 

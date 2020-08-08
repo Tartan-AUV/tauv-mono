@@ -26,8 +26,11 @@ from tauv_common.srv import RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 from vision.detector_bucket.detector_bucket_utils import *
+<<<<<<< HEAD
 from threading import Thread, Lock
 import torch
+=======
+>>>>>>> b8899c5d840d209a0ac6fbb4c80de4a5db898f1e
 
 class Pose_Graph_Edge():
     def __init__(self, type, parent_id, child_id):
@@ -73,6 +76,7 @@ class Pose_Graph():
         self.new_measurement = False
         self.measurement_server = rospy.Service("pose_graph/register_measurement", RegisterMeasurement, \
                                               self.register_measurement)
+
         self.prev_state = torch.zeros(0)
         self.got_prev = False
         self.state_dim = 7
@@ -211,6 +215,7 @@ class Pose_Graph():
     def spin(self, event):
         self.publish_sampled_odom_poses()
         self.publish_detections()
+
 
 
 def main():
