@@ -29,13 +29,14 @@ from math import sin, cos, atan2, sqrt, ceil
 #
 # Note that while MinSnapTrajectory will use an approximate velocity, that is only used as an average
 # velocity for the trajectory. True maximum velocity may exceed that, and no guarantees are made.
-#
+
+
 class MinSnapTrajectory(Trajectory):
-    def __init__(self, curr_pose, curr_twist, positions, headings=None, directions=None, velocities=0.5, autowind_headings=True, max_alt=-0.5):
+    def __init__(self, start_pose, start_twist, positions, headings=None, directions=None, velocities=0.5, autowind_headings=True, max_alt=-0.5):
         # MinSnapTrajectory allows a good deal of customization:
         #
-        # - curr_pose: unstamped Pose
-        # - curr_twist: unstamped Twist (measured in world frame!)
+        # - start_pose: unstamped Pose TODO: support stamped poses/twists in other frames!
+        # - start_pose: unstamped Twist (measured in odom frame!)
         # - positions: The position waypoints as a Point[].
         # - headings: heading angles corresponding to positions as a float[].
         #             If None: auto-orient forwards for full trajectory.
@@ -50,7 +51,7 @@ class MinSnapTrajectory(Trajectory):
         # - max_alt: This parameter enforces a maximum altitude on the resulting trajectory. Useful for ensuring that
         #            the robot will not surface accidentally, regardless of the output trajectory result.
         #
-        self.frame = "odom"  # TODO: support other frames?
+        self.frame = "odom"
         self.max_alt = max_alt
         self.autowind_headings = autowind_headings
 
@@ -65,16 +66,15 @@ class MinSnapTrajectory(Trajectory):
             assert(all([len(v) == 3 for v in velocities]))
             assert(len(velocities) == len(positions))
 
-        self.start_pose = curr_pose
-        self.start_twist = curr_twist
+        self.start_pose = start_pose
+        self.start_twist = start_twist
 
-        start_pos = tl(curr_pose.position)
-        q_start = tl(curr_pose.orientation)
+        start_pos = tl(start_pose.position)
+        q_start = tl(start_pose.orientation)
         start_psi = Rotation.from_quat(q_start).as_euler("ZYX")[0]
 
-        # TODO: fix these to proper frame when switching away from ground truth data.
-        start_vel = tl(curr_twist.linear)
-        start_ang_vel = tl(curr_twist.angular)
+        start_vel = tl(start_twist.linear)
+        start_ang_vel = tl(start_twist.angular)
 
         waypoints = []
 
@@ -144,8 +144,8 @@ class MinSnapTrajectory(Trajectory):
                 psi = headings[i]
 
                 if self.autowind_headings:
-                    psi = (psi + np.pi) % 2 * np.pi - np.pi
-                    last_psi = (last_psi + np.pi) % 2 * np.pi - np.pi
+                    psi = (psi + np.pi) % (2 * np.pi) - np.pi
+                    last_psi = (last_psi + np.pi) % (2 * np.pi) - np.pi
                     if psi - last_psi < -np.pi:
                         psi += 2*np.pi
                     if psi - last_psi > np.pi:
@@ -239,7 +239,7 @@ class MinSnapTrajectory(Trajectory):
 
         res.twists = twists
         res.poses = poses
-        res.auto_twists = True
+        res.auto_twists = True  # TODO: some bug in velocity calcs is making this necessary for now, but it shouldn't be
         res.success = True
         return res
 
@@ -250,7 +250,15 @@ class MinSnapTrajectory(Trajectory):
         end_time = rospy.Time(self.start_time) + self.duration()
         return end_time - rospy.Time.now()
 
+    def set_executing(self):
+        self.status = TrajectoryStatus.EXECUTING
+
     def get_status(self):
+        if self.time_remaining() <= 0:
+            self.status = TrajectoryStatus.FINISHED
+
+        # TODO: determine if stabilized, timed out.
+
         return self.status
 
     def as_path(self, dt=0.1):

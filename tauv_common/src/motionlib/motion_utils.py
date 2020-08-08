@@ -18,6 +18,7 @@ from std_srvs.srv import SetBool, SetBoolRequest
 from nav_msgs.msg import Path, Odometry
 from trajectories import Trajectory, TrajectoryStatus
 
+
 class MotionUtils:
     def __init__(self):
         self.initialized = False
@@ -39,6 +40,9 @@ class MotionUtils:
     def set_trajectory(self, traj):
         assert isinstance(traj, Trajectory)
         self.traj = traj
+        if self.traj.get_status() != TrajectoryStatus.INITIALIZED:
+            return
+        self.traj.set_executing()
 
     def get_robot_state(self):
         return self.pose, self.twist
@@ -46,9 +50,14 @@ class MotionUtils:
     def get_motion_status(self):
         if self.traj is None:
             return TrajectoryStatus.TIMEOUT
+        return self.traj.get_status()
 
     def arm(self, armed):
-        self.arm_proxy(SetBoolRequest(armed))
+        try:
+            self.arm_proxy(SetBoolRequest(armed))
+        except rospy.ServiceException:
+            rospy.logwarn_throttle('[Motion Utils] Cannot arm/disarm: Arm server not responding. (This could be due '
+                                   'to running in simulation)')
 
     def _update_status(self, timer_event):
         path = Path()
