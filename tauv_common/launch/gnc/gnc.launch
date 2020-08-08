@@ -11,7 +11,7 @@
     <!-- odom topic to listen on -->
     <arg name="odom_topic" default="odom"/>
     <!-- Planner to use. Possible options: "teleop", "mpc" -->
-    <arg name="planner" default="teleop"/>
+    <arg name="planner" default="mpc"/>
 
     <group ns="gnc">
         <!-- Launch State Estimation -->
@@ -53,8 +53,8 @@
         </node>
 
         <!-- Start MPC node -->
-<!--        <node pkg="tauv_common" type="mpc_traj_follower" name="mpc_trajectory_follower" output="screen">-->
-<!--            <remap from="controller_cmd" to="mpc/controller_cmd"/>-->
-<!--        </node>-->
+        <node pkg="tauv_common" type="mpc_traj_follower" name="mpc_trajectory_follower" output="screen">
+            <remap from="controller_cmd" to="mpc/controller_cmd"/>
+        </node>
     </group>
 </launch>

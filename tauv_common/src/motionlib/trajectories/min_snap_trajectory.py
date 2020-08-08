@@ -254,7 +254,7 @@ class MinSnapTrajectory(Trajectory):
         self.status = TrajectoryStatus.EXECUTING
 
     def get_status(self):
-        if self.time_remaining() <= 0:
+        if self.time_remaining().to_nsec() <= 0:
             self.status = TrajectoryStatus.FINISHED
 
         # TODO: determine if stabilized, timed out.

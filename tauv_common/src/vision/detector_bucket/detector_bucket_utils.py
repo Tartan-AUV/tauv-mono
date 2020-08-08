@@ -32,11 +32,7 @@ from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
 from scipy.optimize import linear_sum_assignment
 
-<<<<<<< HEAD
 tracker_id = 0
-=======
-
->>>>>>> b8899c5d840d209a0ac6fbb4c80de4a5db898f1e
 
 def array_to_point(arr):
     p = Point()
@@ -48,19 +44,13 @@ def array_to_point(arr):
 def point_to_array(point):
     return np.asarray([point.x, point.y, point.z])
 
-<<<<<<< HEAD
 
-
-=======
->>>>>>> b8899c5d840d209a0ac6fbb4c80de4a5db898f1e
 # constant position Kalman Filter for stationary object tracking
 class Detection_Tracker_Kalman():
     def __init__(self, tag):
         self.id = -1
-<<<<<<< HEAD
         self.updated_now = False
-=======
->>>>>>> b8899c5d840d209a0ac6fbb4c80de4a5db898f1e
+
         self.state_space_dim = 3
         self.localized_point = np.zeros((self.state_space_dim, 1))
         self.detections = 0

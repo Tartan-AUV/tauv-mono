@@ -1,0 +1,6 @@
+response_vis:
+  odom_topic: "/gnc/odom"
+  cmd_pos_topic: "/gnc/cmd_pos"
+  cmd_vel_topic: "/gnc/cmd_vel"
+  cmd_acc_topic: "/gnc/cmd_acc"
+  max_preservation_time: 30.0
