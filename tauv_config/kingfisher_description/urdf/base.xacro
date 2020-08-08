@@ -25,12 +25,12 @@
     the mesh pose will have to be corrected below in the <visual> block.
     Open the meshes for the RexROV vehicle in Blender to see an example on the mesh placement.
   -->
-  <xacro:property name="visual_mesh_file" value="file://$(find kingfisher_description)/meshes/vehicle.dae"/>
+  <xacro:property name="visual_mesh_file" value="file://$(find kingfisher_description)/meshes/pls.dae"/>
 
   <!-- Collision geometry mesh, usually in STL format (it is recommended to keep
   this geometry as simple as possible to improve the performance the physics engine
   regarding the computation of collision forces) -->
-  <xacro:property name="collision_mesh_file" value="file://$(find kingfisher_description)/meshes/vehicle.dae"/>
+  <xacro:property name="collision_mesh_file" value="file://$(find kingfisher_description)/meshes/pls.dae"/>
 
   <!-- Vehicle macro -->
   <xacro:macro name="kingfisher_base" params="namespace *gazebo">

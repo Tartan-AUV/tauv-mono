@@ -8,7 +8,7 @@
     <xacro:property name="kingfisher_volume" value="0.016"/>
 
     <!-- Describing the dimensions of the vehicle's bounding box -->
-    <xacro:property name="kingfisher_length" value="1"/>
+    <xacro:property name="kingfisher_length" value="5"/>
     <xacro:property name="kingfisher_width"  value="1"/>
     <xacro:property name="kingfisher_height" value="1"/>
 

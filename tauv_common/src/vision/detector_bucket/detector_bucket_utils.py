@@ -305,8 +305,8 @@ class Detector_Daemon():
 
                         if self.trackers_to_publish[tracker][1] == "object_tags/gate" and not self.sent_gate:
                             goal = self.trackers_to_publish[tracker][2]
-                            goal[1] -= 2.0
-                            #follow_through = [goal[0], goal[1] - 2.0, goal[2]] # go through the gate a bit more
+                            follow_through = [goal[0], goal[1] - 2.0, goal[2]] # go through the gate a bit more
+                            print(goal, follow_through)
                             start_pose = Pose()
                             (trans, rot) = self.tf.lookupTransform("odom", "base_link", rospy.Time(0))
                             start_pose.position = array_to_point(trans)
@@ -314,7 +314,7 @@ class Detector_Daemon():
                             start_twist = Twist()
                             start_twist.linear = Vector3(0, 0, -.3)
                             start_twist.angular = Vector3(0, 0, 0)
-                            traj = LinearTrajectory(start_pose, start_twist, [array_to_point(goal)], v=0.4)
+                            traj = LinearTrajectory(start_pose, start_twist, [array_to_point(goal), array_to_point(follow_through)], v=0.4)
                             self.mu.set_trajectory(traj)
                             self.sent_gate = True
                         

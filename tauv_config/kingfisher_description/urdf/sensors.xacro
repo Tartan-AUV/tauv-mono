@@ -23,7 +23,7 @@
   <xacro:default_dvl namespace="${namespace}" parent_link="base_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:default_dvl>
-
+  
   <!-- RPT  -->
   <xacro:default_rpt namespace="${namespace}" parent_link="base_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
