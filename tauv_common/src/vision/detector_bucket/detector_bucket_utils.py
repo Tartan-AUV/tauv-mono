@@ -314,7 +314,7 @@ class Detector_Daemon():
                             start_twist = Twist()
                             start_twist.linear = Vector3(0, 0, -.3)
                             start_twist.angular = Vector3(0, 0, 0)
-                            traj = LinearTrajectory(start_pose, start_twist, [array_to_point(goal), array_to_point(follow_through)], v=0.4)
+                            traj = LinearTrajectory(start_pose, start_twist, [array_to_point(goal)], v=0.4)
                             self.mu.set_trajectory(traj)
                             self.sent_gate = True
                         

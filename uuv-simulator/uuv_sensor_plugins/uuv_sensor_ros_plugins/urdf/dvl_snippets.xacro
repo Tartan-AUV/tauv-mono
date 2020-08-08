@@ -144,11 +144,11 @@
         <origin xyz="0 0 0" rpy="0 0 0" />
         <inertia ixx="0.000000017" ixy="0" ixz="0" iyy="0.000000017" iyz="0" izz="0.000000017" />
       </inertial>
-      <visual>
-        <geometry>
-          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/dvl.dae" scale="${scale} ${scale} ${scale}"/>
-        </geometry>
-      </visual>
+<!--      <visual>-->
+<!--        <geometry>-->
+<!--          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/dvl.dae" scale="${scale} ${scale} ${scale}"/>-->
+<!--        </geometry>-->
+<!--      </visual>-->
       <xacro:no_collision/>
     </link>
 
