@@ -22,7 +22,7 @@ from os.path import isdir, join
 from copy import deepcopy
 import yaml
 import tf2_ros
-from thruster_managers import ThrusterManager
+from .thruster_managers import ThrusterManager
 from geometry_msgs.msg import Wrench, WrenchStamped
 from tauv_common.srv import *
 

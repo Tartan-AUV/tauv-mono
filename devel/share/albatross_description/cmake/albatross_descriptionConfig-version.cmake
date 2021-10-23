@@ -1,0 +1,1 @@
+/home/tom/workspaces/tauv_ws/devel/.private/albatross_description/share/albatross_description/cmake/albatross_descriptionConfig-version.cmake

@@ -1,0 +1,5 @@
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/manta_description.pc
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/manta_description/spawn_model
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/manta_description/cmake.lock
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/manta_description/cmake/manta_descriptionConfig-version.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/manta_description/cmake/manta_descriptionConfig.cmake

@@ -1,0 +1,1 @@
+/home/tom/workspaces/tauv_ws/devel/.private/rqt_joy_vis/lib/pkgconfig/rqt_joy_vis.pc

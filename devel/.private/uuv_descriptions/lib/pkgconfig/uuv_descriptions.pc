@@ -1,0 +1,8 @@
+prefix=/home/tom/workspaces/tauv_ws/devel/.private/uuv_descriptions
+
+Name: uuv_descriptions
+Description: Description of uuv_descriptions
+Version: 0.6.1
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>tauv_common</name>
+  <version>0.6.1</version>
+  <description>The TAUV Common package.</description>
+
+  <maintainer email="mdesoto@andrew.cmu.edu">Matthew de Soto</maintainer>
+  <maintainer email="tscherli@andrew.cmu.edu">Tom Scherlis</maintainer>
+
+  <author email="mdesoto@andrew.cmu.edu">Matthew de Soto</author>
+  <author email="tscherli@andrew.cmu.edu">Tom Scherlis</author>
+
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>message_filters</build_depend>
+
+
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>python-yaml</exec_depend>
+  <exec_depend>uuv_gazebo_ros_plugins_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>tauv_config</exec_depend>
+  <exec_depend>message_filters</exec_depend>
+  <exec_depend>multimaster_fkie</exec_depend>
+  <depend>vision_msgs</depend>
+  <depend>pynput-pip</depend>
+  <depend>std_srvs</depend>
+  <depend>robot_localization</depend>
+  <depend>stereo_image_proc</depend>
+  <depend>stereo_msgs</depend>
+
+</package>

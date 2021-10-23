@@ -1,0 +1,51 @@
+[35m[1mScanning dependencies of target std_msgs_generate_messages_nodejs[0m
+[  0%] Built target std_msgs_generate_messages_nodejs
+[35m[1mScanning dependencies of target _tauv_joy_generate_messages_check_deps_JoyConnect[0m
+[  0%] Built target _tauv_joy_generate_messages_check_deps_JoyConnect
+[35m[1mScanning dependencies of target std_msgs_generate_messages_eus[0m
+[  0%] Built target std_msgs_generate_messages_eus
+[35m[1mScanning dependencies of target std_msgs_generate_messages_py[0m
+[  0%] Built target std_msgs_generate_messages_py
+[35m[1mScanning dependencies of target std_msgs_generate_messages_lisp[0m
+[  0%] Built target std_msgs_generate_messages_lisp
+[35m[1mScanning dependencies of target std_msgs_generate_messages_cpp[0m
+[  0%] Built target std_msgs_generate_messages_cpp
+[35m[1mScanning dependencies of target tauv_joy_generate_messages_nodejs[0m
+[ 11%] [34m[1mGenerating Javascript code from tauv_joy/JoyConnect.srv[0m
+[ 11%] Built target tauv_joy_generate_messages_nodejs
+[35m[1mScanning dependencies of target tauv_joy_generate_messages_eus[0m
+[ 22%] [34m[1mGenerating EusLisp code from tauv_joy/JoyConnect.srv[0m
+[ 33%] [34m[1mGenerating EusLisp manifest code for tauv_joy[0m
+[ 33%] Built target tauv_joy_generate_messages_eus
+[35m[1mScanning dependencies of target tauv_joy_generate_messages_py[0m
+[ 44%] [34m[1mGenerating Python code from SRV tauv_joy/JoyConnect[0m
+[ 55%] [34m[1mGenerating Python srv __init__.py for tauv_joy[0m
+[ 55%] Built target tauv_joy_generate_messages_py
+[35m[1mScanning dependencies of target tauv_joy_generate_messages_lisp[0m
+[ 66%] [34m[1mGenerating Lisp code from tauv_joy/JoyConnect.srv[0m
+[ 66%] Built target tauv_joy_generate_messages_lisp
+[35m[1mScanning dependencies of target tauv_joy_generate_messages_cpp[0m
+[ 77%] [34m[1mGenerating C++ code from tauv_joy/JoyConnect.srv[0m
+[ 77%] Built target tauv_joy_generate_messages_cpp
+[35m[1mScanning dependencies of target tauv_joy_generate_messages[0m
+[ 77%] Built target tauv_joy_generate_messages
+[35m[1mScanning dependencies of target tauv_joy_node[0m
+[ 88%] [32mBuilding CXX object CMakeFiles/tauv_joy_node.dir/src/tauv_joy_node.cpp.o[0m
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/tauv_gui/ext/joystick_drivers/tauv_joy/src/tauv_joy_node.cpp:[m[K In member function ‘[01m[Kbool Joystick::srv_callback_connect(tauv_joy::JoyConnect::Request&, tauv_joy::JoyConnect::Response&)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/tauv_gui/ext/joystick_drivers/tauv_joy/src/tauv_joy_node.cpp:545:5:[m[K [01;35m[Kwarning: [m[Kno return statement in function returning non-void [[01;35m[K-Wreturn-type[m[K]
+  545 |     [01;35m[K}[m[K
+      |     [01;35m[K^[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/tauv_gui/ext/joystick_drivers/tauv_joy/src/tauv_joy_node.cpp:[m[K In member function ‘[01m[Kbool Joystick::srv_callback_disconnect(std_srvs::Trigger::Request&, std_srvs::Trigger::Response&)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/tauv_gui/ext/joystick_drivers/tauv_joy/src/tauv_joy_node.cpp:551:5:[m[K [01;35m[Kwarning: [m[Kno return statement in function returning non-void [[01;35m[K-Wreturn-type[m[K]
+  551 |     [01;35m[K}[m[K
+      |     [01;35m[K^[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/tauv_gui/ext/joystick_drivers/tauv_joy/src/tauv_joy_node.cpp:[m[K In member function ‘[01m[Kbool Joystick::srv_callback_shutdown(std_srvs::Trigger::Request&, std_srvs::Trigger::Response&)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/tauv_gui/ext/joystick_drivers/tauv_joy/src/tauv_joy_node.cpp:557:5:[m[K [01;35m[Kwarning: [m[Kno return statement in function returning non-void [[01;35m[K-Wreturn-type[m[K]
+  557 |     [01;35m[K}[m[K
+      |     [01;35m[K^[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/tauv_gui/ext/joystick_drivers/tauv_joy/src/tauv_joy_node.cpp:[m[K In member function ‘[01m[Kint Joystick::main(int, char**)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/tauv_gui/ext/joystick_drivers/tauv_joy/src/tauv_joy_node.cpp:537:5:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+  537 |     [01;35m[K}[m[K
+      |     [01;35m[K^[m[K
+[100%] [32m[1mLinking CXX executable /home/tom/workspaces/tauv_ws/devel/.private/tauv_joy/lib/tauv_joy/tauv_joy_node[0m
+[100%] Built target tauv_joy_node

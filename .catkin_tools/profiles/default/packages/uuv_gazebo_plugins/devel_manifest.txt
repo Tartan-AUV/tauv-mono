@@ -1,0 +1,11 @@
+packages/uuv-simulator/uuv_gazebo_plugins/uuv_gazebo_plugins
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/cmake.lock /home/tom/workspaces/tauv_ws/devel/./cmake.lock
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/lib/libuuv_thruster_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_thruster_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/lib/libumbilical_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libumbilical_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/lib/libuuv_dynamics.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_dynamics.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/lib/libuuv_underwater_object_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_underwater_object_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/lib/libuuv_fin_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_fin_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/lib/libuuv_gazebo_plugins_msgs.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_gazebo_plugins_msgs.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/lib/pkgconfig/uuv_gazebo_plugins.pc /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/uuv_gazebo_plugins.pc
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/share/uuv_gazebo_plugins/cmake/uuv_gazebo_pluginsConfig.cmake /home/tom/workspaces/tauv_ws/devel/share/uuv_gazebo_plugins/cmake/uuv_gazebo_pluginsConfig.cmake
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_plugins/share/uuv_gazebo_plugins/cmake/uuv_gazebo_pluginsConfig-version.cmake /home/tom/workspaces/tauv_ws/devel/share/uuv_gazebo_plugins/cmake/uuv_gazebo_pluginsConfig-version.cmake

@@ -1,0 +1,48 @@
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/RPTROSPlugin.cc:[m[K In member function ‘[01m[Kvirtual bool gazebo::RPTROSPlugin::OnUpdate(const gazebo::common::UpdateInfo&)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/RPTROSPlugin.cc:119:1:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+  119 | [01;35m[K}[m[K
+      | [01;35m[K^[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/MagnetometerROSPlugin.cc:[m[K In member function ‘[01m[Kvirtual bool gazebo::MagnetometerROSPlugin::OnUpdate(const gazebo::common::UpdateInfo&)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/MagnetometerROSPlugin.cc:111:26:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+  111 |   ignition::math::Pose3d [01;35m[Kpose[m[K;
+      |                          [01;35m[K^~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:[m[K In member function ‘[01m[Kbool gazebo::ROSBasePlugin::InitBasePlugin(sdf::v9::ElementPtr)[m[K’:
+[01m[K/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/src/ROSBasePlugin.cc:54:15:[m[K [01;35m[Kwarning: [m[Kcontrol reaches end of non-void function [[01;35m[K-Wreturn-type[m[K]
+   54 |   std::string [01;35m[KsensorTopic[m[K;
+      |               [01;35m[K^~~~~~~~~~~[m[K

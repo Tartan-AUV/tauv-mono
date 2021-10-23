@@ -22,7 +22,7 @@ import tf2_ros
 from os.path import isdir, join
 import yaml
 from time import sleep
-from models import Thruster
+from .models import Thruster
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped
 from geometry_msgs.msg import Wrench
 

@@ -1,0 +1,12 @@
+packages/uuv-simulator/uuv_gazebo_plugins/uuv_gazebo_ros_plugins
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/cmake.lock /home/tom/workspaces/tauv_ws/devel/./cmake.lock
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/lib/libcustom_battery_consumer_ros_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libcustom_battery_consumer_ros_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/lib/libuuv_thruster_ros_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_thruster_ros_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/lib/liblinear_battery_ros_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/liblinear_battery_ros_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/lib/libuuv_underwater_object_ros_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_underwater_object_ros_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/lib/libuuv_joint_state_publisher.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_joint_state_publisher.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/lib/libuuv_fin_ros_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_fin_ros_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/lib/libuuv_accelerations_test_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_accelerations_test_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/lib/pkgconfig/uuv_gazebo_ros_plugins.pc /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/uuv_gazebo_ros_plugins.pc
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/share/uuv_gazebo_ros_plugins/cmake/uuv_gazebo_ros_pluginsConfig.cmake /home/tom/workspaces/tauv_ws/devel/share/uuv_gazebo_ros_plugins/cmake/uuv_gazebo_ros_pluginsConfig.cmake
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins/share/uuv_gazebo_ros_plugins/cmake/uuv_gazebo_ros_pluginsConfig-version.cmake /home/tom/workspaces/tauv_ws/devel/share/uuv_gazebo_ros_plugins/cmake/uuv_gazebo_ros_pluginsConfig-version.cmake

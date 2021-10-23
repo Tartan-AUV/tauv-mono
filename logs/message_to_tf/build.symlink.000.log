@@ -1,0 +1,4 @@
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/message_to_tf.pc
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/message_to_tf/message_to_tf
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/message_to_tf/cmake/message_to_tfConfig.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/message_to_tf/cmake/message_to_tfConfig-version.cmake

@@ -1,0 +1,7 @@
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/tauv_mission.pc
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/mission_manager/__init__.py
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/test_mission_scripts/__init__.py
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/tasks/__init__.py
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/tauv_mission/cmake/tauv_missionConfig-version.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/tauv_mission/cmake/tauv_missionConfig.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/bin/test_script

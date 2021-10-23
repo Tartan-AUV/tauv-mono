@@ -1,0 +1,8 @@
+prefix=/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins
+
+Name: uuv_world_ros_plugins
+Description: Description of uuv_world_ros_plugins
+Version: 0.6.13
+Cflags: -I/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_world_plugins/uuv_world_ros_plugins/include
+Libs: -L${prefix}/lib -luuv_underwater_current_ros_plugin -luuv_sc_ros_interface_plugin
+Requires: roscpp gazebo_msgs geometry_msgs uuv_world_plugins uuv_world_ros_plugins_msgs gazebo_dev

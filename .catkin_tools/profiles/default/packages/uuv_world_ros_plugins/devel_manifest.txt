@@ -1,0 +1,7 @@
+packages/uuv-simulator/uuv_world_plugins/uuv_world_ros_plugins
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins/cmake.lock /home/tom/workspaces/tauv_ws/devel/./cmake.lock
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins/lib/libuuv_underwater_current_ros_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_underwater_current_ros_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins/lib/libuuv_sc_ros_interface_plugin.so /home/tom/workspaces/tauv_ws/devel/lib/libuuv_sc_ros_interface_plugin.so
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins/lib/pkgconfig/uuv_world_ros_plugins.pc /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/uuv_world_ros_plugins.pc
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins/share/uuv_world_ros_plugins/cmake/uuv_world_ros_pluginsConfig.cmake /home/tom/workspaces/tauv_ws/devel/share/uuv_world_ros_plugins/cmake/uuv_world_ros_pluginsConfig.cmake
+/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins/share/uuv_world_ros_plugins/cmake/uuv_world_ros_pluginsConfig-version.cmake /home/tom/workspaces/tauv_ws/devel/share/uuv_world_ros_plugins/cmake/uuv_world_ros_pluginsConfig-version.cmake

@@ -9,7 +9,7 @@
 #
 # TODO: add servo support
 
-from maestro import Maestro
+from .maestro import Maestro
 import rospy
 import message_filters
 from uuv_gazebo_ros_plugins_msgs.msg import FloatStamped

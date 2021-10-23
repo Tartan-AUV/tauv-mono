@@ -1,0 +1,1 @@
+/home/tom/workspaces/tauv_ws/devel/.private/albatross_description/lib/pkgconfig/albatross_description.pc

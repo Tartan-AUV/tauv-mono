@@ -1,0 +1,5 @@
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/libuuv_underwater_current_ros_plugin.so
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/libuuv_sc_ros_interface_plugin.so
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/uuv_world_ros_plugins.pc
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/uuv_world_ros_plugins/cmake/uuv_world_ros_pluginsConfig.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/uuv_world_ros_plugins/cmake/uuv_world_ros_pluginsConfig-version.cmake

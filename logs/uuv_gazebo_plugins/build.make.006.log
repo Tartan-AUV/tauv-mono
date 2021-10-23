@@ -1,0 +1,7 @@
+[ 15%] Built target umbilical_plugin
+[ 35%] Built target uuv_underwater_object_plugin
+[ 45%] Built target uuv_dynamics
+[ 70%] Built target uuv_gazebo_plugins_msgs
+[ 70%] Built target _catkin_empty_exported_target
+[ 85%] Built target uuv_fin_plugin
+[100%] Built target uuv_thruster_plugin

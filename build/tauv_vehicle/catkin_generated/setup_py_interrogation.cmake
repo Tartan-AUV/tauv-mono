@@ -1,0 +1,7 @@
+set(tauv_vehicle_SETUP_PY_SETUP_MODULE "setuptools")
+set(tauv_vehicle_SETUP_PY_VERSION "0.0.0")
+set(tauv_vehicle_SETUP_PY_SCRIPTS "scripts/depth_sensor;scripts/actuators;scripts/sonar")
+set(tauv_vehicle_SETUP_PY_PACKAGES "depth_sensor;thrusters;sonar")
+set(tauv_vehicle_SETUP_PY_PACKAGE_DIRS "src/depth_sensor;src/thrusters;src/sonar")
+set(tauv_vehicle_SETUP_PY_MODULES "")
+set(tauv_vehicle_SETUP_PY_MODULE_DIRS "")

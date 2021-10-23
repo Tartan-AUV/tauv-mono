@@ -1,0 +1,8 @@
+prefix=/home/tom/workspaces/tauv_ws/install
+
+Name: uuv_gazebo_ros_plugins_msgs
+Description: Description of uuv_gazebo_ros_plugins_msgs
+Version: 0.6.13
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: std_msgs geometry_msgs message_runtime

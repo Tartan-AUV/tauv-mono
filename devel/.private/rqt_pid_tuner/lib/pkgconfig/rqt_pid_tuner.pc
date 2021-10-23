@@ -1,0 +1,8 @@
+prefix=/home/tom/workspaces/tauv_ws/devel/.private/rqt_pid_tuner
+
+Name: rqt_pid_tuner
+Description: Description of rqt_pid_tuner
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

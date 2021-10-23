@@ -1,0 +1,14 @@
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/tauv_vehicle.pc
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/tauv_vehicle/__init__.py
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/sonar/__init__.py
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/depth_sensor/__init__.py
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/thrusters/__init__.py
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/tauv_vehicle/cmake/tauv_vehicleConfig-version.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/tauv_vehicle/cmake/tauv_vehicle-msg-extras.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/tauv_vehicle/cmake/tauv_vehicleConfig.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/tauv_vehicle/cmake/tauv_vehicle-msg-paths.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/roseus/ros/tauv_vehicle/manifest.l
+Symlinking /home/tom/workspaces/tauv_ws/devel/bin/actuators
+Symlinking /home/tom/workspaces/tauv_ws/devel/bin/sonar
+Symlinking /home/tom/workspaces/tauv_ws/devel/bin/cmake.lock
+Symlinking /home/tom/workspaces/tauv_ws/devel/bin/depth_sensor

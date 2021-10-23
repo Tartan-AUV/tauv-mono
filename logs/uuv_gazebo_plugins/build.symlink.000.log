@@ -1,0 +1,9 @@
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/libuuv_thruster_plugin.so
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/libumbilical_plugin.so
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/libuuv_dynamics.so
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/libuuv_underwater_object_plugin.so
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/libuuv_fin_plugin.so
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/libuuv_gazebo_plugins_msgs.so
+Symlinking /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/uuv_gazebo_plugins.pc
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/uuv_gazebo_plugins/cmake/uuv_gazebo_pluginsConfig.cmake
+Symlinking /home/tom/workspaces/tauv_ws/devel/share/uuv_gazebo_plugins/cmake/uuv_gazebo_pluginsConfig-version.cmake

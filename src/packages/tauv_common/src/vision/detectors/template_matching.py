@@ -3,6 +3,7 @@ import cv2
 
 class TemplateMatching(Detector):
     def __init__(self, name, params, template):
+        pass
 
     def get_detection(self, image):
         img = src

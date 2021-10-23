@@ -1,0 +1,1 @@
+/home/tom/workspaces/tauv_ws/devel/.private/tauv_joy/lib/pkgconfig/tauv_joy.pc

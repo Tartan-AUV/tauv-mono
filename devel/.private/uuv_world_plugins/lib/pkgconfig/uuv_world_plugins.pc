@@ -1,0 +1,8 @@
+prefix=/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_plugins
+
+Name: uuv_world_plugins
+Description: Description of uuv_world_plugins
+Version: 0.6.13
+Cflags: -I/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_world_plugins/uuv_world_plugins/include
+Libs: -L${prefix}/lib -luuv_underwater_current_plugin
+Requires: gazebo_msgs gazebo_dev

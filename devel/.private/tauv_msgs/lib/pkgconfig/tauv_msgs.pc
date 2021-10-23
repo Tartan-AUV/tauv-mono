@@ -1,0 +1,8 @@
+prefix=/home/tom/workspaces/tauv_ws/devel/.private/tauv_msgs
+
+Name: tauv_msgs
+Description: Description of tauv_msgs
+Version: 0.6.1
+Cflags: -I/home/tom/workspaces/tauv_ws/devel/.private/tauv_msgs/include
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs sensor_msgs vision_msgs jsk_recognition_msgs std_msgs message_runtime

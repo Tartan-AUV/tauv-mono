@@ -1,0 +1,8 @@
+prefix=/home/tom/workspaces/tauv_ws/install
+
+Name: tauv_gui
+Description: Description of tauv_gui
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: tauv_joy

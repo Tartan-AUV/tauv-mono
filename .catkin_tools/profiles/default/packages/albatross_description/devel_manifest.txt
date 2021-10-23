@@ -1,0 +1,5 @@
+packages/tauv_config/albatross_description
+/home/tom/workspaces/tauv_ws/devel/.private/albatross_description/cmake.lock /home/tom/workspaces/tauv_ws/devel/./cmake.lock
+/home/tom/workspaces/tauv_ws/devel/.private/albatross_description/lib/pkgconfig/albatross_description.pc /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/albatross_description.pc
+/home/tom/workspaces/tauv_ws/devel/.private/albatross_description/share/albatross_description/cmake/albatross_descriptionConfig.cmake /home/tom/workspaces/tauv_ws/devel/share/albatross_description/cmake/albatross_descriptionConfig.cmake
+/home/tom/workspaces/tauv_ws/devel/.private/albatross_description/share/albatross_description/cmake/albatross_descriptionConfig-version.cmake /home/tom/workspaces/tauv_ws/devel/share/albatross_description/cmake/albatross_descriptionConfig-version.cmake

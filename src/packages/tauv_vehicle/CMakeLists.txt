@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(tauv_vehicle)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
         roslaunch
         sensor_msgs
         tf
-        phidgets_imu
+        phidgets_ik
         tauv_msgs
 
 )
@@ -123,7 +123,7 @@ catkin_package(
         image_transport
         sensor_msgs
         tf
-        phidgets_imu
+        phidgets_ik
         imu_filter_madgwick
         imu_transformer
         tauv_msgs
