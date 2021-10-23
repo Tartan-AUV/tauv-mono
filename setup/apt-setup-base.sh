@@ -12,4 +12,5 @@ sudo apt update && apt install -y \
     ros-noetic-imu-filter-madgwick \
     libi2c-dev \
     ros-noetic-image-transport \
-    ros-noetic-robot-localization
+    ros-noetic-robot-localization \
+    ros-noetic-xacro

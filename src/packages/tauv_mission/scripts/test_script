@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from test_mission_scripts import test_script
 
 if __name__ == "__main__":
