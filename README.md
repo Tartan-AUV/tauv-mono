@@ -1,4 +1,5 @@
 
+# IGNORE THIS README IF INSTALLING ON 20.04!!!! IT'S OUT OF DATE!
 
 # TAUV-ROS-Packages
 [![Build Status](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages.svg?token=FrwKiSXG1hQbYsyh6LNc&branch=master)](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages)
