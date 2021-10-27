@@ -13,6 +13,8 @@ add_message_files(
   PidVals.msg
   SonarPulse.msg
   PoseGraphMeasurement.msg
+  ImuSync.msg
+  ImuData.msg
 )
 
 add_service_files(

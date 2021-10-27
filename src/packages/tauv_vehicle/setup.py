@@ -20,12 +20,13 @@ from catkin_pkg.python_setup import generate_distutils_setup
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['depth_sensor', 'thrusters', 'sonar'],
+    packages=['depth_sensor', 'thrusters', 'sonar', 'xsens_imu_sync',],
     package_dir={'': 'src'},
     requires=['rospy'],
     scripts=['scripts/depth_sensor',
              'scripts/actuators',
-             'scripts/sonar']
+             'scripts/sonar',
+             'scripts/xsens_imu_sync']
 )
 
 setup(**setup_args)

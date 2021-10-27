@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="tauv_vehicle" type="xsens_imu_sync" name="xsens_imu_sync" output="screen"/>
+</launch>

@@ -10,7 +10,10 @@ add_compile_options(-Wall -Werror -std=c++11)
 find_package(catkin REQUIRED COMPONENTS
         roscpp
         rospy
+        tf2
+        tf2_ros
         std_msgs
+        geometry_msgs
         std_srvs
         image_transport
         roslaunch
@@ -119,7 +122,10 @@ catkin_package(
 #  LIBRARIES tauv_vehicle
         CATKIN_DEPENDS
         roscpp
+        tf2
+        tf2_ros
         std_msgs
+        geometry_msgs
         image_transport
         sensor_msgs
         tf
@@ -139,7 +145,43 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
         src
+        src/xsens_imu/lib/xspublic
         ${catkin_INCLUDE_DIRS}
+)
+
+link_directories(src/xsens_imu/lib/xspublic/xscontroller src/xsens_imu/lib/xspublic/xscommon src/xsens_imu/lib/xspublic/xstypes)
+add_executable(
+	xsens_imu
+	src/xsens_imu/main.cpp
+	src/xsens_imu/xdainterface.cpp
+	src/xsens_imu/xdacallback.cpp
+)
+target_link_libraries(
+	xsens_imu
+	xscontroller
+	xscommon
+	xstypes
+	pthread
+	dl
+	${catkin_LIBRARIES}
+)
+
+# Install targets
+install(
+  TARGETS
+    xsens_imu
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+# Install directories
+install(
+  DIRECTORY
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
+add_custom_command(TARGET xsens_imu
+    PRE_BUILD COMMAND +make -C ${CMAKE_CURRENT_SOURCE_DIR}/src/xsens_imu/lib/xspublic
 )
 
 ## Declare a C++ library
