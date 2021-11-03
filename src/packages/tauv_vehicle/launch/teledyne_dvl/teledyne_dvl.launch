@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="tauv_vehicle" type="teledyne_dvl" name="teledyne_dvl" output="screen" />
+</launch>

@@ -15,6 +15,7 @@ add_message_files(
   PoseGraphMeasurement.msg
   ImuSync.msg
   ImuData.msg
+  DvlData.msg
 )
 
 add_service_files(
