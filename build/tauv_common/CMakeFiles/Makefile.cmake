@@ -307,6 +307,7 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib/python3/dist-packages/thruster_managers/__init__.py"
   "/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib/python3/dist-packages/controllers/__init__.py"
   "/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib/python3/dist-packages/planners/__init__.py"
+  "/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib/python3/dist-packages/state_estimation/__init__.py"
   "/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib/python3/dist-packages/teleop/__init__.py"
   "/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib/python3/dist-packages/vision/__init__.py"
   "/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib/python3/dist-packages/dynamics/__init__.py"

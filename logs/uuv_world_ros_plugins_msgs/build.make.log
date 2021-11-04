@@ -1,24 +1,92 @@
+make[1]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[2]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target _uuv_world_ros_plugins_msgs_generate_messages_check_deps_TransformToSphericalCoord
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target std_msgs_generate_messages_eus
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target _uuv_world_ros_plugins_msgs_generate_messages_check_deps_SetOriginSphericalCoord
 [  0%] Built target _uuv_world_ros_plugins_msgs_generate_messages_check_deps_GetOriginSphericalCoord
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target geometry_msgs_generate_messages_eus
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target _uuv_world_ros_plugins_msgs_generate_messages_check_deps_SetCurrentDirection
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target _uuv_world_ros_plugins_msgs_generate_messages_check_deps_TransformFromSphericalCoord
-[  0%] Built target _uuv_world_ros_plugins_msgs_generate_messages_check_deps_GetCurrentModel
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target _uuv_world_ros_plugins_msgs_generate_messages_check_deps_SetCurrentModel
-[  0%] Built target std_msgs_generate_messages_py
-[  0%] Built target geometry_msgs_generate_messages_py
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+[  0%] Built target _uuv_world_ros_plugins_msgs_generate_messages_check_deps_GetCurrentModel
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target _uuv_world_ros_plugins_msgs_generate_messages_check_deps_SetCurrentVelocity
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+[  0%] Built target std_msgs_generate_messages_py
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+[  0%] Built target geometry_msgs_generate_messages_py
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target geometry_msgs_generate_messages_nodejs
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target std_msgs_generate_messages_nodejs
-[  0%] Built target geometry_msgs_generate_messages_lisp
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target std_msgs_generate_messages_lisp
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+[  0%] Built target geometry_msgs_generate_messages_lisp
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [  0%] Built target geometry_msgs_generate_messages_cpp
 [  0%] Built target std_msgs_generate_messages_cpp
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [ 21%] Built target uuv_world_ros_plugins_msgs_generate_messages_eus
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [ 42%] Built target uuv_world_ros_plugins_msgs_generate_messages_py
 [ 61%] Built target uuv_world_ros_plugins_msgs_generate_messages_nodejs
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [100%] Built target uuv_world_ros_plugins_msgs_generate_messages_cpp
 [100%] Built target uuv_world_ros_plugins_msgs_generate_messages_lisp
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
 [100%] Built target uuv_world_ros_plugins_msgs_generate_messages
+make[2]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'
+make[1]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_ros_plugins_msgs'

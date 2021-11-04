@@ -24,8 +24,8 @@ from scipy.spatial.transform import Rotation as R
 
 class Twist_Transformer:
     def __init__(self):
-        self.rotated_twist_pub = rospy.Publisher("odometry/filtered/rotated", Odometry, queue_size=50)
-        self.ekf_sub = rospy.Subscriber("odometry/filtered", Odometry, self.odom_callback)
+        self.rotated_twist_pub = rospy.Publisher("odometry/filtered/rotated", Odometry, queue_size=10)
+        self.ekf_sub = rospy.Subscriber("odometry/filtered", Odometry, self.odom_callback, queue_size=1)
         self.tf = tf.TransformListener()
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 

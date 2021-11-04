@@ -1,1 +1,7 @@
+make[1]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_plugins'
+make[2]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_plugins'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_world_plugins'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_plugins'
 [100%] Built target uuv_underwater_current_plugin
+make[2]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_plugins'
+make[1]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_world_plugins'

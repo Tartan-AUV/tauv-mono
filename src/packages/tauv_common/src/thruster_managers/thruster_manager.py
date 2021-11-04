@@ -78,7 +78,7 @@ class ThrusterManager:
             source = 'base_link_ned'
             tf_trans_ned_to_enu = tf_buffer.lookup_transform(
                 target, source, rospy.Time(), rospy.Duration(1))
-        except Exception, e:
+        except Exception as e:
             rospy.loginfo('No transform found between base_link and base_link_ned'
                           ' for vehicle ' + self.namespace)
             rospy.loginfo(str(e))
@@ -282,14 +282,14 @@ class ThrusterManager:
                 yaml_file.write(
                     yaml.safe_dump(
                         dict(tam=self.configuration_matrix.tolist())))
-            print 'TAM saved in <%s>' % join(self.output_dir, 'TAM.yaml')
+            print(f'TAM saved in <{join(self.output_dir, "TAM.yaml")}>')
         elif recalculate:
-            print 'Recalculate flag on, matrix will not be stored in TAM.yaml'
+            print('Recalculate flag on, matrix will not be stored in TAM.yaml')
         else:
-            print 'Invalid output directory for the TAM matrix, dir=', self.output_dir
+            print('Invalid output directory for the TAM matrix, dir={self.output_dir}')
 
         self.ready = True
-        print ('ThrusterManager: ready')
+        print('ThrusterManager: ready')
         return True
 
     def command_thrusters(self):

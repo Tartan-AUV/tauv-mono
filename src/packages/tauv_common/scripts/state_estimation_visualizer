@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import state_estimation_visualizer
+from state_estimation_visualizer import state_estimation_visualizer
 
 if __name__ == "__main__":
-    state_estimation_visualizer.state_estimation_visualizer.main()
+    state_estimation_visualizer.main()

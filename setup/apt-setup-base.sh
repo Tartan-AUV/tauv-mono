@@ -1,4 +1,5 @@
 sudo apt update && apt install -y \
+    python3-pip \
     python3-yaml \
     python3-numpy \
     python3-smbus \

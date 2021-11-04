@@ -14,9 +14,9 @@ import numpy as np
 import itertools
 import cv2
 from cv_bridge import CvBridge
-from models import *
-from utils.utils import *
-from utils.datasets import *
+from .models import *
+from .utils.utils import *
+from .utils.datasets import *
 import os
 import sys
 import time

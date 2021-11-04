@@ -211,7 +211,7 @@ foreach(depend ${depends})
   _unpack_libraries_with_build_configuration(tauv_common_LIBRARIES ${tauv_common_LIBRARIES})
 
   _list_append_unique(tauv_common_LIBRARY_DIRS ${${tauv_common_dep}_LIBRARY_DIRS})
-  list(APPEND tauv_common_EXPORTED_TARGETS ${${tauv_common_dep}_EXPORTED_TARGETS})
+  _list_append_deduplicate(tauv_common_EXPORTED_TARGETS ${${tauv_common_dep}_EXPORTED_TARGETS})
 endforeach()
 
 set(pkg_cfg_extras "tauv_common-msg-extras.cmake")

@@ -13,7 +13,7 @@ import tf_conversions
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
-from detector_bucket_utils import *
+from .detector_bucket_utils import *
 from sensor_msgs.msg import Imu
 from std_msgs.msg import Header
 from stereo_msgs.msg import DisparityImage

@@ -211,7 +211,7 @@ foreach(depend ${depends})
   _unpack_libraries_with_build_configuration(uuv_descriptions_LIBRARIES ${uuv_descriptions_LIBRARIES})
 
   _list_append_unique(uuv_descriptions_LIBRARY_DIRS ${${uuv_descriptions_dep}_LIBRARY_DIRS})
-  list(APPEND uuv_descriptions_EXPORTED_TARGETS ${${uuv_descriptions_dep}_EXPORTED_TARGETS})
+  _list_append_deduplicate(uuv_descriptions_EXPORTED_TARGETS ${${uuv_descriptions_dep}_EXPORTED_TARGETS})
 endforeach()
 
 set(pkg_cfg_extras "")

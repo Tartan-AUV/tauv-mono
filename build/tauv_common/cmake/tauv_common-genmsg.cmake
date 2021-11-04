@@ -39,12 +39,12 @@ add_custom_target(_tauv_common_generate_messages_check_deps_${_filename}
 
 get_filename_component(_filename "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterObjectDetections.srv" NAME_WE)
 add_custom_target(_tauv_common_generate_messages_check_deps_${_filename}
-  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "tauv_common" "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterObjectDetections.srv" "geometry_msgs/Point:geometry_msgs/Vector3:tauv_msgs/BucketDetection:std_msgs/Header:geometry_msgs/Pose2D:geometry_msgs/Quaternion:vision_msgs/BoundingBox2D:geometry_msgs/Pose:jsk_recognition_msgs/BoundingBox:sensor_msgs/Image"
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "tauv_common" "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterObjectDetections.srv" "geometry_msgs/Quaternion:sensor_msgs/Image:geometry_msgs/Pose2D:geometry_msgs/Vector3:geometry_msgs/Pose:tauv_msgs/BucketDetection:vision_msgs/BoundingBox2D:std_msgs/Header:geometry_msgs/Point:jsk_recognition_msgs/BoundingBox"
 )
 
 get_filename_component(_filename "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterMeasurement.srv" NAME_WE)
 add_custom_target(_tauv_common_generate_messages_check_deps_${_filename}
-  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "tauv_common" "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterMeasurement.srv" "geometry_msgs/Point:std_msgs/Header:tauv_msgs/PoseGraphMeasurement"
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "tauv_common" "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterMeasurement.srv" "std_msgs/Header:geometry_msgs/Point:tauv_msgs/PoseGraphMeasurement"
 )
 
 #
@@ -82,13 +82,13 @@ _generate_srv_cpp(tauv_common
 _generate_srv_cpp(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterObjectDetections.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg"
+  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg"
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/tauv_common
 )
 _generate_srv_cpp(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterMeasurement.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/tauv_common
 )
 
@@ -155,13 +155,13 @@ _generate_srv_eus(tauv_common
 _generate_srv_eus(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterObjectDetections.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg"
+  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg"
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/tauv_common
 )
 _generate_srv_eus(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterMeasurement.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/tauv_common
 )
 
@@ -228,13 +228,13 @@ _generate_srv_lisp(tauv_common
 _generate_srv_lisp(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterObjectDetections.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg"
+  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg"
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/tauv_common
 )
 _generate_srv_lisp(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterMeasurement.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/tauv_common
 )
 
@@ -301,13 +301,13 @@ _generate_srv_nodejs(tauv_common
 _generate_srv_nodejs(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterObjectDetections.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg"
+  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg"
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/tauv_common
 )
 _generate_srv_nodejs(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterMeasurement.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/tauv_common
 )
 
@@ -374,13 +374,13 @@ _generate_srv_py(tauv_common
 _generate_srv_py(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterObjectDetections.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg"
+  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/noetic/share/sensor_msgs/cmake/../msg/Image.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose2D.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Vector3.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Pose.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/BucketDetection.msg;/opt/ros/noetic/share/vision_msgs/cmake/../msg/BoundingBox2D.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/jsk_recognition_msgs/cmake/../msg/BoundingBox.msg"
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/tauv_common
 )
 _generate_srv_py(tauv_common
   "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterMeasurement.srv"
   "${MSG_I_FLAGS}"
-  "/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
+  "/opt/ros/noetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/noetic/share/geometry_msgs/cmake/../msg/Point.msg;/home/tom/workspaces/tauv_ws/src/packages/tauv_msgs/msg/PoseGraphMeasurement.msg"
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/tauv_common
 )
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import state_estimation
+from state_estimation import depth_odometry
 
 if __name__ == "__main__":
-    state_estimation.depth_odometry.main()
+    depth_odometry.main()

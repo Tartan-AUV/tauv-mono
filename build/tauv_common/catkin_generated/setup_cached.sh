@@ -9,7 +9,8 @@
 # modified environment variables
 export CMAKE_PREFIX_PATH="/home/tom/workspaces/tauv_ws/devel/.private/tauv_common:$CMAKE_PREFIX_PATH"
 export LD_LIBRARY_PATH="/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib:$LD_LIBRARY_PATH"
-export PATH="/home/tom/workspaces/tauv_ws/devel/bin:$PATH"
+export PATH="/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/bin:$PATH"
+export PKG_CONFIG_PATH="/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib/pkgconfig:$PKG_CONFIG_PATH"
 export PWD='/home/tom/workspaces/tauv_ws/build/tauv_common'
 export PYTHONPATH="/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/lib/python3/dist-packages:$PYTHONPATH"
 export ROSLISP_PACKAGE_DIRECTORIES="/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"

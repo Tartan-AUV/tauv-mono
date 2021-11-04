@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import state_estimation
+from state_estimation import twist_transformer
 
 if __name__ == "__main__":
-    state_estimation.twist_transformer.main()
+    twist_transformer.main()

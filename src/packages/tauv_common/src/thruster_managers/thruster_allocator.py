@@ -22,7 +22,7 @@ from os.path import isdir, join
 from copy import deepcopy
 import yaml
 import tf2_ros
-from .thruster_managers import ThrusterManager
+from .thruster_manager import ThrusterManager
 from geometry_msgs.msg import Wrench, WrenchStamped
 from tauv_common.srv import *
 
@@ -98,11 +98,11 @@ class ThrusterAllocatorNode(ThrusterManager):
         self.config['thruster_topic_prefix'] = request.thruster_topic_prefix
         self.config['thruster_topic_suffix'] = request.thruster_topic_suffix
         self.config['timeout'] = request.timeout
-        print 'New configuration:\n'
+        print('New configuration:\n')
         for key in self.config:
-            print key, '=', self.config[key]
+            print(key, '=', self.config[key])
         if not self.update_tam(recalculate=True):
-            print 'Configuration parameters are invalid, going back to old configuration...'
+            print('Configuration parameters are invalid, going back to old configuration...')
             self.config = old_config
             self.update_tam(recalculate=True)
         return SetThrusterManagerConfigResponse(True)
@@ -167,5 +167,5 @@ def main():
         node = ThrusterAllocatorNode()
         rospy.spin()
     except rospy.ROSInterruptException:
-        print 'ThrusterAllocatorNode::Exception'
-    print 'Leaving ThrusterAllocatorNode'
+        print('ThrusterAllocatorNode::Exception')
+    print('Leaving ThrusterAllocatorNode')

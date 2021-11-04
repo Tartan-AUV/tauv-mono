@@ -118,49 +118,49 @@
       <xacro:no_collision/>
     </link>
 
-  <joint name="${namespace}_sonar${suffix}_joint" type="revolute">
-    <xacro:insert_block name="origin" />
-    <parent link="${parent_link}" />
-    <child link="sonar${suffix}_link" />
-    <limit upper="0" lower="0" effort="0" velocity="0" />
-    <axis xyz="1 0 0"/>
-  </joint>
+    <joint name="${namespace}_sonar${suffix}_joint" type="revolute">
+      <xacro:insert_block name="origin" />
+      <parent link="${parent_link}" />
+      <child link="sonar${suffix}_link" />
+      <limit upper="0" lower="0" effort="0" velocity="0" />
+      <axis xyz="1 0 0"/>
+    </joint>
 
-  <gazebo reference="sonar${suffix}_link">
-    <sensor type="ray" name="sonar${suffix}">
-      <pose>0 0 0 0 0 0</pose>
-      <visualize>true</visualize>
-      <update_rate>${update_rate}</update_rate>
-      <ray>
-        <scan>
-          <horizontal>
-            <samples>${samples}</samples>
-            <resolution>1</resolution>
-            <min_angle>-${0.5*fov}</min_angle>
-            <max_angle>${0.5*fov}</max_angle>
-          </horizontal>
-        </scan>
-        <range>
-          <min>${range_min}</min>
-          <max>${range_max}</max>
-          <resolution>0.01</resolution>
-        </range>
-        <noise>
-          <type>gaussian</type>
-          <mean>0.0</mean>
-          <stddev>${range_stddev}</stddev>
-        </noise>
-      </ray>
-      <plugin name="sonar${suffix}_controller" filename="libgazebo_ros_laser.so">
-        <topicName>${topic}</topicName>
-        <frameName>/sonar${suffix}_link</frameName>
-      </plugin>
-      <!-- TODO: Separate switchable sonar version in another macro -->
-      <!-- <plugin name="switchable_sonar{suffix}_ros_interface" filename="libuuv_gazebo_ros_switchable_gpu_ray_sensor.so">
-          <namespace>${namespace}</namespace>
-          <input_topic>${topic}</input_topic>
-      </plugin> -->
-    </sensor>
-  </gazebo>
+    <gazebo reference="sonar${suffix}_link">
+      <sensor type="ray" name="sonar${suffix}">
+        <pose>0 0 0 0 0 0</pose>
+        <visualize>true</visualize>
+        <update_rate>${update_rate}</update_rate>
+        <ray>
+          <scan>
+            <horizontal>
+              <samples>${samples}</samples>
+              <resolution>1</resolution>
+              <min_angle>-${0.5*fov}</min_angle>
+              <max_angle>${0.5*fov}</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>${range_min}</min>
+            <max>${range_max}</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>${range_stddev}</stddev>
+          </noise>
+        </ray>
+        <plugin name="sonar${suffix}_controller" filename="libgazebo_ros_laser.so">
+          <topicName>${topic}</topicName>
+          <frameName>/sonar${suffix}_link</frameName>
+        </plugin>
+        <!-- TODO: Separate switchable sonar version in another macro -->
+        <!-- <plugin name="switchable_sonar{suffix}_ros_interface" filename="libuuv_gazebo_ros_switchable_gpu_ray_sensor.so">
+            <namespace>${namespace}</namespace>
+            <input_topic>${topic}</input_topic>
+        </plugin> -->
+      </sensor>
+    </gazebo>
   </xacro:macro>
 </robot>

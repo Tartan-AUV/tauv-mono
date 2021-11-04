@@ -14,4 +14,4 @@
 # limitations under the License.
 
 from .thruster_manager import ThrusterManager
-import thruster_allocator
+from . import thruster_allocator

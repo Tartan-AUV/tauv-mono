@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/tom/workspaces/tauv_ws/devel/include/**",
+        "/home/tom/workspaces/platform2_demo_auterion/devel/include/**",
+        "/opt/ros/noetic/include/**",
+        "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/include/**",
+        "/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_gazebo_plugins/uuv_gazebo_plugins/include/**",
+        "/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_gazebo_plugins/uuv_gazebo_ros_plugins/include/**",
+        "/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_sensor_plugins/uuv_sensor_ros_plugins/include/**",
+        "/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_world_plugins/uuv_world_plugins/include/**",
+        "/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_world_plugins/uuv_world_ros_plugins/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS"
+    }
+  ],
+  "version": 4
+}

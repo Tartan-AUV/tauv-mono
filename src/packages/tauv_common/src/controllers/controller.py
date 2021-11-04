@@ -17,7 +17,6 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import WrenchStamped, Wrench, Vector3, Quaternion
 from nav_msgs.msg import Odometry
-import control
 import copy
 
 

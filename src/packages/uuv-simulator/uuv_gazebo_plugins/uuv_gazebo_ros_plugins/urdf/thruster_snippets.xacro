@@ -87,7 +87,7 @@
     <joint name="${namespace}/thruster_${thruster_id}_joint" type="continuous">
       <xacro:insert_block name="origin"/>
       <axis xyz="1 0 0"/>
-      <parent link="${namespace}/base_link"/>
+      <parent link="base_link"/>
       <child link="${namespace}/thruster_${thruster_id}"/>
     </joint>
 
