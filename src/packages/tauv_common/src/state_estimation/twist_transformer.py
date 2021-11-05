@@ -27,7 +27,7 @@ class Twist_Transformer:
         self.rotated_twist_pub = rospy.Publisher("odometry/filtered/rotated", Odometry, queue_size=10)
         self.ekf_sub = rospy.Subscriber("odometry/filtered", Odometry, self.odom_callback, queue_size=1)
         self.tf = tf.TransformListener()
-        self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
+        # self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
 
     def transform_meas_to_world(self, measurement, child_frame, world_frame, time, translate=True):
         self.tf.waitForTransform(world_frame, child_frame, time, rospy.Duration(4.0))
@@ -65,8 +65,8 @@ class Twist_Transformer:
 
         self.rotated_twist_pub.publish(odom_rotated)
 
-    def spin(self):
-        return
+    # def spin(self, timer_event):
+    #     return
 
 def main():
     rospy.init_node('twist_transformer', anonymous=True)

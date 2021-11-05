@@ -88,10 +88,10 @@
   </include>
 
   <!-- Publish state and tf for vehicle in relation to the odom frame -->
-  <include file="$(find uuv_descriptions)/launch/message_to_tf.launch">
+  <!-- <include file="$(find uuv_descriptions)/launch/message_to_tf.launch">
     <arg name="namespace" value="$(arg model_name)"/>
     <arg name="odometry_topic" value="/gnc/odom"/>
-  </include>
+  </include> -->
 
   <!-- Launch Thruster Manager -->
   <include file="$(find tauv_common)/launch/thruster_manager/thruster_manager.launch">

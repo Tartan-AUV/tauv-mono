@@ -1,8 +1,10 @@
 make[1]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[2]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+[  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_GetThrusterState
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target geometry_msgs_generate_messages_nodejs
@@ -10,11 +12,6 @@ make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_p
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-[  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_GetThrusterState
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_GetListParam
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
@@ -23,12 +20,15 @@ make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_pl
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_GetThrusterConversionFcn
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-[  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_SetFloat
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target std_msgs_generate_messages_nodejs
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+[  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_SetFloat
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
@@ -36,23 +36,23 @@ make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_pl
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_SetUseGlobalCurrentVel
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_FloatStamped
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_GetModelProperties
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-[  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_UnderwaterObjectModel
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+[  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_UnderwaterObjectModel
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_SetThrusterEfficiency
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_ThrusterConversionFcn
@@ -66,49 +66,49 @@ make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_p
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_GetFloat
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_SetThrusterState
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+[  0%] Built target std_msgs_generate_messages_py
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target _uuv_gazebo_ros_plugins_msgs_generate_messages_check_deps_GetThrusterEfficiency
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-[  0%] Built target geometry_msgs_generate_messages_py
-[  0%] Built target std_msgs_generate_messages_py
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+[  0%] Built target geometry_msgs_generate_messages_py
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target std_msgs_generate_messages_lisp
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target geometry_msgs_generate_messages_lisp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target std_msgs_generate_messages_eus
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target geometry_msgs_generate_messages_eus
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target geometry_msgs_generate_messages_cpp
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [  0%] Built target std_msgs_generate_messages_cpp
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+[ 19%] Built target uuv_gazebo_ros_plugins_msgs_generate_messages_nodejs
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+[ 41%] Built target uuv_gazebo_ros_plugins_msgs_generate_messages_py
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-[ 22%] Built target uuv_gazebo_ros_plugins_msgs_generate_messages_py
-[ 41%] Built target uuv_gazebo_ros_plugins_msgs_generate_messages_nodejs
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [ 60%] Built target uuv_gazebo_ros_plugins_msgs_generate_messages_lisp
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [ 80%] Built target uuv_gazebo_ros_plugins_msgs_generate_messages_eus
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 [100%] Built target uuv_gazebo_ros_plugins_msgs_generate_messages_cpp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_gazebo_ros_plugins_msgs'
