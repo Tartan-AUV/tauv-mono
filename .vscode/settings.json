@@ -3,5 +3,11 @@
         "/home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages",
         "/home/tom/workspaces/platform2_demo_auterion/devel/lib/python3/dist-packages",
         "/opt/ros/noetic/lib/python3/dist-packages"
-    ]
+    ],
+    "python.analysis.extraPaths": [
+        "/home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages",
+        "/home/tom/workspaces/platform2_demo_auterion/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ],
+    "ros.distro": "noetic"
 }
