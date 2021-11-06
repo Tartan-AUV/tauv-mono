@@ -1,45 +1,45 @@
 make[1]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[2]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-[  0%] Built target std_msgs_generate_messages_nodejs
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-[  0%] Built target _tauv_joy_generate_messages_check_deps_JoyConnect
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 [  0%] Built target std_msgs_generate_messages_eus
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 [  0%] Built target std_msgs_generate_messages_py
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+[  0%] Built target std_msgs_generate_messages_nodejs
 [  0%] Built target std_msgs_generate_messages_lisp
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 [  0%] Built target std_msgs_generate_messages_cpp
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+[  0%] Built target _tauv_joy_generate_messages_check_deps_JoyConnect
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-[ 11%] Built target tauv_joy_generate_messages_nodejs
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-[ 33%] Built target tauv_joy_generate_messages_eus
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
-[ 55%] Built target tauv_joy_generate_messages_py
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+[ 22%] Built target tauv_joy_generate_messages_py
+[ 44%] Built target tauv_joy_generate_messages_eus
+[ 55%] Built target tauv_joy_generate_messages_nodejs
 [ 66%] Built target tauv_joy_generate_messages_lisp
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 [ 77%] Built target tauv_joy_generate_messages_cpp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
+[ 77%] Built target tauv_joy_generate_messages
 [100%] Built target tauv_joy_node
-[100%] Built target tauv_joy_generate_messages
 make[2]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'
 make[1]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_joy'

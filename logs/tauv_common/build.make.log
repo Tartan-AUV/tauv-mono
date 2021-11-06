@@ -9,131 +9,131 @@ make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target geometry_msgs_generate_messages_lisp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target std_msgs_generate_messages_lisp
-[  0%] Built target geometry_msgs_generate_messages_lisp
-[  0%] Built target sensor_msgs_generate_messages_lisp
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target tauv_msgs_generate_messages_lisp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target sensor_msgs_generate_messages_lisp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target _tauv_common_generate_messages_check_deps_ThrusterManagerInfo
 [  0%] Built target vision_msgs_generate_messages_lisp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target std_srvs_generate_messages_lisp
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target _tauv_common_generate_messages_check_deps_GetThrusterManagerConfig
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[  0%] Built target _tauv_common_generate_messages_check_deps_ThrusterManagerInfo
-[  0%] Built target _tauv_common_generate_messages_check_deps_RegisterMeasurement
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[  0%] Built target sensor_msgs_generate_messages_eus
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target _tauv_common_generate_messages_check_deps_RegisterObjectDetections
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[  0%] Built target geometry_msgs_generate_messages_eus
-[  0%] Built target vision_msgs_generate_messages_eus
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target _tauv_common_generate_messages_check_deps_SetThrusterManagerConfig
+[  0%] Built target sensor_msgs_generate_messages_eus
+[  0%] Built target _tauv_common_generate_messages_check_deps_RegisterMeasurement
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target _tauv_common_generate_messages_check_deps_GetThrusterCurve
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target vision_msgs_generate_messages_eus
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target std_srvs_generate_messages_eus
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[  0%] Built target tauv_msgs_generate_messages_eus
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[  0%] Built target std_msgs_generate_messages_eus
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[  0%] Built target _tauv_common_generate_messages_check_deps_SetThrusterManagerConfig
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target sensor_msgs_generate_messages_nodejs
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target tauv_msgs_generate_messages_eus
+[  0%] Built target geometry_msgs_generate_messages_eus
+[  0%] Built target std_msgs_generate_messages_eus
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target geometry_msgs_generate_messages_nodejs
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target std_srvs_generate_messages_nodejs
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target std_msgs_generate_messages_nodejs
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target geometry_msgs_generate_messages_py
+[  0%] Built target vision_msgs_generate_messages_nodejs
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target tauv_msgs_generate_messages_nodejs
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target vision_msgs_generate_messages_py
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[  0%] Built target geometry_msgs_generate_messages_py
-[  0%] Built target vision_msgs_generate_messages_py
-[  0%] Built target vision_msgs_generate_messages_nodejs
-[  0%] Built target tauv_msgs_generate_messages_nodejs
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target sensor_msgs_generate_messages_py
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target tauv_msgs_generate_messages_py
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target std_msgs_generate_messages_py
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target std_srvs_generate_messages_py
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[  0%] Built target tauv_msgs_generate_messages_py
-[  0%] Built target std_msgs_generate_messages_py
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[  0%] Built target sensor_msgs_generate_messages_cpp
-[  0%] Built target std_msgs_generate_messages_cpp
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target std_srvs_generate_messages_cpp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target sensor_msgs_generate_messages_cpp
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  0%] Built target std_msgs_generate_messages_cpp
 [  0%] Built target geometry_msgs_generate_messages_cpp
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 [  0%] Built target tauv_msgs_generate_messages_cpp
-[ 21%] Built target tauv_common_generate_messages_eus
-[ 40%] Built target tauv_common_generate_messages_lisp
-[ 40%] Built target vision_msgs_generate_messages_cpp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
-[ 59%] Built target tauv_common_generate_messages_nodejs
-[ 81%] Built target tauv_common_generate_messages_py
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[  3%] Built target vision_msgs_generate_messages_cpp
+[ 18%] Built target tauv_common_generate_messages_lisp
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[ 40%] Built target tauv_common_generate_messages_eus
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
+[ 81%] Built target tauv_common_generate_messages_nodejs
+[ 81%] Built target tauv_common_generate_messages_py
 [100%] Built target tauv_common_generate_messages_cpp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_common'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_common'

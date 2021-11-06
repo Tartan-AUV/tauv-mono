@@ -1,70 +1,70 @@
 make[1]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[2]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-[  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_DVL
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-[  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_DVLBeam
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 [  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_ChangeSensorState
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+[  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_DVL
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 [  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_Salinity
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-[  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_PositionWithCovariance
-[  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_PositionWithCovarianceStamped
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+[  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_PositionWithCovariance
+[  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_DVLBeam
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 [  0%] Built target geometry_msgs_generate_messages_lisp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 [  0%] Built target geometry_msgs_generate_messages_py
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 [  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_ChemicalParticleConcentration
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 [  0%] Built target geometry_msgs_generate_messages_nodejs
-[ 18%] Built target uuv_sensor_plugins_ros_msgs_generate_messages_lisp
-[ 18%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target _uuv_sensor_plugins_ros_msgs_generate_messages_check_deps_PositionWithCovarianceStamped
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-[ 18%] Built target geometry_msgs_generate_messages_eus
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-[ 42%] Built target uuv_sensor_plugins_ros_msgs_generate_messages_py
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+[  0%] Built target geometry_msgs_generate_messages_cpp
+[  0%] Built target geometry_msgs_generate_messages_eus
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
-[ 60%] Built target uuv_sensor_plugins_ros_msgs_generate_messages_nodejs
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+[ 18%] Built target uuv_sensor_plugins_ros_msgs_generate_messages_nodejs
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
+[ 55%] Built target uuv_sensor_plugins_ros_msgs_generate_messages_lisp
+[ 60%] Built target uuv_sensor_plugins_ros_msgs_generate_messages_py
+[ 81%] Built target uuv_sensor_plugins_ros_msgs_generate_messages_eus
 [100%] Built target uuv_sensor_plugins_ros_msgs_generate_messages_cpp
-[100%] Built target uuv_sensor_plugins_ros_msgs_generate_messages_eus
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/uuv_sensor_plugins_ros_msgs'
 [100%] Built target uuv_sensor_plugins_ros_msgs_generate_messages

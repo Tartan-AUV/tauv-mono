@@ -1,94 +1,94 @@
 make[1]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[2]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target geometry_msgs_generate_messages_py
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+[  0%] Built target sensor_msgs_generate_messages_py
+[  0%] Built target tauv_msgs_generate_messages_py
 [  0%] Built target std_msgs_generate_messages_py
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-[  0%] Built target tauv_msgs_generate_messages_py
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target std_srvs_generate_messages_py
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-[  0%] Built target sensor_msgs_generate_messages_py
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target tauv_msgs_generate_messages_nodejs
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target std_srvs_generate_messages_nodejs
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-[  0%] Built target sensor_msgs_generate_messages_nodejs
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-[  0%] Built target geometry_msgs_generate_messages_nodejs
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target std_msgs_generate_messages_nodejs
-[  0%] Built target tauv_msgs_generate_messages_lisp
+[  0%] Built target geometry_msgs_generate_messages_nodejs
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+[  0%] Built target sensor_msgs_generate_messages_nodejs
+[  0%] Built target tauv_msgs_generate_messages_lisp
 [  0%] Built target std_srvs_generate_messages_lisp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target std_msgs_generate_messages_lisp
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target sensor_msgs_generate_messages_lisp
 [  0%] Built target geometry_msgs_generate_messages_lisp
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target tauv_msgs_generate_messages_eus
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target std_srvs_generate_messages_eus
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target geometry_msgs_generate_messages_eus
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-[  0%] Built target sensor_msgs_generate_messages_eus
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+[  0%] Built target sensor_msgs_generate_messages_eus
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+[  0%] Built target tauv_msgs_generate_messages_cpp
+[  0%] Built target sensor_msgs_generate_messages_cpp
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target std_msgs_generate_messages_eus
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-[  0%] Built target tauv_msgs_generate_messages_cpp
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-[  0%] Built target sensor_msgs_generate_messages_cpp
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-[  0%] Built target std_msgs_generate_messages_cpp
 [  0%] Built target std_srvs_generate_messages_cpp
+[  0%] Built target std_msgs_generate_messages_cpp
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target geometry_msgs_generate_messages_cpp
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target tauv_vehicle_generate_messages_py
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target tauv_vehicle_generate_messages_nodejs
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [  0%] Built target tauv_vehicle_generate_messages_lisp
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
-make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [100%] Built target tauv_vehicle_generate_messages_eus
+make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 [100%] Built target tauv_vehicle_generate_messages_cpp
 make[3]: Entering directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
 make[3]: Leaving directory '/home/tom/workspaces/tauv_ws/build/tauv_vehicle'
