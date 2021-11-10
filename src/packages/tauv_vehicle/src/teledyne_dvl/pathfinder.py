@@ -1,69 +1,114 @@
+import rospy
 import serial
 import bitstring
 
-from ensemble import Ensemble
+from teledyne_dvl.ensemble import Ensemble
 
 class Pathfinder:
 
-    TIMEOUT = 100
+    TIMEOUT = 1.0
 
-    def __init__(self, port, baudrate):
+    def __init__(self, port: str, baudrate: int):
         self._conn = serial.Serial(port=port, baudrate=baudrate, timeout=Pathfinder.TIMEOUT)
         self._measuring = False
 
     def open(self):
+        self._log('open')
+
         if not self._conn.isOpen():
             self._conn.open()
 
-        self._conn.send_break()
-        self._conn.send_break()
+        self._send_command('===')
 
-        self._conn.flush()
+        rospy.sleep(rospy.Duration(1.0))
 
         self._configure()
 
+        rospy.sleep(rospy.Duration(1.0))
+
         self.start_measuring()
 
+        rospy.sleep(rospy.Duration(1.0))
+
     def close(self):
+        self._log('close')
+
         self.stop_measuring()
+
         self._conn.close()
 
-    def start_measuring():
-        self._conn.write('CS\n')
+    def start_measuring(self):
+        self._log('start_measuring')
+
+        self._send_command('CS')
 
         self._measuring = True
 
-    def stop_measuring():
-        self._conn.send_break()
+    def stop_measuring(self):
+        self._log('stop_measuring')
+
+        self._send_break()
 
         self._measuring = False
 
-    def poll(self):
-        if not self.measuring:
-            return
+    def poll(self) -> Ensemble:
+        self._log('poll')
 
-        try:
-            header_id = self._conn.read(size=Ensemble.ID_SIZE).hex()
-            if not header_id == Ensemble.HEADER_ID:
-                self._conn.flush()
-                raise ValueError('Unexpected Header ID: {}'.format(header_id))
+        timeout = rospy.Time.now() + rospy.Duration(1.0)
 
-            e = Ensemble()
+        header_id = self._read(1)
+        while header_id is None or header_id.hex() != '7f':
+            self._log('header_id', header_id.hex())
 
-            header_data = self._conn.read(size=Ensemble.HEADER_SIZE - Ensemble.ID_SIZE).hex()
-            header = bitstring.BitStream('0x:{}{}'.format(header_id, header_data))
-            
-            packet_size = e.parse_header(header)
+            if rospy.Time.now() > timeout:
+                self._log('timeout!')
+                return None
 
-            packet_data = self._conn.read(size=packet_size).hex()
-            packet = bitstring.BitStream('0x:{}'.format(packet_data))
+            header_id = self._read(1)
 
-            e.parse_packet(packet)
+        self._read(1)
+        e = Ensemble()
 
-            return e
-            
-        except Exception as e:
-            rospy.logerr(e)
+        header_data = self._read(Ensemble.HEADER_SIZE - Ensemble.ID_SIZE)
+        self._log('header_data', header_data.hex())
+
+        header = bitstring.BitStream(bytes=header_id + header_id + header_data)
+        
+        packet_size = e.parse_header(header)
+
+        packet_data = self._read(packet_size)
+        self._log('packet_data', packet_data.hex())
+
+        packet = bitstring.BitStream(bytes=packet_data)
+
+        e.parse_packet(packet)
+
+        return e
+
+    def _write(self, data: bytes):
+        self._log('[write]', data.hex())
+        self._conn.write(data)
+        self._conn.flush()
+
+    def _read(self, size: int) -> bytes:
+        data = self._conn.read(size)
+        self._log('[read]', data.hex())
+        return data
+
+    def _send_break(self):
+        self._log('[break]')
+        self._conn.send_break(duration=0.3)
+
+    def _send_command(self, cmd: str):
+        self._log('[cmd]', cmd)
+        cmd += '\r'
+        data = cmd.encode('ascii')
+        self._write(data)
 
     def _configure(self):
-        # TODO: Add code to configure Pathfinder
+        self._log('_configure')
+
+        self._send_command('PD0')
+
+    def _log(self, *args):
+        print(args)

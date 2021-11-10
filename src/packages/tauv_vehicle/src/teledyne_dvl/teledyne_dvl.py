@@ -2,7 +2,7 @@ import rospy
 
 from tauv_msgs.msg import ImuSync as ImuSyncMsg, DvlData as DvlDataMsg
 
-from pathfinder import Pathfinder
+from teledyne_dvl.pathfinder import Pathfinder
 
 class TeledyneDVL:
     def __init__(self):
@@ -11,16 +11,16 @@ class TeledyneDVL:
 
         self.sync_msgs = []
 
-        port = rospy.get_param('port')
-        baudrate = rospy.get_param('baudrate')
+        port = rospy.get_param('~port')
+        baudrate = rospy.get_param('~baudrate')
 
         self.pf = Pathfinder(port, baudrate)
 
     def start(self):
         self.pf.open()
-        rospy.spin()
+        self._run()
 
-    def _handle_imu_sync(self, msg):
+    def _handle_imu_sync(self, msg: ImuSyncMsg):
         if not msg.triggered_dvl:
             return
 
@@ -28,15 +28,18 @@ class TeledyneDVL:
 
         self.sync_msgs.append(msg)
 
-    def _poll(self):
-        try:
+    def _run(self):
+        while not rospy.is_shutdown():
             ensemble = self.pf.poll()
+
+            print('ensemble', ensemble)
 
             # TODO: Pair ensemble with a sync message
 
-            self.data_pub.publish(ensemble.to_msg())
-        except Exception as e:
-            rospy.logerr(e)
+            if not ensemble is None:
+                self.data_pub.publish(ensemble.to_msg())
+
+        self.pf.close()
 
 def main():
     rospy.init_node('teledyne_dvl')

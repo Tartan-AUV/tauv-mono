@@ -19,7 +19,6 @@ find_package(catkin REQUIRED COMPONENTS
         roslaunch
         sensor_msgs
         tf
-        phidgets_imu
         tauv_msgs
 
 )
@@ -129,7 +128,6 @@ catkin_package(
         image_transport
         sensor_msgs
         tf
-        phidgets_imu
         imu_filter_madgwick
         imu_transformer
         tauv_msgs
