@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants
-
-Name: uuv_assistants
-Description: Description of uuv_assistants
-Version: 0.6.1
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

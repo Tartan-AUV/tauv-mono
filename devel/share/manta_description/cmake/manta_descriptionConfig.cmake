@@ -1,1 +1,0 @@
-/home/tom/workspaces/tauv_ws/devel/.private/manta_description/share/manta_description/cmake/manta_descriptionConfig.cmake

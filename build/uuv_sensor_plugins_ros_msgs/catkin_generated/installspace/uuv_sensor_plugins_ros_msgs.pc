@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/install
-
-Name: uuv_sensor_plugins_ros_msgs
-Description: Description of uuv_sensor_plugins_ros_msgs
-Version: 0.6.1
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: geometry_msgs message_runtime

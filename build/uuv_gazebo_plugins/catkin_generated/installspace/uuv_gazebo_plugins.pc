@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/install
-
-Name: uuv_gazebo_plugins
-Description: Description of uuv_gazebo_plugins
-Version: 0.6.13
-Cflags: -I${prefix}/include -I/usr/include/gazebo-11/gazebo/msgs
-Libs: -L${prefix}/lib -luuv_underwater_object_plugin -luuv_thruster_plugin -luuv_fin_plugin -luuv_dynamics
-Requires: 

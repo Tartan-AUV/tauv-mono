@@ -1,7 +1,0 @@
-packages/tauv_config/manta_description
-/home/tom/workspaces/tauv_ws/devel/.private/manta_description/cmake.lock /home/tom/workspaces/tauv_ws/devel/./cmake.lock
-/home/tom/workspaces/tauv_ws/devel/.private/manta_description/lib/pkgconfig/manta_description.pc /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/manta_description.pc
-/home/tom/workspaces/tauv_ws/devel/.private/manta_description/lib/manta_description/spawn_model /home/tom/workspaces/tauv_ws/devel/lib/manta_description/spawn_model
-/home/tom/workspaces/tauv_ws/devel/.private/manta_description/lib/manta_description/cmake.lock /home/tom/workspaces/tauv_ws/devel/lib/manta_description/cmake.lock
-/home/tom/workspaces/tauv_ws/devel/.private/manta_description/share/manta_description/cmake/manta_descriptionConfig-version.cmake /home/tom/workspaces/tauv_ws/devel/share/manta_description/cmake/manta_descriptionConfig-version.cmake
-/home/tom/workspaces/tauv_ws/devel/.private/manta_description/share/manta_description/cmake/manta_descriptionConfig.cmake /home/tom/workspaces/tauv_ws/devel/share/manta_description/cmake/manta_descriptionConfig.cmake

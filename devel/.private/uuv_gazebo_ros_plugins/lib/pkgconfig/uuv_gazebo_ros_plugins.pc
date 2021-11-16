@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/devel/.private/uuv_gazebo_ros_plugins
-
-Name: uuv_gazebo_ros_plugins
-Description: Description of uuv_gazebo_ros_plugins
-Version: 0.6.13
-Cflags: -I/home/tom/workspaces/tauv_ws/src/packages/uuv-simulator/uuv_gazebo_plugins/uuv_gazebo_ros_plugins/include
-Libs: -L${prefix}/lib -luuv_fin_ros_plugin -luuv_thruster_ros_plugin -luuv_underwater_object_ros_plugin -luuv_joint_state_publisher -luuv_accelerations_test_plugin
-Requires: uuv_gazebo_plugins sensor_msgs geometry_msgs std_msgs uuv_gazebo_ros_plugins_msgs visualization_msgs

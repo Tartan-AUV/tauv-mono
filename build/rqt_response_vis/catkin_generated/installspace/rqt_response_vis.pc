@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/install
-
-Name: rqt_response_vis
-Description: Description of rqt_response_vis
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

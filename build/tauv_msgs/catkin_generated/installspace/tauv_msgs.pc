@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/install
-
-Name: tauv_msgs
-Description: Description of tauv_msgs
-Version: 0.6.1
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: geometry_msgs sensor_msgs vision_msgs jsk_recognition_msgs std_msgs message_runtime

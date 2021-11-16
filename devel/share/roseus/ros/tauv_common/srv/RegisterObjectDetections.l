@@ -1,1 +1,0 @@
-/home/tom/workspaces/tauv_ws/devel/.private/tauv_common/share/roseus/ros/tauv_common/srv/RegisterObjectDetections.l

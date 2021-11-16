@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins_msgs
-
-Name: uuv_world_ros_plugins_msgs
-Description: Description of uuv_world_ros_plugins_msgs
-Version: 0.6.13
-Cflags: -I/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins_msgs/include
-Libs: -L${prefix}/lib 
-Requires: std_msgs geometry_msgs message_runtime

@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/install
-
-Name: tauv_vehicle
-Description: Description of tauv_vehicle
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: roscpp std_msgs image_transport sensor_msgs tf phidgets_ik imu_filter_madgwick imu_transformer tauv_msgs std_srvs
