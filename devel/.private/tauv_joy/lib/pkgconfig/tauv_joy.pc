@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/devel/.private/tauv_joy
-
-Name: tauv_joy
-Description: Description of tauv_joy
-Version: 1.13.0
-Cflags: -I/home/tom/workspaces/tauv_ws/devel/.private/tauv_joy/include
-Libs: -L${prefix}/lib 
-Requires: roscpp diagnostic_updater std_msgs sensor_msgs message_generation message_runtime

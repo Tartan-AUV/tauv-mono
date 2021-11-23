@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/install
-
-Name: tauv_common
-Description: Description of tauv_common
-Version: 0.6.1
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime std_msgs std_srvs roscpp rospy sensor_msgs geometry_msgs vision_msgs tf tauv_config message_filters robot_localization

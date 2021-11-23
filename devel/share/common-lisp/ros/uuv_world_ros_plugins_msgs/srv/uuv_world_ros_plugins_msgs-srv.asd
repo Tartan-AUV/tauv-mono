@@ -1,1 +1,0 @@
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_world_ros_plugins_msgs/share/common-lisp/ros/uuv_world_ros_plugins_msgs/srv/uuv_world_ros_plugins_msgs-srv.asd

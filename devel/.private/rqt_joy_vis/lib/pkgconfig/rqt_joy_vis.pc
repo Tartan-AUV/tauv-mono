@@ -1,8 +1,0 @@
-prefix=/home/tom/workspaces/tauv_ws/devel/.private/rqt_joy_vis
-
-Name: rqt_joy_vis
-Description: Description of rqt_joy_vis
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

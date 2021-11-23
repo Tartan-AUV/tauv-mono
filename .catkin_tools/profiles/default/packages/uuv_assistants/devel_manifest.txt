@@ -1,13 +1,13 @@
 packages/uuv-simulator/uuv_assistants
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/cmake.lock /home/tom/workspaces/tauv_ws/devel/./cmake.lock
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/lib/pkgconfig/uuv_assistants.pc /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/uuv_assistants.pc
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/lib/uuv_assistants/set_simulation_timer.py /home/tom/workspaces/tauv_ws/devel/lib/uuv_assistants/set_simulation_timer.py
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/lib/uuv_assistants/publish_footprints.py /home/tom/workspaces/tauv_ws/devel/lib/uuv_assistants/publish_footprints.py
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/lib/uuv_assistants/create_new_robot_model /home/tom/workspaces/tauv_ws/devel/lib/uuv_assistants/create_new_robot_model
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/lib/uuv_assistants/cmake.lock /home/tom/workspaces/tauv_ws/devel/lib/uuv_assistants/cmake.lock
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/lib/uuv_assistants/publish_world_models.py /home/tom/workspaces/tauv_ws/devel/lib/uuv_assistants/publish_world_models.py
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/lib/uuv_assistants/publish_vehicle_footprint.py /home/tom/workspaces/tauv_ws/devel/lib/uuv_assistants/publish_vehicle_footprint.py
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/lib/uuv_assistants/create_thruster_manager_configuration /home/tom/workspaces/tauv_ws/devel/lib/uuv_assistants/create_thruster_manager_configuration
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/lib/uuv_assistants/unpause_simulation.py /home/tom/workspaces/tauv_ws/devel/lib/uuv_assistants/unpause_simulation.py
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/share/uuv_assistants/cmake/uuv_assistantsConfig-version.cmake /home/tom/workspaces/tauv_ws/devel/share/uuv_assistants/cmake/uuv_assistantsConfig-version.cmake
-/home/tom/workspaces/tauv_ws/devel/.private/uuv_assistants/share/uuv_assistants/cmake/uuv_assistantsConfig.cmake /home/tom/workspaces/tauv_ws/devel/share/uuv_assistants/cmake/uuv_assistantsConfig.cmake
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/cmake.lock /home/knikifor/TAUV-ROS-Packages/devel/./cmake.lock
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/share/uuv_assistants/cmake/uuv_assistantsConfig-version.cmake /home/knikifor/TAUV-ROS-Packages/devel/share/uuv_assistants/cmake/uuv_assistantsConfig-version.cmake
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/share/uuv_assistants/cmake/uuv_assistantsConfig.cmake /home/knikifor/TAUV-ROS-Packages/devel/share/uuv_assistants/cmake/uuv_assistantsConfig.cmake
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/lib/uuv_assistants/create_new_robot_model /home/knikifor/TAUV-ROS-Packages/devel/lib/uuv_assistants/create_new_robot_model
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/lib/uuv_assistants/publish_vehicle_footprint.py /home/knikifor/TAUV-ROS-Packages/devel/lib/uuv_assistants/publish_vehicle_footprint.py
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/lib/uuv_assistants/create_thruster_manager_configuration /home/knikifor/TAUV-ROS-Packages/devel/lib/uuv_assistants/create_thruster_manager_configuration
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/lib/uuv_assistants/cmake.lock /home/knikifor/TAUV-ROS-Packages/devel/lib/uuv_assistants/cmake.lock
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/lib/uuv_assistants/set_simulation_timer.py /home/knikifor/TAUV-ROS-Packages/devel/lib/uuv_assistants/set_simulation_timer.py
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/lib/uuv_assistants/publish_world_models.py /home/knikifor/TAUV-ROS-Packages/devel/lib/uuv_assistants/publish_world_models.py
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/lib/uuv_assistants/unpause_simulation.py /home/knikifor/TAUV-ROS-Packages/devel/lib/uuv_assistants/unpause_simulation.py
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/lib/uuv_assistants/publish_footprints.py /home/knikifor/TAUV-ROS-Packages/devel/lib/uuv_assistants/publish_footprints.py
+/home/knikifor/TAUV-ROS-Packages/devel/.private/uuv_assistants/lib/pkgconfig/uuv_assistants.pc /home/knikifor/TAUV-ROS-Packages/devel/lib/pkgconfig/uuv_assistants.pc

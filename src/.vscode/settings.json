@@ -1,0 +1,11 @@
+{
+    "ros.distro": "noetic",
+    "python.autoComplete.extraPaths": [
+        "/home/knikifor/TAUV-ROS-Packages/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/home/knikifor/TAUV-ROS-Packages/devel/lib/python3/dist-packages",
+        "/opt/ros/noetic/lib/python3/dist-packages"
+    ]
+}

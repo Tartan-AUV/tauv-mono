@@ -1,1 +1,0 @@
-/home/tom/workspaces/tauv_ws/devel/.private/tauv_vehicle/lib/pkgconfig/tauv_vehicle.pc

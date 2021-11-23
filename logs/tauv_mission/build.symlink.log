@@ -1,7 +1,0 @@
-Linked: (/home/tom/workspaces/tauv_ws/devel/.private/tauv_mission/lib/pkgconfig/tauv_mission.pc, /home/tom/workspaces/tauv_ws/devel/lib/pkgconfig/tauv_mission.pc)
-Linked: (/home/tom/workspaces/tauv_ws/devel/.private/tauv_mission/lib/python3/dist-packages/mission_manager/__init__.py, /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/mission_manager/__init__.py)
-Linked: (/home/tom/workspaces/tauv_ws/devel/.private/tauv_mission/lib/python3/dist-packages/test_mission_scripts/__init__.py, /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/test_mission_scripts/__init__.py)
-Linked: (/home/tom/workspaces/tauv_ws/devel/.private/tauv_mission/lib/python3/dist-packages/tasks/__init__.py, /home/tom/workspaces/tauv_ws/devel/lib/python3/dist-packages/tasks/__init__.py)
-Linked: (/home/tom/workspaces/tauv_ws/devel/.private/tauv_mission/share/tauv_mission/cmake/tauv_missionConfig-version.cmake, /home/tom/workspaces/tauv_ws/devel/share/tauv_mission/cmake/tauv_missionConfig-version.cmake)
-Linked: (/home/tom/workspaces/tauv_ws/devel/.private/tauv_mission/share/tauv_mission/cmake/tauv_missionConfig.cmake, /home/tom/workspaces/tauv_ws/devel/share/tauv_mission/cmake/tauv_missionConfig.cmake)
-Linked: (/home/tom/workspaces/tauv_ws/devel/.private/tauv_mission/bin/test_script, /home/tom/workspaces/tauv_ws/devel/bin/test_script)

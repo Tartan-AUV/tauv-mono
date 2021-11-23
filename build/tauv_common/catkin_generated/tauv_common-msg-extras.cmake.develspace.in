@@ -1,2 +1,0 @@
-set(tauv_common_MESSAGE_FILES "")
-set(tauv_common_SERVICE_FILES "/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/GetThrusterCurve.srv;/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/ThrusterManagerInfo.srv;/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/SetThrusterManagerConfig.srv;/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/GetThrusterManagerConfig.srv;/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterObjectDetections.srv;/home/tom/workspaces/tauv_ws/src/packages/tauv_common/srv/RegisterMeasurement.srv")

@@ -3,3 +3,5 @@
 *.pyc
 *.swp
 logs/
+devel/
+build/
