@@ -1,5 +1,0 @@
-packages/tauv_config/albatross_description
-/home/knikifor/TAUV-ROS-Packages/devel/.private/albatross_description/cmake.lock /home/knikifor/TAUV-ROS-Packages/devel/./cmake.lock
-/home/knikifor/TAUV-ROS-Packages/devel/.private/albatross_description/share/albatross_description/cmake/albatross_descriptionConfig.cmake /home/knikifor/TAUV-ROS-Packages/devel/share/albatross_description/cmake/albatross_descriptionConfig.cmake
-/home/knikifor/TAUV-ROS-Packages/devel/.private/albatross_description/share/albatross_description/cmake/albatross_descriptionConfig-version.cmake /home/knikifor/TAUV-ROS-Packages/devel/share/albatross_description/cmake/albatross_descriptionConfig-version.cmake
-/home/knikifor/TAUV-ROS-Packages/devel/.private/albatross_description/lib/pkgconfig/albatross_description.pc /home/knikifor/TAUV-ROS-Packages/devel/lib/pkgconfig/albatross_description.pc

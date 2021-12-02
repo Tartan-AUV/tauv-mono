@@ -1,5 +1,0 @@
-packages/tauv_gui/rqt_joy_vis
-/home/knikifor/TAUV-ROS-Packages/devel/.private/rqt_joy_vis/cmake.lock /home/knikifor/TAUV-ROS-Packages/devel/./cmake.lock
-/home/knikifor/TAUV-ROS-Packages/devel/.private/rqt_joy_vis/share/rqt_joy_vis/cmake/rqt_joy_visConfig-version.cmake /home/knikifor/TAUV-ROS-Packages/devel/share/rqt_joy_vis/cmake/rqt_joy_visConfig-version.cmake
-/home/knikifor/TAUV-ROS-Packages/devel/.private/rqt_joy_vis/share/rqt_joy_vis/cmake/rqt_joy_visConfig.cmake /home/knikifor/TAUV-ROS-Packages/devel/share/rqt_joy_vis/cmake/rqt_joy_visConfig.cmake
-/home/knikifor/TAUV-ROS-Packages/devel/.private/rqt_joy_vis/lib/pkgconfig/rqt_joy_vis.pc /home/knikifor/TAUV-ROS-Packages/devel/lib/pkgconfig/rqt_joy_vis.pc

@@ -1,5 +1,0 @@
-packages/tauv_gui/tauv_gui
-/home/knikifor/TAUV-ROS-Packages/devel/.private/tauv_gui/cmake.lock /home/knikifor/TAUV-ROS-Packages/devel/./cmake.lock
-/home/knikifor/TAUV-ROS-Packages/devel/.private/tauv_gui/share/tauv_gui/cmake/tauv_guiConfig.cmake /home/knikifor/TAUV-ROS-Packages/devel/share/tauv_gui/cmake/tauv_guiConfig.cmake
-/home/knikifor/TAUV-ROS-Packages/devel/.private/tauv_gui/share/tauv_gui/cmake/tauv_guiConfig-version.cmake /home/knikifor/TAUV-ROS-Packages/devel/share/tauv_gui/cmake/tauv_guiConfig-version.cmake
-/home/knikifor/TAUV-ROS-Packages/devel/.private/tauv_gui/lib/pkgconfig/tauv_gui.pc /home/knikifor/TAUV-ROS-Packages/devel/lib/pkgconfig/tauv_gui.pc
