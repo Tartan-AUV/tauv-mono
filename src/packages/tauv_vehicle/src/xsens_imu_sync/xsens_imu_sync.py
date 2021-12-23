@@ -11,9 +11,9 @@ VAR_SKEW = 2e-6 ** 2
 
 class ImuSync:
     def __init__(self):
-        self.sync_pub = rospy.Publisher('/sensors/imu/sync', ImuSyncMsg, queue_size=10)
-        self.data_pub = rospy.Publisher('/sensors/imu/data', ImuDataMsg, queue_size=10)
-        self.raw_data_sub = rospy.Subscriber('/sensors/imu/raw_data', ImuDataMsg, self.handle_imu_data)
+        self.sync_pub = rospy.Publisher('/xsens_imu/sync', ImuSyncMsg, queue_size=10)
+        self.data_pub = rospy.Publisher('/xsens_imu/data', ImuDataMsg, queue_size=10)
+        self.raw_data_sub = rospy.Subscriber('/xsens_imu/raw_data', ImuDataMsg, self.handle_imu_data)
 
         self.x = np.array([0, 1])
 

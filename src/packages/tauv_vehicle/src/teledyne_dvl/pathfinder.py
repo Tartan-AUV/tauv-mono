@@ -1,15 +1,21 @@
 import rospy
 import serial
 import bitstring
+from typing import Optional
 
-from teledyne_dvl.ensemble import Ensemble
+from .ensemble import Ensemble
 
 class Pathfinder:
 
-    TIMEOUT = 1.0
+    SERIAL_TIMEOUT = 1.0
+    POLL_TIMEOUT = 1.0
+
+    MIN_MEASURE_TIME = 0.1
+    MAX_MEASURE_TIME = 0.15
+    TOV_TIME = 0.04
 
     def __init__(self, port: str, baudrate: int):
-        self._conn = serial.Serial(port=port, baudrate=baudrate, timeout=Pathfinder.TIMEOUT)
+        self._conn = serial.Serial(port=port, baudrate=baudrate, timeout=Pathfinder.SERIAL_TIMEOUT)
         self._measuring = False
 
     def open(self):
@@ -18,24 +24,66 @@ class Pathfinder:
         if not self._conn.isOpen():
             self._conn.open()
 
-        self._send_command('===')
-
-        rospy.sleep(rospy.Duration(1.0))
-
-        self._configure()
-
-        rospy.sleep(rospy.Duration(1.0))
-
-        self.start_measuring()
-
-        rospy.sleep(rospy.Duration(1.0))
-
     def close(self):
         self._log('close')
 
-        self.stop_measuring()
-
         self._conn.close()
+
+    def reset(self):
+        self._log('reset')
+
+        self._send_break()
+
+    def configure(self):
+        self._log('configure')
+
+        # Restore factory default settings
+        self._send_command('CR1')
+
+        # Set serial parameters
+        # 115200bps, no parity, one stop, 8 data
+        self._send_command('CB811')
+
+        # Set flow control
+        # Automatic ensemble cycling, automatic ping cycling
+        # Binary output, serial output
+        self._send_command('CF11110')
+
+        # Set time per ensemble
+        # As fast as possible
+        self._send_command('TE00:00:00.00')
+
+        # Set time per ping
+        # As fast as possible
+        self._send_command('TP00:00.00')
+
+        # Disable water profiling
+        self._send_command('WP0')
+
+        # Disable water-mass layer
+        self._send_command('BK0')
+
+        # Enable single-ping bottom track
+        self._send_command('BP001')
+
+        # Set maximum bottom search depth
+        # 110m
+        self._send_command('BX01100')
+
+        # Set bottom track output types
+        # Standard bottom track, high resolution bottom track
+        # Precise navigation output
+        self._send_command('#BJ100101000')
+
+        # Enable turnkey mode
+        # Serial, 5s startup
+        self._send_command('CT 1 5')
+
+        # Set output data format
+        self._send_command('#PD0')
+
+        # Save settings
+        self._send_command('CK')
 
     def start_measuring(self):
         self._log('start_measuring')
@@ -51,37 +99,53 @@ class Pathfinder:
 
         self._measuring = False
 
-    def poll(self) -> Ensemble:
+    def poll(self) -> Optional[Ensemble]:
         self._log('poll')
 
-        timeout = rospy.Time.now() + rospy.Duration(1.0)
+        timeout = rospy.Time.now() + rospy.Duration(Pathfinder.POLL_TIMEOUT)
 
-        header_id = self._read(1)
-        while header_id is None or header_id.hex() != '7f':
-            self._log('header_id', header_id.hex())
+        header_id_1 = self._read(1)
+        header_id_2 = self._read(1)
+
+        while (header_id_1 is None
+              or header_id_2 is None
+              or (header_id_1 + header_id_2).hex() != Ensemble.HEADER_ID):
 
             if rospy.Time.now() > timeout:
-                self._log('timeout!')
+                self._log('poll timeout')
                 return None
 
-            header_id = self._read(1)
+            header_id_1 = header_id_2
+            header_id_2 = self._read(1)
 
-        self._read(1)
-        e = Ensemble()
+        receive_time = rospy.Time.now()
 
-        header_data = self._read(Ensemble.HEADER_SIZE - Ensemble.ID_SIZE)
+        e = Ensemble(receive_time=receive_time)
+
+        header_data = header_id_1 + header_id_2 + self._read(Ensemble.HEADER_SIZE - Ensemble.ID_SIZE)
         self._log('header_data', header_data.hex())
 
-        header = bitstring.BitStream(bytes=header_id + header_id + header_data)
+        header = bitstring.BitStream(bytes=header_data)
         
-        packet_size = e.parse_header(header)
+        try:
+            packet_size = e.parse_header(header)
+        except ValueError as e:
+            self._log(e)
+            return None
 
         packet_data = self._read(packet_size)
         self._log('packet_data', packet_data.hex())
 
         packet = bitstring.BitStream(bytes=packet_data)
 
-        e.parse_packet(packet)
+        try:
+            e.parse_packet(packet)
+        except ValueError as e:
+            self._log(e)
+            return None
+
+        if not e.is_valid():
+            return None
 
         return e
 
@@ -104,11 +168,6 @@ class Pathfinder:
         cmd += '\r'
         data = cmd.encode('ascii')
         self._write(data)
-
-    def _configure(self):
-        self._log('_configure')
-
-        self._send_command('PD0')
 
     def _log(self, *args):
         print(args)

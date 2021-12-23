@@ -16,6 +16,7 @@ add_message_files(
   ImuSync.msg
   ImuData.msg
   DvlData.msg
+  Pose.msg
 )
 
 add_service_files(

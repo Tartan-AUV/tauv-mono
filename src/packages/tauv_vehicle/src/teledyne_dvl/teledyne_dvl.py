@@ -1,45 +1,59 @@
 import rospy
+from typing import List
 
 from tauv_msgs.msg import ImuSync as ImuSyncMsg, DvlData as DvlDataMsg
 
-from teledyne_dvl.pathfinder import Pathfinder
+from .pathfinder import Pathfinder
+
 
 class TeledyneDVL:
     def __init__(self):
-        self.data_pub = rospy.Publisher('/sensors/dvl/data', DvlDataMsg, queue_size=10)
-        self.sync_sub = rospy.Subscriber('/sensors/imu/sync', ImuSyncMsg, self._handle_imu_sync)
+        self._data_pub: rospy.Publisher = rospy.Publisher('/teledyne_dvl/data', DvlDataMsg, queue_size=10)
+        self._sync_sub: rospy.Subscriber = rospy.Subscriber('/xsens_imu/sync', ImuSyncMsg, self._handle_sync)
 
-        self.sync_msgs = []
+        self._sync_timestamps: List[rospy.Time] = []
 
         port = rospy.get_param('~port')
         baudrate = rospy.get_param('~baudrate')
 
-        self.pf = Pathfinder(port, baudrate)
+        self._pf: Pathfinder = Pathfinder(port, baudrate)
 
     def start(self):
-        self.pf.open()
-        self._run()
+        self._pf.open()
 
-    def _handle_imu_sync(self, msg: ImuSyncMsg):
-        if not msg.triggered_dvl:
-            return
-
-        self._poll()
-
-        self.sync_msgs.append(msg)
-
-    def _run(self):
         while not rospy.is_shutdown():
-            ensemble = self.pf.poll()
+            ensemble = self._pf.poll()
 
-            print('ensemble', ensemble)
+            if ensemble is None:
+                print('No ensemble')
+                continue
 
-            # TODO: Pair ensemble with a sync message
+            self._sweep_sync_timestamps(ensemble.receive_time)
 
-            if not ensemble is None:
-                self.data_pub.publish(ensemble.to_msg())
+            msg: DvlDataMsg = ensemble.to_msg()
 
-        self.pf.close()
+            if len(self._sync_timestamps) == 0:
+                print('No sync timestamps')
+                continue
+
+            msg.header.stamp = self._sync_timestamps[0] + rospy.Duration(Pathfinder.TOV_TIME)
+            self._sync_timestamps = self._sync_timestamps[1:]
+
+            self._data_pub.publish(msg)
+
+        self._pf.close()
+
+    def _handle_sync(self, data: ImuSyncMsg):
+        time: rospy.Time = data.header.stamp
+
+        self._sync_timestamps.append(time)
+
+    def _sweep_sync_timestamps(self, time: rospy.Time):
+        self._sync_timestamps = list(filter(
+                lambda t: rospy.Duration(Pathfinder.MIN_MEASURE_TIME) < time - t < rospy.Duration(Pathfinder.MAX_MEASURE_TIME),
+                self._sync_timestamps
+        ))
+
 
 def main():
     rospy.init_node('teledyne_dvl')

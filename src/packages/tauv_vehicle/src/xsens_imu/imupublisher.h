@@ -43,7 +43,7 @@ struct ImuPublisher : public PacketCallback
     ImuPublisher(ros::NodeHandle &node)
     {
         int pub_queue_size = 5;
-        data_pub = node.advertise<tauv_msgs::ImuData>("/sensors/imu/raw_data", pub_queue_size);
+        data_pub = node.advertise<tauv_msgs::ImuData>("/xsens_imu/raw_data", pub_queue_size);
     }
 
     void operator()(const XsDataPacket &packet, ros::Time timestamp)
