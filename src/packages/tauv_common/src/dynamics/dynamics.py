@@ -14,42 +14,46 @@ from math import sin, cos, tan
 
 
 class Dynamics:
-    def __init__(self):
-        # TODO: load these from a yaml file in tauv_config (or better, the URDF itself!)
-        self.m = 16  # mass of vehicle
-        self.b = 16  # mass of displaced water (b = volume * rho)
-        self.r_G = [0, 0, 0]  # defined in body NED frame!
-        self.r_B = [0, 0, 0]  # defined in body NED frame!
+    def __init__(self, m: float, v: float, rho: float, r_G: np.array, r_B: np.array, I: np.array, D: np.array, D2: np.array, Ma: np.array):
+        self.m: float = m # mass of vehicle
+        self.v: float = v # volume of displaced water
+        self.rho: float = rho # density of water
+        self.b: float = self.v * self.rho  # mass of displaced water (b = volume * rho)
+        self.r_G: np.array = r_G  # Center of gravity, defined in body NED frame
+        self.r_B: np.array = r_B  # Center of buoyancy, defined in body NED frame
 
-        self.Ixx = .5
-        self.Iyy = .5
-        self.Izz = 1
-        self.Ixy = 0
-        self.Ixz = 0
-        self.Iyz = 0
+        # Moments
+        self.Ixx: float = I[0]
+        self.Iyy: float = I[1]
+        self.Izz: float = I[2]
+        self.Ixy: float = I[3]
+        self.Ixz: float = I[4]
+        self.Iyz: float = I[5]
 
+        # Linear damping coefficients
         # See eq 11 for derivation from damping coefficients:
-        self.D_x = 10
-        self.D_y = 10
-        self.D_z = 40
-        self.D_roll = 13
-        self.D_pitch = 13
-        self.D_yaw = 1
+        self.D_x: float = D[0]
+        self.D_y: float = D[1]
+        self.D_z: float = D[2]
+        self.D_roll: float = D[3]
+        self.D_pitch: float = D[4]
+        self.D_yaw: float = D[5]
 
-        # Todo: add quadratic damping to the model
-        # self.D2_x = 0
-        # self.D2_y = 0
-        # self.D2_z = 0
-        # self.D2_roll = 0
-        # self.D2_pitch = 0
-        # self.D2_yaw = 0
+        # Quadratic damping coefficients
+        self.D2_x: float = D2[0]
+        self.D2_y: float = D2[1]
+        self.D2_z: float = D2[2]
+        self.D2_roll: float = D2[3]
+        self.D2_pitch: float = D2[4]
+        self.D2_yaw: float = D2[5]
 
-        self.Ma_x = 10
-        self.Ma_y = 10
-        self.Ma_z = 50
-        self.Ma_roll = 1
-        self.Ma_pitch = 1
-        self.Ma_yaw = 0
+        # Added mass coefficients
+        self.Ma_x: float = Ma[0]
+        self.Ma_y: float = Ma[1]
+        self.Ma_z: float = Ma[2]
+        self.Ma_roll: float = Ma[3]
+        self.Ma_pitch: float = Ma[4]
+        self.Ma_yaw: float = Ma[5]
 
     def get_eta_d(self, eta, v):
         return np.dot(self._J(eta), v)
@@ -80,8 +84,9 @@ class Dynamics:
 
         # TODO: why is coriolis broken?
         tau = np.dot(M, v_d) + np.dot(C, v) + np.dot(D, v) + G.T
-        # tau = np.dot(M, v_d) + np.dot(D, v) + G.T
-        return tau.flatten()
+        tau = tau.flatten()
+        tau[4] = -1 * tau[4]
+        return tau
 
     def compute_A_matrix(self, eta, v):
         eta = np.array(eta)
@@ -221,19 +226,20 @@ class Dynamics:
     def _D(self, vel):
         # damping matrix
         # Eq 10
-
-        X = self.D_x
-        Y = self.D_y
-        Z = self.D_z
-        K = self.D_roll
-        M = self.D_pitch
-        N = self.D_yaw
+        vel = np.abs(vel)
         u = vel[0]
         v = vel[1]
         w = vel[2]
         p = vel[3]
         q = vel[4]
         r = vel[5]
+
+        X = self.D_x + self.D2_x * u
+        Y = self.D_y + self.D2_y * v
+        Z = self.D_z + self.D2_z * w
+        K = self.D_roll + self.D2_roll * p
+        M = self.D_pitch + self.D2_pitch * q
+        N = self.D_yaw + self.D2_yaw * r
 
         return np.diag([X, Y, Z, K, M, N])
 

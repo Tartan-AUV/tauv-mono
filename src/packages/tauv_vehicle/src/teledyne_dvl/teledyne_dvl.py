@@ -1,15 +1,15 @@
 import rospy
 from typing import List
 
-from tauv_msgs.msg import ImuSync as ImuSyncMsg, DvlData as DvlDataMsg
+from tauv_msgs.msg import XsensImuSync as ImuSyncMsg, TeledyneDvlData as DvlDataMsg
 
 from .pathfinder import Pathfinder
 
 
 class TeledyneDVL:
     def __init__(self):
-        self._data_pub: rospy.Publisher = rospy.Publisher('/teledyne_dvl/data', DvlDataMsg, queue_size=10)
-        self._sync_sub: rospy.Subscriber = rospy.Subscriber('/xsens_imu/sync', ImuSyncMsg, self._handle_sync)
+        self._data_pub: rospy.Publisher = rospy.Publisher('dvl_data', DvlDataMsg, queue_size=10)
+        self._sync_sub: rospy.Subscriber = rospy.Subscriber('imu_sync', ImuSyncMsg, self._handle_sync)
 
         self._sync_timestamps: List[rospy.Time] = []
 
@@ -25,19 +25,18 @@ class TeledyneDVL:
             ensemble = self._pf.poll()
 
             if ensemble is None:
-                print('No ensemble')
+                rospy.logwarn('No ensemble')
                 continue
 
             self._sweep_sync_timestamps(ensemble.receive_time)
 
             msg: DvlDataMsg = ensemble.to_msg()
 
-            if len(self._sync_timestamps) == 0:
-                print('No sync timestamps')
-                continue
-
-            msg.header.stamp = self._sync_timestamps[0] + rospy.Duration(Pathfinder.TOV_TIME)
-            self._sync_timestamps = self._sync_timestamps[1:]
+            if len(self._sync_timestamps) > 0:
+                msg.header.stamp = self._sync_timestamps[0] + rospy.Duration.from_sec(sum(msg.beam_time_to_bottoms) / 4)
+                self._sync_timestamps = self._sync_timestamps[1:]
+            else:
+                rospy.logwarn('No sync timestamps')
 
             self._data_pub.publish(msg)
 

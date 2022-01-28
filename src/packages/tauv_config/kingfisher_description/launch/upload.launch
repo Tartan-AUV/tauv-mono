@@ -1,0 +1,44 @@
+<launch>
+  <!-- Debug flag -->
+  <arg name="debug" default="0"/>
+
+  <!-- Vehicle's initial pose -->
+  <arg name="x"     default="0"/>
+  <arg name="y"     default="0"/>
+  <arg name="z"     default="-2"/>
+  <arg name="roll"  default="0"/>
+  <arg name="pitch" default="0"/>
+  <arg name="yaw"   default="1.57"/>
+
+  <!-- Mode to open different robot configurations as set the in file
+  nomenclature standard for the files in /robots
+
+  /robots/<mode>.xacro
+  -->
+  <arg name="mode" default="default"/>
+
+  <!-- Vehicle's namespace -->
+  <arg name="namespace" default="kingfisher"/>
+
+  <group ns="$(arg namespace)">
+    <param name="robot_description"
+           command="$(find xacro)/xacro '$(find kingfisher_description)/robots/$(arg mode).xacro' debug:=$(arg debug) namespace:=$(arg namespace) inertial_reference_frame:=world_ned" />
+
+    <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
+
+  <node name="urdf_spawner" pkg="uuv_descriptions" type="spawn_model" respawn="false" output="screen"
+        args="-urdf -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg roll) -P $(arg pitch) -Y $(arg yaw) -model $(arg namespace) -param /$(arg namespace)/robot_description"/>
+
+    <!-- A joint state publisher plugin already is started with the model, no need to use the default joint state publisher -->
+
+    <!-- Publish robot model for ROS -->
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="true" output="screen">
+      <param name="robot_description" value="/$(arg namespace)/robot_description" />
+    </node>
+
+    <node name="odom_broadcaster" pkg="tf" type="static_transform_publisher" args="$(arg x) $(arg y) $(arg z) $(arg yaw) $(arg pitch) $(arg roll) world odom 100" />
+
+    <node name="base_link_ned_broadcaster" pkg="tf" type="static_transform_publisher" args="$0 0 0 0 0 180 kingfisher/base_link kingfisher/base_link_ned 100" />
+  </group>
+
+</launch>

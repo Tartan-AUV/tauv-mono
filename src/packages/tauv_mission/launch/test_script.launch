@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="tauv_mission" type="test_script" name="test_script" output="screen"/>
+</launch>

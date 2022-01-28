@@ -7,12 +7,11 @@ from .ensemble import Ensemble
 
 class Pathfinder:
 
-    SERIAL_TIMEOUT = 1.0
-    POLL_TIMEOUT = 1.0
+    SERIAL_TIMEOUT = 1
+    POLL_TIMEOUT = 1
 
     MIN_MEASURE_TIME = 0.1
     MAX_MEASURE_TIME = 0.15
-    TOV_TIME = 0.04
 
     def __init__(self, port: str, baudrate: int):
         self._conn = serial.Serial(port=port, baudrate=baudrate, timeout=Pathfinder.SERIAL_TIMEOUT)
@@ -49,6 +48,23 @@ class Pathfinder:
         # Binary output, serial output
         self._send_command('CF11110')
 
+        # Set trigger enable
+        # Ping after low to high transition
+        # 0 hundreths of sec delay time
+        # Disable timeout
+        self._send_command('CX 1 0 65535')
+
+        # Set heading alignment
+        # Beam 3 offset by 45 degrees
+        self._send_command('EA+04500')
+
+        # Set coordinate transformation
+        # Ship coordinates
+        # Ignore tilts
+        # Allow 3-beam solutions
+        # Allow bin mapping
+        self._send_command('EX10011')
+
         # Set time per ensemble
         # As fast as possible
         self._send_command('TE00:00:00.00')
@@ -73,7 +89,7 @@ class Pathfinder:
         # Set bottom track output types
         # Standard bottom track, high resolution bottom track
         # Precise navigation output
-        self._send_command('#BJ100101000')
+        self._send_command('#BJ100111000')
 
         # Enable turnkey mode
         # Serial, 5s startup
@@ -170,4 +186,4 @@ class Pathfinder:
         self._write(data)
 
     def _log(self, *args):
-        print(args)
+        print(*args)

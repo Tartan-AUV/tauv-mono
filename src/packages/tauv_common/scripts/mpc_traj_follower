@@ -1,6 +1,0 @@
-#!/usr/bin/env python
-from planners.trajectory_planner import mpc_trajectory_follower
-
-
-if __name__ == "__main__":
-    mpc_trajectory_follower.main()

@@ -4,6 +4,15 @@ from math import pi
 import numpy as np
 
 class TestDynamics(unittest.TestCase):
+    def test_controller(self):
+        dyn = Dynamics()
+
+        eta = []
+        v = []
+        eta_dd = []
+
+        tau_n = dyn.compute_tau(eta, v, eta_dd)
+
     def test_get_torque(self):
         eta = [0, 0, 0, 0, 0, pi/2]
         v = [0, 0, 0, 0, 0, 0]

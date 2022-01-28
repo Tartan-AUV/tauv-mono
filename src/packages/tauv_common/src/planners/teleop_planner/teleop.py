@@ -104,7 +104,7 @@ class Teleop:
             arm_srv = rospy.ServiceProxy('/arm', SetBool)
             resp1 = arm_srv(arm)
             return resp1.success
-        except rospy.ServiceException, e:
+        except rospy.ServiceException:
             rospy.logwarn_throttle(3, "[Teleop Planner] Arm server not responding, cannot arm/disarm robot.")
 
     def start(self):

@@ -1,4 +1,4 @@
-from math import sin, cos, tan
+from math import sin, cos, tan, pi
 from enum import IntEnum
 from typing import List, Optional
 
@@ -51,11 +51,11 @@ class EKF:
         self._extrapolate_state(delta_t)
         self._extrapolate_covariance(delta_t)
 
-        H: np.array = self._get_H([StateIndex.AX, StateIndex.AY, StateIndex.AZ,
+        H: np.array = self._get_H([#StateIndex.AX, StateIndex.AY, StateIndex.AZ,
                                    StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL,
                                    StateIndex.VYAW, StateIndex.VPITCH, StateIndex.VROLL])
 
-        z: np.array = np.concatenate(linear_acceleration, orientation, angular_velocity)
+        z: np.array = np.concatenate((orientation, angular_velocity))
 
         y: np.array = z - np.matmul(H, self._state)
 
@@ -68,6 +68,9 @@ class EKF:
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
         self._state = self._state + np.matmul(K, y)
+        self._state[StateIndex.YAW] = (self._state[StateIndex.YAW] + pi) % (2 * pi) - pi
+        self._state[StateIndex.PITCH] = (self._state[StateIndex.PITCH] + pi) % (2 * pi) - pi
+        self._state[StateIndex.ROLL] = (self._state[StateIndex.ROLL] + pi) % (2 * pi) - pi
 
         self._covariance = np.matmul(I - np.matmul(K, H), self._covariance)
         self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
@@ -98,6 +101,9 @@ class EKF:
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
         self._state = self._state + np.matmul(K, y)
+        self._state[StateIndex.YAW] = (self._state[StateIndex.YAW] + pi) % (2 * pi) - pi
+        self._state[StateIndex.PITCH] = (self._state[StateIndex.PITCH] + pi) % (2 * pi) - pi
+        self._state[StateIndex.ROLL] = (self._state[StateIndex.ROLL] + pi) % (2 * pi) - pi
 
         self._covariance = np.matmul(I - np.matmul(K, H), self._covariance)
         self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
@@ -106,6 +112,9 @@ class EKF:
         F: np.array = self._get_F(dt)
 
         self._state = np.matmul(F, self._state)
+        self._state[StateIndex.YAW] = (self._state[StateIndex.YAW] + pi) % (2 * pi) - pi
+        self._state[StateIndex.PITCH] = (self._state[StateIndex.PITCH] + pi) % (2 * pi) - pi
+        self._state[StateIndex.ROLL] = (self._state[StateIndex.ROLL] + pi) % (2 * pi) - pi
 
     def _extrapolate_covariance(self, dt: float):
         J: np.array = self._get_J(dt)

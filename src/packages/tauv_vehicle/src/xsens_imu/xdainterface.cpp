@@ -83,17 +83,10 @@ bool XdaInterface::connectDevice()
 		ros::param::get("~baudrate", baudrateParam);
 		ROS_INFO("Found baudrate parameter: %d", baudrateParam);
 		baudrate = XsBaud::numericToRate(baudrateParam);
+	} else {
+	    return handleError("No baudrate specified");
 	}
-	// Read device ID parameter
-	bool checkDeviceID = false;
-	std::string deviceId;
-	if (ros::param::has("~device_id"))
-	{
-		ros::param::get("~device_id", deviceId);
-		checkDeviceID = true;
-		ROS_INFO("Found device ID parameter: %s.",deviceId.c_str());
 
-	}
 	// Read port parameter if set
 	XsPortInfo mtPort;
 	if (ros::param::has("~port"))
@@ -105,35 +98,9 @@ bool XdaInterface::connectDevice()
 		ROS_INFO("Scanning port %s ...", portName.c_str());
 		if (!XsScanner::scanPort(mtPort, baudrate))
 			return handleError("No MTi device found. Verify port and baudrate.");
-		if (checkDeviceID && mtPort.deviceId().toString().c_str() != deviceId)
-			return handleError("No MTi device found with matching device ID.");
-
-	}
-	else
-	{
-		ROS_INFO("Scanning for devices...");
-		XsPortInfoArray portInfoArray = XsScanner::scanPorts(baudrate);
-
-		for (auto const &portInfo : portInfoArray)
-		{
-			if (portInfo.deviceId().isMti() || portInfo.deviceId().isMtig())
-			{
-				if (checkDeviceID)
-				{
-					if (portInfo.deviceId().toString().c_str() == deviceId)
-					{
-						mtPort = portInfo;
-						break;
-					}
-				}
-				else
-				{
-					mtPort = portInfo;
-					break;
-				}
-			}
-		}
-	}
+	} else {
+        return handleError("No port specified");
+    }
 
 	if (mtPort.empty())
 		return handleError("No MTi device found.");

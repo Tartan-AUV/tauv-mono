@@ -51,11 +51,13 @@ int main(int argc, char *argv[])
 
 	xdaInterface->registerPublishers(node);
 
-	if (!xdaInterface->connectDevice())
-		return -1;
+	while (!xdaInterface->connectDevice())
+	    ROS_INFO("Failed to connect to device, trying again");
 
-	if (!xdaInterface->prepare())
-		return -1;
+   while (!xdaInterface->prepare())
+        ROS_INFO("Failed to prepare device, trying again");
+
+    ROS_INFO("Connected");
 
 	while (ros::ok())
 	{

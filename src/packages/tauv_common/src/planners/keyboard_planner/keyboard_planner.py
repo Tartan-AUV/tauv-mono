@@ -19,7 +19,7 @@ class UserController:
         rospy.init_node('keyboard_controller', anonymous=True)
         self.pub = rospy.Publisher("cmd_acc", Accel, queue_size=1)
 
-        self.output_frame = rospy.get_param("~output_frame")
+        # self.output_frame = rospy.get_param("~output_frame")
 
         listener = keyboard.Listener(
             on_press=self.on_press,

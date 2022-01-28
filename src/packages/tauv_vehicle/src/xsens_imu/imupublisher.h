@@ -34,7 +34,7 @@
 #define IMUPUBLISHER_H
 
 #include "packetcallback.h"
-#include <tauv_msgs/ImuData.h>
+#include <tauv_msgs/XsensImuData.h>
 
 struct ImuPublisher : public PacketCallback
 {
@@ -42,8 +42,8 @@ struct ImuPublisher : public PacketCallback
 
     ImuPublisher(ros::NodeHandle &node)
     {
-        int pub_queue_size = 5;
-        data_pub = node.advertise<tauv_msgs::ImuData>("/xsens_imu/raw_data", pub_queue_size);
+        int pub_queue_size = 10;
+        data_pub = node.advertise<tauv_msgs::XsensImuData>("raw_data", pub_queue_size);
     }
 
     void operator()(const XsDataPacket &packet, ros::Time timestamp)
@@ -67,7 +67,8 @@ struct ImuPublisher : public PacketCallback
         ros::Time sample_time(sec, nsec);
 
         bool quaternion_available = packet.containsOrientation();
-        bool accel_available = packet.containsCalibratedAcceleration();
+        bool rate_of_turn_available = packet.containsRateOfTurnHR();
+        bool linear_acceleration_available = packet.containsCalibratedAcceleration();
 
         geometry_msgs::Quaternion quaternion;
         if (quaternion_available)
@@ -80,21 +81,30 @@ struct ImuPublisher : public PacketCallback
             quaternion.z = q.z();
         }
 
-        geometry_msgs::Vector3 accel;
-        if (accel_available)
+        geometry_msgs::Vector3 rate_of_turn;
+        if (rate_of_turn_available)
         {
-            XsVector a = packet.calibratedAcceleration();
-            accel.x = a[0];
-            accel.y = a[1];
-            accel.z = a[2];
+            XsVector a = packet.rateOfTurnHR();
+            rate_of_turn.x = a[0];
+            rate_of_turn.y = a[1];
+            rate_of_turn.z = a[2];
+        }
+
+        geometry_msgs::Vector3 linear_acceleration;
+        if (linear_acceleration_available)
+        {
+            XsVector a = packet.rateOfTurnHR();
+            linear_acceleration.x = a[0];
+            linear_acceleration.y = a[1];
+            linear_acceleration.z = a[2];
         }
 
         uint32_t status = packet.status();
         bool triggered_dvl = (status >> 22) & 1;
 
-        if (quaternion_available || accel_available)
+        if (quaternion_available || rate_of_turn_available || linear_acceleration_available)
         {
-            tauv_msgs::ImuData data_msg;
+            tauv_msgs::XsensImuData data_msg;
 
             data_msg.header.stamp = timestamp;
 
@@ -104,7 +114,8 @@ struct ImuPublisher : public PacketCallback
             data_msg.triggered_dvl = triggered_dvl;
 
             data_msg.orientation = quaternion;
-            data_msg.linear_acceleration = accel;
+            data_msg.rate_of_turn = rate_of_turn;
+            data_msg.linear_acceleration = linear_acceleration;
 
             data_pub.publish(data_msg);
         }

@@ -1,3 +1,7 @@
 <launch>
-    <node pkg="tauv_vehicle" type="xsens_imu" name="xsens_imu" output="screen" />
+    <node pkg="tauv_vehicle" type="xsens_imu" name="xsens_imu" output="screen">
+        <param name="port" type="string" value="/dev/ttyUSB1" />
+        <param name="baudrate" type="int" value="115200" />
+        <remap from="raw_data" to="/xsens_imu/raw_data" />
+    </node>
 </launch>

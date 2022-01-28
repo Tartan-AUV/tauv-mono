@@ -1,57 +1,60 @@
 import rospy
 import numpy as np
 
-from tauv_msgs.msg import ImuSync as ImuSyncMsg, ImuData as ImuDataMsg
+from tauv_msgs.msg import XsensImuSync as ImuSyncMsg, XsensImuData as ImuDataMsg
 from std_msgs.msg import Header
 
-VAR_OFFSET_INIT = 2e-3 ** 2
-VAR_SKEW_INIT = 1e-3 ** 2
-VAR_OFFSET = 2e-3 ** 2
-VAR_SKEW = 2e-6 ** 2
-
 class ImuSync:
+    VAR_OFFSET_INIT = 2e-3 ** 2
+    VAR_SKEW_INIT = 1e-3 ** 2
+    VAR_OFFSET = 2e-3 ** 2
+    VAR_SKEW = 2e-6 ** 2
+
     def __init__(self):
-        self.sync_pub = rospy.Publisher('/xsens_imu/sync', ImuSyncMsg, queue_size=10)
-        self.data_pub = rospy.Publisher('/xsens_imu/data', ImuDataMsg, queue_size=10)
-        self.raw_data_sub = rospy.Subscriber('/xsens_imu/raw_data', ImuDataMsg, self.handle_imu_data)
+        self._sync_pub = rospy.Publisher('imu_sync', ImuSyncMsg, queue_size=10)
+        self._data_pub = rospy.Publisher('imu_data', ImuDataMsg, queue_size=10)
+        self._raw_data_sub = rospy.Subscriber('imu_raw_data', ImuDataMsg, self._handle_imu_data)
 
-        self.x = np.array([0, 1])
+        self._x = np.array([0, 1])
 
-        self.P = np.array([[VAR_OFFSET_INIT, 0], [0, VAR_SKEW_INIT]])
+        self._P = np.array([[ImuSync.VAR_OFFSET_INIT, 0], [0, ImuSync.VAR_SKEW_INIT]])
 
-        self.H = np.array([[1, 0], [0, 0]])
+        self._H = np.array([[1, 0], [0, 0]])
 
-        self.Q = np.array([[0, 0], [0, VAR_SKEW]])
+        self._Q = np.array([[0, 0], [0, ImuSync.VAR_SKEW]])
 
-        self.R = VAR_OFFSET
+        self._R = ImuSync.VAR_OFFSET
 
-        self.last_corrected_time = None
-        self.last_ros_time = None
-        self.last_imu_time = None
+        self._last_corrected_time = None
+        self._last_ros_time = None
+        self._last_imu_time = None
 
-    def handle_imu_data(self, data):
+    def start(self):
+        rospy.spin()
+
+    def _handle_imu_data(self, data: ImuDataMsg):
         ros_time = data.ros_time
         imu_time = data.imu_time
 
-        if self.last_imu_time is None:
-            self.last_imu_time = imu_time
-            self.x = np.array([(ros_time - imu_time).to_sec(), 1])
+        if self._last_imu_time is None:
+            self._last_imu_time = imu_time
+            self._x = np.array([(ros_time - imu_time).to_sec(), 1])
     
-        dt = (imu_time - self.last_imu_time).to_sec()
+        dt = (imu_time - self._last_imu_time).to_sec()
 
         F = np.array([[1, dt], [0, 1]])
-        self.x = np.matmul(F, self.x)
+        self._x = np.matmul(F, self._x)
 
-        self.P = np.matmul(F, np.matmul(self.P, np.transpose(F))) + dt * self.Q
+        self._P = np.matmul(F, np.matmul(self._P, np.transpose(F))) + dt * self._Q
 
-        S = np.matmul(self.H, np.matmul(self.P, np.transpose(self.H))) + self.R
+        S = np.matmul(self._H, np.matmul(self._P, np.transpose(self._H))) + self._R
 
-        K = np.matmul(self.P, np.transpose(self.H)) / S
+        K = np.matmul(self._P, np.transpose(self._H)) / S
 
-        residual = np.array([(ros_time - imu_time).to_sec(), 0]) - np.matmul(self.H, self.x)
+        residual = np.array([(ros_time - imu_time).to_sec(), 0]) - np.matmul(self._H, self._x)
 
-        self.x = self.x + np.matmul(K, residual)
-        self.P = np.matmul(np.identity(2) - np.matmul(K, self.H), self.P)
+        self.x = self._x + np.matmul(K, residual)
+        self.P = np.matmul(np.identity(2) - np.matmul(K, self._H), self._P)
 
         corrected_time = self.convert_imu_time(imu_time)
 
@@ -62,16 +65,16 @@ class ImuSync:
         msg.imu_time = imu_time
         msg.triggered_dvl = data.triggered_dvl
 
-        if not self.last_corrected_time is None:
-            msg.d_corrected = (corrected_time - self.last_corrected_time).to_sec()
+        if not self._last_corrected_time is None:
+            msg.d_corrected = (corrected_time - self._last_corrected_time).to_sec()
 
-        if not self.last_ros_time is None:
-            msg.d_ros = (ros_time - self.last_ros_time).to_sec()
+        if not self._last_ros_time is None:
+            msg.d_ros = (ros_time - self._last_ros_time).to_sec()
 
-        if not self.last_imu_time is None:
-            msg.d_imu = (imu_time - self.last_imu_time).to_sec()
+        if not self._last_imu_time is None:
+            msg.d_imu = (imu_time - self._last_imu_time).to_sec()
 
-        self.sync_pub.publish(msg)
+        self._sync_pub.publish(msg)
 
         data_msg = ImuDataMsg()
         data_msg.header = Header()
@@ -82,7 +85,7 @@ class ImuSync:
         data_msg.orientation = data.orientation
         data_msg.linear_acceleration = data.linear_acceleration
 
-        self.data_pub.publish(data_msg)
+        self._data_pub.publish(data_msg)
 
         self.last_corrected_time = corrected_time
         self.last_ros_time = ros_time
@@ -93,9 +96,6 @@ class ImuSync:
 
         converted_secs = imu_time.to_sec() + self.x[0] + dt * self.x[1]
         return rospy.Time.from_sec(converted_secs)
-
-    def start(self):
-        rospy.spin()
 
 def main():
     rospy.init_node('imu_sync')

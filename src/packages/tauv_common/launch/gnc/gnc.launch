@@ -3,7 +3,7 @@
     <!-- This includes the cascaded pid controller, teleop node, and (TODO) the trajectory planner. -->
 
     <!-- Name of the robot model  -->
-    <arg name="model_name" default="albatross"/>
+    <arg name="model_name" default="kingfisher"/>
     <!-- path to config package  -->
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
     <!-- force topic (for the thruster manager) to publish to -->
@@ -11,50 +11,37 @@
     <!-- odom topic to listen on -->
     <arg name="odom_topic" default="odom"/>
     <!-- Planner to use. Possible options: "teleop", "mpc" -->
-    <arg name="planner" default="teleop"/>
+    <arg name="planner" default="mpc"/>
 
     <group ns="gnc">
-        <!-- Launch State Estimation -->
-        <node pkg="robot_localization" type="ekf_localization_node" name="ekf_se" clear_params="true" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/ekf_params.yaml"/>
-            <remap from="sensors/imu/data" to="/$(arg model_name)/sensors/imu/data"/>
-            <remap from="sensors/dvl_twist" to="/$(arg model_name)/sensors/dvl_twist" />
-            <remap from="sensors/depth" to="/$(arg model_name)/sensors/depth"/>
+        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />
+            <remap from="pose" to="/gnc/pose" />
+            <remap from="odom" to="/gnc/odom" />
+            <remap from="imu" to="/$(arg model_name)/imu" />
+            <remap from="dvl" to="/$(arg model_name)/dvl" />
         </node>
 
-<!--        <node pkg="imu_transformer" type="imu_transformer_node" name="imu_optimus_prime"-->
-<!--              output="screen" >-->
-<!--            <remap from="imu_in/data" to="/$(arg model_name)/sensors/imu/data"/>-->
-<!--            <remap from="imu_out/data" to="/$(arg model_name)/sensors/imu/data_trans"/>-->
-<!--            <param name="target_frame" value="base_link" />-->
-<!--        </node>-->
-
-        <node pkg="tauv_common" type="pose_graph" name="pose_graph" output="screen">
-        </node>
-
-        <node pkg="tauv_common" type="twist_transformer" name="twist_transformer" output="screen">
-
-        </node>
-
-        <!-- Launch controllers -->
-        <node pkg="tauv_common" type="attitude_controller" name="attitude_controller" output="screen">
-            <remap from="odom" to="$(arg odom_topic)"/>
+        <node pkg="tauv_common" type="controller" name="controller" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/controller.yaml" />
+            <remap from="odom" to="/gnc/odom"/>
             <remap from="controller_cmd" to="$(arg planner)/controller_cmd"/>
             <remap from="wrench" to="/$(arg model_name)/thruster_manager/input_stamped"/>
         </node>
 
         <!-- Load USB joystick controller configs -->
-        <rosparam file="$(find tauv_common)/src/planners/teleop_planner/joy.yaml" command="load"/>
+<!--        <rosparam file="$(find tauv_common)/src/planners/teleop_planner/joy.yaml" command="load"/>-->
 
         <!-- Start Teleop node -->
-        <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">
-            <remap from="controller_cmd" to="teleop/controller_cmd"/>
-            <remap from="joy" to="/gui/tauv_joy"/>
-        </node>
-
-        <!-- Start MPC node -->
-<!--        <node pkg="tauv_common" type="mpc_traj_follower" name="mpc_trajectory_follower" output="screen">-->
+<!--        <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">-->
 <!--            <remap from="controller_cmd" to="mpc/controller_cmd"/>-->
+<!--            <remap from="joy" to="/gui/tauv_joy"/>-->
 <!--        </node>-->
+
+        <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />
+            <remap from="odom" to="/gnc/odom"/>
+            <remap from="controller_cmd" to="mpc/controller_cmd"/>
+        </node>
     </group>
 </launch>

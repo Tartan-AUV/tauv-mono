@@ -1,48 +1,104 @@
 import rospy
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
+from typing import Union
+from tf.transformations import euler_from_quaternion
+import tf
 import numpy as np
 
-from tauv_msgs.msg import Pose as PoseMsg
-from sensor_msgs.msg import Imu as ImuMsg
-from uuv_sensor_ros_plugins_msgs.msg import DVL as DvlMsg
+from scipy.spatial.transform import Rotation
+from tauv_util.types import tl, tm
+from tauv_util.transforms import quat_to_rpy
+from tauv_msgs.msg import Pose as PoseMsg, XsensImuData as XsensImuMsg, TeledyneDvlData as TeledyneDvlMsg
+from sensor_msgs.msg import Imu as SimImuMsg
+from uuv_sensor_ros_plugins_msgs.msg import DVL as SimDvlMsg
 from std_msgs.msg import Header
-from geometry_msgs.msg import Vector3, Pose, Point, Quaternion, Twist, PoseWithCovariance, TwistWithCovariance
+from geometry_msgs.msg import Vector3, Quaternion, Pose, PoseWithCovariance, Twist, TwistWithCovariance
 from nav_msgs.msg import Odometry as OdometryMsg
 
 from .ekf import EKF
 
+ImuMsg = XsensImuMsg | SimImuMsg
+DvlMsg = TeledyneDvlMsg | SimDvlMsg
 
 class StateEstimation:
 
     def __init__(self):
-        self._pose_pub: rospy.Publisher = rospy.Publisher('/state_estimation/pose', PoseMsg, queue_size=10)
-        self._odometry_pub: rospy.Publisher = rospy.Publisher('/state_estimation/odometry', OdometryMsg, queue_size=10)
+        self._initialized = False
 
-        self._imu_sub: rospy.Subscriber = rospy.Subscriber('/rexrov/imu', ImuMsg, self._handle_imu)
-        self._dvl_sub: rospy.Subscriber = rospy.Subscriber('/rexrov/dvl', DvlMsg, self._handle_dvl)
+        self._odom_broadcaster: tf.TransformBroadcaster = tf.TransformBroadcaster()
 
-        dvl_offset = np.array([1.4, 0, 0.31])
-        imu_covariance = 0.0001 * np.ones(9, float)
-        dvl_covariance = 0.0001 * np.ones(3, float)
+        self._pose_pub: rospy.Publisher = rospy.Publisher('pose', PoseMsg, queue_size=10)
+        self._odom_pub: rospy.Publisher = rospy.Publisher('odom', OdometryMsg, queue_size=10)
+
+        self._imu_sub: rospy.Subscriber = rospy.Subscriber('imu', ImuMsg, self._handle_imu)
+        self._dvl_sub: rospy.Subscriber = rospy.Subscriber('dvl', DvlMsg, self._handle_dvl)
+
+        self._velocity_transform_a = np.array(rospy.get_param('~dvl/velocity_transform/a')).reshape((3, 3))
+        self._velocity_transform_b = np.array(rospy.get_param('~dvl/velocity_transform/b'))
+        self._linear_acceleration_transform_a = np.array(rospy.get_param('~imu/linear_acceleration_transform/a')) \
+            .reshape((3, 3))
+        self._linear_acceleration_transform_b = np.array(rospy.get_param('~imu/linear_acceleration_transform/b'))
+        self._angular_velocity_transform_a = np.array(rospy.get_param('~imu/angular_velocity_transform/a')) \
+            .reshape((3, 3))
+        self._angular_velocity_transform_b = np.array(rospy.get_param('~imu/angular_velocity_transform/b'))
+        self._orientation_transform_a = np.array(rospy.get_param('~imu/orientation_transform/a')).reshape((3, 3))
+        self._orientation_transform_b = np.array(rospy.get_param('~imu/orientation_transform/b'))
+
+        dvl_offset = np.array(rospy.get_param('~dvl/offset'))
+
+        imu_covariance = np.diag(rospy.get_param('~imu/covariance'))
+        dvl_covariance = np.diag(rospy.get_param('~dvl/covariance'))
 
         self._ekf: EKF = EKF(dvl_offset, imu_covariance, dvl_covariance)
 
-    def _handle_imu(self, msg: ImuMsg):
-        timestamp = msg.header.stamp
-        linear_acceleration = np.array([msg.linear_acceleration.x, -msg.linear_acceleration.y, -msg.linear_acceleration.z + 9.8])
-        angular_velocity = np.array([msg.angular_velocity.z, msg.angular_velocity.y, msg.angular_velocity.x])
-        orientation_quat = msg.orientation
-        orientation_eul = euler_from_quaternion([orientation_quat.x, orientation_quat.y, orientation_quat.z, orientation_quat.w])
-        orientation = np.array([orientation_eul[2], orientation_eul[1], orientation_eul[0]])
+        self._initialized = True
 
-        self._ekf.handle_imu_measurement(linear_acceleration, orientation, angular_velocity, timestamp)
+    def _handle_imu(self, msg: ImuMsg):
+        if not self._initialized:
+            return
+
+        timestamp = msg.header.stamp
+
+        if isinstance(msg, SimImuMsg):
+            linear_acceleration = self._linear_acceleration_transform_a @ np.array(tl(msg.linear_acceleration)) \
+                                  + self._linear_acceleration_transform_b
+
+            angular_velocity = self._angular_velocity_transform_a @ np.array(tl(msg.angular_velocity)) \
+                               + self._angular_velocity_transform_b
+
+            orientation_eul = np.array(quat_to_rpy(msg.orientation))
+            orientation = self._orientation_transform_a @ orientation_eul \
+                          + self._orientation_transform_b
+            orientation = (orientation + np.pi) % (2 * np.pi) - np.pi
+
+            self._ekf.handle_imu_measurement(linear_acceleration, orientation, angular_velocity, timestamp)
+        elif isinstance(msg, XsensImuMsg):
+            linear_acceleration = tl(msg.linear_acceleration)
+
+            angular_velocity = tl(msg.rate_of_turn)
+
+            orientation = quat_to_rpy(msg.orientation)
+            orientation = (orientation + np.pi) % (2 * np.pi) - np.pi
+
+            self._ekf.handle_imu_measurement(linear_acceleration, orientation, angular_velocity, timestamp)
+
         self._publish_state(timestamp)
 
     def _handle_dvl(self, msg: DvlMsg):
-        timestamp = msg.header.stamp
-        velocity = np.array([msg.velocity.z, -msg.velocity.y, msg.velocity.x])
+        if not self._initialized:
+            return
 
-        self._ekf.handle_dvl_measurement(velocity, timestamp)
+        timestamp = msg.header.stamp
+
+        if isinstance(msg, SimDvlMsg):
+            velocity = self._velocity_transform_a @ np.array(tl(msg.velocity)) \
+                       + self._velocity_transform_b
+
+            self._ekf.handle_dvl_measurement(velocity, timestamp)
+        elif isinstance(msg, TeledyneDvlMsg):
+            velocity = tl(msg.velocity)
+
+            self._ekf.handle_dvl_measurement(velocity)
+
         self._publish_state(timestamp)
 
     def _publish_state(self, timestamp: rospy.Time):
@@ -62,11 +118,39 @@ class StateEstimation:
         msg.acceleration = acceleration
         msg.orientation = orientation
         msg.angular_velocity = angular_velocity
-
         self._pose_pub.publish(msg)
+
+        orientation_quat = tm(Rotation.from_euler('ZYX', state[9:12]).as_quat(), Quaternion)
+
+        odom_msg: OdometryMsg = OdometryMsg()
+        odom_msg.header = Header()
+        odom_msg.header.stamp = timestamp
+        odom_msg.header.frame_id = 'odom'
+        odom_msg.child_frame_id = 'kingfisher/base_link'
+        odom_msg.pose = PoseWithCovariance()
+        odom_msg.pose.pose = Pose(
+            position=position,
+            orientation=orientation_quat,
+        )
+        odom_msg.twist = TwistWithCovariance()
+        odom_msg.twist.twist = Twist(
+            linear=velocity,
+            angular=angular_velocity
+        )
+        self._odom_pub.publish(odom_msg)
+
+        self._odom_broadcaster.sendTransform(
+            translation=(position.x, position.y, position.z),
+            rotation=(orientation_quat.x, orientation_quat.y, orientation_quat.z, orientation_quat.w),
+            time=timestamp,
+            child='kingfisher/base_link',
+            parent='odom',
+        )
+
 
     def start(self):
         rospy.spin()
+
 
 def main():
     rospy.init_node('state_estimation')

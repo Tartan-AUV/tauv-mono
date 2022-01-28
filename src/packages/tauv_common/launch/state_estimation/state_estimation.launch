@@ -1,3 +1,0 @@
-<launch>
-    <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen"/>
-</launch>

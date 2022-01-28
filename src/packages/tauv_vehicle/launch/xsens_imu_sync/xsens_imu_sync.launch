@@ -1,3 +1,7 @@
 <launch>
-    <node pkg="tauv_vehicle" type="xsens_imu_sync" name="xsens_imu_sync" output="screen"/>
+    <node pkg="tauv_vehicle" type="xsens_imu_sync" name="xsens_imu_sync" output="screen">
+        <remap from="imu_sync" to="/xsens_imu/sync" />
+        <remap from="imu_data" to="/xsens_imu/data" />
+        <remap from="imu_raw_data" to="/xsens_imu/raw_data" />
+    </node>
 </launch>

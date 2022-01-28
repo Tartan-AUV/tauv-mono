@@ -13,9 +13,9 @@ add_message_files(
   PidVals.msg
   SonarPulse.msg
   PoseGraphMeasurement.msg
-  ImuSync.msg
-  ImuData.msg
-  DvlData.msg
+  XsensImuSync.msg
+  XsensImuData.msg
+  TeledyneDvlData.msg
   Pose.msg
 )
 

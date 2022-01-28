@@ -5,6 +5,6 @@
             <param name="~autorepeat_rate" value="10"/>
         </node>
         <node name="rqt_gui" pkg="rqt_gui" type="rqt_gui"/>
-        <include file="$(find tauv_common)/launch/multimaster/multimaster.launch"/>
+<!--        <include file="$(find tauv_common)/launch/multimaster/multimaster.launch"/>-->
     </group>
 </launch>
