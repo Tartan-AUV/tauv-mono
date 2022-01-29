@@ -15,7 +15,9 @@ class Sonar:
     def __init__(self):
         self.tty = rospy.get_param('/vehicle_params/sonar/tty')
 
-        self.ping = Ping360(self.tty, baudrate=2000000)
+        self.ping = Ping360()
+
+        self.ping.connect_serial(self.tty, 2000000)
 
         if not self.ping.initialize():
             raise ValueError("Unable to initialize ping360 device!")
@@ -60,7 +62,7 @@ class Sonar:
         self.ping.transmitAngleNoWait(angle)
 
     def calculateSamplePeriod(self, distance, numberOfSamples, speedOfSound, _samplePeriodTickDuration=25e-9):
-        return 2 * distance / (numberOfSamples * speedOfSound * _samplePeriodTickDuration)
+        return int(2 * distance / (numberOfSamples * speedOfSound * _samplePeriodTickDuration))
 
     def create_sonar_msg(self, pinger_data):
         msg = SonarPulse()

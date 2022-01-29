@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+
+import rospy
+from tauv_msgs.msg import SonarPulse
+
+def read(data):
+    rospy.loginfo("Read:")
+    rospy.loginfo(f"angle:  {data.angle}")
+    #rospy.loginfo(f"transmit duration: {data.transmit_duration}")
+    #rospy.loginfo(f"sample period: {data.sample_period}")
+    #rospy.loginfo(f"transmit frequency: {data.transmit_frequency}")
+    #rospy.loginfo(f"number of samples: {data.number_of_samples}")
+    rospy.loginfo(f"data 200: {data.data[0]}")
+    rospy.loginfo(f"data 200: {data.data[50]}")
+    rospy.loginfo(f"data 200: {data.data[100]}")
+    rospy.loginfo(f"data 200: {data.data[150]}")
+    rospy.loginfo(f"data 200: {data.data[199]}")
+
+
+def sonar_listen():
+    rospy.init_node('read_sonar',anonymous=True)
+
+    rospy.Subscriber("data",SonarPulse, read)
+   
+    rospy.spin()
+
+if __name__ == '__main__':
+    sonar_listen()

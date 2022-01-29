@@ -1,0 +1,181 @@
+#!/usr/bin/env python3
+
+import rospy
+from tauv_msgs.msg import SonarPulse
+from tauv_msgs.msg import SonarGraph
+from std_msgs.msg import Header
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib
+import math
+
+#use scipy sudo apt-get install python3-scipy
+#from scipy import fclusterdata
+#from sklearn.cluster import KMeans
+
+#how much of surrounding data should sonar ignore
+ignore=0
+
+class GraphContainer(SonarGraph):
+    def __init__(self):
+        #for noise calculations
+        self.avg_noise = 0
+        self.std = 0
+        #self.last_check = 0
+        self.counter = 0
+        #messaging setup
+        self.pub = rospy.Publisher("sonar", SonarGraph, queue_size=10)
+       
+        rospy.init_node('map_sonar',anonymous=True)
+   
+        x=rospy.wait_for_message("data",SonarPulse)
+
+        self.cur_angle = x.angle
+        self.data_len = x.data_length
+        self.true_data_len = x.data_length-ignore
+
+        #inspection area length
+        self.round=400
+
+        self.degrees=400
+
+        rospy.Subscriber("data",SonarPulse, self.read)
+
+        self.header=Header()
+        self.unpr=[0]*self.degrees*(self.data_len)
+        self.prc=[0]*self.degrees*(self.data_len) #for graphing
+        self.sprc=[0]*self.degrees*(self.data_len) #for graphing
+
+
+        #allows popups of graph
+        matplotlib.use('gtk3agg')
+        #plt.ion()
+
+        self.plot = plt.imshow(np.reshape(self.unpr, (self.data_len,self.degrees)),cmap='jet')
+        plt.show()
+
+    def read(self, data):
+        #arr=[]
+        self.cur_angle = self.calc_angle(data.angle)
+        if self.cur_angle>=0 and self.cur_angle<self.degrees:
+            for i in range(ignore,self.data_len):
+                self.unpr[self.calc_dist(i)*self.degrees+self.cur_angle]=data.data[i]
+                self.sim_value(self.cur_angle+i*self.degrees)
+                if data.data[i]>(self.avg_noise): #look into graphing only above avg singals
+                    self.prc[self.calc_dist(i)*self.degrees+self.cur_angle]=data.data[i]
+                    #arr.append(data.data[i])
+                else:
+                    self.prc[self.calc_dist(i)*self.degrees+self.cur_angle]=0
+                    #arr.append(0)"""
+        else:
+            rospy.logwarn("Error in calculated sub angle\n")
+
+        self.pub.publish(self)
+        #self.img = np.reshape(self.prc, (200,400))
+        self.display_img()
+
+        #self.detect_contrast(arr)
+
+        if self.counter>self.round:
+            #self.sprc=[0]*self.degrees*(self.data_len) #for graphing
+            self.avg_noise = np.mean(self.unpr)
+            self.std = np.std(self.prc)
+            self.counter=0
+
+        self.counter+=1
+ 
+    #accounts for boat position and returns current read angle
+    def calc_angle(self,angle):
+        return round(angle)
+
+    #accounts for boat position and returns distance of point
+    def calc_dist(self, dist):
+        return dist
+
+    def display_img(self):
+        self.plot.set_data(np.reshape(self.prc, (self.data_len,self.degrees)))
+        plt.draw()
+
+        #img = Image.fromarray(array,'1')
+        #img.save('graph1.png')
+        #img = Image.frombytes('L',(400,200),array)
+        #img.save('graph2.png')
+        #plt.savefig("graph2.png")
+
+    def sim_value(self, index):
+        #if not at end of row
+        if(index%(self.data_len)!=(self.degrees-1)%self.data_len):
+            if abs(self.unpr[index+1]-self.unpr[index])<self.std:
+                self.sprc[index+1]=0
+            else:
+                self.sprc[index+1]=100
+        if(index<(self.degrees*self.data_len-self.degrees)):
+            if abs(self.unpr[index+self.degrees]-self.unpr[index])<self.std:
+                self.sprc[index+self.degrees]=0
+            else:
+                self.sprc[index+self.degrees]+=100
+
+
+    def calc_avg_noise(self):
+        #self.last_check = self.cur_angle
+        angle = self.cur_angle
+        round = self.round
+        self.avg_noise = 0
+
+        while(angle>=0 and round>0):
+            for i in range(ignore,self.data_len):
+                self.avg_noise +=self.unpr[self.calc_dist(i)*self.degrees+angle]
+            angle-=1
+            round-=1
+
+        angle=self.degrees-1
+        while(round>0):
+            for i in range(ignore,self.data_len):
+                self.avg_noise +=self.unpr[self.calc_dist(i)*self.degrees+angle]
+                angle-=1
+                round-=1
+        self.avg_noise=self.avg_noise/(self.round*(self.true_data_len))
+
+        rospy.loginfo(f"avg noise = {self.avg_noise}")
+        self.calc_std()
+
+    def calc_std(self):
+        angle=self.cur_angle
+        round=self.round
+        self.std_noise=0
+
+        while(angle>=0 and round>0):
+            for i in range(ignore,self.data_len):
+                self.std_noise += (self.avg_noise-self.unpr[self.calc_dist(i)*self.degrees+angle])*(self.avg_noise-self.unpr[self.calc_dist(i)*self.degrees+angle])
+            angle-=1
+            round-=1
+
+        angle=self.degrees-1
+        while(round>0):
+            for i in range(ignore,self.data_len):
+                self.std_noise += (self.avg_noise-self.unpr[self.calc_dist(i)*self.degrees+angle])*(self.avg_noise-self.unpr[self.calc_dist(i)*self.degrees+angle])
+                angle-=1
+                round-=1
+
+        self.std_noise=math.sqrt(self.std_noise/(self.round*(self.true_data_len)))
+        rospy.loginfo(f"avg std = {self.std_noise}")
+
+    def detect_contrast(self,arr):
+        angle=self.cur_angle
+
+        std = np.std(arr)
+        for i in range(ignore+1,self.data_len):
+            if abs(arr[i-ignore]-arr[i-1-ignore])>std:
+                self.sprc[angle+i*self.degrees]=arr[i-ignore]
+            else:
+                self.sprc[angle+i*self.degrees]=0
+
+def sonar_listen():
+    s = GraphContainer()
+    rospy.spin()
+    #arr = np.reshape(s.unpr, (200,400))
+    rospy.loginfo(f"{s.unpr}")
+    #rospy.loginfo(f"{arr}")
+
+if __name__ == '__main__':
+    sonar_listen()
