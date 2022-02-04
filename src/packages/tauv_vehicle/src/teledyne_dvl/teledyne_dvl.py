@@ -45,7 +45,8 @@ class TeledyneDVL:
     def _handle_sync(self, data: ImuSyncMsg):
         time: rospy.Time = data.header.stamp
 
-        self._sync_timestamps.append(time)
+        if data.triggered_dvl:
+            self._sync_timestamps.append(time)
 
     def _sweep_sync_timestamps(self, time: rospy.Time):
         self._sync_timestamps = list(filter(

@@ -74,7 +74,8 @@ class Pathfinder:
         self._send_command('TP00:00.00')
 
         # Disable water profiling
-        self._send_command('WP0')
+        # TODO: This doesn't work
+        self._send_command('WP00000')
 
         # Disable water-mass layer
         self._send_command('BK0')

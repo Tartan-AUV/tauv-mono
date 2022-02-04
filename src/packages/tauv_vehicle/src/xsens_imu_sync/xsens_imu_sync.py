@@ -15,7 +15,7 @@ class ImuSync:
         self._data_pub = rospy.Publisher('imu_data', ImuDataMsg, queue_size=10)
         self._raw_data_sub = rospy.Subscriber('imu_raw_data', ImuDataMsg, self._handle_imu_data)
 
-        self._x = np.array([0, 1])
+        self._x = np.array([0, 0])
 
         self._P = np.array([[ImuSync.VAR_OFFSET_INIT, 0], [0, ImuSync.VAR_SKEW_INIT]])
 
@@ -38,7 +38,7 @@ class ImuSync:
 
         if self._last_imu_time is None:
             self._last_imu_time = imu_time
-            self._x = np.array([(ros_time - imu_time).to_sec(), 1])
+            self._x = np.array([(ros_time - imu_time).to_sec(), 0])
     
         dt = (imu_time - self._last_imu_time).to_sec()
 
@@ -49,12 +49,12 @@ class ImuSync:
 
         S = np.matmul(self._H, np.matmul(self._P, np.transpose(self._H))) + self._R
 
-        K = np.matmul(self._P, np.transpose(self._H)) / S
+        K = np.matmul(self._P, np.transpose(self._H)) * (1 / S)
 
         residual = np.array([(ros_time - imu_time).to_sec(), 0]) - np.matmul(self._H, self._x)
 
-        self.x = self._x + np.matmul(K, residual)
-        self.P = np.matmul(np.identity(2) - np.matmul(K, self._H), self._P)
+        self._x = self._x + np.matmul(K, residual)
+        self._P = np.matmul(np.identity(2) - np.matmul(K, self._H), self._P)
 
         corrected_time = self.convert_imu_time(imu_time)
 
@@ -87,14 +87,14 @@ class ImuSync:
 
         self._data_pub.publish(data_msg)
 
-        self.last_corrected_time = corrected_time
-        self.last_ros_time = ros_time
-        self.last_imu_time = imu_time
+        self._last_corrected_time = corrected_time
+        self._last_ros_time = ros_time
+        self._last_imu_time = imu_time
 
     def convert_imu_time(self, imu_time):
-        dt = (imu_time - self.last_imu_time).to_sec()
+        dt = (imu_time - self._last_imu_time).to_sec()
 
-        converted_secs = imu_time.to_sec() + self.x[0] + dt * self.x[1]
+        converted_secs = imu_time.to_sec() + self._x[0] + dt * self._x[1]
         return rospy.Time.from_sec(converted_secs)
 
 def main():

@@ -19,6 +19,7 @@ float64 temperature
 
 float64 transmit_voltage
 float64 transmit_current
+float64 transmit_impedance
 
 geometry_msgs/Vector3 velocity
 float64 velocity_error

@@ -16,8 +16,8 @@ from nav_msgs.msg import Odometry as OdometryMsg
 
 from .ekf import EKF
 
-ImuMsg = XsensImuMsg | SimImuMsg
-DvlMsg = TeledyneDvlMsg | SimDvlMsg
+ImuMsg = Union[XsensImuMsg, SimImuMsg]
+DvlMsg = Union[TeledyneDvlMsg, SimDvlMsg]
 
 class StateEstimation:
 
@@ -29,8 +29,8 @@ class StateEstimation:
         self._pose_pub: rospy.Publisher = rospy.Publisher('pose', PoseMsg, queue_size=10)
         self._odom_pub: rospy.Publisher = rospy.Publisher('odom', OdometryMsg, queue_size=10)
 
-        self._imu_sub: rospy.Subscriber = rospy.Subscriber('imu', ImuMsg, self._handle_imu)
-        self._dvl_sub: rospy.Subscriber = rospy.Subscriber('dvl', DvlMsg, self._handle_dvl)
+        self._imu_sub: rospy.Subscriber = rospy.Subscriber('imu', XsensImuMsg, self._handle_imu)
+        self._dvl_sub: rospy.Subscriber = rospy.Subscriber('dvl', TeledyneDvlMsg, self._handle_dvl)
 
         self._velocity_transform_a = np.array(rospy.get_param('~dvl/velocity_transform/a')).reshape((3, 3))
         self._velocity_transform_b = np.array(rospy.get_param('~dvl/velocity_transform/b'))
@@ -74,7 +74,7 @@ class StateEstimation:
         elif isinstance(msg, XsensImuMsg):
             linear_acceleration = tl(msg.linear_acceleration)
 
-            angular_velocity = tl(msg.rate_of_turn)
+            angular_velocity = tl(msg.angular_velocity)
 
             orientation = quat_to_rpy(msg.orientation)
             orientation = (orientation + np.pi) % (2 * np.pi) - np.pi
@@ -97,7 +97,7 @@ class StateEstimation:
         elif isinstance(msg, TeledyneDvlMsg):
             velocity = tl(msg.velocity)
 
-            self._ekf.handle_dvl_measurement(velocity)
+            self._ekf.handle_dvl_measurement(velocity, timestamp)
 
         self._publish_state(timestamp)
 

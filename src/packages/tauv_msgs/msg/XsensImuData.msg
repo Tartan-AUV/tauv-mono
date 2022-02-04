@@ -8,6 +8,6 @@ bool triggered_dvl
 
 geometry_msgs/Quaternion orientation
 
-geometry_msgs/Vector3 rate_of_turn
+geometry_msgs/Vector3 angular_velocity
 
 geometry_msgs/Vector3 linear_acceleration

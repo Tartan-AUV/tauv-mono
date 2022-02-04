@@ -1,0 +1,13 @@
+<launch>
+    <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
+
+    <group ns="gnc">
+        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />
+            <remap from="pose" to="/gnc/pose" />
+            <remap from="odom" to="/gnc/odom" />
+            <remap from="imu" to="/xsens_imu/data" />
+            <remap from="dvl" to="/teledyne_dvl/data" />
+        </node>
+    </group>
+</launch>

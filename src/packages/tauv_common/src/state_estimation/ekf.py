@@ -51,11 +51,11 @@ class EKF:
         self._extrapolate_state(delta_t)
         self._extrapolate_covariance(delta_t)
 
-        H: np.array = self._get_H([#StateIndex.AX, StateIndex.AY, StateIndex.AZ,
+        H: np.array = self._get_H([StateIndex.AX, StateIndex.AY, StateIndex.AZ,
                                    StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL,
                                    StateIndex.VYAW, StateIndex.VPITCH, StateIndex.VROLL])
 
-        z: np.array = np.concatenate((orientation, angular_velocity))
+        z: np.array = np.concatenate((linear_acceleration, orientation, angular_velocity))
 
         y: np.array = z - np.matmul(H, self._state)
 

@@ -3,7 +3,7 @@ import bitstring
 
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import Header, String
-from tauv_msgs.msg import DvlData as DvlDataMsg
+from tauv_msgs.msg import TeledyneDvlData as DvlDataMsg
 
 class Ensemble:
 
@@ -73,7 +73,7 @@ class Ensemble:
     BOTTOM_TRACK_DATA_ID = '0006'
     HR_BOTTOM_TRACK_DATA_ID = '0358'
     NAV_PARAMS_DATA_ID = '1320'
-    BOTTOM_TRACK_RANGE_DATA_ID = '5804'
+    BOTTOM_TRACK_RANGE_DATA_ID = '0458'
 
     FIXED_LEADER_SIZE = 58
     VARIABLE_LEADER_SIZE = 77
@@ -135,7 +135,7 @@ class Ensemble:
 
         if self.parsed_variable_leader:
             msg.ensemble_number = (self.ensemble_number_msb << 16) + self.ensemble_number
-            msg.test_status.data = Ensemble.TEST_STATUS_MAPPING[self.test_status]
+            msg.test_status.data = Ensemble.TEST_STATUS_MAPPING.get(self.test_status, 'Unknown error')
             msg.health_status.data = self._get_health_status(self.health_status)
             msg.depth = self.depth * 1e-1
             msg.pressure = (self.pressure / 10132.5) + 1 # Convert decapascalsto ATM
@@ -148,7 +148,7 @@ class Ensemble:
             msg.temperature = self.temperature * 1e-2
             msg.transmit_voltage = self.transmit_voltage * 1e-3
             msg.transmit_current = self.transmit_current * 1e-3
-            msg.transmit_impedence = self.transmit_impedence * 1e-3
+            msg.transmit_impedance = self.transmit_impedance * 1e-3
 
         if self.parsed_bottom_track_data:
             msg.velocity = Vector3(
@@ -291,7 +291,7 @@ class Ensemble:
         d.bytepos = 73
         self.transmit_voltage = d.read('uintle:16')
         self.transmit_current = d.read('uintle:16')
-        self.transmit_impedence = d.read('uintle:16')
+        self.transmit_impedance = d.read('uintle:16')
 
     def _parse_bottom_track_data(self, d: bitstring.BitStream):
         d.bytepos = 16

@@ -67,7 +67,7 @@ struct ImuPublisher : public PacketCallback
         ros::Time sample_time(sec, nsec);
 
         bool quaternion_available = packet.containsOrientation();
-        bool rate_of_turn_available = packet.containsRateOfTurnHR();
+        bool angular_velocity_available = packet.containsCalibratedGyroscopeData();
         bool linear_acceleration_available = packet.containsCalibratedAcceleration();
 
         geometry_msgs::Quaternion quaternion;
@@ -78,31 +78,31 @@ struct ImuPublisher : public PacketCallback
             quaternion.w = q.w();
             quaternion.x = q.x();
             quaternion.y = q.y();
-            quaternion.z = q.z();
+            quaternion.z = -q.z();
         }
 
-        geometry_msgs::Vector3 rate_of_turn;
-        if (rate_of_turn_available)
+        geometry_msgs::Vector3 angular_velocity;
+        if (angular_velocity_available)
         {
-            XsVector a = packet.rateOfTurnHR();
-            rate_of_turn.x = a[0];
-            rate_of_turn.y = a[1];
-            rate_of_turn.z = a[2];
+            XsVector a = packet.calibratedGyroscopeData();
+            angular_velocity.x = a[0];
+            angular_velocity.y = -a[1];
+            angular_velocity.z = -a[2];
         }
 
         geometry_msgs::Vector3 linear_acceleration;
         if (linear_acceleration_available)
         {
-            XsVector a = packet.rateOfTurnHR();
+            XsVector a = packet.calibratedAcceleration();
             linear_acceleration.x = a[0];
-            linear_acceleration.y = a[1];
-            linear_acceleration.z = a[2];
+            linear_acceleration.y = -a[1];
+            linear_acceleration.z = -a[2];
         }
 
         uint32_t status = packet.status();
         bool triggered_dvl = (status >> 22) & 1;
 
-        if (quaternion_available || rate_of_turn_available || linear_acceleration_available)
+        if (quaternion_available && angular_velocity_available && linear_acceleration_available)
         {
             tauv_msgs::XsensImuData data_msg;
 
@@ -114,7 +114,7 @@ struct ImuPublisher : public PacketCallback
             data_msg.triggered_dvl = triggered_dvl;
 
             data_msg.orientation = quaternion;
-            data_msg.rate_of_turn = rate_of_turn;
+            data_msg.angular_velocity = angular_velocity;
             data_msg.linear_acceleration = linear_acceleration;
 
             data_pub.publish(data_msg);
