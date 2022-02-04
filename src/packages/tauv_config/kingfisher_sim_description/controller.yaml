@@ -1,0 +1,24 @@
+# x, y, z, roll, pitch, yaw in N
+max_wrench: [100, 100, 100, 20, 20, 20]
+
+dynamics:
+  # kg
+  mass: 22
+
+  # m^3
+  volume: 0.0214
+
+  # kg / m^3
+  water_density: 1028
+
+  # x, y, z in body NED
+  center_of_gravity: [0, 0, 0]
+  center_of_buoyancy: [0, 0, 0]
+
+  # Ixx, Iyy, Izz, Ixy, Ixz, Iyz
+  moments: [0.06, 0.26, 0.26, 0, 0, 0]
+
+  # x, y, z, roll, pitch, yaw
+  linear_damping: [10, 10, 42, 13, 13, 13]
+  quadratic_damping: [5, 5, 26, 0, 0, 0]
+  added_mass: [10, 10, 50, 1, 1, 1]
