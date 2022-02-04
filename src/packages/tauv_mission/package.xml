@@ -21,14 +21,12 @@
   <depend>tauv_common</depend>
   <depend>tauv_vehicle</depend>
   <depend>multimaster_fkie</depend>
-  <depend>uuv_descriptions</depend>
   <depend>message_generation</depend>
   <depend>tf</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>std_srvs</depend>
   <depend>std_msgs</depend>
-  <depend>uuv_gazebo_ros_plugins_msgs</depend>
   <depend>roscpp</depend>
   <depend>message_runtime</depend>
   <depend>rospy</depend>
