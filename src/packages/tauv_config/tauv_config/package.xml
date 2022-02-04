@@ -6,12 +6,10 @@
 
   <maintainer email="tomscherlis@gmail.com">Tom Scherlis</maintainer>
 
-
   <license>MIT</license>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <exec_depend>manta_description</exec_depend>
-  <exec_depend>albatross_description</exec_depend>
+  <exec_depend>kingfisher_description</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
