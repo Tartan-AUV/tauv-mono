@@ -1,23 +1,16 @@
 import rospy
-from typing import Union
-from tf.transformations import euler_from_quaternion
 import tf
 import numpy as np
 
 from scipy.spatial.transform import Rotation
 from tauv_util.types import tl, tm
 from tauv_util.transforms import quat_to_rpy
-from tauv_msgs.msg import Pose as PoseMsg, XsensImuData as XsensImuMsg, TeledyneDvlData as TeledyneDvlMsg
-from sensor_msgs.msg import Imu as SimImuMsg
-from uuv_sensor_ros_plugins_msgs.msg import DVL as SimDvlMsg
+from tauv_msgs.msg import Pose as PoseMsg, XsensImuData as ImuMsg, TeledyneDvlData as DvlMsg
 from std_msgs.msg import Header
 from geometry_msgs.msg import Vector3, Quaternion, Pose, PoseWithCovariance, Twist, TwistWithCovariance
 from nav_msgs.msg import Odometry as OdometryMsg
 
 from .ekf import EKF
-
-ImuMsg = Union[XsensImuMsg, SimImuMsg]
-DvlMsg = Union[TeledyneDvlMsg, SimDvlMsg]
 
 class StateEstimation:
 
@@ -29,8 +22,8 @@ class StateEstimation:
         self._pose_pub: rospy.Publisher = rospy.Publisher('pose', PoseMsg, queue_size=10)
         self._odom_pub: rospy.Publisher = rospy.Publisher('odom', OdometryMsg, queue_size=10)
 
-        self._imu_sub: rospy.Subscriber = rospy.Subscriber('imu', XsensImuMsg, self._handle_imu)
-        self._dvl_sub: rospy.Subscriber = rospy.Subscriber('dvl', TeledyneDvlMsg, self._handle_dvl)
+        self._imu_sub: rospy.Subscriber = rospy.Subscriber('imu', ImuMsg, self._handle_imu)
+        self._dvl_sub: rospy.Subscriber = rospy.Subscriber('dvl', DvlMsg, self._handle_dvl)
 
         self._velocity_transform_a = np.array(rospy.get_param('~dvl/velocity_transform/a')).reshape((3, 3))
         self._velocity_transform_b = np.array(rospy.get_param('~dvl/velocity_transform/b'))
@@ -58,28 +51,14 @@ class StateEstimation:
 
         timestamp = msg.header.stamp
 
-        if isinstance(msg, SimImuMsg):
-            linear_acceleration = self._linear_acceleration_transform_a @ np.array(tl(msg.linear_acceleration)) \
-                                  + self._linear_acceleration_transform_b
+        linear_acceleration = tl(msg.linear_acceleration)
 
-            angular_velocity = self._angular_velocity_transform_a @ np.array(tl(msg.angular_velocity)) \
-                               + self._angular_velocity_transform_b
+        angular_velocity = tl(msg.angular_velocity)
 
-            orientation_eul = np.array(quat_to_rpy(msg.orientation))
-            orientation = self._orientation_transform_a @ orientation_eul \
-                          + self._orientation_transform_b
-            orientation = (orientation + np.pi) % (2 * np.pi) - np.pi
+        orientation = quat_to_rpy(msg.orientation)
+        orientation = (orientation + np.pi) % (2 * np.pi) - np.pi
 
-            self._ekf.handle_imu_measurement(linear_acceleration, orientation, angular_velocity, timestamp)
-        elif isinstance(msg, XsensImuMsg):
-            linear_acceleration = tl(msg.linear_acceleration)
-
-            angular_velocity = tl(msg.angular_velocity)
-
-            orientation = quat_to_rpy(msg.orientation)
-            orientation = (orientation + np.pi) % (2 * np.pi) - np.pi
-
-            self._ekf.handle_imu_measurement(linear_acceleration, orientation, angular_velocity, timestamp)
+        self._ekf.handle_imu_measurement(linear_acceleration, orientation, angular_velocity, timestamp)
 
         self._publish_state(timestamp)
 
@@ -89,15 +68,9 @@ class StateEstimation:
 
         timestamp = msg.header.stamp
 
-        if isinstance(msg, SimDvlMsg):
-            velocity = self._velocity_transform_a @ np.array(tl(msg.velocity)) \
-                       + self._velocity_transform_b
+        velocity = tl(msg.velocity)
 
-            self._ekf.handle_dvl_measurement(velocity, timestamp)
-        elif isinstance(msg, TeledyneDvlMsg):
-            velocity = tl(msg.velocity)
-
-            self._ekf.handle_dvl_measurement(velocity, timestamp)
+        self._ekf.handle_dvl_measurement(velocity, timestamp)
 
         self._publish_state(timestamp)
 
