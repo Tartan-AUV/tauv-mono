@@ -121,7 +121,7 @@ class Thrusters:
         self._positive_thrust_coefficients: np.array = np.array(rospy.get_param('~positive_thrust_coefficients'))
         self._negative_thrust_coefficients: np.array = np.array(rospy.get_param('~negative_thrust_coefficients'))
         self._thrust_inversions: [float] = rospy.get_param('~thrust_inversions')
-        self._tam: np.array = np.linalg.inv(np.array(rospy.get_param('~tam')))
+        self._tam: np.array = np.linalg.pinv(np.array(rospy.get_param('~tam')))
 
 
 def main():
