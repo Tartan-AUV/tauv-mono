@@ -6,6 +6,7 @@ from typing import Dict
 
 from .maestro import Maestro
 from tauv_util.types import tl
+from geometry_msgs.msg import Vector3
 from tauv_msgs.msg import Battery as BatteryMsg
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from geometry_msgs.msg import Wrench
@@ -39,9 +40,12 @@ class Thrusters:
         if (rospy.Time.now() - self._wrench_update_time).to_sec() > self._timeout \
                 or not self._is_armed:
             self._wrench = Wrench()
+            self._wrench.force = Vector3(x: 10.0, y: 0.0, z: 0.0)
             self._wrench_update_time = rospy.Time.now()
 
         thrusts = self._get_thrusts(self._wrench)
+
+        print(thrusts)
 
         for (thruster, thrust) in enumerate(thrusts):
             self._set_thrust(thruster, thrust)
@@ -78,7 +82,11 @@ class Thrusters:
                  self._negative_thrust_coefficients[2]),
             )
 
+            print(thrust_curve.roots())
+
             target_pwm_speed = floor(thrust_curve.roots()[0])
+
+            print(target_pwm_speed)
 
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
@@ -91,7 +99,11 @@ class Thrusters:
                  self._positive_thrust_coefficients[2]),
             )
 
+            print(thrust_curve.roots())
+
             target_pwm_speed = floor(thrust_curve.roots()[1])
+
+            print(target_pwm_speed)
 
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
