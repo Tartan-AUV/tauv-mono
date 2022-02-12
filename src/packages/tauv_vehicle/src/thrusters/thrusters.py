@@ -5,7 +5,7 @@ from math import floor
 from typing import Dict
 
 from .maestro import Maestro
-from tauv_util import tl
+from tauv_util.types import tl
 from tauv_msgs.msg import Battery as BatteryMsg
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from geometry_msgs.msg import Wrench
