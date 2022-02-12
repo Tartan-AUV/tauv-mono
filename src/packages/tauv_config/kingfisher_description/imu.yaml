@@ -1,2 +1,2 @@
-port: /dev/serial/by-id/usb-FTDI_USB-RS232_Cable_FT5TMLON-if00-port0
+port: /dev/ttyUSB0
 baudrate: 115200
