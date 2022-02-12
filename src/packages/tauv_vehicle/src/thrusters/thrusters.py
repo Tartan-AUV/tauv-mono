@@ -109,7 +109,7 @@ class Thrusters:
 
     def _load_config(self):
         self._maestro_port: str = rospy.get_param('~maestro_port')
-        self._thruster_channels: Dict[int, int] = rospy.get_param('~thruster_channels')
+        self._thruster_channels: [int] = rospy.get_param('~thruster_channels')
         self._minimum_pwm_speed: float = rospy.get_param('~minimum_pwm_speed')
         self._maximum_pwm_speed: float = rospy.get_param('~maximum_pwm_speed')
         self._negative_min_thrust: float = rospy.get_param('~negative_min_thrust')

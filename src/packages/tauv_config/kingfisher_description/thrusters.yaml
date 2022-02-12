@@ -1,13 +1,5 @@
 maestro_port: '/dev/ttyTHS1'
-maestro_channels:
-  1: 1
-  2: 2
-  3: 3
-  4: 4
-  5: 5
-  6: 6
-  7: 7
-  8: 8
+maestro_channels: [1, 2, 3, 4, 5, 6, 7, 8]
 
 minimum_pwm_speed: 0
 maximum_pwm_speed: 10000
