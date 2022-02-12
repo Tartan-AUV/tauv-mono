@@ -77,9 +77,11 @@ class Thrusters:
         if thrust < 0 and -self._negative_max_thrust < thrust < -self._negative_min_thrust:
             thrust_curve = Polynomial(
                 (self._negative_thrust_coefficients[0]
-                    + self._battery_voltage + self._battery_voltage ** 2 - thrust,
-                 self._negative_thrust_coefficients[1],
-                 self._negative_thrust_coefficients[2]),
+                    + self._negative_thrust_coefficients[1] * self._battery_voltage
+                    + self._negative_thrust_coefficients[2] * self._battery_voltage ** 2
+                    - thrust,
+                 self._negative_thrust_coefficients[3],
+                 self._negative_thrust_coefficients[4]),
             )
 
             print(self._battery_voltage)
@@ -96,9 +98,11 @@ class Thrusters:
         elif thrust > 0 and self._positive_min_thrust < thrust < self._positive_max_thrust:
             thrust_curve = Polynomial(
                 (self._positive_thrust_coefficients[0]
-                    + self._battery_voltage + self._battery_voltage ** 2 - thrust,
-                 self._positive_thrust_coefficients[1],
-                 self._positive_thrust_coefficients[2]),
+                    + self._positive_thrust_coefficients[1] * self._battery_voltage
+                    + self._positive_thrust_coefficients[2] * self._battery_voltage ** 2
+                    - thrust,
+                 self._positive_thrust_coefficients[3],
+                 self._positive_thrust_coefficients[4]),
             )
 
             print(self._battery_voltage)
