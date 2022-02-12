@@ -58,13 +58,15 @@ class Thrusters:
         self._wrench_update_time = rospy.Time.now()
 
     def _set_thrust(self, thruster: int, thrust: float):
+        print(f'${thruster} to ${thrust}')
+
         pwm_speed = self._get_pwm_speed(thruster, thrust)
 
         print(f'${thruster} to ${pwm_speed}')
         self._maestro.setTarget(pwm_speed * 4, self._thruster_channels[thruster])
 
     def _get_pwm_speed(self, thruster: int, thrust: float) -> int:
-        pwm_speed = 1600
+        pwm_speed = 1500
 
         thrust = thrust * self._thrust_inversions[thruster]
 
