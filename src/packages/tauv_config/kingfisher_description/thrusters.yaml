@@ -1,4 +1,4 @@
-maestro_port: '/dev/ttyTHS2'
+maestro_port: '/dev/ttyTHS4'
 thruster_channels: [1, 2, 3, 4, 5, 6, 7, 8]
 
 minimum_pwm_speed: 0
