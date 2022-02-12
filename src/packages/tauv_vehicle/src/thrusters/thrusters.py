@@ -42,7 +42,7 @@ class Thrusters:
             self._set_thrust(i, 0)
             rospy.sleep(5.0)
 
-        rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
+        # rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
         rospy.spin()
 
     def _update(self, timer_event):
@@ -74,7 +74,7 @@ class Thrusters:
 
         pwm_speed = self._get_pwm_speed(thruster, thrust)
 
-        # print(f'${thruster} to ${pwm_speed}')
+        print(f'${thruster} to ${pwm_speed}')
         self._maestro.setTarget(pwm_speed * 4, self._thruster_channels[thruster])
 
     def _get_pwm_speed(self, thruster: int, thrust: float) -> int:
