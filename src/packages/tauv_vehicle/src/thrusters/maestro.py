@@ -37,7 +37,7 @@ class Maestro:
         self.ttyStr = ttyStr
         self.device = device
         try:
-            self.usb = serial.Serial(self.ttyStr)
+            self.usb = serial.Serial(self.ttyStr, 115200)
         except:
             raise ValueError("Could not find Maestro servo controller! Is it connected and configured as dual port?")
         # Command lead-in and device number are sent for each Pololu serial command.
