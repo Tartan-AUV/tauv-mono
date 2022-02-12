@@ -33,6 +33,12 @@ class Thrusters:
         self._wrench_update_time: rospy.Time = rospy.Time.now()
 
     def start(self):
+        for i in range(8):
+            self._set_thrust(i, 5)
+            rospy.sleep(5.0)
+            self._set_thrust(i, 0)
+            rospy.sleep(5.0)
+
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
         rospy.spin()
 
