@@ -40,7 +40,6 @@ class Thrusters:
         if (rospy.Time.now() - self._wrench_update_time).to_sec() > self._timeout \
                 or not self._is_armed:
             self._wrench = Wrench()
-            self._wrench.force = Vector3(10.0, 0.0, 0.0)
             self._wrench_update_time = rospy.Time.now()
 
         thrusts = self._get_thrusts(self._wrench)
