@@ -64,7 +64,7 @@ class Thrusters:
         self._maestro.setTarget(pwm_speed * 4, self._thruster_channels[thruster])
 
     def _get_pwm_speed(self, thruster: int, thrust: float) -> int:
-        pwm_speed = 1500
+        pwm_speed = 1600
 
         thrust = thrust * self._thrust_inversions[thruster]
 
