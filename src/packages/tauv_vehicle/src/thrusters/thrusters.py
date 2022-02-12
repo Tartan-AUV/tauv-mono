@@ -82,6 +82,8 @@ class Thrusters:
                  self._negative_thrust_coefficients[2]),
             )
 
+            print(self._battery_voltage)
+            print(thrust_curve)
             print(thrust_curve.roots())
 
             target_pwm_speed = floor(thrust_curve.roots()[0])
@@ -99,6 +101,8 @@ class Thrusters:
                  self._positive_thrust_coefficients[2]),
             )
 
+            print(self._battery_voltage)
+            print(thrust_curve)
             print(thrust_curve.roots())
 
             target_pwm_speed = floor(thrust_curve.roots()[1])
