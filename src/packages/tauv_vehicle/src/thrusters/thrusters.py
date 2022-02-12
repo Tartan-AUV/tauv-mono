@@ -34,6 +34,9 @@ class Thrusters:
 
     def start(self):
         for i in range(8):
+            self._set_thrust(i, 0)
+
+        for i in range(8):
             self._set_thrust(i, 10)
             rospy.sleep(5.0)
             self._set_thrust(i, 0)
