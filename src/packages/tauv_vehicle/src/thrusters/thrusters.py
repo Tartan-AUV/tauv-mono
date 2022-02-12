@@ -97,12 +97,11 @@ class Thrusters:
 
     def _get_thrusts(self, wrench: Wrench) -> np.array:
         ned_to_enu: np.array = np.array ([
-            0, 1, 0,
-            1, 0, 0,
-            0, 0, -1
+            [0, 1, 0],
+            [1, 0, 0],
+            [0, 0, -1]
         ])
 
-        print(wrench.force)
         force = ned_to_enu @ tl(wrench.force)
         torque = ned_to_enu @ tl(wrench.torque)
 
