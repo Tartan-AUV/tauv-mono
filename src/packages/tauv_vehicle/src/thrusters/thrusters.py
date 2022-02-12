@@ -4,7 +4,7 @@ from numpy.polynomial.polynomial import Polynomial
 from math import floor
 from typing import Dict
 
-from maestro import Maestro
+from .maestro import Maestro
 from tauv_util import tl
 from tauv_msgs.msg import Battery as BatteryMsg
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
