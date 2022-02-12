@@ -103,6 +103,7 @@ class Thrusters:
         ])
 
         force = ned_to_enu @ tl(wrench.force)
+        print(wrench.force)
         torque = ned_to_enu @ tl(wrench.torque)
 
         return self._tam @ np.concatenate((force, torque))
