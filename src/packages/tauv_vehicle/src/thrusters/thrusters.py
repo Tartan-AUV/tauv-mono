@@ -92,13 +92,13 @@ class Thrusters:
                  self._negative_thrust_coefficients[4]),
             )
 
-            # print(self._battery_voltage)
-            # print(thrust_curve)
-            # print(thrust_curve.roots())
+            print(self._battery_voltage)
+            print(thrust_curve)
+            print(thrust_curve.roots())
 
             target_pwm_speed = floor(thrust_curve.roots()[0])
 
-            # print(target_pwm_speed)
+            print(target_pwm_speed)
 
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
@@ -113,13 +113,13 @@ class Thrusters:
                  self._positive_thrust_coefficients[4]),
             )
 
-            # print(self._battery_voltage)
-            # print(thrust_curve)
-            # print(thrust_curve.roots())
+            print(self._battery_voltage)
+            print(thrust_curve)
+            print(thrust_curve.roots())
 
             target_pwm_speed = floor(thrust_curve.roots()[1])
 
-            # print(target_pwm_speed)
+            print(target_pwm_speed)
 
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
