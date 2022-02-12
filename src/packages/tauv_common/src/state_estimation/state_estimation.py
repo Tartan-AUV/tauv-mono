@@ -25,21 +25,10 @@ class StateEstimation:
         self._imu_sub: rospy.Subscriber = rospy.Subscriber('imu', ImuMsg, self._handle_imu)
         self._dvl_sub: rospy.Subscriber = rospy.Subscriber('dvl', DvlMsg, self._handle_dvl)
 
-        self._velocity_transform_a = np.array(rospy.get_param('~dvl/velocity_transform/a')).reshape((3, 3))
-        self._velocity_transform_b = np.array(rospy.get_param('~dvl/velocity_transform/b'))
-        self._linear_acceleration_transform_a = np.array(rospy.get_param('~imu/linear_acceleration_transform/a')) \
-            .reshape((3, 3))
-        self._linear_acceleration_transform_b = np.array(rospy.get_param('~imu/linear_acceleration_transform/b'))
-        self._angular_velocity_transform_a = np.array(rospy.get_param('~imu/angular_velocity_transform/a')) \
-            .reshape((3, 3))
-        self._angular_velocity_transform_b = np.array(rospy.get_param('~imu/angular_velocity_transform/b'))
-        self._orientation_transform_a = np.array(rospy.get_param('~imu/orientation_transform/a')).reshape((3, 3))
-        self._orientation_transform_b = np.array(rospy.get_param('~imu/orientation_transform/b'))
+        dvl_offset = np.array(rospy.get_param('~dvl_offset'))
 
-        dvl_offset = np.array(rospy.get_param('~dvl/offset'))
-
-        imu_covariance = np.diag(rospy.get_param('~imu/covariance'))
-        dvl_covariance = np.diag(rospy.get_param('~dvl/covariance'))
+        imu_covariance = np.diag(rospy.get_param('~imu_covariance'))
+        dvl_covariance = np.diag(rospy.get_param('~dvl_covariance'))
 
         self._ekf: EKF = EKF(dvl_offset, imu_covariance, dvl_covariance)
 

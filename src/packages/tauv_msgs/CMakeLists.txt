@@ -13,6 +13,8 @@ add_message_files(
   PidVals.msg
   SonarPulse.msg
   PoseGraphMeasurement.msg
+  Thrust.msg
+  Battery.msg
   XsensImuSync.msg
   XsensImuData.msg
   TeledyneDvlData.msg
