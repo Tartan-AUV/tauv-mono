@@ -45,7 +45,7 @@ class Thrusters:
 
         thrusts = self._get_thrusts(self._wrench)
 
-        print(thrusts)
+        # print(thrusts)
 
         for (thruster, thrust) in enumerate(thrusts):
             self._set_thrust(thruster, thrust)
@@ -62,11 +62,11 @@ class Thrusters:
         self._wrench_update_time = rospy.Time.now()
 
     def _set_thrust(self, thruster: int, thrust: float):
-        print(f'${thruster} to ${thrust}')
+        # print(f'${thruster} to ${thrust}')
 
         pwm_speed = self._get_pwm_speed(thruster, thrust)
 
-        print(f'${thruster} to ${pwm_speed}')
+        # print(f'${thruster} to ${pwm_speed}')
         self._maestro.setTarget(pwm_speed * 4, self._thruster_channels[thruster])
 
     def _get_pwm_speed(self, thruster: int, thrust: float) -> int:
@@ -84,13 +84,13 @@ class Thrusters:
                  self._negative_thrust_coefficients[4]),
             )
 
-            print(self._battery_voltage)
-            print(thrust_curve)
-            print(thrust_curve.roots())
+            # print(self._battery_voltage)
+            # print(thrust_curve)
+            # print(thrust_curve.roots())
 
             target_pwm_speed = floor(thrust_curve.roots()[0])
 
-            print(target_pwm_speed)
+            # print(target_pwm_speed)
 
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
@@ -105,13 +105,13 @@ class Thrusters:
                  self._positive_thrust_coefficients[4]),
             )
 
-            print(self._battery_voltage)
-            print(thrust_curve)
-            print(thrust_curve.roots())
+            # print(self._battery_voltage)
+            # print(thrust_curve)
+            # print(thrust_curve.roots())
 
             target_pwm_speed = floor(thrust_curve.roots()[1])
 
-            print(target_pwm_speed)
+            # print(target_pwm_speed)
 
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
