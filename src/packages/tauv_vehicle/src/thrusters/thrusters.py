@@ -16,7 +16,7 @@ class Thrusters:
 
     def __init__(self):
         self._dt: float = 0.02
-        self._timeout: float = 0.25
+        self._timeout: float = 5.0
 
         self._load_config()
 
