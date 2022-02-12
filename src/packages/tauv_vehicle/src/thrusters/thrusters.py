@@ -82,6 +82,8 @@ class Thrusters:
 
         thrust = thrust * self._thrust_inversions[thruster]
 
+        print(thruster, thrust)
+
         if thrust < 0 and -self._negative_max_thrust < thrust < -self._negative_min_thrust:
             thrust_curve = Polynomial(
                 (self._negative_thrust_coefficients[0]
