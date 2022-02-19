@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 
 import rospy
@@ -67,16 +66,48 @@ class ClusterPotential():
         nxt = []
         if(self.angle-1>0):
             nxt.append([self.dist, self.angle-1])
+            if(self.dist-1>0):
+                nxt.append([self.dist-1,self.angle-1])
+            else:
+                nxt.append([self.tot_dist-1, self.angle-1])
+            if(self.dist+1<self.tot_dist):
+                nxt.append([self.dist+1,self.angle-1])
+            else:
+                nxt.append([0,self.angle-1])
         else:
             nxt.append([self.dist, self.degrees-1])
+            if(self.dist-1>0):
+                nxt.append([self.dist-1,self.degrees-1])
+            else:
+                nxt.append([self.tot_dist-1, self.degrees-1]) 
+            if(self.dist+1<self.tot_dist):
+                nxt.append([self.dist+1,self.angle+1])
+            else:
+                nxt.append([0,self.angle+1])
         if(self.angle+1<self.degrees):
             nxt.append([self.dist, self.angle+1])
+            if(self.dist-1>0):
+                nxt.append([self.dist-1,self.angle+1])
+            else:
+               nxt.append([self.tot_dist-1, self.angle+1])
+            if(self.dist+1<self.tot_dist):
+               nxt.append([self.dist+1,self.angle+1])
+            else:
+               nxt.append([0,self.angle+1])
         else:
             nxt.append([self.dist, 0])
+            if(self.dist-1>0):
+                nxt.append([self.dist-1,0])
+            else:
+                nxt.append([self.tot_dist,0])
+            if([self.dist+1<self.tot_dist]):
+                nxt.append([self.dist+1,0])
+            else:
+                nxt.append([0,0])
         if(self.dist-1>0):
-            nxt.append([self.dist-1,self.angle])
+             nxt.append([self.dist-1,self.angle])
         else:
-            nxt.append([self.tot_dist-1,self.angle])
+             nxt.append([self.tot_dist-1,self.angle])
         if(self.dist+1<self.tot_dist):
             nxt.append([self.dist+1,self.angle])
         else:
@@ -106,7 +137,8 @@ class GraphContainer(SonarGraph):
         self.round=400
         self.cycles = 0
         self.delay = 5
-        self.blur = 2
+        self.blur = 0.75
+        self.avg = 0
 
         self.degrees=400
 
@@ -144,7 +176,8 @@ class GraphContainer(SonarGraph):
                     self.prc[self.calc_dist(i)][self.cur_angle]=0  
             #self.sprc[ignore:self.data_len, self.cur_angle:self.cur_angle+1]=self.prc[ignore:self.data_len,self.cur_angle:self.cur_angle+1] 
             if(self.cur_angle>self.delay*2):
-                self.sprc[ignore:self.data_len,self.cur_angle-self.delay:self.cur_angle-(self.delay-1)] = scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-(self.delay*2):self.cur_angle],self.blur)[0:self.data_len,self.delay:self.delay+1]
+               #self.sprc[ignore:self.data_len, self.cur_angle-self.delay:self.cur_angle-self.delay+1] = self.prc[ignore:self.data_len, self.cur_angle-self.delay:self.cur_angle-self.delay+1]
+               self.sprc[ignore:self.data_len,self.cur_angle-self.delay:self.cur_angle-(self.delay-1)] = scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-(self.delay*2):self.cur_angle],self.blur)[0:self.data_len,self.delay:self.delay+1]
             #self.clusters_blur[ignore:self.data_len,self.cur_angle-10:self.cur_angle-9] = scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-15:self.cur_angle-6],1)[0:self.data_len,5:6]
             #self.sprc[ignore:self.data_len,self.cur_angle:self.cur_angle+1] = scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-5:self.cur_angle+5],(200,10))[0:self.data_len,5:6]
             '''#np.reshape([range(ignore,200),range(ignore,200),range(ignore,200),range(ignore,200),range(ignore,200)],(self.true_data_len,5)) #scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-3:self.cur_angle+3],(200,5))'''
@@ -162,11 +195,12 @@ class GraphContainer(SonarGraph):
             self.deq_cluster(self.degrees-(self.delay-self.cur_angle))
         #print(self.cluster_queue)
         
-        self.display_img(self.clusters)
+        self.display_img(self.POI)
         
         if self.counter>self.round:
             #self.sprc=[0]*self.degrees*(self.data_len) #for graphing
             self.avg_noise = np.mean(self.unpr)
+            self.avg = np.mean(self.sprc)
             self.std = np.std(self.sprc)
             self.dif_measure = 3
             self.counter=0 
@@ -196,10 +230,10 @@ class GraphContainer(SonarGraph):
     def find_POI(self, angle, dist, graph):
         poi = 0
         if(angle!=0):
-            if(graph[dist][angle]-graph[dist][angle-1]>self.std and graph[dist][angle]>self.avg_noise+self.std):
+            if(graph[dist][angle]-graph[dist][angle-1]>self.std and graph[dist][angle]>(self.avg+4*self.std)):
                 poi = 1
         if(dist>ignore+1):
-            if(graph[dist][angle]-graph[dist-1][angle]>self.std and graph[dist][angle]>self.avg_noise+self.std):
+            if(graph[dist][angle]-graph[dist-1][angle]>self.std and graph[dist][angle]>(self.avg+4*self.std)):
                 poi=1
         if(poi==1):
             hq.heappush(self.cluster_queue,PrioritizedItem(angle,(ClusterPotential(graph[dist][angle],angle,dist,self.dif_measure,self.data_len,self.degrees))))
@@ -213,12 +247,12 @@ class GraphContainer(SonarGraph):
             angle = self.degrees + angle
         if(self.sprc[dist][angle]>(self.avg_noise + self.std)):
             self.POI[dist][angle]=100
-            self.cluster_queue.put(PrioritizedItem(angle,(ClusterPotential(self.sprc[angle][dist],angle,dist,self.dif_measure,self.data_len,self.degrees))))
+            hq.heappush(self.cluster_queue,(PrioritizedItem(angle,(ClusterPotential(self.sprc[angle][dist],angle,dist,self.dif_measure,self.data_len,self.degrees)))))
         else:
             self.POI[dist][angle]=0
 
     def deq_cluster(self, angle):
-        print(self.dif_measure)
+        print(len(self.cluster_queue))
         if(not self.cluster_queue):
             return
         nxt = hq.heappop(self.cluster_queue)
@@ -232,7 +266,7 @@ class GraphContainer(SonarGraph):
                 if(nxt.item.is_clust()==True):
                     self.clusters[dist][angle2]=100
                     more = nxt.item.get_next()
-                    for i in range(4):
+                    for i in range(8):
                         self.cluster_enq(self.sprc[dist][angle2], more[i])
             if(not self.cluster_queue):
                 return
