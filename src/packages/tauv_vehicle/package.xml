@@ -27,7 +27,7 @@
   <!-- <depend>gscam</depend> -->
   <depend>image_proc</depend>
   <depend>tf</depend>
-  <depend>phidgets_ik</depend>
+  <!--<depend>phidgets_ik</depend>-->
   <depend>imu_filter_madgwick</depend>
   <depend>imu_transformer</depend>
   <depend>tauv_msgs</depend>
