@@ -27,6 +27,8 @@ class TeleopPlanner:
         self._dt: float = 0.05
         self._command_timeout: float = 0.5
 
+        self._is_armed: bool = False
+
         self._joy_sub: rospy.Subscriber = rospy.Subscriber('joy', JoyMsg, self._handle_joy)
         self._wrench_pub: rospy.Publisher = rospy.Publisher('wrench', Wrench, queue_size=10)
         self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('arm', SetBool)
@@ -41,7 +43,8 @@ class TeleopPlanner:
         rospy.spin()
 
     def _update(self, timer_event):
-        if (rospy.Time.now() - self._command_timestamp).to_sec() > self._command_timeout:
+        if (rospy.Time.now() - self._command_timestamp).to_sec() > self._command_timeout \
+                or not self._is_armed:
             self._command = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
         wrench: Wrench = Wrench()
@@ -68,6 +71,8 @@ class TeleopPlanner:
         self._command_timestamp = rospy.Time.now()
 
     def _arm(self, arm: bool):
+        self._is_armed = arm
+
         try:
             resp = self._arm_srv(arm)
             if not resp.success:
