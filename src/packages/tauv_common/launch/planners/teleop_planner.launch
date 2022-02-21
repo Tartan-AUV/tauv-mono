@@ -1,0 +1,11 @@
+<launch>
+    <arg name="model_name" default="kingfisher"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+    <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />
+        <remap from="joy" to="/joy" />
+        <remap from="wrench" to="/thrusters/wrench" />
+        <remap from="arm" to="/thrusters/arm" />
+    </node>
+</launch>

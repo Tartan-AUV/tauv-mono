@@ -1,0 +1,17 @@
+button_ids:
+  arm: 0
+  estop: 1
+axis_ids:
+  x: 4
+  y: 6
+  z: 7
+  roll: 0
+  pitch: 1
+  yaw: 3
+axis_scales:
+  x: 5
+  y: -5
+  z: 5
+  roll: -2
+  pitch: 2
+  yaw: -2

@@ -51,8 +51,10 @@ class TeleopPlanner:
 
     def _handle_joy(self, msg: JoyMsg):
         if self._is_pressed(msg, ButtonInput.ESTOP):
+            print('ESTOP')
             self._arm(False)
         elif self._is_pressed(msg, ButtonInput.ARM):
+            print('ARM')
             self._arm(True)
 
         self._command = np.array([
@@ -77,13 +79,16 @@ class TeleopPlanner:
         return self._axis_scales[axis.value] * msg.axes[self._axis_ids[axis.value]]
 
     def _is_pressed(self, msg: JoyMsg, button: ButtonInput):
+        print(msg, button)
         return msg.buttons[self._button_ids[button.value]] == 1
 
     def _parse_config(self):
-        self._button_ids = rospy.get_param('~button_ids')
-
+        self._button_ids: Dict[str, int] = rospy.get_param('~button_ids')
         self._axis_ids: Dict[str, int] = rospy.get_param('~axis_ids')
         self._axis_scales: Dict[str, int] = rospy.get_param('~axis_scales')
+        print(self._button_ids)
+        print(self._axis_ids)
+        print(self._axis_scales)
 
 
 def main():
