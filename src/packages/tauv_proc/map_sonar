@@ -138,8 +138,9 @@ class GraphContainer(SonarGraph):
         self.round=400
         self.cycles = 0
         self.delay = 3
-        self.blur = .25
-        self.blur2 = .75
+        self.blur = 1.25
+        self.dividend = 0
+        #self.blur2 = .15
         self.avg = 0
 
         self.degrees=400
@@ -155,6 +156,7 @@ class GraphContainer(SonarGraph):
         #self.cluster_blur = np.copy(self.prc)
         self.cluster_queue = []
         self.proc_sprc = np.copy(self.prc)
+        self.temp_sprc = np.copy(self.prc)
 
         #allows popups of graph
         matplotlib.use('gtk3agg')
@@ -177,10 +179,17 @@ class GraphContainer(SonarGraph):
                     self.prc[self.calc_dist(i)][self.cur_angle]=data.data[i]
                 else:
                     self.prc[self.calc_dist(i)][self.cur_angle]=0  
-                if(self.sprc[i][self.cur_angle-(self.delay)-1]>self.avg):
+                if(self.sprc[i][self.cur_angle-(self.delay)-1]>self.avg+self.dividend*self.std):
+                    #self.proc_sprc[i][self.cur_angle-self.delay-1]=255
                     self.proc_sprc[i][self.cur_angle-self.delay-1]=self.sprc[i][self.cur_angle-self.delay-1]
                 else: 
                     self.proc_sprc[i][self.cur_angle-self.delay-1]=0
+                '''if(self.proc_sprc[i][self.cur_angle-(self.delay)-10]>0):
+                    self.temp_sprc[i][self.cur_angle-self.delay-10]=100
+                else:
+                    self.temp_sprc[i][self.cur_angle-self.delay-10]=0
+                #if(self.clusters[i][self.cur_angle-self.delay-2]>0):
+                #    self.temp_sprc[i][self.cur_angle-self.delay-2]=155'''
             #self.sprc[ignore:self.data_len, self.cur_angle:self.cur_angle+1]=self.prc[ignore:self.data_len,self.cur_angle:self.cur_angle+1] 
             if(self.cur_angle>=self.delay*2):
                #self.sprc[ignore:self.data_len, self.cur_angle-self.delay:self.cur_angle-self.delay+1] = self.prc[ignore:self.data_len, self.cur_angle-self.delay:self.cur_angle-self.delay+1] 
@@ -189,14 +198,15 @@ class GraphContainer(SonarGraph):
                 self.sprc[ignore:self.data_len,self.cur_angle-self.delay:self.cur_angle-(self.delay-1)] = scipy.ndimage.gaussian_filter(np.concatenate((self.prc[ignore:self.data_len,self.degrees-2*self.delay+self.cur_angle:self.degrees],self.prc[ignore:self.data_len,0:self.cur_angle+1]),axis=1),self.blur)[0:self.data_len-ignore,self.delay:self.delay+1]
             else:
                 self.sprc[ignore:self.data_len,self.degrees+self.cur_angle-self.delay:self.degrees+self.cur_angle-self.delay+1] = scipy.ndimage.gaussian_filter(np.concatenate((self.prc[ignore:self.data_len,self.degrees-2*self.delay+self.cur_angle:self.degrees],self.prc[ignore:self.data_len,0:self.cur_angle+1]),axis=1),self.blur)[0:self.data_len-ignore,self.delay:self.delay+1]
-            proc_angle = self.cur_angle-self.delay
+            '''proc_angle = self.cur_angle-self.delay
             if(proc_angle>=self.delay*2):
                #self.sprc[ignore:self.data_len, self.cur_angle-self.delay:self.cur_angle-self.delay+1] = self.prc[ignore:self.data_len, self.cur_angle-self.delay:self.cur_angle-self.delay+1] 
-               self.proc_sprc[ignore:self.data_len,proc_angle-self.delay:proc_angle-(self.delay-1)] = scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,proc_angle-(self.delay*2):proc_angle+1],self.blur2)[0:self.data_len-ignore,self.delay:self.delay+1]
+               self.proc_sprc[ignore:self.data_len,proc_angle-self.delay:proc_angle-(self.delay-1)] = scipy.ndimage.gaussian_filter(self.temp_sprc[ignore:self.data_len,proc_angle-(self.delay*2):proc_angle+1],self.blur2)[0:self.data_len-ignore,self.delay:self.delay+1]
             elif(proc_angle>=self.delay):
-                self.sprc[ignore:self.data_len,proc_angle-self.delay:proc_angle-(self.delay-1)] = scipy.ndimage.gaussian_filter(np.concatenate((self.prc[ignore:self.data_len,self.degrees-2*self.delay+proc_angle:self.degrees],self.prc[ignore:self.data_len,0:proc_angle+1]),axis=1),self.blur2)[0:self.data_len-ignore,self.delay:self.delay+1]
+                self.sprc[ignore:self.data_len,proc_angle-self.delay:proc_angle-(self.delay-1)] = scipy.ndimage.gaussian_filter(np.concatenate((self.temp_sprc[ignore:self.data_len,self.degrees-2*self.delay+proc_angle:self.degrees],self.prc[ignore:self.data_len,0:proc_angle+1]),axis=1),self.blur2)[0:self.data_len-ignore,self.delay:self.delay+1]
             else:
-                self.sprc[ignore:self.data_len,self.degrees+proc_angle-self.delay:self.degrees+proc_angle-self.delay+1] = scipy.ndimage.gaussian_filter(np.concatenate((self.prc[ignore:self.data_len,self.degrees-2*self.delay+proc_angle:self.degrees],self.prc[ignore:self.data_len,0:proc_angle+1]),axis=1),self.blur2)[0:self.data_len-ignore,self.delay:self.delay+1]
+                self.sprc[ignore:self.data_len,self.degrees+proc_angle-self.delay:self.degrees+proc_angle-self.delay+1] = scipy.ndimage.gaussian_filter(np.concatenate((self.temp_sprc[ignore:self.data_len,self.degrees-2*self.delay+proc_angle:self.degrees],self.prc[ignore:self.data_len,0:proc_angle+1]),axis=1),self.blur2)[0:self.data_len-ignore,self.delay:self.delay+1]
+            '''
             #self.clusters_blur[ignore:self.data_len,self.cur_angle-10:self.cur_angle-9] = scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-15:self.cur_angle-6],1)[0:self.data_len,5:6]
             #self.sprc[ignore:self.data_len,self.cur_angle:self.cur_angle+1] = scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-5:self.cur_angle+5],(200,10))[0:self.data_len,5:6]
             #np.reshape([range(ignore,200),range(ignore,200),range(ignore,200),range(ignore,200),range(ignore,200)],(self.true_data_len,5)) #scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-3:self.cur_angle+3],(200,5))
@@ -214,7 +224,7 @@ class GraphContainer(SonarGraph):
             self.deq_cluster(self.degrees-(self.delay+1-self.cur_angle))
         #print(self.cluster_queue)'''
         
-        self.display_img(self.proc_sprc)
+        self.display_img(self.clusters)
         
         if self.counter>self.round:
             #self.sprc=[0]*self.degrees*(self.data_len) #for graphing
@@ -286,6 +296,7 @@ class GraphContainer(SonarGraph):
                 #print("val = ",nxt.item.get_val())
                 if(self.proc_sprc[dist][angle2]>0 and nxt.item.is_clust()==True):
                     self.clusters[dist][angle2]=100
+                    #self.temp_sprc[dist][angle2]=100
                     more = nxt.item.get_next()
                     for i in range(8):
                         self.cluster_enq(self.sprc[dist][angle2], more[i])
