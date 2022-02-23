@@ -162,7 +162,7 @@ class GraphContainer(SonarGraph):
         matplotlib.use('gtk3agg')
         #plt.ion()
 
-        self.plot = plt.imshow(np.reshape(self.unpr, (self.data_len,self.degrees)),cmap='jet')
+        self.plot = plt.imshow(np.reshape(self.unpr, (self.data_len,self.degrees)),cmap='gray')
         plt.show()
 
     def read(self, data):
@@ -179,7 +179,7 @@ class GraphContainer(SonarGraph):
                     self.prc[self.calc_dist(i)][self.cur_angle]=data.data[i]
                 else:
                     self.prc[self.calc_dist(i)][self.cur_angle]=0  
-                if(self.sprc[i][self.cur_angle-(self.delay)-1]>self.avg+self.dividend*self.std):
+                if(self.sprc[i][self.cur_angle-(self.delay)-1]>self.avg_noise+self.dividend*self.std):
                     #self.proc_sprc[i][self.cur_angle-self.delay-1]=255
                     self.proc_sprc[i][self.cur_angle-self.delay-1]=self.sprc[i][self.cur_angle-self.delay-1]
                 else: 
@@ -228,10 +228,14 @@ class GraphContainer(SonarGraph):
         
         if self.counter>self.round:
             #self.sprc=[0]*self.degrees*(self.data_len) #for graphing
+            dif = self.avg_noise+self.dividend*self.std
             self.avg_noise = np.mean(self.unpr)
             self.avg = np.mean(self.sprc)
             self.std = np.std(self.sprc)
             self.dif_measure = self.std
+            if(self.dif_measure>=dif):
+                self.dif_measure=dif-1
+            print(dif)
             self.counter=0 
             self.cycles+=1
             #self.cluster_queue.queue.clear()
@@ -276,7 +280,7 @@ class GraphContainer(SonarGraph):
             angle = self.degrees + angle
         if(self.sprc[dist][angle]>(self.avg_noise + self.std)):
             self.POI[dist][angle]=100
-            hq.heappush(self.cluster_queue,(PrioritizedItem(angle,(ClusterPotential(self.sprc[angle][dist],angle,dist,self.dif_measure,self.data_len,self.degrees)))))
+            hq.heappush(self.cluster_queue,(PrioritizedItem(angle,(ClusterPotential(self.proc_sprc[angle][dist],angle,dist,self.dif_measure,self.data_len,self.degrees)))))
         else:
             self.POI[dist][angle]=0
 
@@ -291,15 +295,15 @@ class GraphContainer(SonarGraph):
             dist = nxt.item.get_dist()
             angle2 = nxt.item.get_angle()
             if(self.clusters[dist][angle2]==0):
-                nxt.item.set_val(self.sprc[dist][angle2],self.dif_measure)
+                nxt.item.set_val(self.proc_sprc[dist][angle2],self.dif_measure)
                 #print(" = ",nxt.item.get_POI())
                 #print("val = ",nxt.item.get_val())
-                if(self.proc_sprc[dist][angle2]>0 and nxt.item.is_clust()==True):
+                if(nxt.item.is_clust()==True):
                     self.clusters[dist][angle2]=100
                     #self.temp_sprc[dist][angle2]=100
                     more = nxt.item.get_next()
                     for i in range(8):
-                        self.cluster_enq(self.sprc[dist][angle2], more[i])
+                        self.cluster_enq(self.proc_sprc[dist][angle2], more[i])
             if(not self.cluster_queue):
                 return
             nxt = hq.heappop(self.cluster_queue)
