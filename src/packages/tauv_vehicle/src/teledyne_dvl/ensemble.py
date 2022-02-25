@@ -129,16 +129,11 @@ class Ensemble:
 
         return True
 
-    def _is_velocity_valid(self) -> bool:
-        return abs(self.velocity_error) < 100
-
     def to_msg(self) -> DvlDataMsg:
         msg = DvlDataMsg()
         msg.header = Header()
 
         msg.header.stamp = rospy.get_rostime()
-
-        msg.is_velocity_valid = self._is_velocity_valid()
 
         if self.parsed_variable_leader:
             msg.ensemble_number = (self.ensemble_number_msb << 16) + self.ensemble_number
@@ -159,9 +154,9 @@ class Ensemble:
 
         if self.parsed_bottom_track_data:
             msg.velocity = Vector3(
-                self.velocity_y * -1e-3,
-                self.velocity_x * -1e-3,
-                self.velocity_z * -1e-3
+                0 if self.velocity_y == 0x8000 else self.velocity_y * -1e-3,
+                0 if self.velocity_x == 0x8000 else self.velocity_x * -1e-3,
+                0 if self.velocity_z == 0x8000 else self.velocity_z * -1e-3
             )
             msg.velocity_error = self.velocity_error * 1e-3
 
