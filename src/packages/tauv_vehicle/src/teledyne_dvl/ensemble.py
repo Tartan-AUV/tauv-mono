@@ -130,7 +130,7 @@ class Ensemble:
         return True
 
     def _is_velocity_valid(self) -> bool:
-        return self.velocity_error < 100
+        return abs(self.velocity_error) < 100
 
     def to_msg(self) -> DvlDataMsg:
         msg = DvlDataMsg()
