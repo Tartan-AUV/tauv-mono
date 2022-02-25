@@ -154,9 +154,9 @@ class Ensemble:
 
         if self.parsed_bottom_track_data:
             msg.velocity = Vector3(
-                0 if self.velocity_y == 0x8000 else self.velocity_y * -1e-3,
-                0 if self.velocity_x == 0x8000 else self.velocity_x * -1e-3,
-                0 if self.velocity_z == 0x8000 else self.velocity_z * -1e-3
+                0 if -self.velocity_y == 0x8000 else self.velocity_y * -1e-3,
+                0 if -self.velocity_x == 0x8000 else self.velocity_x * -1e-3,
+                0 if -self.velocity_z == 0x8000 else self.velocity_z * -1e-3
             )
             msg.velocity_error = self.velocity_error * 1e-3
 
