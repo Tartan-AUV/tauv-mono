@@ -76,8 +76,8 @@ struct ImuPublisher : public PacketCallback
             XsQuaternion q = packet.orientationQuaternion();
 
             quaternion.w = q.w();
-            quaternion.x = q.x();
-            quaternion.y = -q.y();
+            quaternion.x = q.y();
+            quaternion.y = -q.x();
             quaternion.z = q.z();
         }
 
