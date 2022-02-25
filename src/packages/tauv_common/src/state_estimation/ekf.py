@@ -53,7 +53,8 @@ class EKF:
 
         H: np.array = self._get_H([StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL])
 
-        z: np.array = np.concatenate((orientation))
+        # z: np.array = np.concatenate((orientation))
+        z = np.array(orientation)
 
         y: np.array = z - np.matmul(H, self._state)
 
