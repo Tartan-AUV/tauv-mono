@@ -7,26 +7,26 @@
     <!-- path to config package  -->
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
     <!-- force topic (for the thruster manager) to publish to -->
-    <arg name="thruster_manager_topic" default="/$(arg model_name)/thruster_manager/input"/>
-    <!-- odom topic to listen on -->
-    <arg name="odom_topic" default="odom"/>
-    <!-- Planner to use. Possible options: "teleop", "mpc" -->
-    <arg name="planner" default="mpc"/>
+<!--    <arg name="thruster_manager_topic" default="/$(arg model_name)/thruster_manager/input"/>-->
+<!--    &lt;!&ndash; odom topic to listen on &ndash;&gt;-->
+<!--    <arg name="odom_topic" default="odom"/>-->
+<!--    &lt;!&ndash; Planner to use. Possible options: "teleop", "mpc" &ndash;&gt;-->
+<!--    <arg name="planner" default="mpc"/>-->
 
     <group ns="gnc">
         <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />
             <remap from="pose" to="/gnc/pose" />
             <remap from="odom" to="/gnc/odom" />
-            <remap from="imu" to="/$(arg model_name)/imu" />
-            <remap from="dvl" to="/$(arg model_name)/dvl" />
+            <remap from="imu" to="/xsens_imu/data" />
+            <remap from="dvl" to="/teledyne_dvl/data" />
         </node>
 
-        <node pkg="tauv_common" type="controller" name="controller" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/controller.yaml" />
-            <remap from="odom" to="/gnc/odom"/>
-            <remap from="controller_cmd" to="$(arg planner)/controller_cmd"/>
-            <remap from="wrench" to="/$(arg model_name)/thruster_manager/input_stamped"/>
+<!--        <node pkg="tauv_common" type="controller" name="controller" output="screen">-->
+<!--            <rosparam command="load" file="$(arg config_pkg)/controller.yaml" />-->
+<!--            <remap from="odom" to="/gnc/odom"/>-->
+<!--            <remap from="controller_cmd" to="$(arg planner)/controller_cmd"/>-->
+<!--            <remap from="wrench" to="/$(arg model_name)/thruster_manager/input_stamped"/>-->
         </node>
 
         <!-- Load USB joystick controller configs -->
@@ -38,10 +38,10 @@
 <!--            <remap from="joy" to="/gui/tauv_joy"/>-->
 <!--        </node>-->
 
-        <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />
-            <remap from="odom" to="/gnc/odom"/>
-            <remap from="controller_cmd" to="mpc/controller_cmd"/>
-        </node>
+<!--        <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">-->
+<!--            <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />-->
+<!--            <remap from="odom" to="/gnc/odom"/>-->
+<!--            <remap from="controller_cmd" to="mpc/controller_cmd"/>-->
+<!--        </node>-->
     </group>
 </launch>
