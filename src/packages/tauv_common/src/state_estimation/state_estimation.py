@@ -57,7 +57,7 @@ class StateEstimation:
 
         timestamp = msg.header.stamp
 
-        velocity = tl(msg.velocity)
+        velocity = tl(msg.hr_velocity)
         print(velocity)
 
         self._ekf.handle_dvl_measurement(velocity, timestamp)
