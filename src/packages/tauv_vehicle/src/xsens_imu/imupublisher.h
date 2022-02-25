@@ -76,27 +76,27 @@ struct ImuPublisher : public PacketCallback
             XsQuaternion q = packet.orientationQuaternion();
 
             quaternion.w = q.w();
-            quaternion.x = -q.x();
-            quaternion.y = q.y();
-            quaternion.z = -q.z();
+            quaternion.x = q.x();
+            quaternion.y = -q.y();
+            quaternion.z = q.z();
         }
 
         geometry_msgs::Vector3 angular_velocity;
         if (angular_velocity_available)
         {
             XsVector a = packet.calibratedGyroscopeData();
-            angular_velocity.x = -a[0];
-            angular_velocity.y = a[1];
-            angular_velocity.z = -a[2];
+            angular_velocity.x = a[0];
+            angular_velocity.y = -a[1];
+            angular_velocity.z = a[2];
         }
 
         geometry_msgs::Vector3 linear_acceleration;
         if (linear_acceleration_available)
         {
             XsVector a = packet.calibratedAcceleration();
-            linear_acceleration.x = -a[0];
-            linear_acceleration.y = a[1];
-            linear_acceleration.z = -a[2];
+            linear_acceleration.x = a[0];
+            linear_acceleration.y = -a[1];
+            linear_acceleration.z = a[2];
         }
 
         uint32_t status = packet.status();
