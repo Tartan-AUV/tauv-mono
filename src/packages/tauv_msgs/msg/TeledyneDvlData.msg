@@ -1,5 +1,7 @@
 Header header
 
+bool is_velocity_valid
+
 int64 ensemble_number
 
 std_msgs/String test_status

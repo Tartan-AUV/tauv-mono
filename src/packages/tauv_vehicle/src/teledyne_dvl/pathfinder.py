@@ -34,6 +34,7 @@ class Pathfinder:
         self._send_break()
 
     def configure(self):
+        self.reset()
         self._log('configure')
 
         # Restore factory default settings
@@ -62,8 +63,15 @@ class Pathfinder:
         # Ship coordinates
         # Ignore tilts
         # Allow 3-beam solutions
-        # Allow bin mapping
-        self._send_command('EX10011')
+        # Disable bin mapping
+        self._send_command('EX10010')
+
+        # Set sensor source
+        self._send_command('EZ11000010')
+
+        # Set salinity
+        # 0 ppm
+        self._send_command('ES00')
 
         # Set time per ensemble
         # As fast as possible
@@ -84,8 +92,8 @@ class Pathfinder:
         self._send_command('BP001')
 
         # Set maximum bottom search depth
-        # 110m
-        self._send_command('BX01100')
+        # 12m
+        self._send_command('BX00120')
 
         # Set bottom track output types
         # Standard bottom track, high resolution bottom track

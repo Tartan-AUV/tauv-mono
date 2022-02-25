@@ -121,11 +121,16 @@ class Ensemble:
     def is_valid(self) -> bool:
         if not (self.parsed_fixed_leader
                 and self.parsed_variable_leader
-                and self.parsed_bottom_track_data):
+                and self.parsed_bottom_track_data
+                and self.parsed_hr_bottom_track_data
+                and self.parsed_nav_params_data
+                and self.parsed_bottom_track_range_data):
             return False
 
         return True
-       # TODO: Add conditions to catch magic bad values
+
+    def _is_velocity_valid(self) -> bool:
+        return self.velocity_error < 100
 
     def to_msg(self) -> DvlDataMsg:
         msg = DvlDataMsg()
@@ -133,12 +138,14 @@ class Ensemble:
 
         msg.header.stamp = rospy.get_rostime()
 
+        msg.is_velocity_valid = self._is_velocity_valid()
+
         if self.parsed_variable_leader:
             msg.ensemble_number = (self.ensemble_number_msb << 16) + self.ensemble_number
             msg.test_status.data = Ensemble.TEST_STATUS_MAPPING.get(self.test_status, 'Unknown error')
             msg.health_status.data = self._get_health_status(self.health_status)
             msg.depth = self.depth * 1e-1
-            msg.pressure = (self.pressure / 10132.5) + 1 # Convert decapascalsto ATM
+            msg.pressure = (self.pressure / 10132.5) + 1 # Convert decapascals to ATM
             msg.pressure_variance = (self.pressure_variance / 10132.5) + 1 # Convert decapascals to ATM
             msg.heading = self.heading * 1e-2
             msg.pitch = self.pitch * 1e-2
@@ -299,22 +306,22 @@ class Ensemble:
         self.beam_2_range = d.read('uintle:16')
         self.beam_3_range = d.read('uintle:16')
         self.beam_4_range = d.read('uintle:16')
-        self.velocity_x = d.read('uintle:16')
-        self.velocity_y = d.read('uintle:16')
-        self.velocity_z = d.read('uintle:16')
-        self.velocity_error = d.read('uintle:16')
-        self.beam_1_correlation = d.read('uintle:16')
-        self.beam_2_correlation = d.read('uintle:16')
-        self.beam_3_correlation = d.read('uintle:16')
-        self.beam_4_correlation = d.read('uintle:16')
-        self.beam_1_amplitude = d.read('uintle:16')
-        self.beam_2_amplitude = d.read('uintle:16')
-        self.beam_3_amplitude = d.read('uintle:16')
-        self.beam_4_amplitude = d.read('uintle:16')
-        self.beam_1_percent_good = d.read('uintle:16')
-        self.beam_2_percent_good = d.read('uintle:16')
-        self.beam_3_percent_good = d.read('uintle:16')
-        self.beam_4_percent_good = d.read('uintle:16')
+        self.velocity_x = d.read('intle:16')
+        self.velocity_y = d.read('intle:16')
+        self.velocity_z = d.read('intle:16')
+        self.velocity_error = d.read('intle:16')
+        self.beam_1_correlation = d.read('uintle:8')
+        self.beam_2_correlation = d.read('uintle:8')
+        self.beam_3_correlation = d.read('uintle:8')
+        self.beam_4_correlation = d.read('uintle:8')
+        self.beam_1_amplitude = d.read('uintle:8')
+        self.beam_2_amplitude = d.read('uintle:8')
+        self.beam_3_amplitude = d.read('uintle:8')
+        self.beam_4_amplitude = d.read('uintle:8')
+        self.beam_1_percent_good = d.read('uintle:8')
+        self.beam_2_percent_good = d.read('uintle:8')
+        self.beam_3_percent_good = d.read('uintle:8')
+        self.beam_4_percent_good = d.read('uintle:8')
 
         d.bytepos = 72
         self.beam_1_rssi = d.read('uintle:8')
@@ -330,10 +337,10 @@ class Ensemble:
 
     def _parse_hr_bottom_track_data(self, d: bitstring.BitStream):
         d.bytepos = 2
-        self.hr_velocity_x = d.read('uintle:32')
-        self.hr_velocity_y = d.read('uintle:32')
-        self.hr_velocity_z = d.read('uintle:32')
-        self.hr_velocity_error = d.read('uintle:32')
+        self.hr_velocity_x = d.read('intle:32')
+        self.hr_velocity_y = d.read('intle:32')
+        self.hr_velocity_z = d.read('intle:32')
+        self.hr_velocity_error = d.read('intle:32')
 
     def _parse_nav_params_data(self, d: bitstring.BitStream):
         d.bytepos = 2

@@ -76,7 +76,7 @@ struct ImuPublisher : public PacketCallback
             XsQuaternion q = packet.orientationQuaternion();
 
             quaternion.w = q.w();
-            quaternion.x = q.x();
+            quaternion.x = -q.x();
             quaternion.y = q.y();
             quaternion.z = -q.z();
         }
@@ -85,8 +85,8 @@ struct ImuPublisher : public PacketCallback
         if (angular_velocity_available)
         {
             XsVector a = packet.calibratedGyroscopeData();
-            angular_velocity.x = a[0];
-            angular_velocity.y = -a[1];
+            angular_velocity.x = -a[0];
+            angular_velocity.y = a[1];
             angular_velocity.z = -a[2];
         }
 
@@ -94,8 +94,8 @@ struct ImuPublisher : public PacketCallback
         if (linear_acceleration_available)
         {
             XsVector a = packet.calibratedAcceleration();
-            linear_acceleration.x = a[0];
-            linear_acceleration.y = -a[1];
+            linear_acceleration.x = -a[0];
+            linear_acceleration.y = a[1];
             linear_acceleration.z = -a[2];
         }
 

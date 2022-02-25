@@ -52,7 +52,7 @@ class StateEstimation:
         self._publish_state(timestamp)
 
     def _handle_dvl(self, msg: DvlMsg):
-        if not self._initialized:
+        if not self._initialized or not msg.is_velocity_valid:
             return
 
         timestamp = msg.header.stamp
