@@ -77,8 +77,8 @@ struct ImuPublisher : public PacketCallback
 
             quaternion.w = q.w();
             quaternion.x = q.x();
-            quaternion.y = -q.z();
-            quaternion.z = -q.y();
+            quaternion.y = q.y();
+            quaternion.z = q.z();
         }
 
         geometry_msgs::Vector3 angular_velocity;
