@@ -75,10 +75,10 @@ struct ImuPublisher : public PacketCallback
         {
             XsQuaternion q = packet.orientationQuaternion();
 
-            quaternion.w = -q.w();
+            quaternion.w = q.w();
             quaternion.x = q.x();
-            quaternion.y = q.y();
-            quaternion.z = -q.z();
+            quaternion.y = -q.z();
+            quaternion.z = -q.y();
         }
 
         geometry_msgs::Vector3 angular_velocity;
