@@ -45,6 +45,7 @@ class StateEstimation:
         angular_velocity = tl(msg.angular_velocity)
 
         orientation = quat_to_rpy(msg.orientation)
+        orientation = np.array([-orientation[0], -orientation[1], -orientation[2]])
         orientation = (orientation + np.pi) % (2 * np.pi) - np.pi
 
         self._ekf.handle_imu_measurement(linear_acceleration, orientation, angular_velocity, timestamp)
