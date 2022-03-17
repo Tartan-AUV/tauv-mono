@@ -27,6 +27,7 @@ class Battery:
         full_capacity: float = self._bus.read_word_data(self._addr, 0x06) * 1e0
 
         msg: BatteryMsg = BatteryMsg()
+        msg.header.stamp = rospy.Time.now()
         msg.state_of_charge = state_of_charge
         msg.voltage = voltage
         msg.average_current = average_current

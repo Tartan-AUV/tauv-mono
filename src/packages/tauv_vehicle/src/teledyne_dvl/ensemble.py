@@ -158,7 +158,7 @@ class Ensemble:
                 0 if -self.velocity_x == 0x8000 else self.velocity_x * -1e-3,
                 0 if -self.velocity_z == 0x8000 else self.velocity_z * -1e-3
             )
-            msg.velocity_error = self.velocity_error * 1e-3
+            msg.velocity_error = 0 if -self.velocity_error == 0x8000 else self.velocity_error * 1e-3
 
             msg.beam_ranges = [
                 ((self.beam_1_range_msb << 16) | self.beam_1_range) * 1e0,
@@ -197,15 +197,18 @@ class Ensemble:
                 0 if -self.hr_velocity_x == 0x80000000 else self.hr_velocity_x * 1e-5,
                 0 if -self.hr_velocity_z == 0x80000000 else self.hr_velocity_z * 1e-5,
             )
-            msg.hr_velocity_error = self.hr_velocity_error * 1e-5
+            msg.hr_velocity_error = 0 if -self.hr_velocity_error == 0x80000000 else self.hr_velocity_error * 1e-5
+            msg.is_hr_velocity_valid = -self.hr_velocity_x != 0x80000000 and \
+                                       -self.hr_velocity_y != 0x80000000 and \
+                                       -self.hr_velocity_z != 0x80000000
 
         if self.parsed_nav_params_data:
             msg.shallow_mode = bool(self.shallow_mode)
             msg.beam_time_to_bottoms = [
                 self.beam_1_time_to_bottom * 13.02e-6,
-                self.beam_1_time_to_bottom * 13.02e-6,
-                self.beam_1_time_to_bottom * 13.02e-6,
-                self.beam_1_time_to_bottom * 13.02e-6,
+                self.beam_2_time_to_bottom * 13.02e-6,
+                self.beam_3_time_to_bottom * 13.02e-6,
+                self.beam_4_time_to_bottom * 13.02e-6,
             ]
             msg.beam_standard_deviations = [
                 self.beam_1_standard_deviation * 1e-3,

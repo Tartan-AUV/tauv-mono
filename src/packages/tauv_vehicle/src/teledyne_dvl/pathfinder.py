@@ -11,7 +11,7 @@ class Pathfinder:
     POLL_TIMEOUT = 1
 
     MIN_MEASURE_TIME = 0.1
-    MAX_MEASURE_TIME = 0.15
+    MAX_MEASURE_TIME = 0.2
 
     def __init__(self, port: str, baudrate: int):
         self._conn = serial.Serial(port=port, baudrate=baudrate, timeout=Pathfinder.SERIAL_TIMEOUT)
@@ -80,10 +80,6 @@ class Pathfinder:
         # Set time per ping
         # As fast as possible
         self._send_command('TP00:00.00')
-
-        # Disable water profiling
-        # TODO: This doesn't work
-        self._send_command('WP00000')
 
         # Disable water-mass layer
         self._send_command('BK0')

@@ -1,55 +1,45 @@
-#!/usr/bin/env python
 import rospy
-from sensor_msgs.msg import Temperature
-from std_msgs.msg import Header
-from tauv_msgs.msg import FluidDepth
+from sensor_msgs.msg import Temperature as TemperatureMsg
+from tauv_msgs.msg import FluidDepth as DepthMsg
 from ms5837lib import ms5837
+
 
 class DepthSensor():
     def __init__(self):
-        if not rospy.get_param('/vehicle_params/has_depth_sensor'):
-            raise ValueError('''Error: Vehicle does not support depth sensor.
-         Is the has_depth_sensor rosparam set in the vehicle_params.yaml?
-         If not, then don't launch this node! ''')
+        self._dt = 0.10
+        self._depth_pub = rospy.Publisher('depth', DepthMsg, queue_size=10)
+        self._temp_pub = rospy.Publisher('temperature', TemperatureMsg, queue_size=10)
 
-        self.pub_depth = rospy.Publisher('depth', FluidDepth, queue_size=10)
-        self.pub_temp = rospy.Publisher('temperature', Temperature, queue_size=10)
+        self._ms5837 = ms5837.MS5837_02BA()
 
-        model_name = rospy.get_param('/vehicle_params/depth_sensor')
-        if model_name == 'bar30':
-            self.ms5837 = ms5837.MS5837_30BA()
-        elif model_name == 'bar02':
-            self.ms5837 = ms5837.MS5837_02BA()
-        else:
-            raise ValueError('''Error: specified depth sensor not supported.
-         Supported depth sensors are \'bar30\' and \'bar02\', set with the
-         depth_sensor tag in the vehicle_params.yaml.''')
-
-        while not self.ms5837.init() and not rospy.is_shutdown():
-            rospy.sleep(3)
+        while not self._ms5837.init() and not rospy.is_shutdown():
+            rospy.sleep(1)
             print("Failed to initialize depth sensor, retrying in 3 seconds")
+
         if rospy.is_shutdown():
             return
+
         print("Depth sensor initialized!")
 
     def start(self):
-        r = rospy.Rate(10)  # 10hz
-        while not rospy.is_shutdown():
-            self.ms5837.read()
+        rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
+        rospy.spin()
 
-            tempmsg = Temperature()
-            tempmsg.header = Header()
-            tempmsg.header.stamp = rospy.Time.now()
-            tempmsg.temperature = self.ms5837.temperature()
-            self.pub_temp.publish(tempmsg)
+    def _update(self, timer_event):
+        self._ms5837.read()
 
-            depthmsg = FluidDepth()
-            depthmsg.header = Header()
-            depthmsg.header.stamp = rospy.Time.now()
-            depthmsg.header.frame_id = "pressure_link"
-            depthmsg.depth = self.ms5837.depth()
-            self.pub_depth.publish(depthmsg)
-            r.sleep()
+        timestamp = rospy.Time.now()
+
+        depth_msg = DepthMsg()
+        depth_msg.header.stamp = timestamp
+        depth_msg.header.frame_id = 'depth_sensor_link'
+        depth_msg.depth = self._ms5837.depth()
+        self._depth_pub.publish(depth_msg)
+
+        temp_msg = TemperatureMsg()
+        temp_msg.header.stamp = timestamp
+        temp_msg.temperature = self._ms5837.temperature()
+        self._temp_pub.publish(temp_msg)
 
 
 def main():

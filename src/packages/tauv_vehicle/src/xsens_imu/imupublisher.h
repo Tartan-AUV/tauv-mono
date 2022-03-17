@@ -66,43 +66,44 @@ struct ImuPublisher : public PacketCallback
 
         ros::Time sample_time(sec, nsec);
 
-        bool quaternion_available = packet.containsOrientation();
-        bool angular_velocity_available = packet.containsCalibratedGyroscopeData();
-        bool linear_acceleration_available = packet.containsCalibratedAcceleration();
+        bool orientation_available = packet.containsOrientation();
+        bool rate_of_turn_available = packet.containsCalibratedGyroscopeData();
+        bool free_acceleration_available = packet.containsFreeAcceleration();
 
-        geometry_msgs::Quaternion quaternion;
-        if (quaternion_available)
+        geometry_msgs::Vector3 orientation;
+        if (orientation_available)
         {
-            XsQuaternion q = packet.orientationQuaternion();
+            XsVector a = packet.orientationEuler();
 
-            quaternion.w = q.w();
-            quaternion.x = q.x();
-            quaternion.y = q.y();
-            quaternion.z = q.z();
+            orientation.x = -a[0];
+            orientation.y = -a[1];
+            orientation.z = a[2];
         }
 
-        geometry_msgs::Vector3 angular_velocity;
-        if (angular_velocity_available)
+        geometry_msgs::Vector3 rate_of_turn;
+        if (rate_of_turn_available)
         {
             XsVector a = packet.calibratedGyroscopeData();
-            angular_velocity.x = a[0];
-            angular_velocity.y = -a[1];
-            angular_velocity.z = a[2];
+
+            rate_of_turn.x = -a[0];
+            rate_of_turn.y = -a[1];
+            rate_of_turn.z = a[2];
         }
 
-        geometry_msgs::Vector3 linear_acceleration;
-        if (linear_acceleration_available)
+        geometry_msgs::Vector3 free_acceleration;
+        if (free_acceleration_available)
         {
-            XsVector a = packet.calibratedAcceleration();
-            linear_acceleration.x = a[0];
-            linear_acceleration.y = -a[1];
-            linear_acceleration.z = a[2];
+            XsVector a = packet.freeAcceleration();
+
+            free_acceleration.x = -a[0];
+            free_acceleration.y = a[1];
+            free_acceleration.z = -a[2];
         }
 
         uint32_t status = packet.status();
         bool triggered_dvl = (status >> 22) & 1;
 
-        if (quaternion_available && angular_velocity_available && linear_acceleration_available)
+        if (orientation_available && rate_of_turn_available && free_acceleration_available)
         {
             tauv_msgs::XsensImuData data_msg;
 
@@ -113,9 +114,9 @@ struct ImuPublisher : public PacketCallback
 
             data_msg.triggered_dvl = triggered_dvl;
 
-            data_msg.orientation = quaternion;
-            data_msg.angular_velocity = angular_velocity;
-            data_msg.linear_acceleration = linear_acceleration;
+            data_msg.orientation = orientation;
+            data_msg.rate_of_turn = rate_of_turn;
+            data_msg.free_acceleration = free_acceleration;
 
             data_pub.publish(data_msg);
         }

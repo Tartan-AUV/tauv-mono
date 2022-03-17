@@ -1,7 +1,5 @@
 Header header
 
-bool is_velocity_valid
-
 int64 ensemble_number
 
 std_msgs/String test_status
@@ -28,6 +26,7 @@ float64 velocity_error
 
 geometry_msgs/Vector3 hr_velocity
 float64 hr_velocity_error
+bool is_hr_velocity_valid
 
 float64[4] beam_ranges
 float64[4] beam_correlations
