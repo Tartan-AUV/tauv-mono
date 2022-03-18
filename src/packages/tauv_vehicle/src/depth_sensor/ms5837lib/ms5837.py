@@ -1,7 +1,4 @@
-try:
-    import smbus
-except:
-    print('Try sudo apt-get install python-smbus')
+from smbus2 import SMBus
 
 from time import sleep
 
@@ -52,7 +49,7 @@ class MS5837(object):
         print("Trying to connect to bus {}".format(bus))
 
         try:
-            self._bus = smbus.SMBus(bus)
+            self._bus = SMBus(bus)
         except:
             print(f"Bus ${bus} is not available.")
             print("Available busses are listed as /dev/i2c*")
