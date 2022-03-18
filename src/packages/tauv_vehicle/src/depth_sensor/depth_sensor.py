@@ -1,7 +1,7 @@
 import rospy
 from sensor_msgs.msg import Temperature as TemperatureMsg
 from tauv_msgs.msg import FluidDepth as DepthMsg
-from ms5837lib import ms5837
+from .ms5837lib import ms5837
 
 
 class DepthSensor():
