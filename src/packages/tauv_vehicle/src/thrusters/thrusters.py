@@ -38,7 +38,6 @@ class Thrusters:
         rospy.spin()
 
     def _update(self, timer_event):
-        print(f'armed: ${self._is_armed}')
         if (rospy.Time.now() - self._wrench_update_time).to_sec() > self._timeout \
                 or not self._is_armed:
             self._wrench = Wrench()
@@ -47,7 +46,6 @@ class Thrusters:
         thrusts = self._get_thrusts(self._wrench)
 
         for (thruster, thrust) in enumerate(thrusts):
-            print(f'setting ${thruster} to ${thrust}')
             self._set_thrust(thruster, thrust)
 
     def _handle_arm(self, req: SetBoolRequest):
