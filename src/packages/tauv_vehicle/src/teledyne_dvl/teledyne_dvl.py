@@ -49,7 +49,7 @@ class TeledyneDVL:
             self._sync_timestamps.append(time)
 
     def _sweep_sync_timestamps(self, time: rospy.Time):
-        print(map(lambda t: time - t, self._sync_timestamps))
+        print(list(map(lambda t: time - t, self._sync_timestamps)))
         self._sync_timestamps = list(filter(
                 lambda t: rospy.Duration(Pathfinder.MIN_MEASURE_TIME) < time - t < rospy.Duration(Pathfinder.MAX_MEASURE_TIME),
                 self._sync_timestamps
