@@ -144,7 +144,7 @@ class Pathfinder:
         e = Ensemble(receive_time=receive_time)
 
         header_data = header_id_1 + header_id_2 + self._read(Ensemble.HEADER_SIZE - Ensemble.ID_SIZE)
-        self._log('header_data', header_data.hex())
+        # self._log('header_data', header_data.hex())
 
         header = bitstring.BitStream(bytes=header_data)
         
@@ -155,7 +155,7 @@ class Pathfinder:
             return None
 
         packet_data = self._read(packet_size)
-        self._log('packet_data', packet_data.hex())
+        # self._log('packet_data', packet_data.hex())
 
         packet = bitstring.BitStream(bytes=packet_data)
 
@@ -177,7 +177,7 @@ class Pathfinder:
 
     def _read(self, size: int) -> bytes:
         data = self._conn.read(size)
-        self._log('[read]', data.hex())
+        # self._log('[read]', data.hex())
         return data
 
     def _send_break(self):
