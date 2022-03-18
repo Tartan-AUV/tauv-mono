@@ -10,7 +10,7 @@ class DepthSensor():
         self._depth_pub = rospy.Publisher('depth', DepthMsg, queue_size=10)
         self._temp_pub = rospy.Publisher('temperature', TemperatureMsg, queue_size=10)
 
-        self._ms5837 = ms5837.MS5837_02BA()
+        self._ms5837 = ms5837.MS5837_02BA(bus=1)
 
         while not self._ms5837.init() and not rospy.is_shutdown():
             rospy.sleep(1)
