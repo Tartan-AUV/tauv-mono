@@ -73,11 +73,11 @@ struct ImuPublisher : public PacketCallback
         geometry_msgs::Vector3 orientation;
         if (orientation_available)
         {
-            XsVector a = packet.orientationEuler();
+            XsEuler a = packet.orientationEuler();
 
-            orientation.x = -a[0];
-            orientation.y = -a[1];
-            orientation.z = a[2];
+            orientation.x = -a.roll();
+            orientation.y = -a.pitch();
+            orientation.z = a.yaw();
         }
 
         geometry_msgs::Vector3 rate_of_turn;
