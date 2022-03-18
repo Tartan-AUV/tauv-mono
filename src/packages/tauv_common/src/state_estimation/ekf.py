@@ -38,7 +38,7 @@ class EKF:
         self._time: Optional[rospy.Time] = None
 
     def get_state(self, time: rospy.Time) -> (Vector3, Vector3, Vector3, Vector3, Vector3):
-        if self._time is None or time <= self._time
+        if self._time is None or time <= self._time:
             raise ValueError('get_state for time earlier than last time')
 
         delta_t: float = time.to_sec() - self._time.to_sec()
