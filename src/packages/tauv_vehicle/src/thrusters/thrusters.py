@@ -102,6 +102,7 @@ class Thrusters:
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
 
+        print(f'thruster: ${thruster}, pwm speed: ${pwm_speed}')
         return pwm_speed
 
     def _get_thrusts(self, wrench: Wrench) -> np.array:
