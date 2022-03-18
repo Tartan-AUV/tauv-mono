@@ -34,6 +34,7 @@
 #define IMUPUBLISHER_H
 
 #include "packetcallback.h"
+#include <math.h>
 #include <tauv_msgs/XsensImuData.h>
 
 struct ImuPublisher : public PacketCallback
@@ -75,9 +76,9 @@ struct ImuPublisher : public PacketCallback
         {
             XsEuler a = packet.orientationEuler();
 
-            orientation.x = -a.roll();
-            orientation.y = -a.pitch();
-            orientation.z = a.yaw();
+            orientation.x = -a.roll() * (M_PI / 180.0);
+            orientation.y = -a.pitch() * (M_PI / 180.0);
+            orientation.z = a.yaw() * (M_PI / 180.0);
         }
 
         geometry_msgs::Vector3 rate_of_turn;
@@ -85,9 +86,9 @@ struct ImuPublisher : public PacketCallback
         {
             XsVector a = packet.calibratedGyroscopeData();
 
-            rate_of_turn.x = -a[0];
-            rate_of_turn.y = -a[1];
-            rate_of_turn.z = a[2];
+            rate_of_turn.x = -a[0] * (M_PI / 180.0);
+            rate_of_turn.y = -a[1] * (M_PI / 180.0);
+            rate_of_turn.z = a[2] * (M_PI / 180.0);
         }
 
         geometry_msgs::Vector3 free_acceleration;
