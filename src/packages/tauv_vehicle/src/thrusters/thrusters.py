@@ -21,8 +21,9 @@ class Thrusters:
         self._load_config()
 
         self._maestro = Maestro(ttyStr=self._maestro_port)
+        print('initialized maestro')
 
-        self._is_armed: bool = False
+        self._is_armed: bool = True
         self._arm_service: rospy.Service = rospy.Service('arm', SetBool, self._handle_arm)
 
         self._battery_sub: rospy.Subscriber = rospy.Subscriber('battery', BatteryMsg, self._handle_battery)
@@ -45,9 +46,11 @@ class Thrusters:
         thrusts = self._get_thrusts(self._wrench)
 
         for (thruster, thrust) in enumerate(thrusts):
+            print(f'setting ${thruster} to ${thrust}')
             self._set_thrust(thruster, thrust)
 
     def _handle_arm(self, req: SetBoolRequest):
+        print('arming')
         self._is_armed = req.data
         return SetBoolResponse(True, '')
 
