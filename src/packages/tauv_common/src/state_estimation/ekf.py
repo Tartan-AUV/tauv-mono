@@ -102,6 +102,7 @@ class EKF:
         z: np.array = linear_velocity - self._get_dvl_tangential_velocity()
 
         y: np.array = z - np.matmul(H, self._state)
+        y = self._wrap_innovation_angles(y)
 
         R: np.array = np.diag(covariance)
 
@@ -145,7 +146,8 @@ class EKF:
         self._state = self._state + np.matmul(K, y)
         self._wrap_angles()
 
-        self._covariance = np.matmul(I - np.matmul(K, H), self._covariance)
+        self._covariance = (I - (K @ H)) @ self._covariance @ np.transpose(I - (K @ H))
+        self._covariance += K @ R @ np.transpose(K)
         self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
 
 
@@ -160,12 +162,18 @@ class EKF:
         self._state[StateIndex.PITCH] = (self._state[StateIndex.PITCH] + pi) % (2 * pi) - pi
         self._state[StateIndex.ROLL] = (self._state[StateIndex.ROLL] + pi) % (2 * pi) - pi
 
+    def _wrap_innovation_angles(self, innovation):
+        innovation[StateIndex.YAW] = (innovation[StateIndex.YAW] + pi) % (2 * pi) - pi
+        innovation[StateIndex.PITCH] = (innovation[StateIndex.PITCH] + pi) % (2 * pi) - pi
+        innovation[StateIndex.ROLL] = (innovation[StateIndex.ROLL] + pi) % (2 * pi) - pi
+        return innovation
+
     def _extrapolate_covariance(self, dt: float):
         J: np.array = self._get_J(dt)
 
         Q: np.array = self._process_covariance
 
-        self._covariance = np.matmul(J, np.matmul(self._covariance, np.transpose(J))) + Q
+        self._covariance = np.matmul(J, np.matmul(self._covariance, np.transpose(J))) + dt * Q
 
     def _get_dvl_tangential_velocity(self) -> np.array:
         cp: float = cos(self._state[StateIndex.PITCH])
