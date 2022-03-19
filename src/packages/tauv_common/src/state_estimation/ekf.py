@@ -103,7 +103,6 @@ class EKF:
         z: np.array = linear_velocity - self._get_dvl_tangential_velocity()
 
         y: np.array = z - np.matmul(H, self._state)
-        y = self._wrap_innovation_angles(y)
 
         R: np.array = np.diag(covariance)
 
@@ -136,7 +135,6 @@ class EKF:
         z: np.array = np.array([depth])
 
         y: np.array = z - np.matmul(H, self._state)
-        y = self._wrap_innovation_angles(y)
 
         R: np.array = np.array([covariance])
 
@@ -166,9 +164,9 @@ class EKF:
         self._state[StateIndex.ROLL] = (self._state[StateIndex.ROLL] + pi) % (2 * pi) - pi
 
     def _wrap_innovation_angles(self, innovation):
-        innovation[StateIndex.YAW] = (innovation[StateIndex.YAW] + pi) % (2 * pi) - pi
-        innovation[StateIndex.PITCH] = (innovation[StateIndex.PITCH] + pi) % (2 * pi) - pi
-        innovation[StateIndex.ROLL] = (innovation[StateIndex.ROLL] + pi) % (2 * pi) - pi
+        innovation[0] = (innovation[0] + pi) % (2 * pi) - pi
+        innovation[1] = (innovation[1] + pi) % (2 * pi) - pi
+        innovation[2] = (innovation[2] + pi) % (2 * pi) - pi
         return innovation
 
     def _extrapolate_covariance(self, dt: float):
