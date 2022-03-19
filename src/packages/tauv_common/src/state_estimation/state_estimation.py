@@ -58,7 +58,7 @@ class StateEstimation:
         horizon_time = current_time - self._horizon_delay
 
         self._msg_queue = list(filter(lambda m: extract_msg_time(m) >= self._last_horizon_time.to_sec(), self._msg_queue))
-        pending_msg_queue = list(filter(lambda m: extract_msg_time(m) < horizon_time, self._msg_queue))
+        pending_msg_queue = list(filter(lambda m: extract_msg_time(m) < horizon_time.to_sec(), self._msg_queue))
 
         for msg in pending_msg_queue:
             if isinstance(msg, ImuMsg):
@@ -72,6 +72,9 @@ class StateEstimation:
         self._last_horizon_time = horizon_time
 
     def _receive_msg(self, msg):
+        if not self._initialized:
+            return
+
         self._msg_queue = sorted(self._msg_queue + [msg], key=extract_msg_time)
 
         # TODO: Add time sanity checks
