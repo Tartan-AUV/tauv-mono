@@ -3,6 +3,7 @@
 import rospy
 from tauv_msgs.msg import SonarPulse
 from tauv_msgs.msg import SonarGraph
+from tauv_msgs.msg import PoseGraphMeasurement
 from std_msgs.msg import Header
 import numpy as np
 import scipy.ndimage
@@ -12,6 +13,7 @@ import matplotlib
 import math
 import sys
 import heapq as hq
+import cv2
 #from queue import PriorityQueue
 sys.setrecursionlimit(5000)
 #use scipy sudo apt-get install python3-scipy
@@ -133,6 +135,7 @@ class GraphContainer(SonarGraph):
         self.cur_angle = x.angle
         self.data_len = x.data_length
         self.true_data_len = x.data_length-ignore
+        rospy.Subscriber("odom",PoseGraphMeasurement, self.update_position)
 
         #inspection area length
         self.round=400
@@ -142,13 +145,28 @@ class GraphContainer(SonarGraph):
         self.dividend = 0
         #self.blur2 = .15
         self.avg = 0
+        self.last_checked_pos = (0,0,0)
+        self.cur_position = (0,0,0)
+        self.last_checked_or = (0,0,0)
+        self.cur_orientation = (0,0,0)
+        self.heat_map_dim=100
+
+        self.heat_map = np.reshape([200]*self.heat_map_dim**2, (self.heat_map_dim,self.heat_map_dim))
+
+        self.range = rospy.get_param('/vehicle_params/sonar/range')
+        #print(self.range)
+        #self.global_range = rospy.get_param('/vehicle_params/sonar/global_range') #meters
+        
+        self.global_range = 21.0
+
+        self.global_origin = (self.global_range/2.0, self.global_range/2.0)
 
         self.degrees=400
 
         rospy.Subscriber("data",SonarPulse, self.read)
 
         self.header=Header()
-        self.unpr=[0]*self.degrees*(self.data_len)
+        self.unpr=[200]*self.degrees*(self.data_len)
         self.prc=np.reshape(self.unpr,(self.data_len,self.degrees)) #for graphing
         self.sprc=np.copy(self.prc) #for graphing
         self.POI = np.copy(self.prc)
@@ -156,27 +174,34 @@ class GraphContainer(SonarGraph):
         #self.cluster_blur = np.copy(self.prc)
         self.cluster_queue = []
         self.proc_sprc = np.copy(self.prc)
-        self.temp_sprc = np.copy(self.prc)
+        self.temp_proc = np.copy(self.prc)
 
         #allows popups of graph
         matplotlib.use('gtk3agg')
         #plt.ion()
 
-        self.plot = plt.imshow(np.reshape(self.unpr, (self.data_len,self.degrees)),cmap='gray')
+        self.plot = plt.imshow(np.reshape(self.unpr, (self.data_len,self.degrees)),cmap='jet') 
+        #self.plot = plt.imshow(self.heat_map,cmap='jet')
         plt.show()
 
     def read(self, data):
         #data.data = scipy.signal.medfilt(data.data)
-        self.cur_angle = self.calc_angle(data.angle)
+        temp = list()
+        self.display_img(self.heat_map)
+        self.exact_angle = self.calc_angle(data.angle)
+        self.cur_angle = round(self.exact_angle)
         if self.cur_angle>=0 and self.cur_angle<self.degrees:
-            self.clusters[:,self.cur_angle:self.cur_angle+1]=np.reshape([0]*200,(200,1))
+            #self.clusters[:,self.cur_angle:self.cur_angle+1]=np.reshape([0]*200,(200,1))  
+            #temp=np.reshape([0]*400*200,(200,400))
             for i in range(ignore,self.data_len):
+                #self.plot_heat(i,self.exact_angle)
                 self.unpr[self.calc_dist(i)*self.degrees+self.cur_angle]=data.data[i]
                 if(self.cycles>1):
                     self.find_POI(self.cur_angle-self.delay-1,i,self.sprc)
                 #self.find_POI_by_med(self.cur_angle-self.delay-1,i)
                 if data.data[i]>(self.avg_noise): #look into graphing only above avg singals
                     self.prc[self.calc_dist(i)][self.cur_angle]=data.data[i]
+                    #self.plot_heat(i,self.exact_angle)
                 else:
                     self.prc[self.calc_dist(i)][self.cur_angle]=0  
                 if(self.sprc[i][self.cur_angle-(self.delay)-1]>self.avg_noise+self.dividend*self.std):
@@ -184,12 +209,16 @@ class GraphContainer(SonarGraph):
                     self.proc_sprc[i][self.cur_angle-self.delay-1]=self.sprc[i][self.cur_angle-self.delay-1]
                 else: 
                     self.proc_sprc[i][self.cur_angle-self.delay-1]=0
+                if(self.last_checked_pos!=self.cur_position):
+                    temp = self.transpose_row(self.last_checked_pos,self.cur_position,self.proc_sprc,temp,i*200/self.range)
                 '''if(self.proc_sprc[i][self.cur_angle-(self.delay)-10]>0):
                     self.temp_sprc[i][self.cur_angle-self.delay-10]=100
                 else:
                     self.temp_sprc[i][self.cur_angle-self.delay-10]=0
                 #if(self.clusters[i][self.cur_angle-self.delay-2]>0):
                 #    self.temp_sprc[i][self.cur_angle-self.delay-2]=155'''
+            
+            self.proc_sprc = temp
             #self.sprc[ignore:self.data_len, self.cur_angle:self.cur_angle+1]=self.prc[ignore:self.data_len,self.cur_angle:self.cur_angle+1] 
             if(self.cur_angle>=self.delay*2):
                #self.sprc[ignore:self.data_len, self.cur_angle-self.delay:self.cur_angle-self.delay+1] = self.prc[ignore:self.data_len, self.cur_angle-self.delay:self.cur_angle-self.delay+1] 
@@ -210,8 +239,8 @@ class GraphContainer(SonarGraph):
             #self.clusters_blur[ignore:self.data_len,self.cur_angle-10:self.cur_angle-9] = scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-15:self.cur_angle-6],1)[0:self.data_len,5:6]
             #self.sprc[ignore:self.data_len,self.cur_angle:self.cur_angle+1] = scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-5:self.cur_angle+5],(200,10))[0:self.data_len,5:6]
             #np.reshape([range(ignore,200),range(ignore,200),range(ignore,200),range(ignore,200),range(ignore,200)],(self.true_data_len,5)) #scipy.ndimage.gaussian_filter(self.prc[ignore:self.data_len,self.cur_angle-3:self.cur_angle+3],(200,5))
-        else:
-            rospy.logwarn("Error in calculated sub angle\n")
+        #else:
+        #    rospy.logwarn("Error in calculated sub angle\n")
 
         self.pub.publish(self)
         #self.img = np.reshape(self.prc, (200,400))
@@ -222,12 +251,21 @@ class GraphContainer(SonarGraph):
             self.deq_cluster(self.cur_angle-self.delay-1)
         else:
             self.deq_cluster(self.degrees-(self.delay+1-self.cur_angle))
-        #print(self.cluster_queue)'''
+        #print(self.cluster_queue)
         
-        self.display_img(self.clusters)
+        self.display_img(self.sprc)
         
         if self.counter>self.round:
+            '''self.temp_proc = np.reshape([0]*200*400,(200,400))
+            #self.prc = cv2.blur(self.prc,(5,5))
+            ret,thresh = cv2.threshold(self.proc_sprc.astype(np.uint8),1,255, cv2.THRESH_BINARY)
+            self.temp_proc = np.array(self.temp_proc).astype(np.uint8)
+            contours, h = cv2.findContours(image=thresh,mode=cv2.RETR_TREE,method=cv2.CHAIN_APPROX_SIMPLE)
+            #self.prc = cv2.cvtColor(self.prc,cv2.COLOR_GRAY2RGB)
+            cv2.drawContours(image=self.temp_proc,contours=contours,contourIdx=-1,color=(255,0,0),thickness=1,lineType=cv2.LINE_AA)
+            '''
             #self.sprc=[0]*self.degrees*(self.data_len) #for graphing
+            #self.display_img(self.cv(self.proc_sprc))
             dif = self.avg_noise+self.dividend*self.std
             self.avg_noise = np.mean(self.unpr)
             self.avg = np.mean(self.sprc)
@@ -241,15 +279,138 @@ class GraphContainer(SonarGraph):
             #self.cluster_queue.queue.clear()
         
         self.counter+=1
- 
+         
+
+    def update_position(self,data):
+        self.cur_position = data.position
+        self.cur_orientation = data.orientation
+
+    def get_polar_point(self, row, col):
+        y_dist = (row)*(self.global_range/self.heat_map_dim)-self.global_origin[1]
+        x_dist = (col)*(self.global_range/self.heat_map_dim)-self.global_origin[0]
+        r = math.sqrt(x_dist**2 + y_dist**2)
+        
+        if(x_dist!=0):
+            theta = math.atan(y_dist/x_dist)
+        else:
+            theta=0
+        return (r,theta)
+
+    def get_map_square(self, x, y):
+        square_size = self.global_range/(self.heat_map_dim)
+        row = round(y/square_size)
+        col = round(x/square_size)
+        return (row, col)
+
+    def calc_grid_bounds(self, sq):
+        min_x = sq[0][0]
+        min_y = sq[0][1]
+        max_x = sq[0][0]
+        max_y = sq[0][1]
+        for i in range(6):
+            if(sq[i][0]<min_x):
+                min_x = sq[i][0]
+            elif(sq[i][0]>max_x):
+                max_x = sq[i][0]
+            if(sq[i][1]<min_y):
+                min_y = sq[i][1]
+            elif(sq[i][1]>max_y):
+                max_y = sq[i][1]
+        return ((min_x,max_x),(min_y,max_y))
+
+    def is_in(self, corners, upper_r, lower_r, in_angle, out_angle):
+        for i in range(4):
+            if(corners[i][0]<upper_r and corners[i][0]>=lower_r and corners[i][1]>=in_angle and corners[i][1]<=out_angle):
+                return True
+        return False
+
+
+    def interpolate(self, lower_r, upper_r, in_angle, out_angle, left, right, top, bottom):
+        #find arc area bounds
+        for x in range(bottom, top+1):
+            for y in range(left, right+1):
+                #find 4 corners and see if one of them is in area
+                c1 = self.get_polar_point(x,y)
+                c2 = self.get_polar_point(x+1,y)
+                c3 = self.get_polar_point(x+1,y+1)
+                c4 = self.get_polar_point(x,y+1)
+                if(self.is_in([c1,c2,c3,c4], upper_r, lower_r, in_angle, out_angle)):
+                    self.heat_map[x,y]+=50
+
+
+    def plot_heat(self, dist, angle):
+        (x,y,z) = (self.cur_position[0]+self.global_origin[0],self.cur_position[1]+self.global_origin[1],self.cur_position[2])
+        #print("x = "+str(x)+"; y = " + str(y) ) 
+        theta1 = angle -1
+        theta2 = angle
+        theta3 = angle +1
+        
+        dist = (dist/float(self.data_len))*self.range #get actual r
+        dist_upper = dist + (float(self.data_len)/self.range)
+
+        if(angle==0):
+            theta1 = self.degrees-1
+        if(angle==self.degrees-1):
+            theta3 = 0 
+
+        print("dist = "+str(dist))
+
+        square2 = self.get_map_square(x+dist*math.cos(theta2), y+dist*math.sin(theta2))
+        square1 = self.get_map_square(x+dist*math.cos(theta1),y+dist*math.sin(theta1))
+        square3 = self.get_map_square(x+dist*math.cos(theta3),y+dist*math.sin(theta3))
+        #can optimize here by passing prev squares to the next since continuous
+        square4 = self.get_map_square(x+dist_upper*math.cos(theta1),y+dist*math.sin(theta1))
+        square5 = self.get_map_square(x+dist_upper*math.cos(theta2),y+dist*math.sin(theta2))
+        square6 = self.get_map_square(x+dist_upper*math.cos(theta3),y+dist*math.sin(theta3))
+
+        print("sq1 = "+str(square1))
+
+        self.heat_map[square1[0]][square1[1]]=50
+        #self.heat_map[square2[0]][square2[1]]=50
+        #self.heat_map[square3[0]][square3[1]]=50
+
+        #grid_bounds = self.calc_grid_bounds([square1,square2,square3,square4,square5,square6])
+        
+        #interpolate
+        #self.interpolate(dist, dist_upper, theta1, theta3, grid_bounds[0][0],grid_bounds[0][1],grid_bounds[1][1],grid_bounds[1][0]) 
+
+
+    def cv(self,graph):
+        res=np.reshape([0]*200*400,(200,400))
+        ret,thresh = cv2.threshold(graph.astype(np.uint8),1,255,cv2.THRESH_BINARY)
+        contours,h =cv2.findContours(image=thresh,mode=cv2.RETR_TREE,method=cv2.CHAIN_APPROX_SIMPLE)
+        res=np.array(res).astype(np.uint8)
+        cv2.drawContours(image=res,contours=contours,contourIdx=-1,color=(255,0,0),thickness=1,lineType=cv2.LINE_AA)
+        return res
+
     #accounts for boat position and returns current read angle
     def calc_angle(self,angle):
-        return round(angle)
+        (roll, pitch, yaw) = self.cur_orientation
+        if(roll>0 or pitch>0):
+            return -1
+        return angle+yaw
 
     #accounts for boat position and returns distance of point
     def calc_dist(self, dist):
+        (roll, pitch, yaw) = self.cur_orientation
+        if(roll>0 or pitch>0):
+            return -1
         return dist
 
+    def transpose_row(self, prev_pos, cur_pos, graph, new_graph, r1):
+        x1 = prev_pos[0]
+        y1=prev_pos[1]
+        x2 = cur_pos[0]
+        y2 = cur_pos[1]
+        for i in range(self.ignore, self.degrees):
+            rad = i*0.01570796
+            (x3,y3) = (r1*math.cos(rad)+x1,r1*math.sin(rad)+y1)
+            dify32 = y3-y2
+            difx32 = x3-x2
+            (t3,r3) = (round(math.atan(dify32/difx32)),round(math.sqrt(difx32**2,dify32**2)))
+            new_graph[r3][t3]=graph[r1][i]
+        return new_graph
+    
     def display_img(self, graph):
         self.plot.set_data(graph)
         plt.draw()
