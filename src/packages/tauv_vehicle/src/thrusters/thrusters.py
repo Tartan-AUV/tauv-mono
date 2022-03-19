@@ -45,7 +45,8 @@ class Thrusters:
 
         thrusts = self._get_thrusts(self._wrench)
 
-        # self._maestro.clearErrors()
+        self._maestro.clearErrors()
+
         for (thruster, thrust) in enumerate(thrusts):
             self._set_thrust(thruster, thrust)
 
