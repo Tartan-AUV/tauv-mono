@@ -57,8 +57,8 @@ class StateEstimation:
         current_time = rospy.Time.now()
         horizon_time = current_time - self._horizon_delay
 
-        self._msg_queue = filter(lambda m: extract_msg_time(m) >= self._last_horizon_time.to_sec(), self._msg_queue)
-        pending_msg_queue = filter(lambda m: extract_msg_time(m) < horizon_time, self._msg_queue)
+        self._msg_queue = list(filter(lambda m: extract_msg_time(m) >= self._last_horizon_time.to_sec(), self._msg_queue))
+        pending_msg_queue = list(filter(lambda m: extract_msg_time(m) < horizon_time, self._msg_queue))
 
         for msg in pending_msg_queue:
             if isinstance(msg, ImuMsg):
