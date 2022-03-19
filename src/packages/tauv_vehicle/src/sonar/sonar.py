@@ -1,5 +1,5 @@
-from ping_python.brping.ping360 import Ping360
-from ping_python.brping import definitions
+from .ping_python.brping.ping360 import Ping360
+from .ping_python.brping import definitions
 
 from tauv_msgs.msg import SonarPulse as PulseMsg
 from std_msgs.msg import Header

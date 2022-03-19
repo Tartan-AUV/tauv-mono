@@ -1,6 +1,6 @@
 #'Ping python package'
-from brping.definitions import *
-from brping.pingmessage import *
-from brping.device import PingDevice
-from brping.ping1d import Ping1D
-from brping.ping360 import Ping360
+from .definitions import *
+from .pingmessage import *
+from .device import PingDevice
+from .ping1d import Ping1D
+from .ping360 import Ping360

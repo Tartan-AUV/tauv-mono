@@ -8,8 +8,8 @@
 # DO NOT EDIT
 # ~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!
 
-from brping import definitions
-from brping import pingmessage
+from . import definitions
+from . import pingmessage
 from collections import deque
 import serial
 import time
