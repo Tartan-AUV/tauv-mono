@@ -192,10 +192,10 @@ class EKF:
         return np.cross(w, self._dvl_offset)
 
     def _get_H(self, fields: List[int]) -> np.array:
-        H: np.array = np.zeros((len(fields), EKF.NUM_FIELDS), float)
+        H: np.array = np.zeros((EKF.NUM_FIELDS, EKF.NUM_FIELDS), float)
 
-        for i, f in enumerate(fields):
-            H[i, f] = 1
+        for f in enumerate(fields):
+            H[f, f] = 1
 
         return H
 
