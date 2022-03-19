@@ -81,6 +81,7 @@ class EKF:
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
         self._state = self._state + np.matmul(K, y)
+        self._wrap_angles()
 
         self._covariance = np.matmul(I - np.matmul(K, H), self._covariance)
         self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
@@ -111,6 +112,7 @@ class EKF:
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
         self._state = self._state + np.matmul(K, y)
+        self._wrap_angles()
 
         self._covariance = np.matmul(I - np.matmul(K, H), self._covariance)
         self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
@@ -141,6 +143,7 @@ class EKF:
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
         self._state = self._state + np.matmul(K, y)
+        self._wrap_angles()
 
         self._covariance = np.matmul(I - np.matmul(K, H), self._covariance)
         self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
@@ -150,9 +153,12 @@ class EKF:
         F: np.array = self._get_F(dt)
 
         self._state = np.matmul(F, self._state)
-        # self._state[StateIndex.YAW] = (self._state[StateIndex.YAW] + pi) % (2 * pi) - pi
-        # self._state[StateIndex.PITCH] = (self._state[StateIndex.PITCH] + pi) % (2 * pi) - pi
-        # self._state[StateIndex.ROLL] = (self._state[StateIndex.ROLL] + pi) % (2 * pi) - pi
+        self._wrap_angles()
+
+    def _wrap_angles(self):
+        self._state[StateIndex.YAW] = (self._state[StateIndex.YAW] + pi) % (2 * pi) - pi
+        self._state[StateIndex.PITCH] = (self._state[StateIndex.PITCH] + pi) % (2 * pi) - pi
+        self._state[StateIndex.ROLL] = (self._state[StateIndex.ROLL] + pi) % (2 * pi) - pi
 
     def _extrapolate_covariance(self, dt: float):
         J: np.array = self._get_J(dt)
