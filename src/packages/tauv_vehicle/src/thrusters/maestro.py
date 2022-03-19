@@ -193,7 +193,6 @@ class Maestro:
     def clearErrors(self):
         cmd = chr(0x21)
         self.sendCmd(cmd)
-        self.usb.read(2)
 
     def is_init(self):
         return self.init
