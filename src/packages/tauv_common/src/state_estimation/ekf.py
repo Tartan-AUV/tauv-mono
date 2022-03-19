@@ -41,11 +41,11 @@ class EKF:
         if self._time is None or time <= self._time:
             raise ValueError('get_state for time earlier than last time')
 
-        delta_t: float = time.to_sec() - self._time.to_sec()
-        self._time = time
-
-        self._extrapolate_state(delta_t)
-        self._extrapolate_covariance(delta_t)
+        # delta_t: float = time.to_sec() - self._time.to_sec()
+        # self._time = time
+        #
+        # self._extrapolate_state(delta_t)
+        # self._extrapolate_covariance(delta_t)
 
         position = Vector3(self._state[StateIndex.X], self._state[StateIndex.Y], self._state[StateIndex.Z])
         velocity = Vector3(self._state[StateIndex.VX], self._state[StateIndex.VY], self._state[StateIndex.VZ])
