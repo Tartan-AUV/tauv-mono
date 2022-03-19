@@ -71,6 +71,7 @@ class EKF:
         z: np.array = np.concatenate((np.flip(orientation), linear_acceleration))
 
         y: np.array = z - np.matmul(H, self._state)
+        y = self._wrap_innovation_angles(y)
 
         R: np.array = np.diag(covariance)
 
@@ -108,14 +109,15 @@ class EKF:
 
         S: np.array = np.matmul(H, np.matmul(self._covariance, np.transpose(H))) + R
 
-        K: np.array = np.matmul(self._covariance, np.matmul(np.transpose(H), np.linalg.inv(S)))
+        K: np.array = (self._covariance @ np.transpose(H)) @ np.linalg.inv(S)
 
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
         self._state = self._state + np.matmul(K, y)
         self._wrap_angles()
 
-        self._covariance = np.matmul(I - np.matmul(K, H), self._covariance)
+        self._covariance = (I - (K @ H)) @ self._covariance @ np.transpose(I - (K @ H))
+        self._covariance += K @ R @ np.transpose(K)
         self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
 
     def handle_depth_measurement(self, depth: float, covariance: float, timestamp: rospy.Time):
@@ -134,12 +136,13 @@ class EKF:
         z: np.array = np.array([depth])
 
         y: np.array = z - np.matmul(H, self._state)
+        y = self._wrap_innovation_angles(y)
 
         R: np.array = np.array([covariance])
 
         S: np.array = np.matmul(H, np.matmul(self._covariance, np.transpose(H))) + R
 
-        K: np.array = np.matmul(self._covariance, np.matmul(np.transpose(H), np.linalg.inv(S)))
+        K: np.array = (self._covariance @ np.transpose(H)) @ np.linalg.inv(S)
 
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
@@ -192,10 +195,10 @@ class EKF:
         return np.cross(w, self._dvl_offset)
 
     def _get_H(self, fields: List[int]) -> np.array:
-        H: np.array = np.zeros((EKF.NUM_FIELDS, EKF.NUM_FIELDS), float)
+        H: np.array = np.zeros((len(fields), EKF.NUM_FIELDS), float)
 
-        for f in enumerate(fields):
-            H[f, f] = 1
+        for i, f in enumerate(fields):
+            H[i, f] = 1
 
         return H
 
