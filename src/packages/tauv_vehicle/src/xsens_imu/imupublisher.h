@@ -77,7 +77,7 @@ struct ImuPublisher : public PacketCallback
             XsEuler a = packet.orientationEuler();
 
             orientation.x = -a.roll() * (M_PI / 180.0);
-            orientation.y = -a.pitch() * (M_PI / 180.0);
+            orientation.y = a.pitch() * (M_PI / 180.0);
             orientation.z = -a.yaw() * (M_PI / 180.0);
         }
 
@@ -87,7 +87,7 @@ struct ImuPublisher : public PacketCallback
             XsVector a = packet.calibratedGyroscopeData();
 
             rate_of_turn.x = -a[0] * (M_PI / 180.0);
-            rate_of_turn.y = -a[1] * (M_PI / 180.0);
+            rate_of_turn.y = a[1] * (M_PI / 180.0);
             rate_of_turn.z = -a[2] * (M_PI / 180.0);
         }
 
