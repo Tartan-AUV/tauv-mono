@@ -123,7 +123,11 @@ class StateEstimation:
         self._ekf.handle_depth_measurement(depth, covariance, timestamp)
 
     def _publish_state(self, time: rospy.Time):
-        position, velocity, acceleration, orientation, angular_velocity = self._ekf.get_state(time)
+        try:
+            position, velocity, acceleration, orientation, angular_velocity = self._ekf.get_state(time)
+        except ValueError as e:
+            print('get_state: ${e}')
+            return
 
         msg: PoseMsg = PoseMsg()
         msg.header = Header()
