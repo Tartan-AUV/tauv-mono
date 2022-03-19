@@ -72,7 +72,7 @@ class StateEstimation:
         self._last_horizon_time = horizon_time
 
     def _receive_msg(self, msg):
-        self._msg_queue = sorted(self._msg_queue.append(msg), key=extract_msg_time)
+        self._msg_queue = sorted(self._msg_queue + [msg], key=extract_msg_time)
 
         # TODO: Add time sanity checks
 
