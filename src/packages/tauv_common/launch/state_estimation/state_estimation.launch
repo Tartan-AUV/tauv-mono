@@ -8,6 +8,7 @@
             <remap from="odom" to="/gnc/odom" />
             <remap from="imu" to="/xsens_imu/data" />
             <remap from="dvl" to="/teledyne_dvl/data" />
+            <remap from="depth" to="/depth_sensor/depth" />
         </node>
     </group>
 </launch>
