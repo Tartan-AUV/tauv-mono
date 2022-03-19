@@ -190,5 +190,9 @@ class Maestro:
         cmd = chr(0x24)
         self.sendCmd(cmd)
 
+    def clearErrors(self):
+        cmd = chr(0x21)
+        self.sendCmd(cmd)
+
     def is_init(self):
         return self.init
