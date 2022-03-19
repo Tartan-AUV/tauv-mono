@@ -14,7 +14,7 @@ from nav_msgs.msg import Odometry as OdometryMsg
 from .ekf import EKF
 
 
-def extract_msg_time(msg: ImuMsg | DvlMsg | DepthMsg) -> float:
+def extract_msg_time(msg) -> float:
     return msg.header.stamp.to_sec()
 
 
@@ -44,7 +44,7 @@ class StateEstimation:
 
         self._ekf: EKF = EKF(dvl_offset, process_covariance)
 
-        self._msg_queue: [ImuMsg | DvlMsg | DepthMsg] = []
+        self._msg_queue = []
 
         self._last_horizon_time: rospy.Time = rospy.Time.now() - self._horizon_delay
 
@@ -71,7 +71,7 @@ class StateEstimation:
         self._publish_state(horizon_time)
         self._last_horizon_time = horizon_time
 
-    def _receive_msg(self, msg: ImuMsg | DvlMsg | DepthMsg):
+    def _receive_msg(self, msg):
         bisect.insort(self._msg_queue, msg, key=extract_msg_time)
 
         # TODO: Add time sanity checks
