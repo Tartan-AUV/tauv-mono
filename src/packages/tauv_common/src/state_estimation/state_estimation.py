@@ -98,11 +98,12 @@ class StateEstimation:
 
         timestamp = msg.header.stamp
 
+        if not msg.is_hr_velocity_valid:
+            return
+
         velocity = tl(msg.hr_velocity)
 
         covariance = self._dvl_covariance
-        if not msg.is_hr_velocity_valid:
-            covariance = np.array([0.1, 0.1, 0.1])
 
         # covariance = self._get_dvl_covariance(msg)
 
