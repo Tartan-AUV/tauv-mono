@@ -69,7 +69,7 @@ class EKF:
                                    StateIndex.VYAW, StateIndex.VPITCH, StateIndex.VROLL,
                                    StateIndex.AX, StateIndex.AY, StateIndex.AZ])
 
-        z: np.array = np.concatenate((reversed(orientation), reversed(angular_velocity), linear_acceleration))
+        z: np.array = np.concatenate((np.flip(orientation), np.flip(angular_velocity), linear_acceleration))
 
         y: np.array = z - np.matmul(H, self._state)
 

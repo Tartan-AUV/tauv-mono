@@ -126,7 +126,7 @@ class StateEstimation:
         try:
             position, velocity, acceleration, orientation, angular_velocity = self._ekf.get_state(time)
         except ValueError as e:
-            print('get_state: ${e}')
+            print(f'get_state: ${e}')
             return
 
         msg: PoseMsg = PoseMsg()
