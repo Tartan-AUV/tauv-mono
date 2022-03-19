@@ -3,7 +3,7 @@ from enum import IntEnum
 from typing import List, Optional
 
 import rospy
-from geometry_msgs import Vector3
+from geometry_msgs.msg import Vector3
 import numpy as np
 
 
