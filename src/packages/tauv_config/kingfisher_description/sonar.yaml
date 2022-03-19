@@ -1,4 +1,4 @@
-port: '/dev/ttyUSB4'
+port: /dev/ttyUSB0
 baudrate: 2000000
 
 gain: 0
@@ -7,4 +7,4 @@ range: 10
 transmit_frequency: 740
 num_samples: 200
 
-sonar_link: 'sonar_link'
+sonar_link: sonar_link
