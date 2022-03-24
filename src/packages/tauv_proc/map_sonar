@@ -183,8 +183,8 @@ class GraphContainer(SonarGraph):
         matplotlib.use('gtk3agg')
         #plt.ion()
 
-        #self.plot = plt.imshow(np.reshape(self.unpr, (self.data_len,self.degrees)),cmap='jet') 
-        self.plot = plt.imshow(self.heat_map,cmap='jet')
+        self.plot = plt.imshow(np.reshape(self.unpr, (self.data_len,self.degrees)),cmap='jet') 
+        #self.plot = plt.imshow(self.heat_map,cmap='jet')
         plt.show()
 
     def read(self, data):
@@ -199,8 +199,8 @@ class GraphContainer(SonarGraph):
             for i in range(ignore,self.data_len):
                 #self.plot_heat(255,i,self.exact_angle)
                 self.unpr[self.calc_dist(i)*self.degrees+self.cur_angle]=data.data[i]
-                if(self.cycles>1):
-                    self.find_POI(self.cur_angle-self.delay-1,i,self.sprc)
+                #if(self.cycles>1):
+                #    self.find_POI(self.cur_angle-self.delay-1,i,self.sprc)
                 #self.find_POI_by_med(self.cur_angle-self.delay-1,i)
                 if data.data[i]>(self.avg_noise): #look into graphing only above avg singals
                     self.prc[self.calc_dist(i)][self.cur_angle]=data.data[i]
@@ -251,14 +251,15 @@ class GraphContainer(SonarGraph):
 
         #self.detect_contrast()
         
-        if(self.cur_angle>self.delay+1):
+        '''if(self.cur_angle>self.delay+1):
             self.deq_cluster(self.cur_angle-self.delay-1)
         else:
             self.deq_cluster(self.degrees-(self.delay+1-self.cur_angle))
-        #print(self.cluster_queue)
+        #print(self.cluster_queue)'''
         
-        self.display_img(self.heat_map)
-       
+        #self.display_img(self.heat_map)
+        self.display_img(self.proc_sprc)
+
         #time.sleep(1)
 
         if self.counter>self.round:
@@ -279,13 +280,13 @@ class GraphContainer(SonarGraph):
             self.dif_measure = self.std
             if(self.dif_measure>=dif):
                 self.dif_measure=dif-1
-            print(dif)
+            #print(dif)
             self.counter=0 
             self.cycles+=1
             #self.cluster_queue.queue.clear()
         
         self.counter+=1
-        self.display_img(self.heat_map)
+        #self.display_img(self.heat_map)
         #time.sleep(1) 
 
     def update_position(self,data):
