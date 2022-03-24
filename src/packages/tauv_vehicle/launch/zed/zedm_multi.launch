@@ -25,6 +25,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <arg name="publish_urdf"         default="true" />
 
     <arg name="camera_name_1"          default="zedm_A" />
+    <
 
     <arg name="base_frame"           default="base_link" />
 
@@ -38,6 +39,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <arg name="node_name_2"            default="zed_node_B" />
     <arg name="camera_name_2"          default="zedm_B" />
 
+    <arg name="camera_sn_1"             default="10029642" />
+    <arg name="camera_sn_2"             default="10029656" />
+
 
     <group ns="$(arg camera_name_1)">
         <include file="$(find tauv_vehicle)/launch/zed/include/zed_camera.launch.xml">
@@ -48,6 +52,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <arg name="camera_model"        value="$(arg camera_model)" />
             <arg name="base_frame"          value="$(arg base_frame)" />
             <arg name="publish_urdf"        value="$(arg publish_urdf)" />
+            <arg name="camera_sn"           value="$(arg camera_sn_1)" />
             <arg name="cam_pos_x"           value="$(arg cam_pos_x)" />
             <arg name="cam_pos_y"           value="$(arg cam_pos_y)" />
             <arg name="cam_pos_z"           value="$(arg cam_pos_z)" />
@@ -66,6 +71,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <arg name="camera_model"        value="$(arg camera_model)" />
             <arg name="base_frame"          value="$(arg base_frame)" />
             <arg name="publish_urdf"        value="$(arg publish_urdf)" />
+            <arg name="camera_sn"           value="$(arg camera_sn_2)" />
             <arg name="cam_pos_x"           value="$(arg cam_pos_x)" />
             <arg name="cam_pos_y"           value="$(arg cam_pos_y)" />
             <arg name="cam_pos_z"           value="$(arg cam_pos_z)" />

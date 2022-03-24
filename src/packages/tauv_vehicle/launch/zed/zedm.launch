@@ -35,6 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <arg name="cam_pitch"             default="0.0" /> <!-- Orientation respect to base frame (i.e. "base_link) -->
     <arg name="cam_yaw"               default="0.0" /> <!-- Orientation respect to base frame (i.e. "base_link) -->
 
+    <arg name="camera_sn"             default="10029642" />
+
     <group ns="$(arg camera_name)">
         <include file="$(find tauv_vehicle)/launch/zed/include/zed_camera.launch.xml">
             <arg name="camera_name"         value="$(arg camera_name)" />
@@ -44,6 +46,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <arg name="camera_model"        value="$(arg camera_model)" />
             <arg name="base_frame"          value="$(arg base_frame)" />
             <arg name="publish_urdf"        value="$(arg publish_urdf)" />
+            <arg name="camera_sn"           value="$(arg camera_sn)" />
             <arg name="cam_pos_x"           value="$(arg cam_pos_x)" />
             <arg name="cam_pos_y"           value="$(arg cam_pos_y)" />
             <arg name="cam_pos_z"           value="$(arg cam_pos_z)" />
