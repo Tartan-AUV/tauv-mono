@@ -1,6 +1,7 @@
 from math import sin, cos, tan, pi
 from enum import IntEnum
 from typing import List, Optional
+import time
 
 import rospy
 from geometry_msgs.msg import Vector3
@@ -106,7 +107,11 @@ class EKF:
 
         S: np.array = (H @ self._covariance) @ np.transpose(H) + R
 
+        start_time = time.time()
         K: np.array = (self._covariance @ np.transpose(H)) @ np.linalg.inv(S)
+        end_time = time.time()
+
+        print(f'update inverse took {end_time - start_time}')
 
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
