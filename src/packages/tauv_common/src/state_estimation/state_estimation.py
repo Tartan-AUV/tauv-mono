@@ -1,6 +1,7 @@
 import rospy
 import tf
 import numpy as np
+import time
 import bisect
 from math import pi
 
@@ -81,7 +82,10 @@ class StateEstimation:
 
         if isinstance(msg, DvlMsg):
             print(f'sorting: {len(self._msg_queue)}')
+            start_time = time.time()
             self._msg_queue = sorted(self._msg_queue + [msg], key=extract_msg_time)
+            end_time = time.time()
+            print(f'took {end_time - start_time}')
         else: self._msg_queue = self._msg_queue + [msg]
 
         # TODO: Add time sanity checks
