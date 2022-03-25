@@ -20,6 +20,7 @@
             <remap from="odom" to="/gnc/odom" />
             <remap from="imu" to="/xsens_imu/data" />
             <remap from="dvl" to="/teledyne_dvl/data" />
+            <remap from="depth" to="/depth_sensor/depth" />
         </node>
 
         <node pkg="tauv_common" type="controller" name="controller" output="screen">
@@ -35,7 +36,7 @@
         <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />
             <remap from="joy" to="/joy" />
-            <remap from="wrench" to="/thrusters/wrench" />
+            <remap from="cmd" to="/controller/cmd" />
             <remap from="arm" to="/thrusters/arm" />
         </node>
 
