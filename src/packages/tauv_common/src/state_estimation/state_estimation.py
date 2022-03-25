@@ -97,6 +97,8 @@ class StateEstimation:
         if not self._initialized:
             return
 
+        start_time = time.time()
+
         timestamp = msg.header.stamp
 
         orientation = tl(msg.orientation)
@@ -104,7 +106,13 @@ class StateEstimation:
 
         covariance = self._imu_covariance
 
+        mid_time = time.time()
+
         self._ekf.handle_imu_measurement(orientation, linear_acceleration, covariance, timestamp)
+
+        end_time = time.time()
+
+        print(f'imu took {mid_time - start_time}, {end_time - mid_time}')
 
     def _handle_dvl(self, msg: DvlMsg):
         if not self._initialized:
