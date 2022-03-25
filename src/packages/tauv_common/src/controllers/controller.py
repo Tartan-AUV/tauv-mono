@@ -5,7 +5,7 @@ from simple_pid import PID
 from math import pi
 
 from dynamics.dynamics import Dynamics
-from geometry_msgs.msg import Pose, Twist, WrenchStamped, Vector3
+from geometry_msgs.msg import Pose, Twist, Wrench, Vector3
 from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg
 from tauv_msgs.srv import HoldPose, HoldPoseRequest, HoldPoseResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TunePids, TunePidsRequest, TunePidsResponse
 from tauv_util.types import tl, tm
@@ -36,7 +36,7 @@ class Controller:
 
         self._odom_sub: rospy.Subscriber = rospy.Subscriber('odom', OdometryMsg, self._handle_odom)
         self._command_sub: rospy.Subscriber = rospy.Subscriber('controller_cmd', ControllerCmdMsg, self._handle_command)
-        self._wrench_pub: rospy.Publisher = rospy.Publisher('wrench', WrenchStamped, queue_size=10)
+        self._wrench_pub: rospy.Publisher = rospy.Publisher('wrench', Wrench, queue_size=10)
 
         self._max_wrench: np.array = np.array(rospy.get_param('~max_wrench'))
 
@@ -75,11 +75,10 @@ class Controller:
         tau = self._dyn.compute_tau(eta, v, vd)
         bounded_tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
-        wrench: WrenchStamped = WrenchStamped()
+        wrench: Wrench = Wrench()
         wrench.header.stamp = rospy.Time.now()
-        wrench.header.frame_id = 'kingfisher/base_link_ned'
-        wrench.wrench.force = Vector3(bounded_tau[0], bounded_tau[1], bounded_tau[2])
-        wrench.wrench.torque = Vector3(bounded_tau[3], bounded_tau[4], bounded_tau[5])
+        wrench.force = Vector3(bounded_tau[0], bounded_tau[1], bounded_tau[2])
+        wrench.torque = Vector3(bounded_tau[3], bounded_tau[4], bounded_tau[5])
         self._wrench_pub.publish(wrench)
 
     def _get_acceleration(self) -> np.array:
