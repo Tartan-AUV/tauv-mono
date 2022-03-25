@@ -94,8 +94,8 @@ class StateEstimation:
 
         orientation = tl(msg.orientation)
 
-        R = Rotation.from_euler('ZYX', np.flip(orientation))
-        g = R.apply([0, 0, 9.8])
+        R = Rotation.from_euler('ZYX', np.flip(orientation)).inv()
+        g = R.apply([0, 0, 9.81])
 
         linear_acceleration = tl(msg.linear_acceleration) - g
 
