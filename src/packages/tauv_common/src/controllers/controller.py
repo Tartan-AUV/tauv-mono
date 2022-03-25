@@ -115,14 +115,14 @@ class Controller:
             pitch_error = self._clamp_angle_error(-pose_rpy[1])
             pitch_effort = self._pitch_pid(-pitch_error)
 
-            vd = np.array(
+            vd = np.array([
                 self._cmd_acceleration[0],
                 self._cmd_acceleration[1],
                 self._cmd_acceleration[2],
                 roll_effort,
                 pitch_effort,
                 self._cmd_acceleration[5]
-            )
+            ])
 
         return vd
 
