@@ -108,9 +108,6 @@ class EKF:
         S: np.array = (H @ self._covariance) @ np.transpose(H) + R
 
         K: np.array = (self._covariance @ np.transpose(H)) @ np.linalg.pinv(S)
-        end_time = time.time()
-
-        print(f'update inverse took {end_time - start_time}')
 
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
