@@ -41,140 +41,103 @@ class EKF:
         if self._time is None or time <= self._time:
             raise ValueError('get_state for time earlier than last time')
 
-        # delta_t: float = time.to_sec() - self._time.to_sec()
-        # self._time = time
-        #
-        # self._extrapolate_state(delta_t)
-        # self._extrapolate_covariance(delta_t)
+        delta_t: float = time.to_sec() - self._time.to_sec()
 
-        position = Vector3(self._state[StateIndex.X], self._state[StateIndex.Y], self._state[StateIndex.Z])
-        velocity = Vector3(self._state[StateIndex.VX], self._state[StateIndex.VY], self._state[StateIndex.VZ])
-        acceleration = Vector3(self._state[StateIndex.AX], self._state[StateIndex.AY], self._state[StateIndex.AZ])
-        orientation = Vector3(self._state[StateIndex.ROLL], self._state[StateIndex.PITCH], self._state[StateIndex.YAW])
-        angular_velocity = Vector3(self._state[StateIndex.VROLL], self._state[StateIndex.VPITCH], self._state[StateIndex.VYAW])
+        state = self._extrapolate_state(delta_t)
+
+        position = Vector3(state[StateIndex.X], state[StateIndex.Y], state[StateIndex.Z])
+        velocity = Vector3(state[StateIndex.VX], state[StateIndex.VY], state[StateIndex.VZ])
+        acceleration = Vector3(state[StateIndex.AX], state[StateIndex.AY], state[StateIndex.AZ])
+        orientation = Vector3(state[StateIndex.ROLL], state[StateIndex.PITCH], state[StateIndex.YAW])
+        angular_velocity = Vector3(state[StateIndex.VROLL], state[StateIndex.VPITCH], state[StateIndex.VYAW])
         return position, velocity, acceleration, orientation, angular_velocity
 
-    def handle_imu_measurement(self, orientation: np.array, angular_velocity: np.array, linear_acceleration: np.array, covariance: np.array, timestamp: rospy.Time):
-        if self._time is None:
-            self._time = timestamp
+    def handle_imu_measurement(self, orientation: np.array, linear_acceleration: np.array, covariance: np.array, timestamp: rospy.Time):
+        self._predict(timestamp)
 
-        delta_t: float = timestamp.to_sec() - self._time.to_sec()
+        fields = [StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL,
+                  StateIndex.AX, StateIndex.AY, StateIndex.AZ]
 
-        self._time = timestamp
-
-        self._extrapolate_state(delta_t)
-        self._extrapolate_covariance(delta_t)
-
-        H: np.array = self._get_H([StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL,
-                                   StateIndex.AX, StateIndex.AY, StateIndex.AZ])
-
+        H: np.array = self._get_H(fields)
         z: np.array = np.concatenate((np.flip(orientation), linear_acceleration))
+        y: np.array = z - H @ self._state
+        y = self._wrap_angles(y, [0, 1, 2])
 
-        y: np.array = z - np.matmul(H, self._state)
-        y = self._wrap_innovation_angles(y)
-
-        R: np.array = np.diag(covariance)
-
-        S: np.array = np.matmul(H, np.matmul(self._covariance, np.transpose(H))) + R
-
-        K: np.array = np.matmul(self._covariance, np.matmul(np.transpose(H), np.linalg.inv(S)))
-
-        I: np.array = np.identity(EKF.NUM_FIELDS, float)
-
-        self._state = self._state + np.matmul(K, y)
-        self._wrap_angles()
-
-        self._covariance = np.matmul(I - np.matmul(K, H), self._covariance)
-        self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
+        self._update(y, covariance, fields)
 
     def handle_dvl_measurement(self, linear_velocity: np.array, covariance: np.array, timestamp: rospy.Time):
+        self._predict(timestamp)
+
+        fields = [StateIndex.VX, StateIndex.VY, StateIndex.VZ]
+
+        H: np.array = self._get_H(fields)
+        z: np.array = linear_velocity - self._get_dvl_tangential_velocity()
+        y: np.array = z - H @ self._state
+
+        self._update(y, covariance, fields)
+
+    def handle_depth_measurement(self, depth: np.array, covariance: np.array, timestamp: rospy.Time):
+        self._predict(timestamp)
+
+        fields = [StateIndex.Z]
+
+        H: np.array = self._get_H(fields)
+        z: np.array = depth
+        y: np.array = z - H @ self._state
+
+        self._update(y, covariance, fields)
+
+    def _predict(self, timestamp: rospy.Time):
         if self._time is None:
             self._time = timestamp
 
-        delta_t: float = timestamp.to_sec() - self._time.to_sec()
-
+        delta_t : float = timestamp.to_sec() - self._time.to_sec()
         self._time = timestamp
 
-        self._extrapolate_state(delta_t)
-        self._extrapolate_covariance(delta_t)
+        self._state = self._extrapolate_state(delta_t)
+        self._covariance = self._extrapolate_covariance(delta_t)
 
-        H: np.array = self._get_H([StateIndex.VX, StateIndex.VY, StateIndex.VZ])
+    def _update(self, innovation: np.array, covariance: np.array, fields: [int]):
+        H: np.array = self._get_H(fields)
 
-        z: np.array = linear_velocity - self._get_dvl_tangential_velocity()
-
-        y: np.array = z - np.matmul(H, self._state)
+        y: np.array = innovation
 
         R: np.array = np.diag(covariance)
 
-        S: np.array = np.matmul(H, np.matmul(self._covariance, np.transpose(H))) + R
+        S: np.array = (H @ self._covariance) @ np.transpose(H) + R
 
         K: np.array = (self._covariance @ np.transpose(H)) @ np.linalg.inv(S)
 
         I: np.array = np.identity(EKF.NUM_FIELDS, float)
 
         self._state = self._state + np.matmul(K, y)
-        self._wrap_angles()
+        self._state = self._wrap_angles(self._state, [StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL])
 
-        self._covariance = (I - (K @ H)) @ self._covariance @ np.transpose(I - (K @ H))
-        self._covariance += K @ R @ np.transpose(K)
+        self._covariance = ((I - (K @ H)) @ self._covariance) @ np.transpose(I - (K @ H))
+        self._covariance = self._covariance + (K @ R) @ np.transpose(K)
         self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
 
-    def handle_depth_measurement(self, depth: float, covariance: float, timestamp: rospy.Time):
-        if self._time is None:
-            self._time = timestamp
-
-        delta_t: float = timestamp.to_sec() - self._time.to_sec()
-
-        self._time = timestamp
-
-        self._extrapolate_state(delta_t)
-        self._extrapolate_covariance(delta_t)
-
-        H: np.array = self._get_H([StateIndex.Z])
-
-        z: np.array = np.array([depth])
-
-        y: np.array = z - np.matmul(H, self._state)
-
-        R: np.array = np.array([covariance])
-
-        S: np.array = np.matmul(H, np.matmul(self._covariance, np.transpose(H))) + R
-
-        K: np.array = (self._covariance @ np.transpose(H)) @ np.linalg.inv(S)
-
-        I: np.array = np.identity(EKF.NUM_FIELDS, float)
-
-        self._state = self._state + np.matmul(K, y)
-        self._wrap_angles()
-
-        self._covariance = (I - (K @ H)) @ self._covariance @ np.transpose(I - (K @ H))
-        self._covariance += K @ R @ np.transpose(K)
-        self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(EKF.NUM_FIELDS, float))
-
-
-    def _extrapolate_state(self, dt: float):
+    def _extrapolate_state(self, dt: float) -> np.array:
         F: np.array = self._get_F(dt)
 
-        self._state = np.matmul(F, self._state)
-        self._wrap_angles()
+        state = np.matmul(F, self._state)
+        state = self._wrap_angles(state, [StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL])
 
-    def _wrap_angles(self):
-        self._state[StateIndex.YAW] = (self._state[StateIndex.YAW] + pi) % (2 * pi) - pi
-        self._state[StateIndex.PITCH] = (self._state[StateIndex.PITCH] + pi) % (2 * pi) - pi
-        self._state[StateIndex.ROLL] = (self._state[StateIndex.ROLL] + pi) % (2 * pi) - pi
+        return state
 
-    def _wrap_innovation_angles(self, innovation):
-        innovation[0] = (innovation[0] + pi) % (2 * pi) - pi
-        innovation[1] = (innovation[1] + pi) % (2 * pi) - pi
-        innovation[2] = (innovation[2] + pi) % (2 * pi) - pi
-        return innovation
+    def _wrap_angles(self, state: np.array, fields: [int]) -> np.array:
+        state = state.copy()
+        state[fields] = (state[fields] + pi) % (2 * pi) - pi
+        return state
 
-    def _extrapolate_covariance(self, dt: float):
+    def _extrapolate_covariance(self, dt: float) -> np.array:
         J: np.array = self._get_J(dt)
 
         Q: np.array = self._process_covariance
 
-        self._covariance = np.matmul(J, np.matmul(self._covariance, np.transpose(J))) + dt * Q
+        covariance = np.matmul(J, np.matmul(self._covariance, np.transpose(J))) + dt * Q
+
+        return covariance
 
     def _get_dvl_tangential_velocity(self) -> np.array:
         cp: float = cos(self._state[StateIndex.PITCH])
@@ -192,7 +155,7 @@ class EKF:
 
         return np.cross(w, self._dvl_offset)
 
-    def _get_H(self, fields: List[int]) -> np.array:
+    def _get_H(self, fields: [int]) -> np.array:
         H: np.array = np.zeros((len(fields), EKF.NUM_FIELDS), float)
 
         for i, f in enumerate(fields):

@@ -1,8 +1,9 @@
-frequency: 50
+frequency: 10
 horizon_delay: 0.25
 
 dvl_offset: [-0.16256, 0, 0.110236]
-dvl_covariance: [1.0e-4, 1.0e-4, 1.0e-4]
-imu_covariance: [1.0e-6, 1.0e-6, 1.0e-6, 1.0e-5, 1.0e-5, 1.0e-5]
+dvl_covariance: [1.0e-6, 1.0e-6, 1.0e-6]
+imu_covariance: [1.0e-6, 1.0e-6, 1.0e-6, 1.0e-4, 1.0e-4, 1.0e-4]
 depth_covariance: 1.0e-6
-process_covariance: [0.05, 0.05, 0.01, 0.03, 0.03, 0.06, 0.025, 0.025, 0.04, 0.02, 0.01, 0.01, 0.015, 0.01, 0.01]
+#process_covariance: [0.05, 0.05, 0.05, 0.3, 0.3, 0.3, 0.25, 0.25, 0.25, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+process_covariance: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

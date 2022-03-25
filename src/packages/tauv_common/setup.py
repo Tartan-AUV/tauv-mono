@@ -21,9 +21,10 @@ from setuptools import find_packages
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['thruster_managers',
+    packages=[
               'thruster_managers.models',
-              'controller',
+              'controllers',
+              'controllers.controller',
               'planners',
               'planners.keyboard_planner',
               'planners.teleop_planner',
@@ -40,7 +41,8 @@ setup_args = generate_distutils_setup(
              'scripts/keyboard_planner',
              'scripts/teleop_planner',
              'scripts/controller',
-             'scripts/mpc_planner'],
+             'scripts/mpc_planner',
+             'scripts/state_estimation'],
 
 )
 setup(**setup_args)

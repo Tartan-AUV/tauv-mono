@@ -2,6 +2,7 @@ import rospy
 import tf
 import numpy as np
 import bisect
+from math import pi
 
 from scipy.spatial.transform import Rotation
 from tauv_util.types import tl, tm
@@ -28,8 +29,8 @@ class StateEstimation:
         self._pose_pub: rospy.Publisher = rospy.Publisher('pose', PoseMsg, queue_size=10)
         self._odom_pub: rospy.Publisher = rospy.Publisher('odom', OdometryMsg, queue_size=10)
 
-        self._imu_sub: rospy.Subscriber = rospy.Subscriber('imu', ImuMsg, self._receive_msg)
-        self._dvl_sub: rospy.Subscriber = rospy.Subscriber('dvl', DvlMsg, self._receive_msg)
+        self._imu_sub: rospy.Subscriber = rospy.Subscriber('/xsens_imu/data', ImuMsg, self._receive_msg)
+        self._dvl_sub: rospy.Subscriber = rospy.Subscriber('/teledyne_dvl/data', DvlMsg, self._receive_msg)
         self._depth_sub: rospy.Subscriber = rospy.Subscriber('depth', DepthMsg, self._receive_msg)
 
         self._dt: rospy.Duration = rospy.Duration.from_sec(1.0 / rospy.get_param('~frequency'))
@@ -40,7 +41,7 @@ class StateEstimation:
 
         self._imu_covariance = np.array(rospy.get_param('~imu_covariance'))
         self._dvl_covariance = np.array(rospy.get_param('~dvl_covariance'))
-        self._depth_covariance = rospy.get_param('~depth_covariance')
+        self._depth_covariance = np.array(rospy.get_param('~depth_covariance'))
 
         self._ekf: EKF = EKF(dvl_offset, process_covariance)
 
@@ -68,7 +69,8 @@ class StateEstimation:
             elif isinstance(msg, DepthMsg):
                 self._handle_depth(msg)
 
-        self._publish_state(horizon_time)
+        self._publish_state(current_time)
+
         self._last_horizon_time = horizon_time
 
     def _receive_msg(self, msg):
@@ -86,11 +88,16 @@ class StateEstimation:
         timestamp = msg.header.stamp
 
         orientation = tl(msg.orientation)
-        angular_velocity = tl(msg.rate_of_turn)
-        linear_acceleration = tl(msg.free_acceleration)
+        adj_orientation = [orientation[0], orientation[1], orientation[2] + pi]
+
+        free_acceleration = tl(msg.free_acceleration)
+        # Accel in world NED
+        adj_free_acceleration = np.array([free_acceleration[1], -free_acceleration[0], free_acceleration[2]])
         covariance = self._imu_covariance
 
-        self._ekf.handle_imu_measurement(orientation, angular_velocity, linear_acceleration, covariance, timestamp)
+        linear_acceleration = Rotation.from_euler('ZYX', np.flip(adj_orientation)).inv().apply(adj_free_acceleration)
+
+        self._ekf.handle_imu_measurement(adj_orientation, linear_acceleration, covariance, timestamp)
 
     def _handle_dvl(self, msg: DvlMsg):
         if not self._initialized:
@@ -103,9 +110,9 @@ class StateEstimation:
 
         velocity = tl(msg.hr_velocity)
 
-        covariance = self._dvl_covariance
+        beam_std_dev = sum(msg.beam_standard_deviations) / 4.0
 
-        # covariance = self._get_dvl_covariance(msg)
+        covariance = np.maximum(1.0e-7 * np.array([beam_std_dev, beam_std_dev, beam_std_dev]), self._dvl_covariance)
 
         self._ekf.handle_dvl_measurement(velocity, covariance, timestamp)
 
@@ -119,7 +126,7 @@ class StateEstimation:
 
         timestamp = msg.header.stamp
 
-        depth = msg.depth
+        depth = np.array([msg.depth])
         covariance = self._depth_covariance
 
         self._ekf.handle_depth_measurement(depth, covariance, timestamp)

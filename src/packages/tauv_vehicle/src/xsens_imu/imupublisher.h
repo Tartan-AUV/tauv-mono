@@ -69,7 +69,7 @@ struct ImuPublisher : public PacketCallback
 
         bool orientation_available = packet.containsOrientation();
         bool rate_of_turn_available = packet.containsCalibratedGyroscopeData();
-        bool free_acceleration_available = packet.containsFreeAcceleration();
+        bool linear_acceleration_available = packet.containsCalibratedAcceleration();
 
         geometry_msgs::Vector3 orientation;
         if (orientation_available)
@@ -91,20 +91,20 @@ struct ImuPublisher : public PacketCallback
             rate_of_turn.z = -a[2] * (M_PI / 180.0);
         }
 
-        geometry_msgs::Vector3 free_acceleration;
-        if (free_acceleration_available)
+        geometry_msgs::Vector3 linear_acceleration;
+        if (linear_acceleration_available)
         {
-            XsVector a = packet.freeAcceleration();
+            XsVector a = packet.calibratedAcceleration();
 
-            free_acceleration.x = -a[0];
-            free_acceleration.y = a[1];
-            free_acceleration.z = -a[2];
+            linear_acceleration.x = -a[0];
+            linear_acceleration.y = a[1];
+            linear_acceleration.z = -a[2];
         }
 
         uint32_t status = packet.status();
         bool triggered_dvl = (status >> 22) & 1;
 
-        if (orientation_available && rate_of_turn_available && free_acceleration_available)
+        if (orientation_available && rate_of_turn_available && linear_acceleration_available)
         {
             tauv_msgs::XsensImuData data_msg;
 
@@ -117,7 +117,7 @@ struct ImuPublisher : public PacketCallback
 
             data_msg.orientation = orientation;
             data_msg.rate_of_turn = rate_of_turn;
-            data_msg.free_acceleration = free_acceleration;
+            data_msg.linear_acceleration = linear_acceleration;
 
             data_pub.publish(data_msg);
         }

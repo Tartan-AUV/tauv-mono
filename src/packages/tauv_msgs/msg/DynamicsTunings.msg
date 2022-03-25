@@ -1,0 +1,9 @@
+float64 mass
+float64 volume
+float64 water_density
+float64[3] center_of_gravity
+float64[3] center_of_buoyancy
+float64[6] moments
+float64[6] linear_damping
+float64[6] quadratic_damping
+float64[6] added_mass

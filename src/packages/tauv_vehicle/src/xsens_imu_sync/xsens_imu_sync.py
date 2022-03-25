@@ -25,6 +25,9 @@ class ImuSync:
 
         self._R = ImuSync.VAR_OFFSET
 
+        self._sync_period = rospy.Duration.from_sec(rospy.get_param('~sync_period'))
+        self._expected_sync_time = None
+
         self._last_corrected_time = None
         self._last_ros_time = None
         self._last_imu_time = None
@@ -58,6 +61,12 @@ class ImuSync:
 
         corrected_time = self.convert_imu_time(imu_time)
 
+        if data.triggered_dvl:
+            self._expected_sync_time = corrected_time + self._sync_period
+        elif corrected_time > self._expected_sync_time:
+            self._publish_missed_sync(self._expected_sync_time)
+            self._expected_sync_time = self._expected_sync_time + self._sync_period
+
         msg = ImuSyncMsg()
         msg.header = Header()
         msg.header.stamp = corrected_time
@@ -84,7 +93,7 @@ class ImuSync:
         data_msg.triggered_dvl = data.triggered_dvl
         data_msg.orientation = data.orientation
         data_msg.rate_of_turn = data.rate_of_turn
-        data_msg.free_acceleration = data.free_acceleration
+        data_msg.linear_acceleration = data.linear_acceleration
 
         self._data_pub.publish(data_msg)
 
@@ -97,6 +106,13 @@ class ImuSync:
 
         converted_secs = imu_time.to_sec() + self._x[0] + dt * self._x[1]
         return rospy.Time.from_sec(converted_secs)
+
+    def _publish_missed_sync(self, time):
+        msg = ImuSyncMsg()
+        msg.header = Header()
+        msg.header.stamp = time
+        msg.triggered_dvl = True
+        msg.d_corrected = self._sync_period.to_sec()
 
 def main():
     rospy.init_node('imu_sync')

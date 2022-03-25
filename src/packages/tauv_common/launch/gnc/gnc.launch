@@ -22,12 +22,22 @@
             <remap from="dvl" to="/teledyne_dvl/data" />
         </node>
 
-<!--        <node pkg="tauv_common" type="controller" name="controller" output="screen">-->
-<!--            <rosparam command="load" file="$(arg config_pkg)/controller.yaml" />-->
-<!--            <remap from="odom" to="/gnc/odom"/>-->
-<!--            <remap from="controller_cmd" to="$(arg planner)/controller_cmd"/>-->
-<!--            <remap from="wrench" to="/$(arg model_name)/thruster_manager/input_stamped"/>-->
-<!--        </node>-->
+        <node pkg="tauv_common" type="controller" name="controller" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/controller.yaml" />
+            <remap from="odom" to="/gnc/odom"/>
+            <remap from="controller_cmd" to="/controller/cmd"/>
+            <remap from="wrench" to="/thrusters/wrench"/>
+            <remap from="hold_pose" to="/controller/hold_pose" />
+            <remap from="tune_dynamics" to="/controller/tune_dynamics" />
+            <remap from="tune_pids" to="/controller/tune_pids" />
+        </node>
+
+        <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />
+            <remap from="joy" to="/joy" />
+            <remap from="wrench" to="/thrusters/wrench" />
+            <remap from="arm" to="/thrusters/arm" />
+        </node>
 
         <!-- Load USB joystick controller configs -->
 <!--        <rosparam file="$(find tauv_common)/src/planners/teleop_planner/joy.yaml" command="load"/>-->

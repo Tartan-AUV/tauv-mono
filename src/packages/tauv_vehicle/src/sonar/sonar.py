@@ -47,8 +47,8 @@ class Sonar:
         rospy.spin()
 
     def _update(self, timer_event):
-        self.angle = (1 + self._angle) % 400
-        self._do_pulse_at_angle(self.angle)
+        self._angle = (1 + self._angle) % 400
+        self._do_pulse_at_angle(self._angle)
 
         res = self._ping.wait_message([definitions.COMMON_NACK, definitions.PING360_DEVICE_DATA], 0.1)
 

@@ -9,8 +9,8 @@ add_message_files(
   BucketList.msg
   FluidDepth.msg
   ControllerCmd.msg
-  InertialVals.msg
-  PidVals.msg
+  DynamicsTunings.msg
+  PidTunings.msg
   SonarPulse.msg
   PoseGraphMeasurement.msg
   Thrust.msg
@@ -23,9 +23,10 @@ add_message_files(
 
 add_service_files(
   FILES
-  TuneInertial.srv
-  TunePid.srv
+  TuneDynamics.srv
+  TunePids.srv
   GetTraj.srv
+  HoldPose.srv
 )
 
 
