@@ -59,8 +59,6 @@ class Controller:
         rospy.spin()
 
     def _update(self, timer_event):
-        print('update')
-        print(self._pose, self._body_twist, self._cmd_acceleration, self._hold_pose)
         if self._pose is None or self._body_twist is None or (self._cmd_acceleration is None and self._hold_pose is None):
             return
 
@@ -75,7 +73,7 @@ class Controller:
         vd = self._get_acceleration()
 
         tau = self._dyn.compute_tau(eta, v, vd)
-        tau = np.array([0.0, 0.0, 0.0, 5.0, 5.0, 0.0]) * tau
+        tau = np.array([1.0, 1.0, 1.0, 5.0, 5.0, 1.0]) * tau
         bounded_tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
         wrench: Wrench = Wrench()
