@@ -37,6 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
     <arg name="camera_id"             default="0" />
     <arg name="gpu_id"                default="-1" />
+    <arg name="camera_sn"             default="0" />
 
     <!-- Position respect to base frame (i.e. "base_link) -->
     <arg name="cam_pos_x"             default="0.0" />
@@ -83,6 +84,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
         <!-- Remote stream -->
         <param name="stream"                            value="$(arg stream)" />
+
+        <!-- Camera Serial Number -->
+        <param name="general/serial_number"             value="$(arg camera_sn)" />
 
         <!-- Camera ID -->
         <param name="general/zed_id"                    value="$(arg camera_id)" />

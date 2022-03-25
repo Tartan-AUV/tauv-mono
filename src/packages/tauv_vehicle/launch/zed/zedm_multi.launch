@@ -20,11 +20,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <arg name="svo_file"             default="" /> <!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
     <arg name="stream"               default="" /> <!-- <arg name="stream" default="<ip_address>:<port>"> -->
 
-    <arg name="node_name"            default="zed_node" />
+    <arg name="node_name_1"            default="zed_node_A" />
     <arg name="camera_model"         default="zedm" /> <!-- 'zed' or 'zedm' -->
     <arg name="publish_urdf"         default="true" />
 
-    <arg name="camera_name"          default="zedm" />
+    <arg name="camera_name_1"          default="zedm_A" />
 
     <arg name="base_frame"           default="base_link" />
 
@@ -35,24 +35,49 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <arg name="cam_pitch"             default="0.0" /> <!-- Orientation respect to base frame (i.e. "base_link) -->
     <arg name="cam_yaw"               default="0.0" /> <!-- Orientation respect to base frame (i.e. "base_link) -->
 
-    <arg name="camera_sn"             default="10029642" />
+    <arg name="node_name_2"            default="zed_node_B" />
+    <arg name="camera_name_2"          default="zedm_B" />
 
-    <group ns="$(arg camera_name)">
+    <arg name="camera_sn_1"             default="10029642" />
+    <arg name="camera_sn_2"             default="10029656" />
+
+
+    <group ns="$(arg camera_name_1)">
         <include file="$(find tauv_vehicle)/launch/zed/include/zed_camera.launch.xml">
-            <arg name="camera_name"         value="$(arg camera_name)" />
+            <arg name="camera_name"         value="$(arg camera_name_1)" />
             <arg name="svo_file"            value="$(arg svo_file)" />
             <arg name="stream"              value="$(arg stream)" />
-            <arg name="node_name"           value="$(arg node_name)" />
+            <arg name="node_name"           value="$(arg node_name_1)" />
             <arg name="camera_model"        value="$(arg camera_model)" />
             <arg name="base_frame"          value="$(arg base_frame)" />
             <arg name="publish_urdf"        value="$(arg publish_urdf)" />
-            <arg name="camera_sn"           value="$(arg camera_sn)" />
+            <arg name="camera_sn"           value="$(arg camera_sn_1)" />
             <arg name="cam_pos_x"           value="$(arg cam_pos_x)" />
             <arg name="cam_pos_y"           value="$(arg cam_pos_y)" />
             <arg name="cam_pos_z"           value="$(arg cam_pos_z)" />
             <arg name="cam_roll"            value="$(arg cam_roll)" />
             <arg name="cam_pitch"           value="$(arg cam_pitch)" />
             <arg name="cam_yaw"             value="$(arg cam_yaw)" />
+            <arg name="camera_id"           value="0" />
+        </include>
+    </group>
+    <group ns="$(arg camera_name_2)">
+        <include file="$(find tauv_vehicle)/launch/zed/include/zed_camera.launch.xml">
+            <arg name="camera_name"         value="$(arg camera_name_2)" />
+            <arg name="svo_file"            value="$(arg svo_file)" />
+            <arg name="stream"              value="$(arg stream)" />
+            <arg name="node_name"           value="$(arg node_name_2)" />
+            <arg name="camera_model"        value="$(arg camera_model)" />
+            <arg name="base_frame"          value="$(arg base_frame)" />
+            <arg name="publish_urdf"        value="$(arg publish_urdf)" />
+            <arg name="camera_sn"           value="$(arg camera_sn_2)" />
+            <arg name="cam_pos_x"           value="$(arg cam_pos_x)" />
+            <arg name="cam_pos_y"           value="$(arg cam_pos_y)" />
+            <arg name="cam_pos_z"           value="$(arg cam_pos_z)" />
+            <arg name="cam_roll"            value="$(arg cam_roll)" />
+            <arg name="cam_pitch"           value="$(arg cam_pitch)" />
+            <arg name="cam_yaw"             value="$(arg cam_yaw)" />
+            <arg name="camera_id"           value="1" />
         </include>
     </group>
 </launch>
