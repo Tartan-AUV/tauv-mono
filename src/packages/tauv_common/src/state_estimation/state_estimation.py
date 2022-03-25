@@ -59,21 +59,16 @@ class StateEstimation:
         current_time = rospy.Time.now()
         horizon_time = current_time - self._horizon_delay
 
-        print(f'queue length: {len(self._msg_queue)}')
-
         pending_msg_queue = list(filter(lambda m: extract_msg_time(m) < horizon_time.to_sec(), self._msg_queue))
         self._msg_queue = list(filter(lambda m: extract_msg_time(m) >= horizon_time.to_sec(), self._msg_queue))
 
         for msg in pending_msg_queue:
-            start_time = time.time()
             if isinstance(msg, ImuMsg):
                 self._handle_imu(msg)
             elif isinstance(msg, DvlMsg):
                 self._handle_dvl(msg)
             elif isinstance(msg, DepthMsg):
                 self._handle_depth(msg)
-            end_time = time.time()
-            print(f'processing took {end_time - start_time}')
 
         self._publish_state(current_time)
 
@@ -84,11 +79,7 @@ class StateEstimation:
             return
 
         if isinstance(msg, DvlMsg):
-            print(f'sorting: {len(self._msg_queue)}')
-            start_time = time.time()
             self._msg_queue = sorted(self._msg_queue + [msg], key=extract_msg_time)
-            end_time = time.time()
-            print(f'took {end_time - start_time}')
         else: self._msg_queue = self._msg_queue + [msg]
 
         # TODO: Add time sanity checks
@@ -102,7 +93,11 @@ class StateEstimation:
         timestamp = msg.header.stamp
 
         orientation = tl(msg.orientation)
-        linear_acceleration = tl(msg.linear_acceleration)
+
+        R = Rotation.from_euler('ZYX', np.flip(orientation))
+        g = R.apply([0, 0, 9.8])
+
+        linear_acceleration = tl(msg.linear_acceleration) - g
 
         covariance = self._imu_covariance
 
@@ -111,8 +106,6 @@ class StateEstimation:
         self._ekf.handle_imu_measurement(orientation, linear_acceleration, covariance, timestamp)
 
         end_time = time.time()
-
-        print(f'imu took {mid_time - start_time}, {end_time - mid_time}')
 
     def _handle_dvl(self, msg: DvlMsg):
         if not self._initialized:
@@ -150,7 +143,6 @@ class StateEstimation:
         try:
             position, velocity, acceleration, orientation, angular_velocity = self._ekf.get_state(time)
         except ValueError as e:
-            print(f'get_state: ${e}')
             return
 
         msg: PoseMsg = PoseMsg()
