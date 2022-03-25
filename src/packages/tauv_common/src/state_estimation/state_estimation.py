@@ -94,10 +94,12 @@ class StateEstimation:
 
         orientation = tl(msg.orientation)
 
-        R = Rotation.from_euler('ZYX', np.flip(orientation)).inv()
-        g = R.apply(np.array([0, 0, 9.81]))
+        free_acceleration = tl(msg.linear_acceleration)
+        adj_acceleration = np.array([free_acceleration[1], -free_acceleration[0], free_acceleration[2]])
 
-        linear_acceleration = tl(msg.linear_acceleration) - g
+        R = Rotation.from_euler('ZYX', np.flip(orientation)).inv()
+        linear_acceleration = R.apply(adj_acceleration)
+        # g = R.apply(np.array([0, 0, 9.81]))
 
         covariance = self._imu_covariance
 
