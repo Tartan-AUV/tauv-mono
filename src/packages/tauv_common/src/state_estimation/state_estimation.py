@@ -77,7 +77,9 @@ class StateEstimation:
         if not self._initialized:
             return
 
-        self._msg_queue = sorted(self._msg_queue + [msg], key=extract_msg_time)
+        if isinstance(msg, DvlMsg):
+            self._msg_queue = sorted(self._msg_queue + [msg], key=extract_msg_time)
+        else: self._msg_queue = self._msg_queue + [msg]
 
         # TODO: Add time sanity checks
 
@@ -89,6 +91,7 @@ class StateEstimation:
 
         orientation = tl(msg.orientation)
         linear_acceleration = tl(msg.linear_acceleration)
+        print(orientation)
 
         covariance = self._imu_covariance
 
