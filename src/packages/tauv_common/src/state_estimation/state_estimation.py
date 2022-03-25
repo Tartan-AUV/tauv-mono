@@ -58,8 +58,10 @@ class StateEstimation:
         current_time = rospy.Time.now()
         horizon_time = current_time - self._horizon_delay
 
-        self._msg_queue = list(filter(lambda m: extract_msg_time(m) >= self._last_horizon_time.to_sec(), self._msg_queue))
+        print(f'queue length: {len(self._msg_queue)}')
+
         pending_msg_queue = list(filter(lambda m: extract_msg_time(m) < horizon_time.to_sec(), self._msg_queue))
+        self._msg_queue = list(filter(lambda m: extract_msg_time(m) >= horizon_time.to_sec(), self._msg_queue))
 
         for msg in pending_msg_queue:
             if isinstance(msg, ImuMsg):
@@ -78,6 +80,7 @@ class StateEstimation:
             return
 
         if isinstance(msg, DvlMsg):
+            print(f'sorting: {len(self._msg_queue)}')
             self._msg_queue = sorted(self._msg_queue + [msg], key=extract_msg_time)
         else: self._msg_queue = self._msg_queue + [msg]
 
@@ -91,7 +94,6 @@ class StateEstimation:
 
         orientation = tl(msg.orientation)
         linear_acceleration = tl(msg.linear_acceleration)
-        print(orientation)
 
         covariance = self._imu_covariance
 
