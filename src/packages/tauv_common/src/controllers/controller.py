@@ -20,7 +20,7 @@ class Controller:
 
         self._pose: Optional[Pose] = None
         self._body_twist: Optional[Twist] = None
-        self._hold_pose: Optional[Pose] = Pose()
+        self._hold_pose: Optional[Pose] = None
 
         self._roll_tunings: np.array = np.array(rospy.get_param('~roll_tunings'))
         self._pitch_tunings: np.array = np.array(rospy.get_param('~pitch_tunings'))
