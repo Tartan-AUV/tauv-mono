@@ -3,7 +3,7 @@ import numpy as np
 from enum import Enum
 from typing import Dict
 
-from geometry_msgs.msg import Vector3, Wrench
+from tauv_msgs import ControllerCmd as ControllerCmdMsg
 from sensor_msgs.msg import Joy as JoyMsg
 from std_srvs.srv import SetBool
 
@@ -30,7 +30,7 @@ class TeleopPlanner:
         self._is_armed: bool = False
 
         self._joy_sub: rospy.Subscriber = rospy.Subscriber('joy', JoyMsg, self._handle_joy)
-        self._wrench_pub: rospy.Publisher = rospy.Publisher('wrench', Wrench, queue_size=10)
+        self._cmd_pub: rospy.Publisher = rospy.Publisher('cmd', ControllerCmdMsg, queue_size=10)
         self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('arm', SetBool)
 
         self._command: np.array = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -47,10 +47,19 @@ class TeleopPlanner:
                 or not self._is_armed:
             self._command = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
-        wrench: Wrench = Wrench()
-        wrench.force = Vector3(self._command[0], self._command[1], self._command[2])
-        wrench.torque = Vector3(self._command[3], self._command[4], self._command[5])
-        self._wrench_pub.publish(wrench)
+        msg: ControllerCmdMsg = ControllerCmdMsg()
+        msg.a_x = self._command[0]
+        msg.a_y = self._command[1]
+        msg.a_z = self._command[2]
+        msg.a_roll = self._command[3]
+        msg.a_pitch = self._command[4]
+        msg.a_yaw = self._command[5]
+        self._cmd_pub.publish(msg)
+
+        # wrench: Wrench = Wrench()
+        # wrench.force = Vector3(self._command[0], self._command[1], self._command[2])
+        # wrench.torque = Vector3(self._command[3], self._command[4], self._command[5])
+        # self._wrench_pub.publish(wrench)
 
     def _handle_joy(self, msg: JoyMsg):
         if self._is_pressed(msg, ButtonInput.ESTOP):

@@ -1,4 +1,4 @@
-frequency: 50.0
+frequency: 50
 horizon_delay: 0.25
 
 dvl_offset: [-0.16256, 0, 0.110236]
