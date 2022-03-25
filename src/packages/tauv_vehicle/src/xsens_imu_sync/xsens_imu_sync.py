@@ -63,7 +63,7 @@ class ImuSync:
 
         if data.triggered_dvl:
             self._expected_sync_time = corrected_time + self._sync_period
-        elif corrected_time > self._expected_sync_time:
+        elif self._expected_sync_time is not None and corrected_time > self._expected_sync_time:
             self._publish_missed_sync(self._expected_sync_time)
             self._expected_sync_time = self._expected_sync_time + self._sync_period
 
