@@ -59,6 +59,8 @@ class Controller:
         rospy.spin()
 
     def _update(self, timer_event):
+        print('update')
+        print(self._pose, self._body_twist, self._cmd_acceleration, self._hold_pose)
         if self._pose is None or self._body_twist is None or (self._cmd_acceleration is None and self._hold_pose is None):
             return
 
