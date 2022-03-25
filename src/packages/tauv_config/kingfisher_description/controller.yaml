@@ -1,7 +1,7 @@
 frequency: 50
 
-roll_tunings: [30.0, 0, 0.0, -0.1, 0.1]
-pitch_tunings: [30.0, 0, 0.0, -0.1, 0.1]
+roll_tunings: [10.0, 0, 0.0, -0.1, 0.1]
+pitch_tunings: [10.0, 0, 0.0, -0.1, 0.1]
 z_tunings: [50.0, 10.0, 0.0, -0.1, 0.1]
 
 # x, y, z, roll, pitch, yaw in N
@@ -19,12 +19,12 @@ dynamics:
 
   # x, y, z in body NED
   center_of_gravity: [0.0, 0.0, 0.0]
-  center_of_buoyancy: [0.0, 0.0, 0.0]
+  center_of_buoyancy: [0.05, 0.0, 0.0]
 
   # Ixx, Iyy, Izz, Ixy, Ixz, Iyz
   moments: [0.06, 0.26, 0.26, 0.0, 0.0, 0.0]
 
   # x, y, z, roll, pitch, yaw
-  linear_damping: [10.0, 10.0, 42.0, 13.0, 13.0, 13.0]
+  linear_damping: [10.0, 10.0, 42.0, 1.0, 1.0, 1.0]
   quadratic_damping: [5.0, 5.0, 26.0, 0.0, 0.0, 0.0]
   added_mass: [10.0, 10.0, 50.0, 1.0, 1.0, 1.0]
