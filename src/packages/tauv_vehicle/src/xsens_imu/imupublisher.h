@@ -98,7 +98,7 @@ struct ImuPublisher : public PacketCallback
 
             linear_acceleration.x = -a[0];
             linear_acceleration.y = a[1];
-            linear_acceleration.z = -a[2];
+            linear_acceleration.z = -a[2] + M_PI;
         }
 
         uint32_t status = packet.status();

@@ -88,16 +88,11 @@ class StateEstimation:
         timestamp = msg.header.stamp
 
         orientation = tl(msg.orientation)
-        adj_orientation = [orientation[0], orientation[1], orientation[2] + pi]
+        linear_acceleration = tl(msg.linear_acceleration)
 
-        free_acceleration = tl(msg.free_acceleration)
-        # Accel in world NED
-        adj_free_acceleration = np.array([free_acceleration[1], -free_acceleration[0], free_acceleration[2]])
         covariance = self._imu_covariance
 
-        linear_acceleration = Rotation.from_euler('ZYX', np.flip(adj_orientation)).inv().apply(adj_free_acceleration)
-
-        self._ekf.handle_imu_measurement(adj_orientation, linear_acceleration, covariance, timestamp)
+        self._ekf.handle_imu_measurement(orientation, linear_acceleration, covariance, timestamp)
 
     def _handle_dvl(self, msg: DvlMsg):
         if not self._initialized:
