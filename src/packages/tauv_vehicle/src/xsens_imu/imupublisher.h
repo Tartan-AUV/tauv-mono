@@ -78,7 +78,7 @@ struct ImuPublisher : public PacketCallback
 
             orientation.x = -a.roll() * (M_PI / 180.0);
             orientation.y = a.pitch() * (M_PI / 180.0);
-            orientation.z = -a.yaw() * (M_PI / 180.0);
+            orientation.z = -a.yaw() * (M_PI / 180.0) + M_PI;
         }
 
         geometry_msgs::Vector3 rate_of_turn;
@@ -98,7 +98,7 @@ struct ImuPublisher : public PacketCallback
 
             linear_acceleration.x = -a[0];
             linear_acceleration.y = a[1];
-            linear_acceleration.z = -a[2] + M_PI;
+            linear_acceleration.z = -a[2];
         }
 
         uint32_t status = packet.status();
