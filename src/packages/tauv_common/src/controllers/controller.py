@@ -78,7 +78,6 @@ class Controller:
         bounded_tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
         wrench: Wrench = Wrench()
-        wrench.header.stamp = rospy.Time.now()
         wrench.force = Vector3(bounded_tau[0], bounded_tau[1], bounded_tau[2])
         wrench.torque = Vector3(bounded_tau[3], bounded_tau[4], bounded_tau[5])
         self._wrench_pub.publish(wrench)
