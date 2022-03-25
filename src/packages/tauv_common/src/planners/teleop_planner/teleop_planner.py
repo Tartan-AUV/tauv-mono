@@ -3,7 +3,7 @@ import numpy as np
 from enum import Enum
 from typing import Dict
 
-from tauv_msgs import ControllerCmd as ControllerCmdMsg
+from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg
 from sensor_msgs.msg import Joy as JoyMsg
 from std_srvs.srv import SetBool
 
