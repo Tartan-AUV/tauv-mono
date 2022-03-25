@@ -65,12 +65,15 @@ class StateEstimation:
         self._msg_queue = list(filter(lambda m: extract_msg_time(m) >= horizon_time.to_sec(), self._msg_queue))
 
         for msg in pending_msg_queue:
+            start_time = time.time()
             if isinstance(msg, ImuMsg):
                 self._handle_imu(msg)
             elif isinstance(msg, DvlMsg):
                 self._handle_dvl(msg)
             elif isinstance(msg, DepthMsg):
                 self._handle_depth(msg)
+            end_time = time.time()
+            print(f'processing took {end_time - start_time}')
 
         self._publish_state(current_time)
 
