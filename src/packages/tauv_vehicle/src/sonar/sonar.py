@@ -21,10 +21,9 @@ class Sonar:
         self._ping = Ping360()
         self._ping.connect_serial(port, baudrate)
 
-        if not self._ping.initialize():
-            raise ValueError("Unable to initialize ping360 device!")
-
-        # self.ping.control_reset()
+        while not self._ping.initialize():
+            print(f'[sonar] ping360 init failed')
+            rospy.sleep(1.0)
 
         self._gain_setting = rospy.get_param('~gain')
         self._transmit_duration = rospy.get_param('~transmit_duration')
@@ -59,7 +58,7 @@ class Sonar:
             pulse_msg = self._get_pulse_msg(res)
             self._pulse_pub.publish(pulse_msg)
         elif res.message_id == definitions.COMMON_NACK:
-            rospy.logwarn("Error communicating with ping360 device:\n%s", res.nack_message)
+            print(f'[sonar] _update: error communicating with ping360 device: {res.nack_message}')
 
     def _do_pulse_at_angle(self, angle):
         self._ping.transmitAngleNoWait(angle)
