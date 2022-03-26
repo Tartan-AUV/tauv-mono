@@ -1,6 +1,6 @@
 frequency: 100
 
-port: /dev/ttyUSB0
+port: /dev/ttyUSB2
 baudrate: 2000000
 
 gain: 0

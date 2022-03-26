@@ -1,2 +1,2 @@
-port: /dev/ttyUSB2
+port: /dev/ttyUSB1
 baudrate: 115200
