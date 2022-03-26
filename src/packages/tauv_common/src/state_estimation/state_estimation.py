@@ -88,26 +88,18 @@ class StateEstimation:
         if not self._initialized:
             return
 
-        start_time = time.time()
-
         timestamp = msg.header.stamp
 
         orientation = tl(msg.orientation)
 
-        free_acceleration = tl(msg.linear_acceleration)
-        adj_acceleration = np.array([free_acceleration[1], -free_acceleration[0], free_acceleration[2]])
+        free_acceleration = tl(msg.free_acceleration)
 
         R = Rotation.from_euler('ZYX', np.flip(orientation)).inv()
-        linear_acceleration = R.apply(adj_acceleration)
-        # g = R.apply(np.array([0, 0, 9.81]))
+        linear_acceleration = R.apply(free_acceleration)
 
         covariance = self._imu_covariance
 
-        mid_time = time.time()
-
         self._ekf.handle_imu_measurement(orientation, linear_acceleration, covariance, timestamp)
-
-        end_time = time.time()
 
     def _handle_dvl(self, msg: DvlMsg):
         if not self._initialized:
