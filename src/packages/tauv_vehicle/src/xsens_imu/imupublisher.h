@@ -95,7 +95,7 @@ struct ImuPublisher : public PacketCallback
         geometry_msgs::Vector3 linear_acceleration;
         if (linear_acceleration_available)
         {
-            XsVector a = packet.calibratedAcceleration()
+            XsVector a = packet.calibratedAcceleration();
 
             linear_acceleration.x = -a[0];
             linear_acceleration.y = a[1];
