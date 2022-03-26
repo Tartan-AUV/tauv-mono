@@ -19,7 +19,7 @@ dynamics:
 
   # x, y, z in body NED
   center_of_gravity: [0.0, 0.0, 0.0]
-  center_of_buoyancy: [0.0, 0.0, 0.0]
+  center_of_buoyancy: [0.005, 0.0, 0.0]
 
   # Ixx, Iyy, Izz, Ixy, Ixz, Iyz
   moments: [0.5, 0.5, 0.5, 0.3, 0.3, 0.3]
