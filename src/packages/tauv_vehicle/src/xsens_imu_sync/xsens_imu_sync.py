@@ -94,6 +94,7 @@ class ImuSync:
         data_msg.orientation = data.orientation
         data_msg.rate_of_turn = data.rate_of_turn
         data_msg.linear_acceleration = data.linear_acceleration
+        data_msg.free_acceleration = data.free_acceleration
 
         self._data_pub.publish(data_msg)
 

@@ -69,6 +69,7 @@ struct ImuPublisher : public PacketCallback
 
         bool orientation_available = packet.containsOrientation();
         bool rate_of_turn_available = packet.containsCalibratedGyroscopeData();
+        bool linear_acceleration_available = packet.containsLinearAcceleration();
         bool free_acceleration_available = packet.containsFreeAcceleration();
 
         geometry_msgs::Vector3 orientation;
@@ -91,14 +92,24 @@ struct ImuPublisher : public PacketCallback
             rate_of_turn.z = -a[2] * (M_PI / 180.0);
         }
 
+        geometry_msgs::Vector3 linear_acceleration;
+        if (linear_acceleration_available)
+        {
+            XsVector a = packet.linearAcceleration()
+
+            linear_acceleration.x = -a[0];
+            linear_acceleration.y = a[1];
+            linear_acceleration.z = -a[2];
+        }
+
         geometry_msgs::Vector3 free_acceleration;
         if (free_acceleration_available)
         {
             XsVector a = packet.freeAcceleration();
 
-            linear_acceleration.x = -a[1];
-            linear_acceleration.y = a[0];
-            linear_acceleration.z = -a[2];
+            free_acceleration.x = -a[1];
+            free_acceleration.y = a[0];
+            free_acceleration.z = -a[2];
         }
 
         uint32_t status = packet.status();
@@ -117,6 +128,7 @@ struct ImuPublisher : public PacketCallback
 
             data_msg.orientation = orientation;
             data_msg.rate_of_turn = rate_of_turn;
+            data_msg.linear_acceleration = linear_acceleration;
             data_msg.free_acceleration = free_acceleration;
 
             data_pub.publish(data_msg);
