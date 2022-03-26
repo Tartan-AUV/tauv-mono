@@ -1,3 +1,5 @@
+frequency: 100
+
 port: /dev/ttyUSB2
 baudrate: 2000000
 

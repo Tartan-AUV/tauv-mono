@@ -13,7 +13,7 @@ RAD_PER_GRAD = math.pi / 200.0
 
 class Sonar:
     def __init__(self):
-        self._dt = 0.01
+        self._dt = 1.0 / rospy.get_param('~frequency')
 
         port = rospy.get_param('~port')
         baudrate = rospy.get_param('~baudrate')
