@@ -5,7 +5,7 @@ from simple_pid import PID
 from math import pi
 
 from dynamics.dynamics import Dynamics
-from geometry_msgs.msg import Pose, Twist, Wrench, Vector3
+from geometry_msgs.msg import Pose, Twist, Wrench, Vector3, Quaternion
 from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg
 from tauv_msgs.srv import HoldPose, HoldPoseRequest, HoldPoseResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TunePids, TunePidsRequest, TunePidsResponse
 from tauv_util.types import tl, tm
@@ -21,6 +21,9 @@ class Controller:
         self._pose: Optional[Pose] = None
         self._body_twist: Optional[Twist] = None
         self._hold_pose: Optional[Pose] = None
+        self._hold_pose: Optional[Pose] = Pose()
+        self._hold_pose.position = Vector3(0.0, 0.0, 0.5)
+        self._hold_pose.orientation = Quaternion(1.0, 0.0, 0.0, 1.0)
 
         self._roll_tunings: np.array = np.array(rospy.get_param('~roll_tunings'))
         self._pitch_tunings: np.array = np.array(rospy.get_param('~pitch_tunings'))
