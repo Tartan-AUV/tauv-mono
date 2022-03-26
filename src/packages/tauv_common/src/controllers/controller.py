@@ -73,7 +73,6 @@ class Controller:
         vd = self._get_acceleration()
 
         tau = self._dyn.compute_tau(eta, v, vd)
-        tau = np.array([1.0, 1.0, 1.0, 5.0, 5.0, 1.0]) * tau
         bounded_tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
         wrench: Wrench = Wrench()
