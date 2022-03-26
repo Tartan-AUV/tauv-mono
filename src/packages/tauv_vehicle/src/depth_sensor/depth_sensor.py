@@ -12,21 +12,31 @@ class DepthSensor():
 
         self._ms5837 = ms5837.MS5837_02BA(bus=1)
 
-        while not self._ms5837.init() and not rospy.is_shutdown():
+        while not self._init() and not rospy.is_shutdown():
             rospy.sleep(1)
             print("Failed to initialize depth sensor, retrying in 3 seconds")
 
         if rospy.is_shutdown():
             return
 
-        print("Depth sensor initialized!")
-
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
         rospy.spin()
 
+    def _init(self) -> bool:
+        try:
+            self._ms5837.init()
+            return True
+        except IOError as e:
+            print(f'[depth_sensor] _init {e}')
+            return False
+
     def _update(self, timer_event):
-        self._ms5837.read()
+        try:
+            self._ms5837.read()
+        except IOError as e:
+            print(f'[depth_sensor] _update {e}')
+            return
 
         timestamp = rospy.Time.now()
 

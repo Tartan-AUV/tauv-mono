@@ -46,13 +46,10 @@ class MS5837(object):
 
     def __init__(self, model, bus):
         self._model = model
-        print("Trying to connect to bus {}".format(bus))
 
         try:
             self._bus = SMBus(bus)
         except:
-            print(f"Bus ${bus} is not available.")
-            print("Available busses are listed as /dev/i2c*")
             self._bus = None
 
         self._fluidDensity = DENSITY_FRESHWATER
@@ -64,8 +61,7 @@ class MS5837(object):
 
     def init(self):
         if self._bus is None:
-            print("No bus!")
-            return False
+            raise IOError('No bus')
 
         self._bus.write_byte(self._MS5837_ADDR, self._MS5837_RESET)
 
@@ -82,19 +78,16 @@ class MS5837(object):
 
         crc = (self._C[0] & 0xF000) >> 12
         if crc != self._crc4(self._C):
-            print("PROM read error, CRC failed!")
-            return False
+            raise IOError('PROM read error, CRC failed!')
 
         return True
 
     def read(self, oversampling=OSR_8192):
         if self._bus is None:
-            print("No bus!")
-            return False
+            raise IOError('No bus')
 
         if oversampling < OSR_256 or oversampling > OSR_8192:
-            print("Invalid oversampling option!")
-            return False
+            raise ValueError('Invalid oversampling option')
 
         # Request D1 conversion (temperature)
         self._bus.write_byte(self._MS5837_ADDR, self._MS5837_CONVERT_D1_256 + 2*oversampling)
