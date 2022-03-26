@@ -25,6 +25,6 @@ dynamics:
   moments: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
   # x, y, z, roll, pitch, yaw
-  linear_damping: [10.0, 10.0, 42.0, 1.0, 1.0, 1.0]
-  quadratic_damping: [5.0, 5.0, 26.0, 0.0, 0.0, 0.0]
-  added_mass: [10.0, 10.0, 50.0, 1.0, 1.0, 1.0]
+  linear_damping: [10.0, 10.0, 42.0, 10.0, 10.0, 10.0]
+  quadratic_damping: [5.0, 5.0, 26.0, 5.0, 5.0, 5.0]
+  added_mass: [10.0, 10.0, 50.0, 5.0, 5.0, 5.0]
