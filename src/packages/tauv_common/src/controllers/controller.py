@@ -104,7 +104,7 @@ class Controller:
 
             vd = np.concatenate((
                 body_acceleration + np.array([self._cmd_acceleration[0], self._cmd_acceleration[1], self._cmd_acceleration[2]]),
-                np.array([roll_effort, pitch_effort, 0.0])
+                np.array([roll_effort, pitch_effort, self._cmd_acceleration[5]])
             ))
         else:
             pose_rpy = quat_to_rpy(self._pose.orientation)
