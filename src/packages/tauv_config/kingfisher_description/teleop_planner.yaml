@@ -9,9 +9,9 @@ axis_ids:
   pitch: 7
   yaw: 3
 axis_scales:
-  x: 20
-  y: -20
-  z: 20
-  roll: -5
-  pitch: 5
-  yaw: -5
+  x: 0.2
+  y: -0.2
+  z: 0.2
+  roll: -0.1
+  pitch: 0.1
+  yaw: -0.1
