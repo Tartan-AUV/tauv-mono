@@ -69,7 +69,7 @@ struct ImuPublisher : public PacketCallback
 
         bool orientation_available = packet.containsOrientation();
         bool rate_of_turn_available = packet.containsCalibratedGyroscopeData();
-        bool linear_acceleration_available = packet.containsLinearAcceleration();
+        bool linear_acceleration_available = packet.containsCalibratedAcceleration();
         bool free_acceleration_available = packet.containsFreeAcceleration();
 
         geometry_msgs::Vector3 orientation;
@@ -95,7 +95,7 @@ struct ImuPublisher : public PacketCallback
         geometry_msgs::Vector3 linear_acceleration;
         if (linear_acceleration_available)
         {
-            XsVector a = packet.linearAcceleration()
+            XsVector a = packet.calibratedAcceleration()
 
             linear_acceleration.x = -a[0];
             linear_acceleration.y = a[1];
