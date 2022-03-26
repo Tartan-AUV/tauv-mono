@@ -5,7 +5,7 @@ pitch_tunings: [10.0, 0, 0.0, -0.1, 0.1]
 z_tunings: [50.0, 10.0, 0.0, -0.1, 0.1]
 
 # x, y, z, roll, pitch, yaw in N
-max_wrench: [20.0, 20.0, 40.0, 5.0, 5.0, 5.0]
+max_wrench: [20.0, 20.0, 20.0, 5.0, 5.0, 5.0]
 
 dynamics:
   # kg
