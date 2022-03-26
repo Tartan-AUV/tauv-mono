@@ -21,7 +21,7 @@ class Sonar:
         self._ping = Ping360()
         self._ping.connect_serial(port, baudrate)
 
-        while not self._ping.initialize():
+        while not self._ping.initialize() and not rospy.is_shutdown():
             print(f'[sonar] ping360 init failed')
             rospy.sleep(1.0)
 
