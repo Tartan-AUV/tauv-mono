@@ -103,7 +103,7 @@ class Controller:
             pitch_effort = self._pitch_pid(-pitch_error)
 
             vd = np.concatenate((
-                body_acceleration,
+                body_acceleration + np.array([self._cmd_acceleration[0], self._cmd_acceleration[1]]),
                 np.array([roll_effort, pitch_effort, 0.0])
             ))
         else:
