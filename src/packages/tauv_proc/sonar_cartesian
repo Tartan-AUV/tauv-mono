@@ -3,7 +3,7 @@
 import rospy
 from tauv_msgs.msg import SonarPulse
 from tauv_msgs.msg import SonarGraph
-from tauv_msgs.msg import PoseGraphMeasurement
+from tauv_msgs.msg import Pose
 from std_msgs.msg import Header
 import numpy as np
 import scipy.ndimage
@@ -12,7 +12,12 @@ import matplotlib.pyplot as plt
 import matplotlib
 import math
 import sys
-import heapq as hq
+import time
+import pickle
+
+time_list = []
+time2_list = []
+ignore = 6
 
 class ClusterPotential():
     def __init__(self, POI_val, x, y, dim):
@@ -58,33 +63,35 @@ class GraphContainer(SonarGraph):
         self.unpr_std = 0
         self.heat_map_avg = 0
         self.heat_map_std = 0
-	self.proc_dif_thresh = 1000
-	self.POI_val = 1000
-	self.POI_dif_thresh = 1000
-	self.cluster_dif_max = 0
+        self.proc_dif_thresh = 1000
+        self.POI_val = 1000
+        self.POI_dif_thresh = 1000
+        self.cluster_dif_max = 0
 
-        self.proc_std_multiplier = 0
-	self.POI_std_multiplier = 1
+        self.proc_std_multiplier = 1
+        self.POI_std_multiplier = 2
 
         #messaging setup
         self.pub = rospy.Publisher("sonar", SonarGraph, queue_size=10)
-	rospy.Subscriber("data",SonarPulse, self.read)
         rospy.init_node('sonar_map',anonymous=True)
-        x=rospy.wait_for_message("data",SonarPulse)
+        x=rospy.wait_for_message("sonar/pulse",SonarPulse)
 
         self.cur_angle = x.angle
         self.data_len = x.data_length
-        rospy.Subscriber("odom",PoseGraphMeasurement, self.update_position)
+
+        rospy.Subscriber("sonar/pulse",SonarPulse, self.read)
+        rospy.Subscriber("gnc/pose",Pose, self.update_position)
 
         self.round=400 #inspection area length (gradians)
         self.gradians=400
         self.completed_cycles = 0
-        self.blur = 1.25
+        self.blur = 1
         self.cur_position = (0,0,0)
         self.cur_orientation = (0,0,0)
         self.angle_counter = 0
         self.heat_map_dim=500
-
+        self.prev_time = -1
+        self.prev2_time = -1
         #self.range = rospy.get_param('/vehicle_params/sonar/range')
         self.range = 10
         
@@ -95,22 +102,24 @@ class GraphContainer(SonarGraph):
         self.global_origin = (self.global_range/2.0, self.global_range/2.0)
 
         self.header=Header()
-        self.unpr=[0]*self.degrees*(self.data_len)
+        self.unpr=[0]*self.gradians*(self.data_len)
 
-	self.avg_weight = 1.5
-	self.POI_weight = 5
-	self.heat_map = np.reshape([0]*self.heat_map_dim**2, (self.heat_map_dim,self.heat_map_dim))
-	self.weighted_heat_map = np.reshape([(0,0)]*self.heat_map_dim**2, (self.heat_map_dim,self.heat_map_dim))
-	self.proc_heat_map = np.copy(self.heat_map)
-	self.heat_map_POI = np.copy(self.heat_map)
-	self.heat_map_clusters = np.copy(self.heat_map)
-	self.cluster_queue = []
+        self.avg_weight = 1.5
+        self.POI_weight = 2
+        self.heat_map = np.reshape([0]*(self.heat_map_dim**2), (self.heat_map_dim,self.heat_map_dim))
+        self.weighted_heat_map = np.reshape([0,0]*(self.heat_map_dim**2), (self.heat_map_dim,self.heat_map_dim,2))
+
+        self.proc_heat_map = np.copy(self.heat_map)
+        self.heat_map_POI = np.copy(self.heat_map)
+        self.heat_map_clusters = np.copy(self.heat_map)
+        self.cluster_queue = []
 
         #allows popups of graph
         matplotlib.use('gtk3agg')
 
-        self.plot = plt.imshow(np.reshape(self.unpr, (self.data_len,self.degrees)),cmap='jet') 
-        #self.plot = plt.imshow(self.heat_map,cmap='jet')
+        #self.plot = plt.imshow(np.reshape(self.unpr, (self.data_len,self.degrees)),cmap='jet') 
+        self.plot = plt.imshow(self.heat_map,cmap='jet')
+        plt.axis("off")
         plt.show()
 
 
@@ -119,47 +128,82 @@ class GraphContainer(SonarGraph):
         self.cur_angle = round(self.exact_angle)
         if self.cur_angle>=0 and self.cur_angle<self.gradians:
             for i in range(ignore,self.data_len):
-                self.unpr[self.calc_dist(i)*self.gradians+self.cur_angle]=data.data[i]
+                self.unpr[i*self.gradians+self.cur_angle]=data.data[i]
                 if(data.data[i]>self.unpr_avg): #graph only above avg singals
                     self.plot_heat(data.data[i],i,self.exact_angle)
                 else:
                     self.plot_heat(0,i,self.exact_angle)
+        if(self.prev_time>-1):
+            time_list.append((data.header.stamp.nsecs+data.header.stamp.secs*(10**9))-self.prev_time)
+            time2_list.append(time.time()-self.prev2_time)
+        self.prev_time = data.header.stamp.nsecs + data.header.stamp.secs*(10**9)
+        self.prev2_time=time.time()
+        #print(data.header)
+        #print(self.angle_counter)
 
-
-	self.display_img(self.heat_map)
-
-
-	#once per cycle
+        #once per cycle
         if(self.angle_counter>self.round):
-	    self.completed_cycles+=1
+            self.completed_cycles+=1
 
-	    self.update_values()
+            self.update_values()
 
-	    self.gen_proc_heat_map()
-            
-	    self.angle_counter=0
+            #self.display_img(self.proc_heat_map)
+
+            self.gen_proc_heat_map()
+
+            #self.display_img(np.reshape(self.weighted_heat_map[:,:,0:1],(self.heat_map_dim,self.heat_map_dim)))
+           
+            self.display_img(self.proc_heat_map)
+
+            plt.savefig("proc_heat_map.png")
+
+            #time.sleep(3)
+
+            self.display_img(self.heat_map_clusters)
+
+            #time.sleep(3)
+
+            plt.savefig("clusters.png")
+
+            self.angle_counter=0
         
         self.angle_counter+=1
 
-	self.pub.publish(self)
+        #self.display_img(np.reshape(self.weighted_heat_map[:,:,0:1],(self.heat_map_dim,self.heat_map_dim)))
+
+        self.pub.publish(self)
 
 
     def update_values(self):
-	self.unpr_avg = np.mean(self.unpr)
+        time_avg = np.mean(time_list)
+        time2_avg = np.mean(time2_list)
+          
+        with open('time.pkl', 'wb') as handle:
+            pickle.dump((time_avg,time2_avg), handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-	#blur the image
-	self.proc_heat_map = scipy.ndimage.gaussian_filter(self.weighted_heat_map,self.blur)
+        with open('time.pkl', 'rb') as handle:
+            b = pickle.load(handle)
+            print(b[0]/(10.0**9))
+            print(b[1])
 
-	#update the average values of heat map
-	self.heat_map_avg = np.mean(self.proc_heat_map)
-	self.heat_map_std = np.std(self.proc_heat_map)
+        self.unpr_avg = np.mean(self.unpr)
 
-	self.proc_dif_thresh = self.heat_map_avg+self.proc_std_multiplier*self.heat_map_std
-	self.POI_val = self.heat_map_avg+self.POI_weight*self.heat_map_std
-	self.POI_dif_thresh = self.POI_std_multiplier*self.heat_map_std
-	self.cluster_dif_max = self.heat_map_std
+        self.proc_heat_map = np.reshape(self.weighted_heat_map[:,:,0:1],(self.heat_map_dim,self.heat_map_dim))
 
-	#makes sure the cluster threshold is at most just the points on the map
+        self.heat_map_std = np.std(self.heat_map)
+        #print(self.heat_map_std)
+        self.heat_map_avg = np.mean(self.heat_map)
+        
+        #blur the image
+        self.proc_heat_map = scipy.ndimage.gaussian_filter(self.proc_heat_map,self.blur)
+
+        self.proc_dif_thresh = self.heat_map_avg+self.heat_map_std
+        #self.POI_val = self.heat_map_avg+self.POI_weight*self.heat_map_std
+        self.POI_val = self.heat_map_avg + self.POI_weight*self.heat_map_std
+        self.POI_dif_thresh = self.POI_std_multiplier*self.heat_map_std
+        self.cluster_dif_max = self.heat_map_std
+
+        #makes sure the cluster threshold is at most just the points on the map
         if(self.cluster_dif_max>=self.proc_dif_thresh):
             self.cluster_dif_max=self.proc_dif_thresh-1
 	
@@ -233,7 +277,7 @@ class GraphContainer(SonarGraph):
 
                 if(self.is_in([c1,c2,c3,c4], upper_r, lower_r, in_angle, out_angle)):
                     self.heat_map[x][y]=data
-		    self.weight_heat_point(x,y)
+                    self.weight_heat_point(x,y)
 
 
     def plot_heat(self, data, dist, angle):
@@ -245,10 +289,10 @@ class GraphContainer(SonarGraph):
         dist_upper = dist + (self.range/float(self.data_len))
 
         if(angle==0):
-            theta1 = math.radians((self.degrees-1)*360/400.0)
+            theta1 = math.radians((self.gradians-1)*360/400.0)
         else:
             theta1 = math.radians((angle-1)*360/400.0)
-        if(angle==self.degrees-1):
+        if(angle==self.gradians-1):
             theta3 = 0 
         else:
             theta3 = math.radians((angle+1)*360/400.0)
@@ -263,73 +307,76 @@ class GraphContainer(SonarGraph):
         square6 = self.get_map_square(x+dist_upper*math.cos(theta3),y+dist*math.sin(theta3))
 
         self.heat_map[square1[0]][square1[1]]=data
-        self.heat_map[square2[0]][square2[1]]=data
-        self.heat_map[square3[0]][square3[1]]=data
+        #self.heat_map[square2[0]][square2[1]]=data
+        #self.heat_map[square3[0]][square3[1]]=data
 
-	self.weight_heat_point(square1[0], square1[1])
-	self.weight_heat_point(square2[0],square2[1])
-	self.weight_heat_point(square3[0],square3[1])
+        self.weight_heat_point(square1[0], square1[1])
+        #self.weight_heat_point(square2[0],square2[1])
+        #self.weight_heat_point(square3[0],square3[1])
 
         grid_bounds = self.calc_grid_bounds([square1,square2,square3,square4,square5,square6])
         
         self.interpolate(data,dist, dist_upper, theta1, theta3, grid_bounds[0][0],grid_bounds[0][1],grid_bounds[1][1],grid_bounds[1][0])
 
 
-     def weight_heat_point(self, row, col):
-	self.weighted_heat_map[row][col] = (((self.weighted_heat_map[row][col][0]*self.weighted_heat_map[row][col][1])+(self.heat_map[row][col]*self.avg_weight))/(self.weighted_heat_map[row][col][1]+self.avg_weight),self.weighted_heat_map[row][col][1]+1)
+    def weight_heat_point(self, row, col):
+        self.weighted_heat_map[row][col][0] = ((self.weighted_heat_map[row][col][0]*self.weighted_heat_map[row][col][1])+(self.heat_map[row][col]*self.avg_weight))/(self.weighted_heat_map[row][col][1]+self.avg_weight)
+        self.weighted_heat_map[row][col][1]=self.weighted_heat_map[row][col][1]+1
 
 
-     def gen_proc_heat_map(self):	
-	for row in range(self.heat_map_dim):
-   	    for col in range(self.heat_map_dim):
-		if(self.proc_heat_map[row][col]>self.proc_dif_thresh):
-		    self.proc_heat_map[row][col] = self.proc_heat_map[row][col]
-		    self.weight_heat_point(row, col)
-		    self.find_heat_map_POI(row, col, self.weighted_heat_map)
-		else:
-		    self.proc_heat_map[row][col] = 0
-		    self.weight_heat_point(row, col)
-		    self.heap_map_POI[row][col] = 0
+    def gen_proc_heat_map(self):
+        for row in range(self.heat_map_dim):
+            for col in range(self.heat_map_dim):
+                if(self.proc_heat_map[row][col]>self.proc_dif_thresh):
+                    self.proc_heat_map[row][col] = self.proc_heat_map[row][col]
+                    #self.weight_heat_point(row, col)
+                    self.find_heat_map_POI(row, col, self.proc_heat_map)
+                else:
+                    self.proc_heat_map[row][col] = 0
+                    #self.weight_heat_point(row, col)
+                    self.heat_map_POI[row][col] = 0
 	
-	chistory_graph = np.reshape([0]*self.heat_map_dim**2, (self.heat_map_dim,self.heat_map_dim))
-	self.cluster_heat_map(chistory_graph)
+        chistory_graph = np.reshape([0]*(self.heat_map_dim**2), (self.heat_map_dim,self.heat_map_dim))
+        self.cluster_heat_map(chistory_graph)
 	
 
-     def find_heat_map_POI(self, row, col, graph):
-	poi = 0
+    def find_heat_map_POI(self, row, col, graph):
+        poi = 0
         if(col>0):
-            if((graph[row][col]-graph[row][col-1])>self.POI_dif_thresh and graph[row][col]>self.POI_val)):
-                poi = 1
+            if((graph[row][col]-graph[row][col-1])>self.POI_dif_thresh and graph[row][col]>self.POI_val):
+               poi = 1
         if(row>0):
-            if((graph[row][col]-graph[row-1][col])>self.POI_dif_thresh and graph[row][col]>self.POI_val)):
-                poi = 1
+            if((graph[row][col]-graph[row-1][col])>self.POI_dif_thresh and graph[row][col]>self.POI_val):
+               poi = 1
         if(row>0 and col>0):
-	    if((graph[row][col]-graph[row-1][col-1])>self.POI_dif_thresh and graph[row][col]>self.POI_val)):
-                poi = 1
-	if(poi==1):
-            hq.heappush(self.cluster_queue, ClusterPotential(-1000,row,col,self.heat_map_dim))
+            if((graph[row][col]-graph[row-1][col-1])>self.POI_dif_thresh and graph[row][col]>self.POI_val):
+               poi = 1
+        if(poi==1):
+            self.cluster_queue.append(ClusterPotential(graph[row][col],row,col,self.heat_map_dim))
             self.heat_map_POI[row][col]=100
         else:
             self.heat_map_POI[row][col]=0
 
 
     def cluster_heat_map(self, chistory_graph):
-	while(self.cluster_queue):
-	    next = self.hq.heappop(self.cluster_queue)
-	    row = next.get_x()
-	    col = next.get_y()
-	    if(chistory_graph[row][col] == 0):
-		#if it is a cluster
-		if(abs(self.proc_heat_map[row][col]-next.get_POI())<self.cluster_dif_max):
-    		    self.heat_map_clusters[row][col] = 100
-		    chistory_graph[row][col] = 1
-		    more = next.get_next()
-		    for i in range(8):
-			self.cluster_enq(self.proc_heat_map[row][col], more[i])
+        while(self.cluster_queue):
+            nxt = self.cluster_queue.pop()
+            row = nxt.get_x()
+            col = nxt.get_y()
+
+            if(chistory_graph[row][col] == 0):
+                #if it is a cluster
+                if(abs(self.proc_heat_map[row][col]-nxt.get_POI())<self.cluster_dif_max and self.proc_heat_map[row][col]>0):
+                    #print("custered")
+                    self.heat_map_clusters[row][col] = 100
+                    chistory_graph[row][col] = 1
+                    more = nxt.get_next()
+                    for i in range(8):
+                        self.cluster_enq(self.proc_heat_map[row][col], more[i])
 
 
     def cluster_enq(self, POI_val, point):
-	hq.heappush(self.cluster_queue, ClusterPotential(POI_val, point[0],point[1], self.heat_map_dim))
+        self.cluster_queue.append(ClusterPotential(POI_val, point[0],point[1], self.heat_map_dim))
 
 
 def sonar_listen():
