@@ -3,7 +3,7 @@
 <launch>
   <!-- Console launch prefix -->
   <arg name="launch_prefix" default=""/>
-  <arg name="image" default="/camera/rgb/image_raw" />
+  <arg name="image" default="/zedm/zed_node/left/image_rect_color" />
   <arg name="model_name" default="kingfisher"/>
   <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
@@ -13,7 +13,7 @@
 
   <!-- ROS and network parameter files -->
   <arg name="ros_param_file"             default="$(arg config_pkg)/darknet_config/ros.yaml"/>
-  <arg name="network_param_file"         default="$(arg config_pkg)/darknet_config/yolov3.yaml"/>
+  <arg name="network_param_file"         default="$(arg config_pkg)/darknet_config/yolov3-tiny.yaml"/>
 
   <!-- Load parameters -->
   <rosparam command="load" ns="darknet_ros" file="$(arg ros_param_file)"/>
