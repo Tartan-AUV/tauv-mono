@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from dynamics_tuner import dynamics_tuner
+
+if __name__ == "__main__":
+    dynamics_tuner.main()
