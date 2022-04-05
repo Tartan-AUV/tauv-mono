@@ -1,0 +1,8 @@
+<launch>
+    <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
+
+    <group ns="depth_stuff">
+        <node pkg="tauv_common" type="depth_estimation" name="depth_estimation" output ="screen">
+        </node>
+    </group>
+</launch>

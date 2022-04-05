@@ -30,6 +30,7 @@ setup_args = generate_distutils_setup(
               'planners.teleop_planner',
               'planners.mpc_planner',
               'state_estimation',
+              'depth_estimation',
               'teleop',
               'dynamics',
               'tauv_util',
@@ -42,6 +43,7 @@ setup_args = generate_distutils_setup(
              'scripts/teleop_planner',
              'scripts/controller',
              'scripts/mpc_planner',
+             'scripts/depth_estimation',
              'scripts/state_estimation'],
 
 )
