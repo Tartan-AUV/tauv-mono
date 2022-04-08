@@ -16,7 +16,7 @@ class Thrusters:
 
     def __init__(self):
         self._dt: float = 0.02
-        self._timeout: float = 5.0
+        self._timeout: float = 1.0
 
         self._load_config()
 
@@ -29,11 +29,12 @@ class Thrusters:
         self._battery_sub: rospy.Subscriber = rospy.Subscriber('battery', BatteryMsg, self._handle_battery)
         self._wrench_sub: rospy.Subscriber = rospy.Subscriber('wrench', Wrench, self._handle_wrench)
 
-        self._battery_voltage: float = 13.7
+        self._battery_voltage: float = self._default_battery_voltage
         self._wrench: Wrench = Wrench()
         self._wrench_update_time: rospy.Time = rospy.Time.now()
 
     def start(self):
+        print('[thrusters] start')
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
         rospy.spin()
 
@@ -102,7 +103,8 @@ class Thrusters:
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
 
-        print(f'thruster: ${thruster}, pwm speed: ${pwm_speed}')
+        print(f'thruster {thruster} speed {pwm_speed}')
+
         return pwm_speed
 
     def _get_thrusts(self, wrench: Wrench) -> np.array:
@@ -111,6 +113,7 @@ class Thrusters:
     def _load_config(self):
         self._maestro_port: str = rospy.get_param('~maestro_port')
         self._thruster_channels: [int] = rospy.get_param('~thruster_channels')
+        self._default_battery_voltage: float = rospy.get_param('~default_battery_voltage')
         self._minimum_pwm_speed: float = rospy.get_param('~minimum_pwm_speed')
         self._maximum_pwm_speed: float = rospy.get_param('~maximum_pwm_speed')
         self._negative_min_thrust: float = rospy.get_param('~negative_min_thrust')

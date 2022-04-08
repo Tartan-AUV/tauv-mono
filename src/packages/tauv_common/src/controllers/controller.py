@@ -1,13 +1,12 @@
 import rospy
 import numpy as np
 from typing import Optional
-from simple_pid import PID
 from math import pi
 
 from dynamics.dynamics import Dynamics
-from geometry_msgs.msg import Pose, Twist, Wrench, Vector3, Quaternion
+from geometry_msgs.msg import Pose, Twist, Wrench, Vector3
 from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg
-from tauv_msgs.srv import HoldPose, HoldPoseRequest, HoldPoseResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TunePids, TunePidsRequest, TunePidsResponse
+from tauv_msgs.srv import HoldPose, HoldPoseRequest, HoldPoseResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TuneControls, TuneControlsRequest, TuneControlsResponse
 from tauv_util.types import tl, tm
 from tauv_util.transforms import quat_to_rpy
 from nav_msgs.msg import Odometry as OdometryMsg
@@ -21,21 +20,14 @@ class Controller:
         self._pose: Optional[Pose] = None
         self._body_twist: Optional[Twist] = None
         self._hold_pose: Optional[Pose] = None
-        self._hold_pose: Optional[Pose] = Pose()
-        self._hold_pose.position = Vector3(0.0, 0.0, 0.5)
-        self._hold_pose.orientation = Quaternion(1.0, 0.0, 0.0, 1.0)
 
         self._roll_tunings: np.array = np.array(rospy.get_param('~roll_tunings'))
         self._pitch_tunings: np.array = np.array(rospy.get_param('~pitch_tunings'))
         self._z_tunings: np.array = np.array(rospy.get_param('~z_tunings'))
 
-        self._roll_pid: PID = self._build_pid(self._roll_tunings)
-        self._pitch_pid: PID = self._build_pid(self._pitch_tunings)
-        self._z_pid: PID = self._build_pid(self._z_tunings)
-
         self._hold_pose_srv: rospy.Service = rospy.Service('hold_pose', HoldPose, self._handle_hold_pose)
         self._tune_dynamics_srv: rospy.Service = rospy.Service('tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
-        self._tune_pids_srv: rospy.Service = rospy.Service('tune_pids', TunePids, self._handle_tune_pids)
+        self._tune_pids_srv: rospy.Service = rospy.Service('tune_controls', TuneControls, self._handle_tune_controls)
 
         self._odom_sub: rospy.Subscriber = rospy.Subscriber('odom', OdometryMsg, self._handle_odom)
         self._command_sub: rospy.Subscriber = rospy.Subscriber('controller_cmd', ControllerCmdMsg, self._handle_command)
@@ -43,16 +35,26 @@ class Controller:
 
         self._max_wrench: np.array = np.array(rospy.get_param('~max_wrench'))
 
+        self._m = rospy.get_param('~dynamics/mass')
+        self._v = rospy.get_param('~dynamics/volume')
+        self._rho = rospy.get_param('~dynamics/water_density')
+        self._r_G = np.array(rospy.get_param('~dynamics/center_of_gravity'))
+        self._r_B = np.array(rospy.get_param('~dynamics/center_of_buoyancy'))
+        self._I = np.array(rospy.get_param('~dynamics/moments'))
+        self._D = np.array(rospy.get_param('~dynamics/linear_damping'))
+        self._D2 = np.array(rospy.get_param('~dynamics/quadratic_damping'))
+        self._Ma = np.array(rospy.get_param('~dynamics/added_mass'))
+
         self._dyn: Dynamics = Dynamics(
-            m=rospy.get_param('~dynamics/mass'),
-            v=rospy.get_param('~dynamics/volume'),
-            rho=rospy.get_param('~dynamics/water_density'),
-            r_G=np.array(rospy.get_param('~dynamics/center_of_gravity')),
-            r_B=np.array(rospy.get_param('~dynamics/center_of_buoyancy')),
-            I=np.array(rospy.get_param('~dynamics/moments')),
-            D=np.array(rospy.get_param('~dynamics/linear_damping')),
-            D2=np.array(rospy.get_param('~dynamics/quadratic_damping')),
-            Ma=np.array(rospy.get_param('~dynamics/added_mass')),
+            m=self._m,
+            v=self._v,
+            rho=self._rho,
+            r_G=self._r_G,
+            r_B=self._r_B,
+            I=self._I,
+            D=self._D,
+            D2=self._D2,
+            Ma=self._Ma,
         )
 
         self._cmd_acceleration: Optional[np.array] = None
@@ -84,50 +86,66 @@ class Controller:
         self._wrench_pub.publish(wrench)
 
     def _get_acceleration(self) -> np.array:
-        if self._hold_pose is not None:
-            z_error = self._hold_pose.position.z - self._pose.position.z
-            z_effort = self._z_pid(-z_error)
+        efforts = self._get_efforts()
 
+        if self._hold_pose is not None:
             R = Rotation.from_quat(tl(self._pose.orientation)).inv()
 
-            world_acceleration = np.array([0.0, 0.0, z_effort])
+            world_acceleration = np.array([0.0, 0.0, efforts[2]])
             body_acceleration = R.apply(world_acceleration)
 
-            hold_pose_rpy = quat_to_rpy(self._hold_pose.orientation)
-            pose_rpy = quat_to_rpy(self._pose.orientation)
-
-            roll_error = self._clamp_angle_error(hold_pose_rpy[0] - pose_rpy[0])
-            roll_effort = self._roll_pid(-roll_error)
-
-            pitch_error = self._clamp_angle_error(hold_pose_rpy[1] - pose_rpy[1])
-            pitch_effort = self._pitch_pid(-pitch_error)
-
             vd = np.concatenate((
-                body_acceleration + np.array([self._cmd_acceleration[0], self._cmd_acceleration[1], self._cmd_acceleration[2]]),
-                np.array([roll_effort, pitch_effort, self._cmd_acceleration[5]])
+                body_acceleration,
+                np.array([efforts[0], efforts[1], 0.0])
             ))
         else:
-            pose_rpy = quat_to_rpy(self._pose.orientation)
-
-            roll_error = self._clamp_angle_error(-pose_rpy[0])
-            roll_effort = self._roll_pid(-roll_error)
-
-            pitch_error = self._clamp_angle_error(-pose_rpy[1])
-            pitch_effort = self._pitch_pid(-pitch_error)
-
             vd = np.array([
                 self._cmd_acceleration[0],
                 self._cmd_acceleration[1],
                 self._cmd_acceleration[2],
-                roll_effort,
-                pitch_effort,
+                efforts[0],
+                efforts[1],
                 self._cmd_acceleration[5]
             ])
 
         return vd
 
-    def _clamp_angle_error(self, angle: float) -> float:
-        return (angle + pi) % (2 * pi) - pi
+    def _get_efforts(self):
+        if self._pose is None or self._body_twist is None:
+            return np.array([0.0, 0.0, 0.0])
+
+        targets = np.array([0.0, 0.0, 0.0])
+        if self._hold_pose is not None:
+            rot = quat_to_rpy(self._hold_pose.orientation)
+            targets = np.array([
+                rot[0],
+                rot[1],
+                self._hold_pose.position.z,
+            ])
+
+        rot = quat_to_rpy(self._pose.orientation)
+        pos = np.array([
+            rot[0],
+            rot[1],
+            self._pose.position.z,
+        ])
+
+        err = targets - pos
+        err = (err + pi) % (2 * pi) - pi
+
+        vel = np.array([
+           self._body_twist.angular.x,
+           self._body_twist.angular.y,
+           self._body_twist.linear.z,
+        ])
+
+        efforts = np.array([
+            err[0] * self._roll_tunings[0] - vel[0] * np.sign(err[0]) * self._roll_tunings[1],
+            err[1] * self._pitch_tunings[0] - vel[1] * np.sign(err[1]) * self._pitch_tunings[1],
+            err[2] * self._z_tunings[0] - vel[2] * np.sign(err[2]) * self._z_tunings[1],
+        ])
+
+        return efforts
 
     def _handle_odom(self, msg: OdometryMsg):
         self._pose = msg.pose.pose
@@ -148,38 +166,54 @@ class Controller:
         return HoldPoseResponse(True)
 
     def _handle_tune_dynamics(self, req: TuneDynamicsRequest) -> TuneDynamicsResponse:
+        if req.tunings.update_mass:
+            self._m = req.tunings.mass
+
+        if req.tunings.update_volume:
+            self._v = req.tunings.volume
+
+        if req.tunings.update_water_density:
+            self._rho = req.tunings.water_density
+
+        if req.tunings.update_center_of_gravity:
+            self._r_G = req.tunings.center_of_gravity
+
+        if req.tunings.update_center_of_buoyancy:
+            self._r_B = req.tunings.center_of_buoyancy
+
+        if req.tunings.update_moments:
+            self._I = req.tunings.moments
+
+        if req.tunings.update_linear_damping:
+            self._D = req.tunings.linear_damping
+
+        if req.tunings.update_quadratic_damping:
+            self._D2 = req.tunings.quadratic_damping
+
+        if req.tunings.update_added_mass:
+            self._Ma = req.tunings.added_mass
+
         self._dyn: Dynamics = Dynamics(
-            m=req.mass,
-            v=req.volume,
-            rho=req.water_density,
-            r_G=req.center_of_gravity,
-            r_B=req.center_of_buoyancy,
-            I=req.moments,
-            D=req.linear_damping,
-            D2=req.quadratic_damping,
-            Ma=req.added_mass
+            m = self._m,
+            v = self._v,
+            rho = self._rho,
+            r_G = self._r_G,
+            r_B = self._r_B,
+            I = self._I,
+            D = self._D,
+            D2 = self._D2,
+            Ma = self._Ma,
         )
         return TuneDynamicsResponse(True)
 
-    def _handle_tune_pids(self, req: TunePidsRequest) -> TunePidsResponse:
-        self._roll_pid.tunings = req.roll_tunings
-        self._pitch_pid.tunings = req.pitch_tunings
-        self._z_pid.tunings = req.z_tunings
-        return TunePidsResponse(True)
-
-    def _build_pid(self, tunings: np.array) -> PID:
-        pid = PID(
-            Kp=tunings[0],
-            Ki=tunings[1],
-            Kd=tunings[2],
-            setpoint=0,
-            sample_time=None,
-            output_limits=(tunings[3], tunings[4]),
-            auto_mode=True,
-            proportional_on_measurement=False
-        )
-
-        return pid
+    def _handle_tune_controls(self, req: TuneControlsRequest) -> TuneControlsResponse:
+        if req.tunings.update_roll:
+            self._roll_tunings = req.tunings.roll_tunings
+        if req.tunings.update_pitch:
+            self._pitch_tunings = req.tunings.pitch_tunings
+        if req.tunings.update_z:
+            self._z_tunings = req.tunings.z_tunings
+        return TuneControlsResponse(True)
 
 
 def main():

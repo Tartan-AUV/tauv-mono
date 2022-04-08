@@ -28,15 +28,29 @@ class TeledyneDVL:
                 rospy.logwarn('No ensemble')
                 continue
 
+            print(f'[teledyne_dvl] timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
+
             self._sweep_sync_timestamps(ensemble.receive_time)
+
+            valid_timestamps = list(filter(
+                lambda t: (ensemble.receive_time - t).to_sec() >= Pathfinder.MIN_MEASURE_TIME,
+                self._sync_timestamps
+            ))
+
+            print(f'[teledyne_dvl] swept_timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
+            print(f'[teledyne_dvl] valid_timestamps: {list(map(lambda t: t.to_sec(), valid_timestamps))}')
 
             msg: DvlDataMsg = ensemble.to_msg()
 
-            if len(self._sync_timestamps) > 0:
-                msg.header.stamp = self._sync_timestamps[0] + rospy.Duration.from_sec(sum(msg.beam_time_to_bottoms) / 4)
-                self._sync_timestamps = self._sync_timestamps[1:]
+            if len(valid_timestamps) > 0:
+                msg.header.stamp = valid_timestamps[0] + rospy.Duration.from_sec(sum(msg.beam_time_to_bottoms) / 4)
+                self._sync_timestamps = list(filter(
+                    lambda t: t.to_sec() != valid_timestamps[0].to_sec(),
+                   self._sync_timestamps
+                ))
+                print(f'[teledyne_dvl] new valid_timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
             else:
-                rospy.logwarn('No sync timestamps')
+               print(f'[teledyne_dvl] no valid timestamps')
 
             self._data_pub.publish(msg)
 
@@ -49,7 +63,6 @@ class TeledyneDVL:
             self._sync_timestamps.append(time)
 
     def _sweep_sync_timestamps(self, time: rospy.Time):
-        print(list(map(lambda t: (time - t).to_sec(), self._sync_timestamps)))
         self._sync_timestamps = list(filter(
                 lambda t: (time - t).to_sec() < Pathfinder.MAX_MEASURE_TIME,
                 self._sync_timestamps

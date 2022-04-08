@@ -21,14 +21,10 @@ from setuptools import find_packages
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['mission_manager',
-              'tasks',
-              'test_mission_scripts',
-              'teleop_mission',
-              ],
+    packages=['sonar_map_publisher', 'dynamics_tuner'],
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
-    scripts=['scripts/test_script', 'scripts/teleop_mission'],
+    scripts=['scripts/publish_sonar_map', 'scripts/dynamics_tuner'],
 )
 setup(**setup_args)

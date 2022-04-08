@@ -11,7 +11,7 @@ class Pathfinder:
     POLL_TIMEOUT = 1
 
     MIN_MEASURE_TIME = 0.1
-    MAX_MEASURE_TIME = 0.2
+    MAX_MEASURE_TIME = 0.4
 
     def __init__(self, port: str, baudrate: int):
         self._conn = serial.Serial(port=port, baudrate=baudrate, timeout=Pathfinder.SERIAL_TIMEOUT)
@@ -191,4 +191,5 @@ class Pathfinder:
         self._write(data)
 
     def _log(self, *args):
-        print(*args)
+        pass
+        # print(*args)

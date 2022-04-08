@@ -2,7 +2,7 @@ import rospy
 import numpy as np
 from typing import Optional
 
-from geometry_msgs.msg import Pose, PoseArray, Twist, Vector3, Quaternion
+from geometry_msgs.msg import Pose, PoseArray, Twist, Vector3, Quaternion, PoseStamped
 from nav_msgs.msg import Path
 
 from tauv_msgs.srv import GetTrajRequest, GetTrajResponse
@@ -15,13 +15,16 @@ from .pyscurve import ScurvePlanner
 
 class NewLinearTrajectory(Trajectory):
 
-    def __init__(self, start_pose: Pose, start_twist: Twist, end_pose: Pose, end_twist: Twist):
+    def __init__(self, start_pose: Pose, start_twist: Twist, end_pose: Pose, end_twist: Twist, v_l: float, a_l: float, j_l: float, v_a: float, a_a: float, j_a: float):
         self.status = TrajectoryStatus.PENDING
 
         self._pose: Optional[Pose] = None
         self._twist: Optional[Twist] = None
 
         p = ScurvePlanner()
+
+        self._start_pose = start_pose
+        self._end_pose = end_pose
 
         start_position = tl(start_pose.position)
         end_position = tl(end_pose.position)
@@ -30,7 +33,9 @@ class NewLinearTrajectory(Trajectory):
 
         self.linear_traj = p.plan_trajectory(start_position, end_position,
                                              start_linear_velocity, end_linear_velocity,
-                                             v_max=0.2, a_max=0.05, j_max=0.4)
+                                             v_max=v_l if v_l is not None else 0.2,
+                                             a_max=a_l if a_l is not None else 0.05,
+                                             j_max=j_l if j_l is not None else 0.4)
 
         start_orientation = quat_to_rpy(start_pose.orientation)
         end_orientation = quat_to_rpy(end_pose.orientation)
@@ -42,9 +47,11 @@ class NewLinearTrajectory(Trajectory):
 
         self.angular_traj = p.plan_trajectory(start_orientation, end_orientation,
                                               start_angular_velocity, end_angular_velocity,
-                                              v_max=0.1, a_max=0.05, j_max=0.05)
+                                              v_max=v_a if v_a is not None else 0.1,
+                                              a_max=a_a if a_a is not None else 0.05,
+                                              j_max=j_a if j_a is not None else 0.05)
 
-        self.duration: rospy.Duration = rospy.Duration.from_sec(max(self.linear_traj.time[0], self.angular_traj.time[0]))
+        self._duration: rospy.Duration = rospy.Duration.from_sec(max(self.linear_traj.time[0], self.angular_traj.time[0]))
         self.start_time: rospy.Time = rospy.Time.now()
 
         self.status: TrajectoryStatus = TrajectoryStatus.INITIALIZED
@@ -52,14 +59,19 @@ class NewLinearTrajectory(Trajectory):
     def get_points(self, request: GetTrajRequest) -> GetTrajResponse:
         elapsed = (request.curr_time - self.start_time).to_sec()
 
+        if elapsed > self._duration.to_sec():
+            res: GetTrajResponse = GetTrajResponse()
+            res.success = False
+            return res
+
         poses = [None] * request.len
         twists = [None] * request.len
 
         for i in range(request.len):
             t = (request.dt * i) + elapsed
 
-            if t > self.duration.to_sec():
-                t = self.duration.to_sec()
+            if t > self._duration.to_sec():
+                t = self._duration.to_sec()
 
             position = self.linear_traj(t)[:,2]
             linear_velocity = self.linear_traj(t)[:,1]
@@ -86,10 +98,10 @@ class NewLinearTrajectory(Trajectory):
         return res
 
     def duration(self) -> rospy.Duration:
-        return self.duration
+        return self._duration
 
     def time_remaining(self) -> rospy.Duration:
-        return (self.start_time + self.duration) - rospy.Time.now()
+        return (self.start_time + self._duration) - rospy.Time.now()
 
     def set_executing(self):
         self.status = TrajectoryStatus.EXECUTING
@@ -103,4 +115,14 @@ class NewLinearTrajectory(Trajectory):
         return self.status
 
     def as_path(self, dt=0.1) -> Path:
-        pass
+        start_pose = PoseStamped()
+        start_pose.header.frame_id = 'odom'
+        start_pose.pose = self._start_pose
+        end_pose = PoseStamped()
+        end_pose.header.frame_id = 'odom'
+        end_pose.pose = self._end_pose
+
+        path = Path()
+        path.header.frame_id = 'odom'
+        path.poses = [start_pose, end_pose]
+        return path

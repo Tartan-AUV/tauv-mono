@@ -1,6 +1,8 @@
 maestro_port: '/dev/ttyTHS0'
 thruster_channels: [5, 4, 6, 0, 3, 7, 1, 2]
 
+default_battery_voltage: 16.0
+
 minimum_pwm_speed: 0
 maximum_pwm_speed: 10000
 negative_min_thrust: 1

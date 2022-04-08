@@ -2,7 +2,7 @@ import rospy
 import numpy as np
 from tauv_msgs.srv import GetTraj, GetTrajRequest, GetTrajResponse
 from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg
-from geometry_msgs.msg import Pose, Twist
+from geometry_msgs.msg import Pose, Twist, PoseArray
 from nav_msgs.msg import Odometry as OdometryMsg
 from typing import Optional
 from tauv_util.types import tl, tm
@@ -13,12 +13,14 @@ from .mpc.mpc import MPC
 
 class MPCPlanner:
     def __init__(self):
-        self._dt: float = 0.05
+        self._dt: float = 0.1
 
         self._get_traj_service: rospy.ServiceProxy = rospy.ServiceProxy('get_traj', GetTraj)
 
-        self._command_pub: rospy.Publisher = rospy.Publisher('controller_cmd', ControllerCmdMsg, queue_size=10)
+        self._command_pub: rospy.Publisher = rospy.Publisher('cmd', ControllerCmdMsg, queue_size=10)
         self._odom_sub: rospy.Subscriber = rospy.Subscriber('odom', OdometryMsg, self._handle_odom)
+
+        self._poses_pub: rospy.Publisher = rospy.Publisher('poses', PoseArray, queue_size=10)
 
         self._pose: Optional[Pose] = None
         self._world_twist: Optional[Twist] = None
@@ -146,6 +148,11 @@ class MPCPlanner:
 
         if not res.success:
             return None
+
+        poses = PoseArray()
+        poses.header.frame_id = 'odom'
+        poses.poses = res.poses
+        self._poses_pub.publish(poses)
 
         return res
 

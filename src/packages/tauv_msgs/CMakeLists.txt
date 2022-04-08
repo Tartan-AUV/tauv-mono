@@ -10,7 +10,7 @@ add_message_files(
   FluidDepth.msg
   ControllerCmd.msg
   DynamicsTunings.msg
-  PidTunings.msg
+  ControlsTunings.msg
   SonarPulse.msg
   PoseGraphMeasurement.msg
   Thrust.msg
@@ -24,9 +24,10 @@ add_message_files(
 add_service_files(
   FILES
   TuneDynamics.srv
-  TunePids.srv
+  TuneControls.srv
   GetTraj.srv
   HoldPose.srv
+  SetPose.srv
 )
 
 

@@ -1,23 +1,26 @@
 import rospy
 import tf
 import numpy as np
-import time
-import bisect
-from math import pi
+from typing import Any
+from queue import PriorityQueue
+from dataclasses import dataclass, field
 
 from scipy.spatial.transform import Rotation
 from tauv_util.types import tl, tm
 from tauv_util.transforms import rpy_to_quat
 from tauv_msgs.msg import Pose as PoseMsg, XsensImuData as ImuMsg, TeledyneDvlData as DvlMsg, FluidDepth as DepthMsg
+from tauv_msgs.srv import SetPose, SetPoseRequest, SetPoseResponse
 from std_msgs.msg import Header
-from geometry_msgs.msg import Vector3, Quaternion, Pose, PoseWithCovariance, Twist, TwistWithCovariance
+from geometry_msgs.msg import Pose, PoseWithCovariance, Twist, TwistWithCovariance, Quaternion
 from nav_msgs.msg import Odometry as OdometryMsg
 
 from .ekf import EKF
 
 
-def extract_msg_time(msg) -> float:
-    return msg.header.stamp.to_sec()
+@dataclass(order=True)
+class StampedMsg:
+    time: float
+    msg: Any = field(compare=False)
 
 
 class StateEstimation:
@@ -25,7 +28,13 @@ class StateEstimation:
     def __init__(self):
         self._initialized = False
 
-        self._odom_broadcaster: tf.TransformBroadcaster = tf.TransformBroadcaster()
+        self._tf_broadcaster: tf.TransformBroadcaster = tf.TransformBroadcaster()
+        self._odom_tf_broadcaster: tf.TransformBroadcaster = tf.TransformBroadcaster()
+
+        self._odom_world_pose: Pose = Pose()
+        self._odom_world_pose.orientation = Quaternion(1.0, 0.0, 0.0, 0.0)
+
+        self._set_pose_srv: rospy.Service = rospy.Service('set_pose', SetPose, self._handle_set_pose)
 
         self._pose_pub: rospy.Publisher = rospy.Publisher('pose', PoseMsg, queue_size=10)
         self._odom_pub: rospy.Publisher = rospy.Publisher('odom', OdometryMsg, queue_size=10)
@@ -46,7 +55,7 @@ class StateEstimation:
 
         self._ekf: EKF = EKF(dvl_offset, process_covariance)
 
-        self._msg_queue = []
+        self._msg_queue = PriorityQueue()
 
         self._last_horizon_time: rospy.Time = rospy.Time.now() - self._horizon_delay
 
@@ -59,16 +68,21 @@ class StateEstimation:
         current_time = rospy.Time.now()
         horizon_time = current_time - self._horizon_delay
 
-        pending_msg_queue = list(filter(lambda m: extract_msg_time(m) < horizon_time.to_sec(), self._msg_queue))
-        self._msg_queue = list(filter(lambda m: extract_msg_time(m) >= horizon_time.to_sec(), self._msg_queue))
+        while not self._msg_queue.empty():
+            stamped_msg: StampedMsg = self._msg_queue.get()
 
-        for msg in pending_msg_queue:
-            if isinstance(msg, ImuMsg):
-                self._handle_imu(msg)
-            elif isinstance(msg, DvlMsg):
-                self._handle_dvl(msg)
-            elif isinstance(msg, DepthMsg):
-                self._handle_depth(msg)
+            if stamped_msg.time < horizon_time.to_sec():
+                msg = stamped_msg.msg
+
+                if isinstance(msg, ImuMsg):
+                    self._handle_imu(msg)
+                elif isinstance(msg, DvlMsg):
+                    self._handle_dvl(msg)
+                elif isinstance(msg, DepthMsg):
+                    self._handle_depth(msg)
+            else:
+                self._msg_queue.put(stamped_msg)
+                break
 
         self._publish_state(current_time)
 
@@ -78,11 +92,11 @@ class StateEstimation:
         if not self._initialized:
             return
 
-        if isinstance(msg, DvlMsg):
-            self._msg_queue = sorted(self._msg_queue + [msg], key=extract_msg_time)
-        else: self._msg_queue = self._msg_queue + [msg]
+        if msg.header.stamp.to_sec() < self._last_horizon_time.to_sec():
+            return
 
-        # TODO: Add time sanity checks
+        stamped_msg = StampedMsg(msg.header.stamp.to_sec(), msg)
+        self._msg_queue.put(stamped_msg)
 
     def _handle_imu(self, msg: ImuMsg):
         if not self._initialized:
@@ -114,13 +128,9 @@ class StateEstimation:
 
         beam_std_dev = sum(msg.beam_standard_deviations) / 4.0
 
-        covariance = np.maximum(1.0e-7 * np.array([beam_std_dev, beam_std_dev, beam_std_dev]), self._dvl_covariance)
+        covariance = self._dvl_covariance * np.array([beam_std_dev, beam_std_dev, beam_std_dev])
 
         self._ekf.handle_dvl_measurement(velocity, covariance, timestamp)
-
-    def _get_dvl_covariance(self, msg: DvlMsg):
-        return self._dvl_covariance
-        # TODO: Use standard deviation
 
     def _handle_depth(self, msg: DepthMsg):
         if not self._initialized:
@@ -168,15 +178,34 @@ class StateEstimation:
         )
         self._odom_pub.publish(odom_msg)
 
-        self._odom_broadcaster.sendTransform(
+        self._tf_broadcaster.sendTransform(
             translation=(position.x, position.y, position.z),
             rotation=(orientation_quat.x, orientation_quat.y, orientation_quat.z, orientation_quat.w),
             time=time,
             child='kingfisher/base_link',
             parent='odom',
         )
+        self._send_odom_transform()
+
+    def _handle_set_pose(self, req: SetPoseRequest):
+        self._odom_world_pose = req.pose
+        self._send_odom_transform()
+        return SetPoseResponse(True)
+
+    def _send_odom_transform(self):
+        pos = self._odom_world_pose.position
+        rot = self._odom_world_pose.orientation
+
+        self._odom_tf_broadcaster.sendTransform(
+            translation=(pos.x, pos.y, pos.z),
+            rotation=(rot.x, rot.y, rot.z, rot.w),
+            time=rospy.Time.now(),
+            child='odom',
+            parent='map',
+        )
 
     def start(self):
+        self._send_odom_transform()
         rospy.Timer(self._dt, self._update)
         rospy.spin()
 

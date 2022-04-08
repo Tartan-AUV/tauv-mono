@@ -14,14 +14,6 @@
 <!--    <arg name="planner" default="mpc"/>-->
 
     <group ns="gnc">
-        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />
-            <remap from="pose" to="/gnc/pose" />
-            <remap from="odom" to="/gnc/odom" />
-            <remap from="imu" to="/xsens_imu/data" />
-            <remap from="dvl" to="/teledyne_dvl/data" />
-            <remap from="depth" to="/depth_sensor/depth" />
-        </node>
 
         <node pkg="tauv_common" type="controller" name="controller" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/controller.yaml" />
@@ -30,15 +22,26 @@
             <remap from="wrench" to="/thrusters/wrench"/>
             <remap from="hold_pose" to="/controller/hold_pose" />
             <remap from="tune_dynamics" to="/controller/tune_dynamics" />
-            <remap from="tune_pids" to="/controller/tune_pids" />
+            <remap from="tune_controls" to="/controller/tune_controls" />
         </node>
 
         <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />
             <remap from="joy" to="/joy" />
             <remap from="cmd" to="/controller/cmd" />
+            <remap from="mpc_cmd" to="/mpc/cmd" />
             <remap from="arm" to="/thrusters/arm" />
+            <remap from="pose" to="/gnc/pose" />
+            <remap from="hold_pose" to="/controller/hold_pose" />
         </node>
+
+<!--        <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">-->
+<!--            <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />-->
+<!--            <remap from="odom" to="/gnc/odom" />-->
+<!--            <remap from="cmd" to="/mpc/cmd" />-->
+<!--            <remap from="get_traj" to="/get_traj" />-->
+<!--            <remap from="poses" to="/mpc/poses" />-->
+<!--        </node>-->
 
         <!-- Load USB joystick controller configs -->
 <!--        <rosparam file="$(find tauv_common)/src/planners/teleop_planner/joy.yaml" command="load"/>-->
