@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="umd">
+    <static>true</static>
+    <link name="link">
+
+      <collision name="collision">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh><uri>model://umd/meshes/umd.dae</uri></mesh>
+        </geometry>
+      </collision>
+
+      <visual name="visual">
+        <cast_shadows>true</cast_shadows>
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://umd/meshes/umd.dae</uri>
+            <scale>1.0 1.0 1.0</scale>
+          </mesh>
+        </geometry>
+      </visual>
+
+      <visual name="surface">
+        <cast_shadows>false</cast_shadows>
+        <pose>24.7 11.4 4 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>49.4 22.8 .1</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://Media/materials/scripts/water.material</uri>
+            <name>UUVSimulator/StaticDeepWater</name>
+          </script>
+        </material>
+      </visual>
+
+    </link>
+  </model>
+</sdf>

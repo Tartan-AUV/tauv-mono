@@ -5,7 +5,7 @@
             namespace="${namespace}"
             parent_link="${namespace}/base_link"
             inertial_reference_frame="${inertial_reference_frame}">
-        <origin xyz="-0.215 0 0.189" rpy="0 0 0"/>
+        <origin xyz="-0.215 0 0.189" rpy="3.14 0 1.57"/>
     </xacro:default_dvl_macro>
 
     <!-- Magnetometer  -->
@@ -16,7 +16,7 @@
             namespace="${namespace}"
             parent_link="${namespace}/base_link"
             inertial_reference_frame="${inertial_reference_frame}">
-        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <origin xyz="0 0 0" rpy="3.14 0 1.57"/>
     </xacro:default_imu_macro>
 
 <!--    <xacro:default_camera-->
