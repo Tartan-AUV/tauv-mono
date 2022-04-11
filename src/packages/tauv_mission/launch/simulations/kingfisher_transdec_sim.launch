@@ -1,0 +1,24 @@
+<launch>
+    <!-- This launchfile launches the full Guidance, Navigation, and Control system. -->
+    <!-- This includes the cascaded pid controller, teleop node, and (TODO) the trajectory planner. -->
+
+    <!-- Name of the robot model  -->
+    <arg name="model_name" default="kingfisher_sim"/>
+    <!-- path to config package  -->
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+    <include file="$(find uuv_gazebo_worlds)/launch/transdec.launch" />
+
+    <include file="$(arg config_pkg)/launch/upload.launch" />
+
+    <include file="$(find tauv_common)/launch/gnc/gnc.launch">
+       <arg name="model_name" value="kingfisher_sim" />
+        <arg name="config_pkg" value="$(arg config_pkg)" />
+    </include>
+
+    <include file="$(find tauv_sim)/launch/kingfisher_vehicle.launch" />
+
+    <node pkg="joy" type="joy_node" name="joy_node" output="screen">
+        <param name="autorepeat_rate" value="20" />
+    </node>
+</launch>

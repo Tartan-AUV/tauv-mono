@@ -21,10 +21,10 @@ from setuptools import find_packages
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['sonar_map_publisher', 'dynamics_tuner'],
+    packages=['sonar_map_publisher'],
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
-    scripts=['scripts/publish_sonar_map', 'scripts/dynamics_tuner'],
+    scripts=['scripts/publish_sonar_map'],
 )
 setup(**setup_args)

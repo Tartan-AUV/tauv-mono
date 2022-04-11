@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.5.1-0-g916b5db  Build Version: 1.5.7152.31018
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="kingfisher_description_with_meshes">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-0.00979547247563417 0.00341944477847012 -0.0329803032217748"
+        rpy="0 0 0" />
+      <mass
+        value="22.31942624084" />
+      <inertia
+        ixx="0.0611024196301841"
+        ixy="-0.000142194004757004"
+        ixz="8.30551992286638E-05"
+        iyy="0.264092983637739"
+        iyz="9.78538054423206E-05"
+        izz="0.266956958574348" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="thruster_front_left">
+    <inertial>
+      <origin
+        xyz="0.00615975828430915 7.7009611016976E-05 0.000583337900478598"
+        rpy="0 0 0" />
+      <mass
+        value="0.18708278642694" />
+      <inertia
+        ixx="0.000178021105163541"
+        ixy="-1.52328260638086E-07"
+        ixz="1.46538605416447E-07"
+        iyy="0.000128950996650502"
+        iyz="-8.9813240614442E-08"
+        izz="0.000124916232417175" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_front_left.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_front_left.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j_thruster_front_left"
+    type="fixed">
+    <origin
+      xyz="0.438525845447915 0.220939619108369 0"
+      rpy="1.5707963267949 0 -0.785398163397459" />
+    <parent
+      link="base_link" />
+    <child
+      link="thruster_front_left" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="thruster_front_left_vertical">
+    <inertial>
+      <origin
+        xyz="0.00616214189439557 -5.73267986576642E-05 -0.000583238837488231"
+        rpy="0 0 0" />
+      <mass
+        value="0.187124839879042" />
+      <inertia
+        ixx="0.000178071224540123"
+        ixy="1.36478796602312E-07"
+        ixz="-1.46535401093271E-07"
+        iyy="0.000128973322612083"
+        iyz="-6.64771464863282E-08"
+        izz="0.000124939263939692" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_front_left_vertical.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_front_left_vertical.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j_thruster_front_left_vertical"
+    type="fixed">
+    <origin
+      xyz="0.238763805243142 0.213083999999999 0.0111593416291083"
+      rpy="1.5707963267949 1.5707963267949 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="thruster_front_left_vertical" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="thruster_back_left_vertical">
+    <inertial>
+      <origin
+        xyz="0.0061621395388991 -5.73259564693451E-05 -0.000583239677956815"
+        rpy="0 0 0" />
+      <mass
+        value="0.18712485095269" />
+      <inertia
+        ixx="0.000178071229044"
+        ixy="1.36482107597692E-07"
+        ixz="-1.46536749275361E-07"
+        iyy="0.000128973328538138"
+        iyz="-6.64740975439849E-08"
+        izz="0.000124939274029268" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_back_left_vertical.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_back_left_vertical.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j_thruster_back_left_vertical"
+    type="fixed">
+    <origin
+      xyz="-0.238760000000003 0.213083999999999 0.011159341629108"
+      rpy="1.5707963267949 1.5707963267949 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="thruster_back_left_vertical" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="thruster_back_left">
+    <inertial>
+      <origin
+        xyz="0.00615976333179369 -7.70091848110166E-05 -0.000583338840192127"
+        rpy="0 0 0" />
+      <mass
+        value="0.187082757283381" />
+      <inertia
+        ixx="0.000178021101597059"
+        ixy="1.52332614200602E-07"
+        ixz="-1.46538233636224E-07"
+        iyy="0.000128950993986254"
+        iyz="-8.9815737619699E-08"
+        izz="0.000124916230040848" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_back_left.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_back_left.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j_thruster_back_left"
+    type="fixed">
+    <origin
+      xyz="-0.438525845447915 0.22093961910837 0"
+      rpy="1.57079632679489 0 -2.35619449019233" />
+    <parent
+      link="base_link" />
+    <child
+      link="thruster_back_left" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="thruster_front_right">
+    <inertial>
+      <origin
+        xyz="0.00615975450316364 -7.70062276285177E-05 -0.000583337794530348"
+        rpy="0 0 0" />
+      <mass
+        value="0.187082813244453" />
+      <inertia
+        ixx="0.000178021112097922"
+        ixy="1.52337484073833E-07"
+        ixz="-1.46534887475866E-07"
+        iyy="0.000128951005965292"
+        iyz="-8.9815574868063E-08"
+        izz="0.000124916238237742" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_front_right.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_front_right.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j_thruster_front_right"
+    type="fixed">
+    <origin
+      xyz="0.438525845447912 -0.220939619108375 0"
+      rpy="1.5707963267949 0 0.785398163397449" />
+    <parent
+      link="base_link" />
+    <child
+      link="thruster_front_right" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="thruster_front_right_vertical">
+    <inertial>
+      <origin
+        xyz="0.00616213953914557 -5.73257724698628E-05 -0.000583237871444875"
+        rpy="0 0 0" />
+      <mass
+        value="0.187124850954309" />
+      <inertia
+        ixx="0.0001780712316561"
+        ixy="1.36476433597905E-07"
+        ixz="-1.46530120844316E-07"
+        iyy="0.000128973340418466"
+        iyz="-6.64804292366871E-08"
+        izz="0.000124939281997243" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_front_right_vertical.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_front_right_vertical.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j_thruster_front_right_vertical"
+    type="fixed">
+    <origin
+      xyz="0.238760000000007 -0.213083999999999 0.0111593416291069"
+      rpy="1.5707963267949 1.5707963267949 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="thruster_front_right_vertical" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="thruster_back_right_vertical">
+    <inertial>
+      <origin
+        xyz="0.0061621393476019 -5.73260509348916E-05 -0.000583237781158763"
+        rpy="0 0 0" />
+      <mass
+        value="0.187124852432131" />
+      <inertia
+        ixx="0.000178071229678882"
+        ixy="1.36476189178485E-07"
+        ixz="-1.46529891375761E-07"
+        iyy="0.000128973332822414"
+        iyz="-6.64803066926897E-08"
+        izz="0.000124939273021706" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_back_right_vertical.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_back_right_vertical.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j_thruster_back_right_vertical"
+    type="fixed">
+    <origin
+      xyz="-0.238760000000003 -0.213083999999998 0.0111593416291074"
+      rpy="1.5707963267949 1.5707963267949 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="thruster_back_right_vertical" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="thruster_back_right">
+    <inertial>
+      <origin
+        xyz="0.0061597612980111 -7.70093638244873E-05 -0.000583336112097599"
+        rpy="0 0 0" />
+      <mass
+        value="0.187082774470484" />
+      <inertia
+        ixx="0.000178021104099443"
+        ixy="1.52330206594101E-07"
+        ixz="-1.46530562228627E-07"
+        iyy="0.00012895100250041"
+        iyz="-8.98213274028916E-08"
+        izz="0.000124916232502009" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_back_right.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://kingfisher_description_with_meshes/meshes/thruster_back_right.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="j_thruster_back_right"
+    type="fixed">
+    <origin
+      xyz="-0.438525845447914 -0.220939619108371 0"
+      rpy="-1.5707963267949 0 2.35619449019234" />
+    <parent
+      link="base_link" />
+    <child
+      link="thruster_back_right" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+</robot>

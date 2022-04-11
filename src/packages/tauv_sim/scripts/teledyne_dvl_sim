@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+from teledyne_dvl_sim import teledyne_dvl_sim
+
+if __name__ == "__main__":
+    teledyne_dvl_sim.main()

@@ -1,0 +1,22 @@
+*~
+*.pyc
+*.swp
+
+# IDEs
+.vscode/c_cpp_properties.json
+.vscode/settings.json
+.idea
+.ropeproject
+.imdone
+
+# Misc
+.clang_complete
+smac3-*
+results
+comparative_analysis
+best_results
+scenario_*.txt
+__pycache__
+
+# Documentation
+docs/build

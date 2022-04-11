@@ -8,7 +8,7 @@ from geometry_msgs.msg import Pose, Twist, Wrench, Vector3
 from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg
 from tauv_msgs.srv import HoldPose, HoldPoseRequest, HoldPoseResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TuneControls, TuneControlsRequest, TuneControlsResponse
 from tauv_util.types import tl, tm
-from tauv_util.transforms import quat_to_rpy
+from tauv_util.transforms import quat_to_rpy, twist_body_to_world
 from nav_msgs.msg import Odometry as OdometryMsg
 from scipy.spatial.transform import Rotation
 
@@ -133,10 +133,12 @@ class Controller:
         err = targets - pos
         err = (err + pi) % (2 * pi) - pi
 
+        world_twist = twist_body_to_world(self._pose, self._body_twist)
+
         vel = np.array([
-           self._body_twist.angular.x,
-           self._body_twist.angular.y,
-           self._body_twist.linear.z,
+            self._body_twist.angular.x,
+            self._body_twist.angular.y,
+            world_twist.linear.z,
         ])
 
         efforts = np.array([

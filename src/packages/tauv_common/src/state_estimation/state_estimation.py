@@ -57,7 +57,8 @@ class StateEstimation:
 
         self._msg_queue = PriorityQueue()
 
-        self._last_horizon_time: rospy.Time = rospy.Time.now() - self._horizon_delay
+        current_time = rospy.Time.now()
+        self._last_horizon_time: rospy.Time = current_time - self._horizon_delay if current_time.to_sec() > self._horizon_delay.to_sec() else current_time
 
         self._initialized = True
 
@@ -66,6 +67,10 @@ class StateEstimation:
             return
 
         current_time = rospy.Time.now()
+
+        if current_time.to_sec() < self._horizon_delay.to_sec():
+            return
+
         horizon_time = current_time - self._horizon_delay
 
         while not self._msg_queue.empty():
