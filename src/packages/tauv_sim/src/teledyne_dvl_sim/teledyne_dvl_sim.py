@@ -17,7 +17,7 @@ class TeledyneDvl:
         m = TeledyneDvlMsg()
         m.header.stamp = rospy.Time.now()
         m.is_hr_velocity_valid = True
-        m.hr_velocity = Vector3(msg.twist.twist.linear.y, msg.twist.twist.linear.x, -msg.twist.twist.linear.z)
+        m.hr_velocity = Vector3(msg.twist.twist.linear.x, -msg.twist.twist.linear.y, -msg.twist.twist.linear.z)
         self._dvl_pub.publish(m)
 
 def main():

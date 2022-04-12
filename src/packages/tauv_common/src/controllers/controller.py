@@ -2,6 +2,7 @@ import rospy
 import numpy as np
 from typing import Optional
 from math import pi
+from simple_pid import PID
 
 from dynamics.dynamics import Dynamics
 from geometry_msgs.msg import Pose, Twist, Wrench, Vector3
@@ -24,6 +25,8 @@ class Controller:
         self._roll_tunings: np.array = np.array(rospy.get_param('~roll_tunings'))
         self._pitch_tunings: np.array = np.array(rospy.get_param('~pitch_tunings'))
         self._z_tunings: np.array = np.array(rospy.get_param('~z_tunings'))
+
+        self._build_pids()
 
         self._hold_pose_srv: rospy.Service = rospy.Service('hold_pose', HoldPose, self._handle_hold_pose)
         self._tune_dynamics_srv: rospy.Service = rospy.Service('tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
@@ -115,6 +118,7 @@ class Controller:
             return np.array([0.0, 0.0, 0.0])
 
         targets = np.array([0.0, 0.0, 0.0])
+
         if self._hold_pose is not None:
             rot = quat_to_rpy(self._hold_pose.orientation)
             targets = np.array([
@@ -133,18 +137,10 @@ class Controller:
         err = targets - pos
         err = (err + pi) % (2 * pi) - pi
 
-        world_twist = twist_body_to_world(self._pose, self._body_twist)
-
-        vel = np.array([
-            self._body_twist.angular.x,
-            self._body_twist.angular.y,
-            world_twist.linear.z,
-        ])
-
         efforts = np.array([
-            err[0] * self._roll_tunings[0] - vel[0] * np.sign(err[0]) * self._roll_tunings[1],
-            err[1] * self._pitch_tunings[0] - vel[1] * np.sign(err[1]) * self._pitch_tunings[1],
-            err[2] * self._z_tunings[0] - vel[2] * np.sign(err[2]) * self._z_tunings[1],
+            -self._roll_pid(err[0]),
+            -self._pitch_pid(err[1]),
+            -self._z_pid(err[2]),
         ])
 
         return efforts
@@ -215,7 +211,36 @@ class Controller:
             self._pitch_tunings = req.tunings.pitch_tunings
         if req.tunings.update_z:
             self._z_tunings = req.tunings.z_tunings
+        self._build_pids()
         return TuneControlsResponse(True)
+
+    def _build_pids(self):
+        def pi_clip(angle):
+            if angle > 0:
+                if angle > pi:
+                    return angle - 2*pi
+            else:
+                if angle < -pi:
+                    return angle + 2*pi
+            return angle
+
+        self._roll_pid: PID = PID(
+            Kp=self._roll_tunings[0],
+            Ki=self._roll_tunings[1],
+            Kd=self._roll_tunings[2],
+            error_map=pi_clip,
+        )
+        self._pitch_pid: PID = PID(
+            Kp=self._pitch_tunings[0],
+            Ki=self._pitch_tunings[1],
+            Kd=self._pitch_tunings[2],
+            error_map=pi_clip,
+        )
+        self._z_pid: PID = PID(
+            Kp=self._z_tunings[0],
+            Ki=self._z_tunings[1],
+            Kd=self._z_tunings[2],
+        )
 
 
 def main():

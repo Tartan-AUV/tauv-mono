@@ -23,7 +23,7 @@ class Thrusters:
         self._maestro = Maestro(ttyStr=self._maestro_port)
         print('initialized maestro')
 
-        self._is_armed: bool = True
+        self._is_armed: bool = False
         self._arm_service: rospy.Service = rospy.Service('arm', SetBool, self._handle_arm)
 
         self._battery_sub: rospy.Subscriber = rospy.Subscriber('battery', BatteryMsg, self._handle_battery)

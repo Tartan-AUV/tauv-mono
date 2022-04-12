@@ -16,7 +16,7 @@ class Thrusters:
 
         self._load_config()
 
-        self._is_armed: bool = True
+        self._is_armed: bool = False
         self._arm_service: rospy.Service = rospy.Service('arm', SetBool, self._handle_arm)
 
         self._wrench_sub: rospy.Subscriber = rospy.Subscriber('wrench', Wrench, self._handle_wrench)

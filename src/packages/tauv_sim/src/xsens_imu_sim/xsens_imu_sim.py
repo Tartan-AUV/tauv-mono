@@ -21,7 +21,8 @@ class XsensImu:
     def _handle_sim_imu(self, msg: ImuMsg):
         m = XsensImuMsg()
         m.header.stamp = msg.header.stamp
-        m.orientation = tm(quat_to_rpy(Quaternion(msg.orientation.y, msg.orientation.x, -msg.orientation.z, msg.orientation.w)), Vector3)
+        orientation = quat_to_rpy(msg.orientation)
+        m.orientation = Vector3(orientation[1], orientation[0], -orientation[2])
 
         m.linear_acceleration = Vector3(msg.linear_acceleration.y, msg.linear_acceleration.x, -msg.linear_acceleration.z)
 

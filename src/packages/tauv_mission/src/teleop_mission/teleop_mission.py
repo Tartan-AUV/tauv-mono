@@ -160,7 +160,7 @@ class TeleopMission:
         pose.orientation = rpy_to_quat(np.array([args.roll, args.pitch, 0.0]))
 
         req: HoldPoseRequest = HoldPoseRequest()
-        req.enable = args.enable
+        req.enable = args.enable is not None
         req.pose = pose
         self._hold_pose_srv.call(req)
 
@@ -174,9 +174,9 @@ class TeleopMission:
         subparsers = parser.add_subparsers()
 
         tune_controls = subparsers.add_parser('tune_controls')
-        tune_controls.add_argument('--roll', type=float, nargs=2)
-        tune_controls.add_argument('--pitch', type=float, nargs=2)
-        tune_controls.add_argument('--z', type=float, nargs=2)
+        tune_controls.add_argument('--roll', type=float, nargs=3)
+        tune_controls.add_argument('--pitch', type=float, nargs=3)
+        tune_controls.add_argument('--z', type=float, nargs=3)
         tune_controls.set_defaults(func=self._handle_tune_controls)
 
         tune_dynamics = subparsers.add_parser('tune_dynamics')
@@ -203,10 +203,10 @@ class TeleopMission:
         goto.set_defaults(func=self._handle_goto)
 
         hold_pose = subparsers.add_parser('hold_pose')
-        hold_pose.add_argument('enable', type=bool)
         hold_pose.add_argument('roll', type=float)
         hold_pose.add_argument('pitch', type=float)
         hold_pose.add_argument('z', type=float)
+        hold_pose.add_argument('--enable', action='store_true')
         hold_pose.set_defaults(func=self._handle_hold_pose)
 
         return parser
