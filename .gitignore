@@ -6,3 +6,4 @@
 *.dpp
 *.d
 *.a
+build/
