@@ -75,6 +75,7 @@ class GraphContainer(SonarGraph):
         self.pub = rospy.Publisher("sonar", SonarGraph, queue_size=10)
         rospy.init_node('sonar_map',anonymous=True)
         x=rospy.wait_for_message("sonar/pulse",SonarPulse)
+        #y=rospy.wait_for_message("gnc/pose",Pose)
 
         self.cur_angle = x.angle
         self.data_len = x.data_length
@@ -97,7 +98,7 @@ class GraphContainer(SonarGraph):
         
         #self.global_range = rospy.get_param('/vehicle_params/sonar/global_range') #meters
         
-        self.global_range = 21.0
+        self.global_range = 50.0
 
         self.global_origin = (self.global_range/2.0, self.global_range/2.0)
 
@@ -126,6 +127,7 @@ class GraphContainer(SonarGraph):
     def read(self, data):
         self.exact_angle = self.calc_angle(data.angle)
         self.cur_angle = round(self.exact_angle)
+        #print(self.cur_angle)
         if self.cur_angle>=0 and self.cur_angle<self.gradians:
             for i in range(ignore,self.data_len):
                 self.unpr[i*self.gradians+self.cur_angle]=data.data[i]
@@ -147,29 +149,31 @@ class GraphContainer(SonarGraph):
 
             self.update_values()
 
-            #self.display_img(self.proc_heat_map)
+            self.display_img(self.proc_heat_map)
 
             self.gen_proc_heat_map()
 
-            #self.display_img(np.reshape(self.weighted_heat_map[:,:,0:1],(self.heat_map_dim,self.heat_map_dim)))
+            self.display_img(np.reshape(self.weighted_heat_map[:,:,0:1],(self.heat_map_dim,self.heat_map_dim)))
            
-            self.display_img(self.proc_heat_map)
+            self.display_img(self.heat_map)
 
-            plt.savefig("proc_heat_map.png")
+            #plt.savefig("proc_heat_map.png")
 
-            #time.sleep(3)
+            time.sleep(3)
 
             self.display_img(self.heat_map_clusters)
 
-            #time.sleep(3)
+            time.sleep(3)
 
-            plt.savefig("clusters.png")
+            #plt.savefig("clusters.png")
 
             self.angle_counter=0
         
         self.angle_counter+=1
 
         #self.display_img(np.reshape(self.weighted_heat_map[:,:,0:1],(self.heat_map_dim,self.heat_map_dim)))
+
+        self.display_img(self.heat_map)
 
         self.pub.publish(self)
 
@@ -216,13 +220,23 @@ class GraphContainer(SonarGraph):
     #accounts for boat position and returns current read angle
     def calc_angle(self,angle):
         (roll, pitch, yaw) = self.cur_orientation
-        if(roll>0 or pitch>0):
+        #print("roll = "+str(roll))
+        #print("pitch = "+str(pitch))
+        if(roll>0.5 or pitch>0.5):
+            print("over")
             return -1
-        return angle+yaw
+        if(yaw<0):
+            yaw = 2*math.pi + yaw
+        s = (angle+(math.degrees(yaw)*400.0/360.0))
+        #print("yaw = "+str(yaw))
+        #print("s = ",str(s))
+        if(s<400.0):
+            return s
+        return s-400.0
 
     def update_position(self,data):
-        self.cur_position = data.position
-        self.cur_orientation = data.orientation
+        self.cur_position = (data.position.x,data.position.y,data.position.z)
+        self.cur_orientation = (data.orientation.x,data.orientation.y,data.orientation.z)
 
     def get_polar_point(self, col, row):
         y_dist = (row)*(self.global_range/self.heat_map_dim)-self.global_origin[1]
@@ -281,7 +295,12 @@ class GraphContainer(SonarGraph):
 
 
     def plot_heat(self, data, dist, angle):
-        (x,y,z) = (self.cur_position[0]+self.global_origin[0],self.cur_position[1]+self.global_origin[1],self.cur_position[2])
+        #print(1)
+        (x,y,z) = (self.cur_position[1]+self.global_origin[0],self.cur_position[2]+self.global_origin[1],self.cur_position[0])
+       
+        #print((x,y,z))
+
+        #anle = 0
 
         theta2 = math.radians(angle*360/400.0)
         
