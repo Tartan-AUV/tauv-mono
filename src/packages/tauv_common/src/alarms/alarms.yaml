@@ -1,0 +1,34 @@
+# Instructions:
+#
+# Add your alarms to this file, and assign each a unique index number.
+# - Alarm names should be all-caps
+# - failure_level: one of:
+#     - NO_FAILURE: this is purely informative and does not affect the sub behavior
+#     - PREDIVE_FAILURE: this alarm is expected but prevents the start of a mission. Eg, waiting for things to boot.
+#     - MISSION_FAILURE: this alarm causes a mission to fail (could be ignored) and is likely a critical issue. May still be cleared
+#     - CRITICAL_FAILURE: this alarm will abort the mission and disarm the sub. Generally, they cannot be cleared without resetting the system.
+# - default_set: if true,the alarm will be set at startup.
+# - description: a plaintext description of the alarm and it's purpose
+# - author: who wrote this?
+
+Alarms:
+- UNKNOWN_ALARMS:
+    id: 0
+    failure_level: NO_FAILURE
+    default_set: False
+    description: special alarm indicating that the client is not connected to the server. Do not set manually.
+    author: Tom Scherlis
+
+- THRUSTER_DRIVER_NOT_INITIALIZED:
+    id: 1
+    failure_level: PREDIVE_FAILURE
+    default_set: True
+    description: Thruster driver not yet initialized
+    author: Tom Scherlis
+
+- DVL_DRIVER_NOT_INITIALIZED:
+    id: 4
+    failure_level: PREDIVE_FAILURE
+    default_set: True
+    description: DVL Driver is not initialized yet
+    author: Tom Scherlis
