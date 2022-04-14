@@ -13,19 +13,19 @@ class DepthEstimator:
         self.numBits = 32
         self.maxVal = 2**self.numBits - 1
         
-
-        # self.depth_image = np.zeros(self.imageWidth, self.imageHeight)
+        # self.depth_image = np.zeros((self.imageHeight, self.imageWidth))
         self.depth_camera_info = CameraInfo()
         self.bounding_boxes = BoundingBoxes() 
 
-        self.depth_image_streamer = rospy.Subscriber("/zedm/zed_node/depth/depth_registered", Image, self.depth_callback)
-        self.depth_camera_info = rospy.Subscriber("/zedm/zed_node/depth/depth_registered", CameraInfo, self.camera_info_callback)
+        self.depth_image_streamer = rospy.Subscriber("/zedm_A/zed_node_A/depth/depth_registered", Image, self.depth_callback)
+        self.depth_camera_info = rospy.Subscriber("/zedm_A/zed_node_A/left/camera_info", CameraInfo, self.camera_info_callback)
         self.bounding_boxes = rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
 
         self.cv_bridge = CvBridge()
 
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         self.new_bbox = False
+        self.new_image = False
 
 
     def camera_info_callback(self, msg):
@@ -33,23 +33,43 @@ class DepthEstimator:
 
     def depth_callback(self, msg):
       self.depth_image = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
+      self.new_image = True
 
     def bbox_callback(self, msg):
       self.bounding_boxes = msg 
       self.new_bbox = True
 
     def spin(self, event):
-      if(self.new_bbox):
-        self.new_bbox = False
+      if(self.new_bbox and self.new_image):
+
+        fx = self.depth_camera_info.K[0]
+        cx = self.depth_camera_info.K[2]
+        fy = self.depth_camera_info.K[4]
+        cy = self.depth_camera_info.K[5]
+   
+        
+
+        self.new_bbox, self.new_image = False, False
         bboxes = self.bounding_boxes.bounding_boxes
         for box in bboxes:
-          cur_depth = self.estimate_depth((box.xmin + box.xmax) // 2, (box.ymin + box.ymax) // 2)
-          print(box.xmin, box.ymin, box.xmax, box.ymax, box.Class, cur_depth)
+          center_x =(box.xmin + box.xmax) // 2
+          center_y = (box.ymin + box.ymax) // 2
+          cur_depth = self.estimate_depth(center_x, center_y, 5)
+
+          if (cur_depth != np.nan):
+            cur_x = (( center_x - cx) * cur_depth) / (fx)
+            cur_y = (( center_y - cy) * cur_depth) / (fy)
+            print(cur_x, cur_y, cur_depth)
+          else: 
+            print(cur_depth)
+
           
 
 
-    def estimate_depth(self, x, y):
-      return self.depth_image[y, x]
+    def estimate_depth(self, x, y, w):
+
+      box = self.depth_image[max(0, y - w) : min(self.imageHeight, y + w+1), max(0, x - w) : min(self.imageWidth, x + w + 1)]
+      return np.nanmean(box)
        
       
 
