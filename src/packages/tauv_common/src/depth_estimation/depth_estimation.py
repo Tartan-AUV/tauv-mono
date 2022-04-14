@@ -41,34 +41,29 @@ class DepthEstimator:
 
     def spin(self, event):
       if(self.new_bbox and self.new_image):
-
         fx = self.depth_camera_info.K[0]
         cx = self.depth_camera_info.K[2]
         fy = self.depth_camera_info.K[4]
         cy = self.depth_camera_info.K[5]
-   
-        
 
         self.new_bbox, self.new_image = False, False
         bboxes = self.bounding_boxes.bounding_boxes
-        for box in bboxes:
-          center_x =(box.xmin + box.xmax) // 2
-          center_y = (box.ymin + box.ymax) // 2
-          cur_depth = self.estimate_depth(center_x, center_y, 5)
+        
+        for bbox in bboxes:
+          center_x = (bbox.xmin + bbox.xmax) // 2
+          center_y = (bbox.ymin + bbox.ymax) // 2
+          cur_depth = self.estimate_depth(center_x, center_y, 5, bbox)
 
           if (cur_depth != np.nan):
-            cur_x = (( center_x - cx) * cur_depth) / (fx)
-            cur_y = (( center_y - cy) * cur_depth) / (fy)
+            cur_x = ((center_x - cx) * cur_depth) / (fx)
+            cur_y = ((center_y - cy) * cur_depth) / (fy)
             print(cur_x, cur_y, cur_depth)
           else: 
             print(cur_depth)
 
-          
 
-
-    def estimate_depth(self, x, y, w):
-
-      box = self.depth_image[max(0, y - w) : min(self.imageHeight, y + w+1), max(0, x - w) : min(self.imageWidth, x + w + 1)]
+    def estimate_depth(self, x, y, w, bbox):
+      box = self.depth_image[max(bbox.ymin, y - w) : min(bbox.ymax, y + w+1), max(bbox.xmin, x - w) : min(bbox.xmax, x + w + 1)]
       return np.nanmean(box)
        
       
