@@ -1,24 +1,14 @@
 <launch>
     <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
 
-    <group ns="gnc">
-        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />
-            <remap from="pose" to="/gnc/pose" />
-            <remap from="odom" to="/gnc/odom" />
-            <remap from="imu" to="/xsens_imu/data" />
-            <remap from="dvl" to="/teledyne_dvl/data" />
-            <remap from="depth" to="/depth_sensor/depth" />
-        </node>
-
-        <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />
-            <remap from="odom" to="/gnc/odom" />
-            <remap from="cmd" to="/mpc/cmd" />
-            <remap from="get_traj" to="/get_traj" />
-            <remap from="poses" to="/mpc/poses" />
-        </node>
-    </group>
+    <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />
+        <remap from="odom" to="/gnc/odom" />
+        <remap from="cmd" to="/mpc/cmd" />
+        <remap from="get_traj" to="/get_traj" />
+        <remap from="traj_poses" to="/mpc/traj_poses" />
+        <remap from="poses" to="/mpc/poses" />
+    </node>
 
     <node pkg="tauv_mission" type="teleop_mission" name="teleop_mission" output="screen">
         <remap from="tune_controls" to="/controller/tune_controls" />

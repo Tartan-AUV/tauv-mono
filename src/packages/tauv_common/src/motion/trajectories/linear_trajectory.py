@@ -1,213 +1,148 @@
 import rospy
-from .trajectories import TrajectoryStatus, Trajectory
-
-from tauv_msgs.srv import GetTrajResponse, GetTrajRequest
-from geometry_msgs.msg import Pose, Vector3, Quaternion, Point, Twist, PoseStamped
-from nav_msgs.msg import Path
-from scipy.spatial.transform import Rotation
-from scipy.interpolate import CubicSpline
 import numpy as np
-from collections import Iterable
-from tauv_util.types import tl, tm
-from tauv_util.transforms import twist_world_to_body
 
-# imports for s-curve traj lib:
+from geometry_msgs.msg import Pose, PoseStamped, Twist, Vector3
+from nav_msgs.msg import Path
+from tauv_msgs.srv import GetTrajRequest, GetTrajResponse
+from tauv_util.types import tl, tm
+from tauv_util.transforms import linear_distance, yaw_distance, quat_to_rpy, rpy_to_quat, twist_world_to_body, twist_body_to_world
+
+from .trajectories import Trajectory, TrajectoryStatus
 from .pyscurve import ScurvePlanner
 
-# math
-from math import sin, cos, atan2, sqrt, ceil
-import collections
 
-ScurveParams = collections.namedtuple('ScurveParams', 'v_max a_max j_max')
+class Waypoint:
+    def __init__(self, pose: Pose, linear_error: float, angular_error: float):
+        self.pose: Pose = pose
+        self.linear_error: float = linear_error
+        self.angular_error: float = angular_error
 
-
-class LinearSegment(object):
-    def __init__(self, p0, p1, h0, h1, params_lin, params_ang, start_velocity=(0, 0, 0), start_angular_velocity=(0, 0, 0)):
-        p = ScurvePlanner()
-        # Build s-curve 1-dof trajectory for position:
-        q0 = p0
-        q1 = p1
-        v0 = start_velocity
-        v1 = [0, 0, 0]
-        v_max = params_lin.v_max
-        a_max = params_lin.a_max
-        j_max = params_lin.j_max
-        print(q0, q1, v0, v1)
-        self.tr_lin = p.plan_trajectory(q0, q1, v0, v1, v_max, a_max, j_max)
-
-        # Build s-curve 1-dof trajectory for heading:
-        q0 = h0
-        q1 =  h1
-        v0 = start_angular_velocity
-        v1 = [0, 0, 0]
-        v_max = params_ang.v_max
-        a_max = params_ang.a_max
-        j_max = params_ang.j_max
-        print(q0, q1, v0, v1)
-        self.tr_ang = p.plan_trajectory(q0, q1, v0, v1, v_max, a_max, j_max)
-
-    def duration(self):
-        return max(self.tr_lin.time[0], self.tr_ang.time[0])
-
-    def __call__(self, t, order=0):
-        if t < 0:
-            t = 0
-
-        p = self.tr_lin(min(t, self.tr_lin.time[0]))
-        h = self.tr_ang(min(t, self.tr_ang.time[0]))
-
-        res = [p[0][2 - order], p[1][2 - order], p[2][2 - order], h[0][2 - order], h[1][2 - order], h[2][2 - order]]
-
-        return res
+    def to_pose_stamped(self) -> PoseStamped:
+        ps = PoseStamped()
+        ps.header.frame_id = 'odom'
+        ps.pose = self.pose
+        return ps
 
 
-# Uses linear segments between waypoints, with a s-curve velocity
-# profile for each waypoint. These trajectories are NOT smooth, and require
-# stopping at each point. Initial velocity in the direction of the first segment is
-# accounted for, however velocity perpendicular to the first segment is not.
 class LinearTrajectory(Trajectory):
-    def __init__(self, start_pose, start_twist, positions, orientations, v=0.4, a=0.4, j=0.4):
-        # MinSnapTrajectory allows a good deal of customization:
-        #
-        # - start_pose: unstamped Pose TODO: support stamped poses/twists in other frames!
-        # - start_twist: unstamped Twist (measured in world frame!)
-        # - positions: The position waypoints as a Point[].
-        # - headings: heading angles corresponding to positions as a float[].
-        #             If None: auto-orient forwards for full trajectory.
-        # - v, a, j: max velocity, acceleration, and jerk respectively. (Applies to linear *and* angular trajectories)
-        # - autowind_headings: If true, the headings will be automatically winded to reduce the amount of yaw required
-        #                      to achieve them. If false, then the robot will use absolute headings which may result in
-        #                      yaw motions greater than pi radians. Setting this to false can be useful for forcing the
-        #                      robot to do a 360 spin, for example.
-        #
-        self.status = TrajectoryStatus.PENDING
+    def __init__(self, waypoints: [Waypoint], linear_constraints: (float, float, float), angular_constraints: (float, float, float)):
+        self._waypoints: [Waypoint] = waypoints
+        self._target: int = 1
 
-        positions = [tl(p) for p in positions]
+        self._linear_constraints: (float, float, float) = linear_constraints
+        self._angular_constraints: (float, float, float) = angular_constraints
 
-        assert(len(positions) > 0)
-        assert(all([len(e) == 3 for e in positions]))
-        # if headings is not None:
-        #     assert(len(headings) == len(positions))
+        self._status = TrajectoryStatus.PENDING
 
-        start_pos = tl(start_pose.position)
-        start_orientation = np.flip(Rotation.from_quat(tl(start_pose.orientation)).as_euler("ZYX"))
-        start_vel = tl(start_twist.linear)
-        start_ang_vel = tl(start_twist.angular)
+        self._p = ScurvePlanner()
+        self._plan()
 
-        # Create list of waypoints (position and heading + velocities for each)
-        p = [start_pos] + positions
-        pv = [start_vel] + [[0, 0, 0]] * len(positions)
+        self._status = TrajectoryStatus.INITIALIZED
 
-        o = [start_orientation] + orientations
-        ov = [start_ang_vel] + [[0, 0, 0]] * len(positions)
+    def _plan(self):
+        start = self._waypoints[self._target - 1]
+        end = self._waypoints[self._target]
 
-        #     if autowind_headings:
-        #         psi = (psi + np.pi) % (2 * np.pi) - np.pi
-        #         last_psi = (last_psi + np.pi) % (2 * np.pi) - np.pi
-        #         if psi - last_psi < -np.pi:
-        #             psi += 2 * np.pi
-        #         if psi - last_psi > np.pi:
-        #             psi -= 2 * np.pi
-        #         last_psi = psi
+        print(start.pose.position)
+        print(end.pose.position)
 
-        # Create trajectories for each segment:
-        lin_params = ScurveParams(v, a, j)
-        ang_params = ScurveParams(0.05, 0.02, j)
+        start_position = tl(start.pose.position)
+        end_position = tl(end.pose.position)
+        start_linear_velocity = np.array([0.0, 0.0, 0.0])
+        end_linear_velocity = np.array([0.0, 0.0, 0.0])
 
-        self.segments = []
-        self.ts = []
+        self._linear_traj = self._p.plan_trajectory(
+            start_position, end_position,
+            start_linear_velocity, end_linear_velocity,
+            v_max=self._linear_constraints[0],
+            a_max=self._linear_constraints[1],
+            j_max=self._linear_constraints[2],
+        )
 
-        for i in range(len(p) - 1):
-            s = LinearSegment(p[i], p[i+1], o[i], o[i+1], lin_params, ang_params,
-                              start_velocity=pv[i], start_angular_velocity=ov[i])
-            t = s.duration()
-            if i > 0:
-                t += self.ts[i-1]
-            self.ts.append(t)
-            self.segments.append(s)
+        start_yaw = quat_to_rpy(start.pose.orientation)[2]
+        end_yaw = quat_to_rpy(end.pose.orientation)[2]
 
-        self.start_time = rospy.Time.now().to_sec()
-        self.status = TrajectoryStatus.INITIALIZED
+        start_yaw_velocity = 0.0
+        end_yaw_velocity = 0.0
 
-    def get_points(self, request):
-        assert(isinstance(request, GetTrajRequest))
+        # start_body_twist = twist_world_to_body(req.curr_pose, req.curr_twist)
+        # start_yaw_velocity = tl(start_body_twist.angular)[2]
 
-        res = GetTrajResponse()
+        self._yaw_traj = self._p.plan_trajectory(
+            np.array([start_yaw]), np.array([end_yaw]),
+            np.array([start_yaw_velocity]), np.array([end_yaw_velocity]),
+            v_max=self._angular_constraints[0],
+            a_max=self._angular_constraints[1],
+            j_max=self._angular_constraints[2],
+        )
 
-        poses = []
-        twists = []
+        self._start_time = rospy.Time.now()
 
-        elapsed = request.curr_time.to_sec() - self.start_time
-        T = self.duration().to_sec()
 
-        for i in range(request.len):
-            t = request.dt * i + elapsed
-            if t > T:
-                t = T
+    def get_points(self, req: GetTrajRequest) -> GetTrajResponse:
+        target_waypoint = self._waypoints[self._target]
 
-            # Find appropriate segment:
-            seg = 0
-            while self.ts[seg] <= t:
-                seg += 1
-                if seg > len(self.ts) - 1:
-                    seg = len(self.ts) - 1
-                    break
+        target_reached = linear_distance(req.curr_pose, target_waypoint.pose) < target_waypoint.linear_error and \
+                         yaw_distance(req.curr_pose, target_waypoint.pose) < target_waypoint.angular_error and \
+                            np.linalg.norm(tl(req.curr_twist.linear)) < 0.05
 
-            p = self.segments[seg](t, order=0)
-            v = self.segments[seg](t, order=1)
+        if target_reached and self._target == len(self._waypoints) - 1:
+            self._status = TrajectoryStatus.STABILIZED
+        elif target_reached:
+            self._target += 1
+            self._plan()
 
-            pose = Pose(tm(p[0:3], Point), tm(Rotation.from_euler("ZYX", [p[5], p[4], p[3]]).as_quat(), Quaternion))
-            twist = Twist(tm(v[0:3], Vector3), tm([v[3], v[4], v[5]], Vector3))
-            poses.append(pose)
-            twists.append(twist)
+        poses = [None] * req.len
+        twists = [None] * req.len
 
-        res.twists = twists
+        linear_duration = self._linear_traj.time[0]
+        yaw_duration = self._yaw_traj.time[0]
+
+        elapsed = (req.curr_time - self._start_time).to_sec()
+
+        for i in range(req.len):
+            t = elapsed + req.dt * i
+            t_linear = min(t, linear_duration)
+            t_yaw = min(t, yaw_duration)
+
+            position = self._linear_traj(t_linear)[:,2]
+            linear_velocity = self._linear_traj(t_linear)[:,1]
+
+            yaw = self._yaw_traj(t_yaw)[0,2]
+            yaw_velocity = self._yaw_traj(t_yaw)[0,1]
+
+            pose = Pose()
+            pose.position = tm(position, Vector3)
+            pose.orientation = rpy_to_quat(np.array([0.0, 0.0, yaw]))
+
+            twist = Twist()
+            twist.linear = tm(linear_velocity, Vector3)
+            twist.angular = tm(np.array([0.0, 0.0, yaw_velocity]), Vector3)
+
+            poses[i] = pose
+            twists[i] = twist
+
+        res: GetTrajResponse = GetTrajResponse()
         res.poses = poses
+        res.twists = twists
         res.auto_twists = False
         res.success = True
         return res
 
-    def duration(self):
-        return rospy.Duration(self.ts[-1])
+    def get_duration(self) -> rospy.Duration:
+        return rospy.Duration.from_sec(0)
 
-    def time_remaining(self):
-        end_time = rospy.Time(self.start_time) + self.duration()
-        return end_time - rospy.Time.now()
+    def get_time_remaining(self) -> rospy.Duration:
+        return rospy.Duration.from_sec(0)
 
     def set_executing(self):
-        self.status = TrajectoryStatus.EXECUTING
+        self._status = TrajectoryStatus.EXECUTING
 
-    def get_status(self):
-        if self.time_remaining().to_sec() <= 0:
-            self.status = TrajectoryStatus.FINISHED
+    def get_status(self) -> TrajectoryStatus:
+        return self._status
 
-        # TODO: determine if stabilized, timed out.
-
-        # if self.time_remaining().to_sec() <= -1:
-        #     self.status = TrajectoryStatus.STABILIZED
-
-        return self.status
-
-    def as_path(self, dt=0.1):
-        request = GetTrajRequest()
-        request.curr_pose = Pose()
-        request.curr_twist = Twist()
-        request.len = int(ceil(self.duration().to_sec()/dt))
-        request.dt = dt
-        request.curr_time = rospy.Time.from_sec(self.start_time)
-        res = self.get_points(request)
-
-        start_time = rospy.Time.now()
-
+    def as_path(self) -> Path:
         path = Path()
         path.header.frame_id = 'odom'
-        path.header.stamp = start_time
-
-        stamped_poses = []
-        for i, p in enumerate(res.poses):
-            ps = PoseStamped()
-            ps.header.stamp = start_time + rospy.Duration.from_sec(dt * i)
-            ps.pose = p
-            stamped_poses.append(ps)
-        path.poses = stamped_poses
+        path.poses = list(map(lambda w: w.to_pose_stamped(), self._waypoints))
         return path

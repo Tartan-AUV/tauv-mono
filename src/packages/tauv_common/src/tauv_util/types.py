@@ -1,16 +1,17 @@
+import numpy as np
 from geometry_msgs.msg import Vector3, Quaternion, Point
 
 
 # to list
 def tl(o):
     if isinstance(o, Vector3):
-        return [o.x, o.y, o.z]
+        return np.array([o.x, o.y, o.z])
     if isinstance(o, Point):
-        return [o.x, o.y, o.z]
+        return np.array([o.x, o.y, o.z])
     if isinstance(o, Quaternion):
-        return [o.x, o.y, o.z, o.w]
+        return np.array([o.x, o.y, o.z, o.w])
     if isinstance(o, list):
-        return o
+        return np.array(o)
     raise ValueError("Unsupported type for tl! Add it in tauv_util/types.py")
 
 

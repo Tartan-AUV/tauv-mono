@@ -40,11 +40,11 @@ class TeleopPlanner:
 
         self._joy_cmd: Optional[np.array] = None
         self._joy_cmd_timestamp: Optional[rospy.Time] = None
-        self._joy_cmd_timeout: float = 0.5
+        self._joy_cmd_timeout: float = 0.1
 
         self._mpc_cmd: Optional[np.array] = None
         self._mpc_cmd_timestamp: Optional[rospy.Time] = None
-        self._mpc_cmd_timeout: float = 0.5
+        self._mpc_cmd_timeout: float = 0.1
 
         self._position: Optional[np.array] = None
         self._orientation: Optional[np.array] = None
@@ -77,11 +77,11 @@ class TeleopPlanner:
         elif self._is_auto and is_mpc_cmd_valid:
             self._set_hold(False)
             cmd = self._mpc_cmd
-        elif self._is_auto and not is_mpc_cmd_valid:
-            self._set_hold(True)
         elif not self._is_auto and is_joy_cmd_valid:
             self._set_hold(False)
             cmd = self._joy_cmd
+        elif self._is_auto and not is_mpc_cmd_valid:
+            self._set_hold(True)
 
         msg: ControllerCmdMsg = ControllerCmdMsg()
         msg.a_x = cmd[0]

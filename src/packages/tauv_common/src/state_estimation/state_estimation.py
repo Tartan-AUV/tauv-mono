@@ -57,7 +57,8 @@ class StateEstimation:
 
         self._msg_queue = PriorityQueue()
 
-        self._last_horizon_time: rospy.Time = rospy.Time.now() - self._horizon_delay
+        current_time = rospy.Time.now()
+        self._last_horizon_time: rospy.Time = current_time - self._horizon_delay if current_time.to_sec() > self._horizon_delay.to_sec() else current_time
 
         self._initialized = True
 
@@ -66,6 +67,10 @@ class StateEstimation:
             return
 
         current_time = rospy.Time.now()
+
+        if current_time.to_sec() < self._horizon_delay.to_sec():
+            return
+
         horizon_time = current_time - self._horizon_delay
 
         while not self._msg_queue.empty():
@@ -84,7 +89,7 @@ class StateEstimation:
                 self._msg_queue.put(stamped_msg)
                 break
 
-        self._publish_state(current_time)
+        self._publish_state(horizon_time)
 
         self._last_horizon_time = horizon_time
 
@@ -165,7 +170,7 @@ class StateEstimation:
         odom_msg.header = Header()
         odom_msg.header.stamp = time
         odom_msg.header.frame_id = 'odom'
-        odom_msg.child_frame_id = 'kingfisher/base_link'
+        odom_msg.child_frame_id = 'vehicle'
         odom_msg.pose = PoseWithCovariance()
         odom_msg.pose.pose = Pose(
             position=position,
@@ -182,7 +187,7 @@ class StateEstimation:
             translation=(position.x, position.y, position.z),
             rotation=(orientation_quat.x, orientation_quat.y, orientation_quat.z, orientation_quat.w),
             time=time,
-            child='kingfisher/base_link',
+            child='vehicle',
             parent='odom',
         )
         self._send_odom_transform()
@@ -201,7 +206,7 @@ class StateEstimation:
             rotation=(rot.x, rot.y, rot.z, rot.w),
             time=rospy.Time.now(),
             child='odom',
-            parent='map',
+            parent='world',
         )
 
     def start(self):

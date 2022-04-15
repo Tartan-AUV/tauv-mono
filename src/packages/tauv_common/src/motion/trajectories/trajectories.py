@@ -42,13 +42,13 @@ class Trajectory(object):
         pass
 
     @abc.abstractmethod
-    def duration(self):
+    def get_duration(self):
         # Return an estimate of the duration of the trajectory. (float)
         # This should only be called after initialize().
         pass
 
     @abc.abstractmethod
-    def time_remaining(self):
+    def get_time_remaining(self):
         # Return an estimate of the remaining time in the trajectory (float)
         # This should only be called after initialize().
         pass
@@ -64,6 +64,6 @@ class Trajectory(object):
         pass
 
     @abc.abstractmethod
-    def as_path(self, dt=0.1):
+    def as_path(self):
         # Return a Path object for visualization in rviz
         pass
