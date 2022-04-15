@@ -138,8 +138,10 @@ class Controller:
         err = (err + pi) % (2 * pi) - pi
 
         efforts = np.array([
-            -self._roll_pid(err[0]),
-            -self._pitch_pid(err[1]),
+            0.0,
+            0.0,
+            # -self._roll_pid(err[0]),
+            # -self._pitch_pid(err[1]),
             -self._z_pid(err[2]),
         ])
 
