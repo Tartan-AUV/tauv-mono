@@ -8,7 +8,7 @@ from tauv_msgs.srv import TuneControls, TuneControlsRequest, TuneControlsRespons
 from geometry_msgs.msg import Pose, Twist, Vector3
 from nav_msgs.msg import Odometry as Odom, Path
 from tauv_util.transforms import rpy_to_quat
-from motion.trajectories.simple_linear_trajectory import Waypoint, LinearTrajectory
+from motion.trajectories.linear_trajectory import Waypoint, LinearTrajectory
 
 
 class ArgumentParserError(Exception): pass
@@ -138,8 +138,6 @@ class TeleopMission:
                 tuple(args.l),
                 tuple(args.a),
             )
-
-            print(self._traj.get_duration().to_sec())
 
             self._traj.set_executing()
 

@@ -34,13 +34,13 @@ class TeleopPlanner:
 
         self._parse_config()
 
-        self._is_armed: bool = True
-        self._is_auto: bool = True
+        self._is_armed: bool = False
+        self._is_auto: bool = False
         self._is_hold: bool = False
 
         self._joy_cmd: Optional[np.array] = None
         self._joy_cmd_timestamp: Optional[rospy.Time] = None
-        self._joy_cmd_timeout: float = 0.5
+        self._joy_cmd_timeout: float = 0.1
 
         self._mpc_cmd: Optional[np.array] = None
         self._mpc_cmd_timestamp: Optional[rospy.Time] = None

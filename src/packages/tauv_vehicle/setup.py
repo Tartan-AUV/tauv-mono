@@ -24,7 +24,7 @@ setup_args = generate_distutils_setup(
     package_dir={'': 'src'},
     requires=['rospy'],
     scripts=['scripts/depth_sensor',
-             'scripts/actuators',
+             'scripts/thrusters',
              'scripts/battery',
              'scripts/sonar',
              'scripts/xsens_imu_sync',

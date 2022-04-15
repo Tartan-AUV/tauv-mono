@@ -7,6 +7,7 @@ from nav_msgs.msg import Odometry as OdometryMsg
 from typing import Optional
 from tauv_util.types import tl, tm
 from tauv_util.transforms import quat_to_rpy, rpy_to_quat, twist_body_to_world, twist_world_to_body
+from scipy.spatial.transform import Rotation
 
 from .mpc.mpc import MPC
 
@@ -131,10 +132,16 @@ class MPCPlanner:
         self._poses_pub.publish(poses)
 
     def _send_command(self, cmd: np.array):
+        if self._pose is None:
+            return
+
+        R = Rotation.from_quat(tl(self._pose.orientation)).inv()
+        body_accel = R.apply(cmd[0:3])
+
         msg: ControllerCmdMsg = ControllerCmdMsg()
-        msg.a_x = cmd[0]
-        msg.a_y = cmd[1]
-        msg.a_z = cmd[2]
+        msg.a_x = body_accel[0]
+        msg.a_y = body_accel[1]
+        msg.a_z = body_accel[2]
         msg.a_roll = 0
         msg.a_pitch = 0
         msg.a_yaw = cmd[3]
