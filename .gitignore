@@ -8,4 +8,5 @@
 *.a
 build/
 devel/
+logs/
 .catkin_tools/
