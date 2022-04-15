@@ -22,9 +22,13 @@ dynamics:
   center_of_buoyancy: [0.0, 0.0, 0.0]
 
   # Ixx, Iyy, Izz, Ixy, Ixz, Iyz
-  moments: [ 30.0, 30.0, 30.0, 5.0, 15.0, 15.0 ]
+#  moments: [ 30.0, 30.0, 30.0, 5.0, 15.0, 15.0 ]
+  moments: [15.0, 15.0, 15.0, 2.5, 7.5, 7.5]
 
   # x, y, z, roll, pitch, yaw
-  linear_damping: [ 50.0, 75.0, 80.0, 5.0, 15.0, 15.0 ]
-  quadratic_damping: [ 25.0, 30.0, 40.0, 5.0, 15.0, 15.0 ]
-  added_mass: [ 15.0, 40.0, 45.0, 5.0, 15.0, 15.0 ]
+#  linear_damping: [ 50.0, 75.0, 80.0, 5.0, 15.0, 15.0 ]
+  linear_damping: [25.0, 37.5, 40.0, 2.5, 7.5, 7.5]
+#  quadratic_damping: [ 25.0, 30.0, 40.0, 5.0, 15.0, 15.0 ]
+  quadratic_damping: [12.5, 15.0, 20.0, 2.5, 7.5, 7.5]
+#  added_mass: [ 15.0, 40.0, 45.0, 5.0, 15.0, 15.0 ]
+  added_mass: [7.5, 20.0, 22.5, 2.5, 7.5, 7.5]
