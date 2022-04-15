@@ -8,7 +8,7 @@ from tauv_msgs.srv import TuneControls, TuneControlsRequest, TuneControlsRespons
 from geometry_msgs.msg import Pose, Twist, Vector3
 from nav_msgs.msg import Odometry as Odom, Path
 from tauv_util.transforms import rpy_to_quat
-from motion.trajectories.new_linear_trajectory import NewLinearTrajectory
+from motion.trajectories.simple_linear_trajectory import Waypoint, LinearTrajectory
 
 
 class ArgumentParserError(Exception): pass
@@ -24,7 +24,7 @@ class TeleopMission:
     def __init__(self):
         self._parser = self._build_parser()
 
-        self._traj: Optional[NewLinearTrajectory] = None
+        self._traj: Optional[LinearTrajectory] = None
         self._pose: Optional[Pose] = None
         self._twist: Optional[Twist] = None
 
@@ -124,28 +124,23 @@ class TeleopMission:
     def _handle_goto(self, args):
         print('goto', args.x, args.y, args.z, args.roll, args.pitch, args.yaw, args.l, args.a)
 
+        start_waypoint = Waypoint(self._pose, 0.1, 0.1)
+
         end_pose = Pose()
         end_pose.position = Vector3(args.x, args.y, args.z)
         end_pose.orientation = rpy_to_quat(np.array([args.roll, args.pitch, args.yaw]))
 
-        end_twist = Twist()
+        end_waypoint = Waypoint(end_pose, 0.1, 0.1)
 
         try:
-            self._traj = NewLinearTrajectory(
-                self._pose,
-                # self._twist,
-                Twist(),
-                end_pose,
-                # end_twist,
-                Twist(),
-                args.l[0],
-                args.l[1],
-                args.l[2],
-                args.a[0],
-                args.a[1],
-                args.a[2],
+            self._traj = LinearTrajectory(
+                [start_waypoint, end_waypoint],
+                tuple(args.l),
+                tuple(args.a),
             )
-            print(self._traj.duration().to_sec())
+
+            print(self._traj.get_duration().to_sec())
+
             self._traj.set_executing()
 
             self._path_pub.publish(self._traj.as_path())
@@ -198,8 +193,8 @@ class TeleopMission:
         goto.add_argument('roll', type=float)
         goto.add_argument('pitch', type=float)
         goto.add_argument('yaw', type=float)
-        goto.add_argument('--l', type=float, nargs=3, default=[0.2, 0.05, 0.4])
-        goto.add_argument('--a', type=float, nargs=3, default=[0.1, 0.05, 0.05])
+        goto.add_argument('--l', type=float, nargs=3, default=[0.2, 0.2, 100.0])
+        goto.add_argument('--a', type=float, nargs=3, default=[0.1, 0.2, 100.0])
         goto.set_defaults(func=self._handle_goto)
 
         hold_pose = subparsers.add_parser('hold_pose')

@@ -79,3 +79,9 @@ def twist_world_to_body(pose: Pose, twist: Twist) -> Twist:
     )
 
     return body_twist
+
+def linear_distance(a: Pose, b: Pose) -> float:
+    return np.linalg.norm(tl(a.position) - tl(b.position))
+
+def yaw_distance(a: Pose, b: Pose) -> float:
+    return np.abs(quat_to_rpy(a.orientation)[2] - quat_to_rpy(b.orientation)[2])

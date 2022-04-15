@@ -2,24 +2,25 @@ import rospy
 import numpy as np
 from tauv_msgs.srv import GetTraj, GetTrajRequest, GetTrajResponse
 from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg
-from geometry_msgs.msg import Pose, Twist, PoseArray
+from geometry_msgs.msg import Pose, Twist, PoseArray, Vector3
 from nav_msgs.msg import Odometry as OdometryMsg
 from typing import Optional
 from tauv_util.types import tl, tm
-from tauv_util.transforms import quat_to_rpy, twist_body_to_world, twist_world_to_body
+from tauv_util.transforms import quat_to_rpy, rpy_to_quat, twist_body_to_world, twist_world_to_body
 
 from .mpc.mpc import MPC
 
 
 class MPCPlanner:
     def __init__(self):
-        self._dt: float = 0.1
+        self._dt: float = 0.05
 
         self._get_traj_service: rospy.ServiceProxy = rospy.ServiceProxy('get_traj', GetTraj)
 
         self._command_pub: rospy.Publisher = rospy.Publisher('cmd', ControllerCmdMsg, queue_size=10)
         self._odom_sub: rospy.Subscriber = rospy.Subscriber('odom', OdometryMsg, self._handle_odom)
 
+        self._traj_poses_pub: rospy.Publisher = rospy.Publisher('traj_poses', PoseArray, queue_size=10)
         self._poses_pub: rospy.Publisher = rospy.Publisher('poses', PoseArray, queue_size=10)
 
         self._pose: Optional[Pose] = None
@@ -29,22 +30,22 @@ class MPCPlanner:
         self._tstep: float = rospy.get_param('~tstep')
 
         self._A: np.array = np.vstack((
-            np.hstack((np.zeros((6, 6)), np.identity(6))),
-            np.zeros((6, 12))
+            np.hstack((np.zeros((4, 4)), np.identity(4))),
+            np.zeros((4, 8))
         ))
 
         self._B: np.array = np.vstack((
-            np.zeros((6, 6)),
-            np.identity(6)
+            np.zeros((4, 4)),
+            np.identity(4)
         ))
 
         self._Q: np.array = np.diag(np.array(rospy.get_param('~Q')))
         self._R: np.array = np.diag(np.array(rospy.get_param('~R')))
         self._S: np.array = rospy.get_param('~S_coeff') * self._Q
 
-        xcon: np.array = np.zeros((12, 1))
+        xcon: np.array = np.zeros((8, 1))
         xcon[:, 0] = rospy.get_param('~xcon')
-        ucon: np.array = np.zeros((6, 1))
+        ucon: np.array = np.zeros((4, 1))
         ucon[:, 0] = rospy.get_param('~ucon')
 
         self._u_constraints: np.array = np.hstack((-1 * ucon, ucon))
@@ -81,10 +82,10 @@ class MPCPlanner:
         current_twist.linear = self._world_twist.linear
         current_twist.angular = body_twist.angular
 
-        x = np.zeros((12, 1))
+        x = np.zeros((8, 1))
         x[:, 0] = self._to_x(self._pose, current_twist)
 
-        ref_traj = np.zeros((12, self._n + 1))
+        ref_traj = np.zeros((8, self._n + 1))
 
         for i in range(self._n + 1):
             gpose = poses[i]
@@ -113,21 +114,30 @@ class MPCPlanner:
         u_mpc, x_mpc = self._mpc.solve(x, ref_traj)
 
         if u_mpc is None:
-            self._send_command(np.zeros(6))
+            self._send_command(np.zeros(4))
             return
 
         u = u_mpc[:, 0]
 
         self._send_command(u)
 
+        poses = PoseArray()
+        poses.header.frame_id = 'odom'
+        poses.poses = []
+        for i in range(self._n + 1):
+            position = tm(x_mpc[0:3, i], Vector3)
+            orientation = rpy_to_quat(np.flip(x_mpc[3:6, i]))
+            poses.poses.append(Pose(position, orientation))
+        self._poses_pub.publish(poses)
+
     def _send_command(self, cmd: np.array):
         msg: ControllerCmdMsg = ControllerCmdMsg()
         msg.a_x = cmd[0]
         msg.a_y = cmd[1]
         msg.a_z = cmd[2]
-        msg.a_roll = cmd[3]
-        msg.a_pitch = cmd[4]
-        msg.a_yaw = cmd[5]
+        msg.a_roll = 0
+        msg.a_pitch = 0
+        msg.a_yaw = cmd[3]
         self._command_pub.publish(msg)
 
     def _get_traj(self) -> Optional[GetTrajResponse]:
@@ -149,10 +159,10 @@ class MPCPlanner:
         if not res.success:
             return None
 
-        poses = PoseArray()
-        poses.header.frame_id = 'odom'
-        poses.poses = res.poses
-        self._poses_pub.publish(poses)
+        traj_poses = PoseArray()
+        traj_poses.header.frame_id = 'odom'
+        traj_poses.poses = res.poses
+        self._traj_poses_pub.publish(traj_poses)
 
         return res
 
@@ -164,11 +174,13 @@ class MPCPlanner:
         if twist is None:
             twist = Twist()
 
+        rot = quat_to_rpy(pose.orientation)
+
         x = np.concatenate((
             tl(pose.position),
-            quat_to_rpy(pose.orientation),
+            np.array([rot[2]]),
             tl(twist.linear),
-            tl(twist.angular)
+            np.array([tl(twist.angular)[2]]),
         ))
 
         return x

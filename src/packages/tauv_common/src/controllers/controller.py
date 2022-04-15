@@ -102,14 +102,13 @@ class Controller:
                 np.array([efforts[0], efforts[1], 0.0])
             ))
         else:
-            vd = np.array([
-                self._cmd_acceleration[0],
-                self._cmd_acceleration[1],
-                self._cmd_acceleration[2],
-                efforts[0],
-                efforts[1],
-                self._cmd_acceleration[5]
-            ])
+            R = Rotation.from_quat(tl(self._pose.orientation)).inv()
+
+            body_acceleration = R.apply(self._cmd_acceleration[0:3])
+            vd = np.concatenate((
+                body_acceleration,
+                np.array([efforts[0], efforts[1], self._cmd_acceleration[5]])
+            ))
 
         return vd
 

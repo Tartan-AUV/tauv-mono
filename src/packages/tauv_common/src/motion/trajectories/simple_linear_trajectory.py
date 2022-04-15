@@ -34,27 +34,23 @@ class LinearTrajectory(Trajectory):
         self._status = TrajectoryStatus.PENDING
 
         self._p = ScurvePlanner()
+        self._plan()
 
         self._status = TrajectoryStatus.INITIALIZED
 
-    def get_points(self, req: GetTrajRequest) -> GetTrajResponse:
-        target_waypoint = self._waypoints[self._target]
+    def _plan(self):
+        start = self._waypoints[self._target - 1]
+        end = self._waypoints[self._target]
 
-        target_reached = linear_distance(req.curr_pose, target_waypoint.pose) < target_waypoint.linear_error and \
-                         yaw_distance(req.curr_pose, target_waypoint.pose) < target_waypoint.angular_error
+        print(start.pose.position)
+        print(end.pose.position)
 
-        if target_reached and self._target == len(self._waypoints) - 1:
-            self._status = TrajectoryStatus.STABILIZED
-        elif target_reached:
-            self._target += 1
-            return self.get_points(req)
-
-        start_position = tl(req.curr_pose.position)
-        end_position = tl(target_waypoint.pose.position)
-        start_linear_velocity = tl(req.curr_twist.linear)
+        start_position = tl(start.pose.position)
+        end_position = tl(end.pose.position)
+        start_linear_velocity = np.array([0.0, 0.0, 0.0])
         end_linear_velocity = np.array([0.0, 0.0, 0.0])
 
-        linear_traj = self._p.plan_trajectory(
+        self._linear_traj = self._p.plan_trajectory(
             start_position, end_position,
             start_linear_velocity, end_linear_velocity,
             v_max=self._linear_constraints[0],
@@ -62,35 +58,65 @@ class LinearTrajectory(Trajectory):
             j_max=self._linear_constraints[2],
         )
 
-        start_yaw = quat_to_rpy(req.curr_pose.orientation)[2]
-        end_yaw = quat_to_rpy(target_waypoint.pose.orientation)[2]
+        start_yaw = quat_to_rpy(start.pose.orientation)[2]
+        end_yaw = quat_to_rpy(end.pose.orientation)[2]
 
-        start_body_twist = twist_world_to_body(req.curr_pose, req.curr_twist)
-        start_yaw_velocity = tl(start_body_twist.angular)[2]
+        start_yaw_velocity = 0.0
         end_yaw_velocity = 0.0
 
-        yaw_traj = self._p.plan_trajectory(
+        # start_body_twist = twist_world_to_body(req.curr_pose, req.curr_twist)
+        # start_yaw_velocity = tl(start_body_twist.angular)[2]
+
+        self._yaw_traj = self._p.plan_trajectory(
             np.array([start_yaw]), np.array([end_yaw]),
             np.array([start_yaw_velocity]), np.array([end_yaw_velocity]),
-            v_max=self._linear_constraints[0],
+            v_max=self._angular_constraints[0],
             a_max=self._angular_constraints[1],
             j_max=self._angular_constraints[2],
         )
 
+        self._start_time = rospy.Time.now()
+
+
+    def get_points(self, req: GetTrajRequest) -> GetTrajResponse:
+        if self._status == TrajectoryStatus.STABILIZED:
+            res = GetTrajResponse()
+            res.success = False
+            return res
+
+        target_waypoint = self._waypoints[self._target]
+
+        target_reached = linear_distance(req.curr_pose, target_waypoint.pose) < target_waypoint.linear_error and \
+                         yaw_distance(req.curr_pose, target_waypoint.pose) < target_waypoint.angular_error and \
+                            np.linalg.norm(tl(req.curr_twist.linear)) < 0.05
+
+        if target_reached and self._target == len(self._waypoints) - 1:
+            self._status = TrajectoryStatus.STABILIZED
+            res = GetTrajResponse()
+            res.success = False
+            return res
+        elif target_reached:
+            self._target += 1
+            self._plan()
+
         poses = [None] * req.len
         twists = [None] * req.len
 
-        linear_duration = linear_traj.time[0] - 0.01
-        yaw_duration = yaw_traj.time[0] - 0.01
+        linear_duration = self._linear_traj.time[0]
+        yaw_duration = self._yaw_traj.time[0]
+
+        elapsed = (req.curr_time - self._start_time).to_sec()
 
         for i in range(req.len):
-            t = req.dt * i
+            t = elapsed + req.dt * i
+            t_linear = min(t, linear_duration)
+            t_yaw = min(t, yaw_duration)
 
-            position = linear_traj(t)[:,2] if t < linear_duration else linear_traj(linear_duration)[:,2]
-            linear_velocity = linear_traj(t)[:,1] if t < yaw_duration else linear_traj(linear_duration)[:,1]
+            position = self._linear_traj(t_linear)[:,2]
+            linear_velocity = self._linear_traj(t_linear)[:,1]
 
-            yaw = yaw_traj(t)[0,2] if t < yaw_duration else yaw_traj(yaw_duration)[0,2]
-            yaw_velocity = yaw_traj(t)[0,1] if t < yaw_duration else yaw_traj(yaw_duration)[0,1]
+            yaw = self._yaw_traj(t_yaw)[0,2]
+            yaw_velocity = self._yaw_traj(t_yaw)[0,1]
 
             pose = Pose()
             pose.position = tm(position, Vector3)

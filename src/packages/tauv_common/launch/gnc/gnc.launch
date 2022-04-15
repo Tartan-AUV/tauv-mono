@@ -49,6 +49,7 @@
             <remap from="odom" to="/gnc/odom" />
             <remap from="cmd" to="/mpc/cmd" />
             <remap from="get_traj" to="/get_traj" />
+            <remap from="traj_poses" to="/mpc/traj_poses" />
             <remap from="poses" to="/mpc/poses" />
         </node>
 
