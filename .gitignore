@@ -6,6 +6,7 @@
 *.dpp
 *.d
 *.a
+*.DS_Store
 
 # ROS
 build/
