@@ -4,9 +4,9 @@
 # This file is generated whenever tauv_common is built using catkin build.
 # See alarms/CMakeLists.txt for configuring the autogen build step
 # 
-# Generated on Thu Apr 14 19:31:39 2022
+# Generated on Fri Apr 15 18:33:12 2022
 
-from alarm_util import AlarmMeta, AlarmType, FailureLevel
+from .alarm_util import AlarmMeta, AlarmType, FailureLevel
 
 class Alarm(metaclass=AlarmMeta):
     UNKNOWN_ALARMS = AlarmType(

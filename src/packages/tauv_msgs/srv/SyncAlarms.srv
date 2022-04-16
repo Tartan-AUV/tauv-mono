@@ -1,0 +1,9 @@
+# Note: Angular velocities outside of yaw (z axis) are currently unused.
+
+tauv_msgs/AlarmWithMessage[] diff
+
+---
+
+time stamp
+tauv_msgs/AlarmReport report
+bool success  # false indicates some sort of failure

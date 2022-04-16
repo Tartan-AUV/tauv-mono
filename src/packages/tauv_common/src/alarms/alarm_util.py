@@ -57,7 +57,7 @@ class AlarmType:
 
 # Metaclass that allows for the enum-like behavior of the Alarm class.
 class AlarmMeta(type):
-    def __call__(cls, id: int):
+    def __call__(cls, id: int) -> AlarmType:
         # TODO: can we do this without creating a new idhash each time?
         return cls.__idhash__[id]
 
@@ -66,6 +66,6 @@ class AlarmMeta(type):
         cls.__idhash__ = {a.id : a for a in cls}
         return cls
 
-    def __iter__(cls):
+    def __iter__(cls) -> typing.Iterator[AlarmType]:
         yield from [cls.__dict__[k] for k in cls.__dict__.keys() if k[:2] != '__']
 

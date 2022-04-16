@@ -6,6 +6,7 @@ find_package(catkin REQUIRED geometry_msgs sensor_msgs std_msgs vision_msgs jsk_
 add_message_files(
   FILES
   AlarmReport.msg
+  AlarmWithMessage.msg
   BucketDetection.msg
   BucketList.msg
   FluidDepth.msg
@@ -24,6 +25,7 @@ add_message_files(
 
 add_service_files(
   FILES
+  SyncAlarms.srv
   TuneDynamics.srv
   TuneControls.srv
   GetTraj.srv
