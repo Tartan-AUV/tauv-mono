@@ -15,6 +15,7 @@ ros:
 ##################
 .PHONY: deps
 deps:
+	setup/toolchain-setup.sh
 	setup/apt-setup-base.sh
 	setup/apt-setup-sim.sh
 	setup/pip-setup.sh
