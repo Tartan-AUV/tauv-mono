@@ -14,6 +14,8 @@ To install:
 
     cd ~ # or wherever else you want software to live
     git clone --recurse-submodules https://github.com/Tartan-AUV/TAUV-ROS-Packages
+    cd TAUV-ROS-Packages
+    make deps
 
 ### Add this to your bashrc (or zshrc), or run it every boot:
 
