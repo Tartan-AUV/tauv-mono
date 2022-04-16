@@ -1,4 +1,3 @@
-from turtle import stamp
 import rospy
 import typing
 
@@ -27,7 +26,23 @@ class AlarmServer:
         with self._lock:
             report.stamp = rospy.Time.now()
             report.active_alarms = [a.id for a in self._active]
-        
+        self.pub.publish(report)
 
-    def handle_request(self, srv: SyncAlarms):
-        
+    def handle_request(self, srv: SyncAlarms._request_class):
+        res = SyncAlarms._response_class()
+        with self._lock:
+            self._stamp = rospy.Time.now()
+            for a in srv.diff:
+                if a.set:
+                    self._active.add(a.id)
+                else:
+                    self._active.discard(a.id)
+            res.active_alarms = [a.id for a in self._active]
+            res.stamp = self._stamp
+            res.success = True
+        return res
+
+def main():
+    rospy.init_node('alarm_server')
+    AlarmServer()
+    rospy.spin()

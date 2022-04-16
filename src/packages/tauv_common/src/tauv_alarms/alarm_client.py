@@ -15,6 +15,7 @@ class AlarmClient:
         self._active: typing.Set[AlarmType] = set()
         self._active.add(Alarm.UNKNOWN_ALARMS) # start with unknown alarms until we hear from server.
         
+        self._timeout = rospy.Duration(1)   # 1 second timeout
         self._lock = Lock()
 
         # connect to server if we're not in monitor mode.
@@ -28,25 +29,25 @@ class AlarmClient:
                 rospy.sleep(0.05)
 
     def _update_report(self, msg: AlarmReport):
-        if msg.header.stamp > self._lastupdated:
+        if msg.stamp > self._lastupdated:
             with self._lock:
-                self._lastupdated = msg.header.stamp
+                self._lastupdated = msg.stamp
                 self._active = set([Alarm(i) for i in msg.active_alarms])
     
-    def set(self, a: AlarmType, msg="", set=True):
+    def set(self, a: AlarmType, msg="", value=True):
         if self._monitor:
             raise RuntimeError("Alarm Clients in Monitor mode cannot set/clear exceptions!")
 
         diff = None
         with self._lock:
-            if set and a not in self._active:
+            if value and a not in self._active:
                 self._active.add(a)
                 self._lastupdated = rospy.Time.now()
                 diff = AlarmWithMessage()
                 diff.id = a.id
                 diff.message = msg
                 diff.set = True
-            elif not set and a in self._active:
+            elif not value and a in self._active:
                 self._active.remove(a)
                 self._lastupdated = rospy.Time.now()
                 diff = AlarmWithMessage()
@@ -59,7 +60,7 @@ class AlarmClient:
             req.diff = [diff]
             
             try:
-                res: SyncAlarms._response_class = self.sync(diff)
+                res: SyncAlarms._response_class = self.sync(req)
             except rospy.ServiceException as e:
                 raise RuntimeWarning(f"Failed to set exception! {e}")
             
@@ -68,10 +69,15 @@ class AlarmClient:
             
             with self._lock:
                 self._lastupdated = res.stamp
-                self._active = set([Alarm(i) for i in res.report])
+                self._active = set([Alarm(i) for i in res.active_alarms])
     
     def clear(self, a: AlarmType, msg=""):
         self.set(a, msg, False)
 
     def get_active_alarms(self, include_whitelisted=False):
+        if rospy.Time.now() - self._lastupdated > self._timeout:
+            return self._active.union(set([Alarm.UNKNOWN_ALARMS]))
         return self._active
+
+    def check(self, a: AlarmType):
+        return a in self._active or (a == Alarm.UNKNOWN_ALARMS and rospy.Time.now() - self._lastupdated > self._timeout)

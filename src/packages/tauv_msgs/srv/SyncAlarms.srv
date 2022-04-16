@@ -5,5 +5,5 @@ tauv_msgs/AlarmWithMessage[] diff
 ---
 
 time stamp
-tauv_msgs/AlarmReport report
+int32[] active_alarms
 bool success  # false indicates some sort of failure
