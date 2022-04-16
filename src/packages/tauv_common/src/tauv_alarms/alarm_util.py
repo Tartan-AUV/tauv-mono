@@ -36,29 +36,9 @@ class AlarmType:
         return f"Alarm {self.id}: {self.name}"
 
 
-# class AlarmMask():
-#     def __init__(self):
-#         self._alarms: typing.Set[AlarmType] = set()
-
-#     def set(self, alarm: AlarmType, set: bool=True):
-#         if set:
-#             self.alarms.add(alarm)
-#         else:
-#             self.alarms.remove(alarm)
-
-#     def clear(self, alarm: AlarmType):
-#         self.set(alarm, False)
-    
-#     def __eq__(self, __o: object) -> bool:
-#         if isinstance(__o, self.__class__):
-#             return self._alarms == __o._alarms
-#         return False
-
-
 # Metaclass that allows for the enum-like behavior of the Alarm class.
 class AlarmMeta(type):
     def __call__(cls, id: int) -> AlarmType:
-        # TODO: can we do this without creating a new idhash each time?
         return cls.__idhash__[id]
 
     def __new__(mcls, name, bases, namespace, **kw):
