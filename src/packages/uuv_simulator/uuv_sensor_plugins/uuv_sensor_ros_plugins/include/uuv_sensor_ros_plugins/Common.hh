@@ -30,7 +30,7 @@
 #define UUV_SENSOR_PLUGINS_COMMON_H_
 
 #include <string>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <gazebo/gazebo.hh>
 
 namespace gazebo {

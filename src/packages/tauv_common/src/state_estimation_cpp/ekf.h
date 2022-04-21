@@ -1,5 +1,5 @@
 #include <array>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
 #pragma once
 
