@@ -20,7 +20,8 @@ class Thrusters:
 
         self._load_config()
 
-        self._maestro = Maestro(ttyStr=self._maestro_port)
+        while not self._try_init():
+            rospy.sleep(0.5)
         print('initialized maestro')
 
         self._is_armed: bool = False
@@ -32,6 +33,13 @@ class Thrusters:
         self._battery_voltage: float = self._default_battery_voltage
         self._wrench: Wrench = Wrench()
         self._wrench_update_time: rospy.Time = rospy.Time.now()
+
+    def _try_init(self):
+        try:
+            self._maestro = Maestro(ttyStr=self._maestro_port)
+            return True
+        except:
+            return False
 
     def start(self):
         print('[thrusters] start')
