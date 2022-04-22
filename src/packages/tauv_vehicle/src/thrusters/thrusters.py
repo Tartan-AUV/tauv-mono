@@ -38,7 +38,8 @@ class Thrusters:
         try:
             self._maestro = Maestro(ttyStr=self._maestro_port)
             return True
-        except:
+        except Exception as e:
+            print(e)
             return False
 
     def start(self):
