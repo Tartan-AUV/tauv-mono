@@ -1,6 +1,4 @@
 
-# IGNORE THIS README IF INSTALLING ON 20.04!!!! IT'S OUT OF DATE!
-
 # TAUV-ROS-Packages
 [![Build Status](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages.svg?token=FrwKiSXG1hQbYsyh6LNc&branch=master)](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages)
 
@@ -12,55 +10,45 @@ This is the monorepo for all TAUV ROS packages. Each package contains its own RO
 http://wiki.ros.org/melodic/Installation/Ubuntu
 (Use the full install, since we need gazebo and stuff)
 
-### Next, make sure to install catkin_tools:
-	sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu `lsb_release -sc` main" > /etc/apt/sources.list.d/ros-latest.list'
-(If you are not on ubuntu, change 'lsb_release -sc' to 'bionic' without quotes)
-	
-	wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
-	sudo apt-get update
-	sudo apt-get install python-catkin-tools
-	
-
-### These ROS packages should live in your `catkin_ws` folder. To install:
+To install:
 
     cd ~ # or wherever else you want software to live
-    mkdir -p catkin_ws/src
-    cd catkin_ws/src
     git clone --recurse-submodules https://github.com/Tartan-AUV/TAUV-ROS-Packages
-    rosdep update
-    sudo apt-get update
-    rosdep install --from-paths TAUV-ROS-Packages --ignore-src -r -y
-
-Your folder structure should look something like this:
-
-    - catkin_ws/
-      - src/
-        - TAUV_ROS_Packages/
-          - tauv_common
-          - tauv_mission
-          - tauv_vehicle
-          - uuv_simulator
-To update dependencies (eg, after pulling in a large change) run this command again:
-
-    rosdep update
-    sudo apt-get update
-    rosdep install --from-paths path/to/TAUV-ROS-Packages --ignore-src -r -y
-If you are using linux mint (or another unsupported OS), you will need to add the following line to your bashrc and source it again, otherwise commands like rosdep won't work. If your distro doesn't use 18.04 as the upstream, you will need to change this to the right upstream os version.
-
-    export ROS_OS_OVERRIDE=ubuntu:18.04:bionic
+    cd TAUV-ROS-Packages
+    make deps
 
 ### Add this to your bashrc (or zshrc), or run it every boot:
 
-    source /opt/ros/melodic/setup.bash
+    source /opt/ros/noetic/setup.bash
 Or (if you use zsh):
 
-    source /opt/ros/melodic/setup.zsh
+    source /opt/ros/noetic/setup.zsh
 
 ### To build your ROS project:
 
-    cd path/to/catkin_ws
-    catkin build
+    cd path/to/TAUV_ROS_Packages
+    make
     source devel/setup.bash #(or setup.zsh)
+    
+### Other ways to build:
+
+    catkin build # (This is what "make" calls)
+    tauvmake # (If you sourced aliases.sh)
+    
+### The setup script:
+You need to source devel/setup.zsh every time you build and every time you open a terminal. This is annoying. Consider adding:
+
+    source ~/TAUV_ROS_Packages/aliases.sh # (or whatever the path is for you)
+    tauvsh
+to your ~/.zshrc. This will automatically source it. The aliases.sh file exposes three nice commands you can run from anywhere (not just the base of the repo:
+
+ * `tauvsh` sources devel/setup.zsh, allowing you to use ros shell commands.
+ * `tauvclean` cleans the build and devel folders. Consider running if you have weird build errors and need to build from scratch
+ * `tauvmake` builds the repo.
+
+## Conventions
+We use NED for most things. (If you see ENU somewhere, flag it since we should update all code to be consistent with the NED frame system)
+![NED Frame](https://www.researchgate.net/publication/324590547/figure/fig3/AS:616757832200198@1524057934794/Body-frame-and-NED-frame-representation-of-linear-velocities-u-v-w-forces-X-Y-Z.png)
 
 ## Dependencies
 

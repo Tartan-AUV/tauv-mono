@@ -1,8 +1,26 @@
 *cmake-build-debug*
 *.idea*
 *.pyc
-*.swp
 *.o
+*.swp
 *.dpp
 *.d
 *.a
+*.DS_Store
+
+# ROS
+build/
+devel/
+logs/
+.catkin_tools/
+
+### VisualStudioCode ###
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+**/.history

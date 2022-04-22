@@ -33,6 +33,7 @@ setup_args = generate_distutils_setup(
               'depth_estimation',
               'teleop',
               'dynamics',
+              'tauv_alarms',
               'tauv_util',
               'motion'],
     # packages=find_packages(),
@@ -44,7 +45,8 @@ setup_args = generate_distutils_setup(
              'scripts/controller',
              'scripts/mpc_planner',
              'scripts/depth_estimation',
-             'scripts/state_estimation'],
+             'scripts/state_estimation',
+             'scripts/alarm_server'],
 
 )
 setup(**setup_args)

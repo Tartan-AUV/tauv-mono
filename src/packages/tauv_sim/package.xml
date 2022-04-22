@@ -36,5 +36,6 @@
     <depend>robot_localization</depend>
     <depend>stereo_image_proc</depend>
     <depend>stereo_msgs</depend>
+    <depend>tauv_msgs</depend>
 
 </package>
