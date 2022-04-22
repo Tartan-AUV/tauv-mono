@@ -89,7 +89,7 @@ class StateEstimation:
                 self._msg_queue.put(stamped_msg)
                 break
 
-        self._publish_state(horizon_time)
+        self._publish_state(current_time)
 
         self._last_horizon_time = horizon_time
 

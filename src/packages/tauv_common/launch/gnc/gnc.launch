@@ -35,14 +35,16 @@
             <remap from="hold_pose" to="/controller/hold_pose" />
         </node>
 
-        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />
-            <remap from="pose" to="/gnc/pose" />
-            <remap from="odom" to="/gnc/odom" />
-            <remap from="imu" to="/xsens_imu/data" />
-            <remap from="dvl" to="/teledyne_dvl/data" />
-            <remap from="depth" to="/depth_sensor/depth" />
-        </node>
+        <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/>
+
+<!--        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">-->
+<!--            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />-->
+<!--            <remap from="pose" to="/gnc/pose" />-->
+<!--            <remap from="odom" to="/gnc/odom" />-->
+<!--            <remap from="imu" to="/xsens_imu/data" />-->
+<!--            <remap from="dvl" to="/teledyne_dvl/data" />-->
+<!--            <remap from="depth" to="/depth_sensor/depth" />-->
+<!--        </node>-->
 
         <!-- Load USB joystick controller configs -->
 <!--        <rosparam file="$(find tauv_common)/src/planners/teleop_planner/joy.yaml" command="load"/>-->
