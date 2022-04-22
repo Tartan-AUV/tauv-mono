@@ -1,4 +1,4 @@
-maestro_port: '/dev/ttyTHS0'
+maestro_port: /dev/maestro
 thruster_channels: [5, 4, 6, 0, 3, 7, 1, 2]
 
 default_battery_voltage: 16.0

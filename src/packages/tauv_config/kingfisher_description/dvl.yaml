@@ -1,2 +1,2 @@
-port: /dev/ttyUSB0
+port: /dev/teledyne_dvl
 baudrate: 115200

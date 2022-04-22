@@ -1,6 +1,6 @@
 frequency: 100
 
-port: /dev/ttyUSB2
+port: /dev/ping360_sonar
 baudrate: 2000000
 
 gain: 0
