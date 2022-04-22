@@ -37,7 +37,6 @@
   <depend>vision_msgs</depend>
   <depend>pynput-pip</depend>
   <depend>std_srvs</depend>
-  <depend>robot_localization</depend>
   <depend>stereo_image_proc</depend>
   <depend>stereo_msgs</depend>
 

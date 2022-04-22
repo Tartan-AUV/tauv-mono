@@ -1,6 +1,6 @@
 #include "ekf.h"
 #include <ros/ros.h>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 
 Ekf::Ekf()
 {

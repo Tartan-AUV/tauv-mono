@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
     geometry_msgs
     message_filters
-    robot_localization
     tf
     std_srvs
     tauv_msgs
@@ -50,7 +49,6 @@ catkin_package(CATKIN_DEPENDS
     tf
     tauv_config
     message_filters
-    robot_localization
   )
 
 include_directories(

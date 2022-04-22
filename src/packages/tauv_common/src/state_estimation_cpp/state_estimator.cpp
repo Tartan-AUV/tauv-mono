@@ -2,7 +2,7 @@
 #include "state_estimator.h"
 #include <array>
 #include <numeric>
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_datatypes.h>
 
