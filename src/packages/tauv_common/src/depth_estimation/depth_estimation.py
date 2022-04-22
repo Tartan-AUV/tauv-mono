@@ -26,6 +26,7 @@ class DepthEstimator:
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
         self.new_bbox = False
         self.new_image = False
+        self.object_dict = dict()
 
 
     def camera_info_callback(self, msg):
@@ -41,12 +42,12 @@ class DepthEstimator:
 
     def spin(self, event):
       if(self.new_bbox and self.new_image):
+        self.new_bbox, self.new_image = False, False
+
         fx = self.depth_camera_info.K[0]
         cx = self.depth_camera_info.K[2]
         fy = self.depth_camera_info.K[4]
         cy = self.depth_camera_info.K[5]
-
-        self.new_bbox, self.new_image = False, False
         bboxes = self.bounding_boxes.bounding_boxes
         
         for bbox in bboxes:
@@ -57,7 +58,8 @@ class DepthEstimator:
           if (cur_depth != np.nan):
             cur_x = ((center_x - cx) * cur_depth) / (fx)
             cur_y = ((center_y - cy) * cur_depth) / (fy)
-            print(cur_x, cur_y, cur_depth)
+            print(bbox.Class, cur_x, cur_y, cur_depth)
+            self.object_dict[bbox.Class] = (cur_depth, cur_x, cur_y)
           else: 
             print(cur_depth)
 
