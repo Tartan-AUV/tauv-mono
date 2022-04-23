@@ -1,0 +1,4 @@
+tauv_msgs/BucketDetection[] objdets
+string detector_tag
+---
+bool success

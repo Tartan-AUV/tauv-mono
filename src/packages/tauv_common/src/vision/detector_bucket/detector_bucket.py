@@ -23,7 +23,7 @@ from nav_msgs.msg import Odometry
 from tf.transformations import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
-from tauv_common.srv import RegisterObjectDetections, RegisterMeasurement
+from tauv_msgs.srv import RegisterObjectDetections, RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 
