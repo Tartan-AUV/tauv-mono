@@ -8,8 +8,8 @@
 
 #!/usr/bin/env python
 import rospy
-import tf
-import tf_conversions
+#import tf
+#import tf_conversions
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
@@ -52,7 +52,7 @@ class Detector_Bucket():
 
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
         self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
-        self.detection_server = rospy.Service("detector_bucket/register_object_detection", RegisterObjectDetections, \
+        self.detection_server = rospy.Subscriber("register_object_detection", RegisterObjectDetections, \
                                               self.update_daemon_service)
         self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
         self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
@@ -84,7 +84,7 @@ class Detector_Bucket():
         m.scale.z = .05
         self.arrow_dict[id] = m
 
-    def transform_meas_to_world(self, measurement, child_frame, world_frame, time, translate=True):
+    """def transform_meas_to_world(self, measurement, child_frame, world_frame, time, translate=True):
         self.tf.waitForTransform(world_frame, child_frame, time, rospy.Duration(4.0))
         try:
             (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
@@ -94,18 +94,19 @@ class Detector_Bucket():
                 detection_pos += np.asarray(trans)
             return detection_pos
         except:
-            return np.array([np.nan])
+            return np.array([np.nan])"""
 
     def update_daemon_service(self, req):
         data_frame = req.objdets
 
         # transform detections to world frame
-        for datum in data_frame:
+        """for datum in data_frame:
             pos_in_world = self.transform_meas_to_world(point_to_array(datum.position), \
                                                         datum.header.frame_id, "odom", datum.header.stamp)
             datum.position = array_to_point(pos_in_world)
             datum.header.frame_id = "odom"
-
+        """
+        
         # acquire and update data buffer on daemon
         daemon_name = req.detector_tag
         if daemon_name in self.daemon_dict:
