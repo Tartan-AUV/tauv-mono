@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="tauv_common" type="log_detections" name="log_detections" output ="screen" />
+</launch>

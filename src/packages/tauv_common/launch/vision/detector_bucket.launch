@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" output ="screen" />
+</launch>

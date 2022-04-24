@@ -75,9 +75,6 @@ class LogDetections():
         self.detector.publish(objects)
 
 
-def object_listen():
+def main():
     s = LogDetections()
     rospy.spin()
-
-if __name__=='__main__':
-    object_listen()
