@@ -4,7 +4,7 @@
 # This file is generated whenever tauv_common is built using catkin build.
 # See alarms/CMakeLists.txt for configuring the autogen build step
 # 
-# Generated on Fri Apr 15 18:33:12 2022
+# Generated on Sat Apr 23 21:38:23 2022
 
 from .alarm_util import AlarmMeta, AlarmType, FailureLevel
 
@@ -34,6 +34,15 @@ class Alarm(metaclass=AlarmMeta):
         default_set=True,
         description="DVL Driver is not initialized yet",
         author="Tom Scherlis",
+    )
+    
+    STATE_ESTIMATION_NOT_INITIALIZED = AlarmType(
+        name="STATE_ESTIMATION_NOT_INITIALIZED",
+        id=5,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="State estimation is not initialized yet",
+        author="Theo Chemel",
     )
     
 

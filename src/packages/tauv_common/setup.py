@@ -31,6 +31,8 @@ setup_args = generate_distutils_setup(
               'planners.mpc_planner',
               'state_estimation',
               'depth_estimation',
+              'vision.detector_bucket.detector_bucket',
+              'vision.detectors.log_detections',
               'teleop',
               'dynamics',
               'tauv_alarms',
@@ -46,7 +48,9 @@ setup_args = generate_distutils_setup(
              'scripts/mpc_planner',
              'scripts/depth_estimation',
              'scripts/state_estimation',
-             'scripts/alarm_server'],
+             'scripts/alarm_server',
+             'scripts/detector_bucket',
+             'scripts/log_detections'],
 
 )
 setup(**setup_args)

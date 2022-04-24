@@ -1,6 +1,3 @@
 <launch>
-    <group ns="depth_stuff">
-        <node pkg="tauv_common" type="alarm_server" name="alarm_server" output ="screen">
-        </node>
-    </group>
+    <node pkg="tauv_common" type="alarm_server" name="alarm_server" output="screen" />
 </launch>

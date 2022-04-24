@@ -1,5 +1,4 @@
 import rospy
-import typing
 
 from .alarm_util import AlarmType, FailureLevel
 from .alarms import Alarm
@@ -34,9 +33,9 @@ class AlarmServer:
             self._stamp = rospy.Time.now()
             for a in srv.diff:
                 if a.set:
-                    self._active.add(a.id)
+                    self._active.add(Alarm(a.id))
                 else:
-                    self._active.discard(a.id)
+                    self._active.discard(Alarm(a.id))
             res.active_alarms = [a.id for a in self._active]
             res.stamp = self._stamp
             res.success = True

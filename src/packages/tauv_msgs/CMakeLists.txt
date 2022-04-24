@@ -28,6 +28,8 @@ add_service_files(
   SyncAlarms.srv
   TuneDynamics.srv
   TuneControls.srv
+  RegisterMeasurement.srv
+  RegisterObjectDetections.srv
   GetTraj.srv
   HoldPose.srv
   SetPose.srv
