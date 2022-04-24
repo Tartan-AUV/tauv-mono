@@ -63,6 +63,7 @@ class Detector_Bucket():
             rospy.loginfo("[Detector Bucket]: Initializing %d Daemons", self.num_daemons)
             self.daemon_names = rospy.get_param("detectors/names")
             self.daemon_dict = {name: Detector_Daemon(name, ii) for ii, name in enumerate(self.daemon_names)}
+            print(self.daemon_dict)
             return True
         else:
             return False
