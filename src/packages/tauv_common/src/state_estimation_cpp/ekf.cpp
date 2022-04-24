@@ -8,7 +8,32 @@ Ekf::Ekf()
   this->state = Eigen::Matrix<double, 15, 1>::Zero();
 }
 
-void Ekf::get_state(double time, Eigen::Vector3d &position, Eigen::Vector3d &velocity, Eigen::Vector3d &acceleration, Eigen::Vector3d &orientation, Eigen::Vector3d &angular_velocity)
+void Ekf::get_state(Eigen::Matrix<double, 15, 1> &state)
+{
+  state = this->state;
+}
+
+void Ekf::set_state(Eigen::Matrix<double, 15, 1> &state)
+{
+  this->state = state;
+}
+
+void Ekf::get_cov(Eigen::Matrix<double, 15, 15> &cov)
+{
+  cov = this->cov;
+}
+
+void Ekf::set_cov(Eigen::Matrix<double, 15, 15> &cov)
+{
+  this->cov = cov;
+}
+
+void Ekf::set_time(double time)
+{
+  this->time = time;
+}
+
+void Ekf::get_state_fields(double time, Eigen::Vector3d &position, Eigen::Vector3d &velocity, Eigen::Vector3d &acceleration, Eigen::Vector3d &orientation, Eigen::Vector3d &angular_velocity)
 {
   using S = StateIndex;
 

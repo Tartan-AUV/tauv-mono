@@ -12,7 +12,15 @@ class Ekf {
     void set_dvl_offset(Eigen::Vector3d &dvl_offset) { this->dvl_offset = dvl_offset; };
     void set_process_covariance(Eigen::Matrix<double, 15, 1> &process_covariance) { this->process_covariance = Eigen::DiagonalMatrix<double, 15, 15>(process_covariance); };
 
-    void get_state(double time, Eigen::Vector3d &position, Eigen::Vector3d &velocity, Eigen::Vector3d &acceleration, Eigen::Vector3d &orientation, Eigen::Vector3d &angular_velocity);
+    void get_state(Eigen::Matrix<double, 15, 1> &state);
+    void set_state(Eigen::Matrix<double, 15, 1> &state);
+
+    void get_cov(Eigen::Matrix<double, 15, 15> &cov);
+    void set_cov(Eigen::Matrix<double, 15, 15> &cov);
+
+    void set_time(double time);
+
+    void get_state_fields(double time, Eigen::Vector3d &position, Eigen::Vector3d &velocity, Eigen::Vector3d &acceleration, Eigen::Vector3d &orientation, Eigen::Vector3d &angular_velocity);
 
     void handle_imu_measurement(double time, Eigen::Vector3d &orientation, Eigen::Vector3d &rate_of_turn, Eigen::Vector3d &linear_acceleration, Eigen::Matrix<double, 9, 1> &covariance);
     void handle_dvl_measurement(double time, Eigen::Vector3d &velocity, Eigen::Vector3d &covariance);

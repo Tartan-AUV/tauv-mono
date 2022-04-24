@@ -3,6 +3,7 @@
 #include <ros/ros.h>
 #include <boost/heap/priority_queue.hpp>
 #include <boost/variant.hpp>
+#include <eigen3/Eigen/Dense>
 #include <tauv_msgs/XsensImuData.h>
 #include <tauv_msgs/TeledyneDvlData.h>
 #include <tauv_msgs/FluidDepth.h>
@@ -45,11 +46,20 @@ class StateEstimator {
 
     using SensorMsgQueue = boost::heap::priority_queue<SensorMsg>;
 
+
+    bool initialized; 
+
     SensorMsgQueue msg_queue;
+    SensorMsgQueue delayed_queue;
+
+    Eigen::Matrix<double, 15, 1> checkpoint_state;
+    Eigen::Matrix<double, 15, 15> checkpoint_cov;
+    ros::Time last_checkpoint_time;
+    ros::Time checkpoint_time;
 
     ros::Duration dt;
-    ros::Duration horizon_delay;
-    ros::Time last_horizon_time;
+    ros::Duration checkpoint_timeout;
+    ros::Time last_time;
     Eigen::Vector3d dvl_offset;
     Eigen::Matrix<double, 15, 1> process_covariance;
     Eigen::Matrix<double, 9, 1> imu_covariance;
