@@ -1,3 +1,7 @@
 <launch>
+    <arg name="model_name" default="kingfisher"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+    <rosparam command="load" file="$(arg config_pkg)/detector_bucket.yaml" />
     <node pkg="tauv_common" type="detector_bucket" name="detector_bucket" output ="screen" />
 </launch>

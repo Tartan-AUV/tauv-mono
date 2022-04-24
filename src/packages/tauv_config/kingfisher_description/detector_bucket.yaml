@@ -1,0 +1,4 @@
+detectors:
+  total_number: 1
+  names:
+    0: camera

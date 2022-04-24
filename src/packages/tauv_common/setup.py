@@ -31,7 +31,7 @@ setup_args = generate_distutils_setup(
               'planners.mpc_planner',
               'state_estimation',
               'depth_estimation',
-              'vision.detectors.detector_bucket',
+              'vision.detector_bucket.detector_bucket',
               'vision.detectors.log_detections',
               'teleop',
               'dynamics',
