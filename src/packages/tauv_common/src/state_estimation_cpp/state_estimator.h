@@ -8,6 +8,8 @@
 #include <tauv_msgs/FluidDepth.h>
 #include <tauv_msgs/Pose.h>
 #include <tf/transform_broadcaster.h>
+#include <tauv_alarms/alarm_client.h>
+#include <tauv_alarms/alarms.h>
 #include "ekf.h"
 
 #pragma once
@@ -27,6 +29,8 @@ class StateEstimator {
   private:
     ros::NodeHandle& n;
     ros::Timer timer;
+
+    tauv_alarms::AlarmClient alarm_client;
 
     ros::Subscriber imu_sub;
     ros::Subscriber dvl_sub;

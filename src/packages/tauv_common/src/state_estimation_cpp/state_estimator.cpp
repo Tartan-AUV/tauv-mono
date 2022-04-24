@@ -5,8 +5,10 @@
 #include <eigen3/Eigen/Dense>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_datatypes.h>
+#include <tauv_alarms/alarm_client.h>
+#include <tauv_alarms/alarms.h>
 
-StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n)
+StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
 {
   this->load_config();
 
@@ -22,6 +24,8 @@ StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n)
   this->odom_pub = n.advertise<nav_msgs::Odometry>("odom", 100);
 
   this->timer = n.createTimer(this->dt, &StateEstimator::update, this);
+
+  this->alarm_client.clear(tauv_alarms::AlarmType::STATE_ESTIMATION_NOT_INITIALIZED, "State estimation initialized.");
 }
 
 void StateEstimator::load_config()

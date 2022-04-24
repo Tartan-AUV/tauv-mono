@@ -32,3 +32,10 @@ Alarms:
     default_set: True
     description: DVL Driver is not initialized yet
     author: Tom Scherlis
+
+- STATE_ESTIMATION_NOT_INITIALIZED:
+    id: 5
+    failure_level: PREDIVE_FAILURE
+    default_set: True
+    description: State estimation is not initialized yet
+    author: Theo Chemel
