@@ -76,16 +76,19 @@ class Controller:
         ))
         v = np.concatenate((
             tl(self._body_twist.linear),
-            tl(self._body_twist.angular)
+            tl(self._body_twist.angular),
+            # np.flip(tl(self._body_twist.angular))
         ))
         vd = self._get_acceleration()
 
         tau = self._dyn.compute_tau(eta, v, vd)
-        bounded_tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
+        while not np.allclose(np.minimum(np.abs(tau), self._max_wrench), np.abs(tau)):
+            tau = 0.75 * tau
+        # bounded_tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
         wrench: Wrench = Wrench()
-        wrench.force = Vector3(bounded_tau[0], bounded_tau[1], bounded_tau[2])
-        wrench.torque = Vector3(bounded_tau[3], bounded_tau[4], bounded_tau[5])
+        wrench.force = Vector3(tau[0], tau[1], tau[2])
+        wrench.torque = Vector3(tau[3], tau[4], tau[5])
         self._wrench_pub.publish(wrench)
 
     def _get_acceleration(self) -> np.array:

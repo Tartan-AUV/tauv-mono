@@ -7,7 +7,9 @@ from tauv_msgs.msg import ControlsTunings, DynamicsTunings
 from tauv_msgs.srv import TuneControls, TuneControlsRequest, TuneControlsResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, GetTraj, GetTrajRequest, GetTrajResponse, HoldPose, HoldPoseRequest, HoldPoseResponse
 from geometry_msgs.msg import Pose, Twist, Vector3
 from nav_msgs.msg import Odometry as Odom, Path
-from tauv_util.transforms import rpy_to_quat
+from tauv_util.types import tl, tm
+from tauv_util.transforms import rpy_to_quat, quat_to_rpy
+from scipy.spatial.transform import Rotation
 from motion.trajectories.linear_trajectory import Waypoint, LinearTrajectory
 
 
@@ -157,6 +159,32 @@ class TeleopMission:
         req.pose = pose
         self._hold_pose_srv.call(req)
 
+    def _handle_go(self, args):
+        print('go', args.x, args.y, args.z, args.yaw)
+
+        start_waypoint = Waypoint(self._pose, 0.1, 0.1)
+
+        R = Rotation.from_quat(tl(self._pose.orientation))
+        end_position = tl(self._pose.position) + R.apply(np.array([args.x, args.y, args.z]))
+
+        end_pose = Pose()
+        end_pose.position = tm(end_position, Vector3)
+        end_pose.orientation = rpy_to_quat(np.array([0.0, 0.0, quat_to_rpy(self._pose.orientation)[2] + args.yaw]))
+
+        end_waypoint = Waypoint(end_pose, 0.1, 0.1)
+
+        try:
+            self._traj = LinearTrajectory(
+                [start_waypoint, end_waypoint],
+                tuple(args.l),
+                tuple(args.a),
+            )
+
+            self._traj.set_executing()
+
+            self._path_pub.publish(self._traj.as_path())
+        except Exception as e:
+            print(e)
 
     def _handle_odom(self, msg: Odom):
         self._pose = msg.pose.pose
@@ -194,6 +222,15 @@ class TeleopMission:
         goto.add_argument('--l', type=float, nargs=3, default=[0.2, 0.2, 100.0])
         goto.add_argument('--a', type=float, nargs=3, default=[0.1, 0.2, 100.0])
         goto.set_defaults(func=self._handle_goto)
+
+        go = subparsers.add_parser('go')
+        go.add_argument('x', type=float)
+        go.add_argument('y', type=float)
+        go.add_argument('z', type=float)
+        go.add_argument('yaw', type=float)
+        go.add_argument('--l', type=float, nargs=3, default=[0.2, 0.2, 100.0])
+        go.add_argument('--a', type=float, nargs=3, default=[0.1, 0.2, 100.0])
+        go.set_defaults(func=self._handle_go)
 
         hold_pose = subparsers.add_parser('hold_pose')
         hold_pose.add_argument('roll', type=float)

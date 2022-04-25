@@ -16,4 +16,4 @@ axis_scales:
   z: 0.5
   roll: -0.5
   pitch: 0.5
-  yaw: -1.0
+  yaw: -0.2

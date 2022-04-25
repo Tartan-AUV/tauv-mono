@@ -2,18 +2,20 @@
     <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
     <arg name="debug" default="false" />
 
-    <node
-        pkg="tauv_common"
-        type="state_estimation_cpp"
-        name="state_estimation_cpp"
-        output="screen"
-        launch-prefix="$(eval 'gdb -ex \'break main\' -ex run --args' if arg('debug') == 'gdb' else 'valgrind --leak-check=full --track-origins=yes' if arg('debug') == 'valgrind' else '')"
-    >
-        <rosparam command="load" file="$(arg config_pkg)/state_estimation_cpp.yaml" />
-        <remap from="/gnc/state_estimation_cpp/pose" to="/gnc/pose" />
-        <remap from="/gnc/state_estimation_cpp/odom" to="/gnc/odom" />
-        <remap from="/gnc/state_estimation_cpp/imu" to="/xsens_imu/data" />
-        <remap from="/gnc/state_estimation_cpp/dvl" to="/teledyne_dvl/data" />
-        <remap from="/gnc/state_estimation_cpp/depth" to="/depth_sensor/depth" />
-    </node>
+    <group ns="gnc">
+        <node
+            pkg="tauv_common"
+            type="state_estimation_cpp"
+            name="state_estimation_cpp"
+            output="screen"
+            launch-prefix="$(eval 'gdb -ex \'break main\' -ex run --args' if arg('debug') == 'gdb' else 'valgrind --leak-check=full --track-origins=yes' if arg('debug') == 'valgrind' else '')"
+        >
+            <rosparam command="load" file="$(arg config_pkg)/state_estimation_cpp.yaml" />
+            <remap from="/gnc/state_estimation_cpp/pose" to="/gnc/pose" />
+            <remap from="/gnc/state_estimation_cpp/odom" to="/gnc/odom" />
+            <remap from="/gnc/state_estimation_cpp/imu" to="/xsens_imu/data" />
+            <remap from="/gnc/state_estimation_cpp/dvl" to="/teledyne_dvl/data" />
+            <remap from="/gnc/state_estimation_cpp/depth" to="/depth_sensor/depth" />
+        </node>
+    </group>
 </launch>

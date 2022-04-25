@@ -7,7 +7,7 @@ from typing import Dict
 from .maestro import Maestro
 from tauv_util.types import tl
 from geometry_msgs.msg import Vector3
-from tauv_msgs.msg import Battery as BatteryMsg
+from tauv_msgs.msg import Battery as BatteryMsg, Servos as ServosMsg
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from geometry_msgs.msg import Wrench
 
@@ -27,6 +27,7 @@ class Thrusters:
         self._is_armed: bool = False
         self._arm_service: rospy.Service = rospy.Service('arm', SetBool, self._handle_arm)
 
+        self._servos_sub: rospy.Subscriber = rospy.Subscriber('servos', ServosMsg, self._handle_servos)
         self._battery_sub: rospy.Subscriber = rospy.Subscriber('battery', BatteryMsg, self._handle_battery)
         self._wrench_sub: rospy.Subscriber = rospy.Subscriber('wrench', Wrench, self._handle_wrench)
 
@@ -71,6 +72,10 @@ class Thrusters:
     def _handle_wrench(self, msg: Wrench):
         self._wrench = msg
         self._wrench_update_time = rospy.Time.now()
+
+    def _handle_servos(self, msg: ServosMsg):
+        for i in range(4):
+            self._maestro.setTarget(msg.target[i] * 4, self._servo_channels[i])
 
     def _set_thrust(self, thruster: int, thrust: float):
         pwm_speed = self._get_pwm_speed(thruster, thrust)
@@ -122,6 +127,7 @@ class Thrusters:
     def _load_config(self):
         self._maestro_port: str = rospy.get_param('~maestro_port')
         self._thruster_channels: [int] = rospy.get_param('~thruster_channels')
+        self._servo_channels: [int] = rospy.get_param('~servo_channels')
         self._default_battery_voltage: float = rospy.get_param('~default_battery_voltage')
         self._minimum_pwm_speed: float = rospy.get_param('~minimum_pwm_speed')
         self._maximum_pwm_speed: float = rospy.get_param('~maximum_pwm_speed')

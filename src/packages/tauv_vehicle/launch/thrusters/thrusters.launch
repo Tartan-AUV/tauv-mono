@@ -7,5 +7,6 @@
         <remap from="battery" to="/battery" />
         <remap from="wrench" to="/thrusters/wrench" />
         <remap from="arm" to="/thrusters/arm" />
+        <remap from="servos" to="/servos/targets" />
     </node>
 </launch>

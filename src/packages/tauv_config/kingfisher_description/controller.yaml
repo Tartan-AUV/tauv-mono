@@ -1,15 +1,15 @@
 frequency: 50
 
-roll_tunings: [0.1, 0.0, 0.1]
-pitch_tunings: [0.1, 0.0, 0.1]
+roll_tunings: [0.12, 0.0, 0.1]
+pitch_tunings: [0.2, 0.0, 0.1]
 z_tunings: [0.1, 0.0, 0.1]
 
 # x, y, z, roll, pitch, yaw in N
-max_wrench: [ 30.0, 30.0, 30.0, 5.0, 5.0, 10.0 ]
+max_wrench: [ 30.0, 30.0, 30.0, 15.0, 15.0, 15.0 ]
 
 dynamics:
   # kg
-  mass: 22.0
+  mass: 21.5
 
   # m^3
   volume: 0.0214
@@ -22,9 +22,9 @@ dynamics:
   center_of_buoyancy: [ 0.02, 0.0, 0.0 ]
 
   # Ixx, Iyy, Izz, Ixy, Ixz, Iyz
-  moments: [20.0, 20.0, 20.0, 20.0, 20.0, 20.0]
+  moments: [30.0, 30.0, 30.0, 5.0, 20.0, 20.0]
 
   # x, y, z, roll, pitch, yaw
-  linear_damping: [10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
+  linear_damping: [20.0, 20.0, 20.0, 10.0, 10.0, 20.0]
   quadratic_damping: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-  added_mass: [10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
+  added_mass: [20.0, 20.0, 20.0, 10.0, 10.0, 20.0]

@@ -143,13 +143,12 @@ void StateEstimator::update(const ros::TimerEvent& e)
     } else if (msg.is_depth()) {
         this->apply_depth(msg.as_depth());
     }
-
+  }
     if (checkpoint_timeout) {
       Eigen::Vector3d v { 0.0, 0.0, 0.0 };
       Eigen::Vector3d cov { 1.0e-9, 1.0e-9, 1.0e-9 };
-      this->ekf.handle_dvl_measurement(msg.time.toSec(), v, cov);
+      this->ekf.handle_dvl_measurement(current_time.toSec(), v, cov);
     }
-  }
 
   this->last_time = current_time;
 
@@ -209,7 +208,7 @@ void StateEstimator::apply_imu(const tauv_msgs::XsensImuData::ConstPtr &msg)
   double time = msg->header.stamp.toSec();
   Eigen::Vector3d orientation { msg->orientation.x, msg->orientation.y, msg->orientation.z };
 
-  Eigen::Vector3d free_acceleration { msg->free_acceleration.y, -msg->free_acceleration.x, -msg->free_acceleration.z };
+  Eigen::Vector3d free_acceleration { msg->free_acceleration.x, msg->free_acceleration.y, msg->free_acceleration.z };
   Eigen::Vector3d rate_of_turn { msg->rate_of_turn.x, msg->rate_of_turn.y, msg->rate_of_turn.z };
 
   Eigen::Quaterniond orientation_quat = rpy_to_quat(orientation);
