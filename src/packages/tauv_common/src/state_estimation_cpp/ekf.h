@@ -31,7 +31,9 @@ class Ekf {
     Eigen::Matrix<double, 15, 15> process_covariance;
 
     bool initialized;
+
     double time;
+
     Eigen::Matrix<double, 15, 1> state;
     Eigen::Matrix<double, 15, 15> cov;
 

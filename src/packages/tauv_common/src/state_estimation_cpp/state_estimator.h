@@ -46,8 +46,7 @@ class StateEstimator {
 
     using SensorMsgQueue = boost::heap::priority_queue<SensorMsg>;
 
-
-    bool initialized; 
+    bool initialized;
 
     SensorMsgQueue msg_queue;
     SensorMsgQueue delayed_queue;
@@ -56,6 +55,7 @@ class StateEstimator {
     Eigen::Matrix<double, 15, 15> checkpoint_cov;
     ros::Time last_checkpoint_time;
     ros::Time checkpoint_time;
+    bool timeout;
 
     ros::Duration dt;
     ros::Duration checkpoint_timeout;

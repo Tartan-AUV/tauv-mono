@@ -40,7 +40,7 @@ void StateEstimator::load_config()
   this->dt = ros::Duration(1.0 / double(frequency));
 
   double checkpoint_timeout;
-  this->n.getParam("checkpoint_duration", checkpoint_timeout);
+  this->n.getParam("checkpoint_timeout", checkpoint_timeout);
   this->checkpoint_timeout = ros::Duration(checkpoint_timeout);
 
   std::vector<double> dvl_offset;
@@ -67,11 +67,12 @@ void StateEstimator::load_config()
 
 Eigen::Quaterniond rpy_to_quat(Eigen::Vector3d &rpy)
 {
-    Eigen::AngleAxisd roll_angle(rpy.x(), Eigen::Vector3d::UnitX());
-    Eigen::AngleAxisd pitch_angle(rpy.y(), Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd yaw_angle(rpy.z(), Eigen::Vector3d::UnitZ());
+    Eigen::AngleAxisd roll_angle(-rpy.x(), Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd pitch_angle(-rpy.y(), Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd yaw_angle(-rpy.z(), Eigen::Vector3d::UnitZ());
 
     Eigen::Quaterniond q = yaw_angle * pitch_angle * roll_angle;
+
     return q;
 }
 
@@ -130,8 +131,6 @@ void StateEstimator::update(const ros::TimerEvent& e)
     }
   }
 
-  bool checkpoint_timeout = current_time - this->last_checkpoint_time > this->checkpoint_timeout;
-
   while (!this->msg_queue.empty()) {
     StateEstimator::SensorMsg msg = this->msg_queue.top();
     this->msg_queue.pop();
@@ -144,11 +143,6 @@ void StateEstimator::update(const ros::TimerEvent& e)
         this->apply_depth(msg.as_depth());
     }
   }
-    if (checkpoint_timeout) {
-      Eigen::Vector3d v { 0.0, 0.0, 0.0 };
-      Eigen::Vector3d cov { 1.0e-9, 1.0e-9, 1.0e-9 };
-      this->ekf.handle_dvl_measurement(current_time.toSec(), v, cov);
-    }
 
   this->last_time = current_time;
 
@@ -186,7 +180,7 @@ void StateEstimator::update(const ros::TimerEvent& e)
   odom_msg.pose.pose.orientation.x = orientation_quat.x();
   odom_msg.pose.pose.orientation.y = orientation_quat.y();
   odom_msg.pose.pose.orientation.z = orientation_quat.z();
-  odom_msg.pose.pose.orientation.w = orientation_quat.w();
+  odom_msg.pose.pose.orientation.w = -orientation_quat.w();
   odom_msg.twist.twist.linear.x = velocity.x();
   odom_msg.twist.twist.linear.y = velocity.y();
   odom_msg.twist.twist.linear.z = velocity.z();
@@ -208,13 +202,15 @@ void StateEstimator::apply_imu(const tauv_msgs::XsensImuData::ConstPtr &msg)
   double time = msg->header.stamp.toSec();
   Eigen::Vector3d orientation { msg->orientation.x, msg->orientation.y, msg->orientation.z };
 
-  Eigen::Vector3d free_acceleration { msg->free_acceleration.x, msg->free_acceleration.y, msg->free_acceleration.z };
+  Eigen::Vector3d linear_acceleration { msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z };
   Eigen::Vector3d rate_of_turn { msg->rate_of_turn.x, msg->rate_of_turn.y, msg->rate_of_turn.z };
 
   Eigen::Quaterniond orientation_quat = rpy_to_quat(orientation);
-  Eigen::Vector3d linear_acceleration = orientation_quat.matrix().inverse() * free_acceleration;
+  Eigen::Vector3d gravity { 0.0, 0.0, 9.81 };
+  Eigen::Vector3d free_acceleration = linear_acceleration - orientation_quat.inverse().toRotationMatrix() * gravity;
+  // Eigen::Vector3d linear_acceleration = orientation_quat.matrix().inverse() * free_acceleration;
 
-  this->ekf.handle_imu_measurement(time, orientation, rate_of_turn, linear_acceleration, this->imu_covariance);
+  this->ekf.handle_imu_measurement(time, orientation, rate_of_turn, free_acceleration, this->imu_covariance);
 }
 
 void StateEstimator::apply_dvl(const tauv_msgs::TeledyneDvlData::ConstPtr &msg)
@@ -263,6 +259,7 @@ void StateEstimator::handle_dvl(const tauv_msgs::TeledyneDvlData::ConstPtr& msg)
     this->checkpoint_time = msg->header.stamp;
     this->initialized = true;
   }
+
   if (!msg->is_hr_velocity_valid) return;
   StateEstimator::SensorMsg sensor_msg(msg);
   this->delayed_queue.push(sensor_msg);
