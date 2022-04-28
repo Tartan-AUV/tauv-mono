@@ -154,7 +154,6 @@ void Ekf::update(Eigen::VectorXi &fields, Eigen::VectorXd &inn, Eigen::VectorXd 
   Eigen::MatrixXd R = Eigen::DiagonalMatrix<double, Eigen::Dynamic, Eigen::Dynamic>(cov);
 
   Eigen::MatrixXd S = (H * this->cov) * H.transpose() + R;
-  // Eigen::MatrixXd K = (this->cov * H.transpose()) * S.completeOrthogonalDecomposition().pseudoInverse();
   Eigen::MatrixXd K = (this->cov * H.transpose()) * S.inverse();
 
   Eigen::Matrix<double, 15, 15> I = Eigen::Matrix<double, 15, 15>::Identity();
