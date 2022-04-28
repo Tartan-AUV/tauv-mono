@@ -15,6 +15,8 @@ add_message_files(
   ControlsTunings.msg
   SonarPulse.msg
   Servos.msg
+  RegisterMeasurement.msg
+  RegisterObjectDetections.msg
   PoseGraphMeasurement.msg
   Thrust.msg
   Battery.msg
@@ -29,8 +31,6 @@ add_service_files(
   SyncAlarms.srv
   TuneDynamics.srv
   TuneControls.srv
-  RegisterMeasurement.srv
-  RegisterObjectDetections.srv
   GetTraj.srv
   HoldPose.srv
   SetPose.srv

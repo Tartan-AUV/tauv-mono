@@ -24,8 +24,7 @@ from geometry_msgs.msg import *
 from nav_msgs.msg import Odometry
 from tf.transformations import *
 from geometry_msgs.msg import Quaternion
-from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
-from tauv_common.srv import RegisterObjectDetections, RegisterMeasurement
+from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement,RegisterObjectDetections, RegisterMeasurement
 from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 from scipy.linalg import inv, block_diag
@@ -116,8 +115,8 @@ class Detector_Daemon():
         self.mutex = Lock()
 
         #each daemon will call the service to report a measurement
-        rospy.wait_for_service("/gnc/pose_graph/register_measurement")
-        self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
+        #rospy.wait_for_service("/gnc/pose_graph/register_measurement")
+        #self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
         self.mahalanobis_threshold = 1
         if rospy.has_param("detectors/" + self.detector_name + "/mahalanobis_threshold"):
             rospy.loginfo("[Detector Daemon]: %s. Obtained mahalanobis threshold", self.detector_name)

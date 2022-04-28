@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # detector_bucket
 #
 # This node is the for aggregating the detections from the vision pipeline.
@@ -6,30 +8,30 @@
 # Author: Advaith Sethuraman 2020
 
 
-#!/usr/bin/env python
 import rospy
 #import tf
 #import tf_conversions
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
-from detector_bucket_utils import *
+from vision.detector_bucket.detector_bucket_utils import *
 from sensor_msgs.msg import Imu
 from std_msgs.msg import Header
 from stereo_msgs.msg import DisparityImage
 from jsk_recognition_msgs.msg import BoundingBoxArray
 from geometry_msgs.msg import *
 from nav_msgs.msg import Odometry
-from tf.transformations import *
+#from tf.transformations import *
 from geometry_msgs.msg import Quaternion
-from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement
-from tauv_msgs.srv import RegisterObjectDetections, RegisterMeasurement
-from visualization_msgs.msg import Marker, MarkerArray
+from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement,RegisterObjectDetections, RegisterMeasurement
+#from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 
 
 class Detector_Bucket():
     def __init__(self):
+        #rospy.init_node('detector_bucket', anonymous = True)
+
         self.num_daemons = 1
         self.daemon_names = None
         self.daemon_dict = {}
@@ -37,11 +39,11 @@ class Detector_Bucket():
             rospy.logerr("[Detector Bucket]: Unable to initialize detector daemons, invalid information!")
         rospy.loginfo("[Detector Bucket]: Summoning Daemons: " + str(self.daemon_names))
 
-        self.tf = tf.TransformListener()
+        #self.tf = tf.TransformListener()
         self.cv_bridge = CvBridge()
         self.refresh_rate = 0
-        self.bucket_dict = dict()
-        self.bbox_3d_list = []
+        #self.bucket_dict = dict()
+        #self.bbox_3d_list = []
         self.monotonic_det_id = -1
         self.nn_threshold = .9
         self.debouncing_threshold = 10
@@ -50,18 +52,25 @@ class Detector_Bucket():
         self.debounced_detection_dict = {}
         self.total_number_detection_dict = {}
 
+        self.bucket_list = BucketList()
+
+        #rospy.init_node('detector_bucket', anonymous = True)
+
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
-        self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
-        self.detection_server = rospy.Subscriber("register_object_detection", RegisterObjectDetections, \
+        #self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
+        self.detection_server = rospy.Subscriber("register_object_detection", RegisterObjectDetections,
                                               self.update_daemon_service)
-        self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
-        self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
+        #self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
+        #self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
+
+        #rospy.loginfo("initialized")
 
     def init_daemons(self):
         if rospy.has_param("detectors/total_number"):
             self.num_daemons = int(rospy.get_param("detectors/total_number"))
             rospy.loginfo("[Detector Bucket]: Initializing %d Daemons", self.num_daemons)
             self.daemon_names = rospy.get_param("detectors/names")
+            #rospy.loginfo(f"{self.daemon_names}")
             self.daemon_dict = {name: Detector_Daemon(name, ii) for ii, name in enumerate(self.daemon_names)}
             print(self.daemon_dict)
             return True
@@ -100,6 +109,8 @@ class Detector_Bucket():
     def update_daemon_service(self, req):
         data_frame = req.objdets
 
+        #print("called\n")
+
         # transform detections to world frame
         """for datum in data_frame:
             pos_in_world = self.transform_meas_to_world(point_to_array(datum.position), \
@@ -110,27 +121,38 @@ class Detector_Bucket():
         
         # acquire and update data buffer on daemon
         daemon_name = req.detector_tag
+        #rospy.loginfo(f"dict {self.daemon_dict}\n")
         if daemon_name in self.daemon_dict:
+            #rospy.loginfo(f"data = {data_frame}")
+
             daemon = self.daemon_dict[daemon_name]
             daemon.mutex.acquire()
             daemon.update_detection_buffer(data_frame)
             daemon.mutex.release()
+
             return True
         return False
 
     #iterate through all daemons and call spin function to update tracking
-    def spin(self, event):
+    def spin(self):
         for daemon_name in self.daemon_dict:
             daemon = self.daemon_dict[daemon_name]
             daemon.mutex.acquire()
             daemon.spin()
             daemon.mutex.release()
 
-def main():
-    rospy.init_node('detector_bucket', anonymous=True)
-    detector_bucket = Detector_Bucket()
-    rospy.spin()
+    def publish(self):
+        self.bucket_list.bucket_list = list()
+        for daemon_name in self.daemon_dict:
+            daemon = self.daemon_dict[daemon_name]
 
+            for det in daemon.tracker_list:
+                #rospy.loginfo(f"{det}")
 
+                new_bucket = BucketDetection()
+                new_bucket.position = Point(det.estimated_point[1][0],det.estimated_point[1][0],det.estimated_point[2][0])
+                new_bucket.tag = det.tag
 
+                self.bucket_list.bucket_list.append(new_bucket)
 
+        self.bucket_list_pub.publish(self.bucket_list)
