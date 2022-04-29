@@ -150,7 +150,7 @@ class Detector_Bucket():
                 #rospy.loginfo(f"{det}")
 
                 new_bucket = BucketDetection()
-                new_bucket.position = Point(det.estimated_point[1][0],det.estimated_point[1][0],det.estimated_point[2][0])
+                new_bucket.position = Point(det.estimated_point[0][0],det.estimated_point[1][0],det.estimated_point[2][0])
                 new_bucket.tag = det.tag
 
                 self.bucket_list.bucket_list.append(new_bucket)
