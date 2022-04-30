@@ -23,9 +23,8 @@ from jsk_recognition_msgs.msg import BoundingBoxArray
 from geometry_msgs.msg import *
 from nav_msgs.msg import Odometry
 from tf.transformations import *
-from geometry_msgs.msg import Quaternion
+from geometry_msgs.msg import Quaternion, Point
 from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement,RegisterObjectDetections, RegisterMeasurement
-from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
@@ -44,7 +43,7 @@ def point_to_array(point):
     return np.asarray([point.x, point.y, point.z])
 
 # constant position Kalman Filter for stationary object tracking
-class Detection_Tracker_Kalman():
+class Detection_Tracker_Kalman(BucketDetection):
     def __init__(self, tag):
         self.id = -1
         self.state_space_dim = 3
@@ -53,6 +52,8 @@ class Detection_Tracker_Kalman():
         self.tag = tag
         self.estimated_point = np.zeros((self.state_space_dim, 1))
         self.last_updated_time = 0.0
+        self.position = Point(0,0,0)
+        self.header = Header()
 
         # Process matrix
         self.F = np.asmatrix([[1, 0, 0], # x' = x
@@ -97,31 +98,32 @@ class Detection_Tracker_Kalman():
         x += K * y
         self.P = self.P - K * self.H * self.P
         self.estimated_point = x
+        self.position = Point(x[0][0],x[1][0],x[2][0])
 
     def kalman_predict(self):
         x = self.estimated_point
         x = self.F * x
         self.P = self.F * self.P * self.F.T + self.Q
         self.estimated_point = x
+        self.position = array_to_point(x)
 
     def update_dt(self, new_measurement_time):
         self.dt = new_measurement_time - self.last_updated_time
         self.last_updated_time = new_measurement_time
 
-class Detector_Daemon():
+class Detector_Daemon(BucketList):
     def __init__(self, detector_name, daemon_id):
         self.detector_name = detector_name
         self.daemon_id = daemon_id
         self.mutex = Lock()
+        self.header = Header()
 
         #each daemon will call the service to report a measurement
-        #rospy.wait_for_service("/gnc/pose_graph/register_measurement")
-        #self.meas_reg_service = rospy.ServiceProxy("/gnc/pose_graph/register_measurement", RegisterMeasurement)
         self.mahalanobis_threshold = 1
         if rospy.has_param("detectors/" + self.detector_name + "/mahalanobis_threshold"):
             rospy.loginfo("[Detector Daemon]: %s. Obtained mahalanobis threshold", self.detector_name)
             self.mahalanobis_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/mahalanobis_threshold"))
-        self.marker_pub = rospy.Publisher(self.detector_name + "_daemon/filtered_det_marker", MarkerArray, queue_size=10)
+
 
         #list of detections for this daemon
         self.detection_buffer = []
@@ -131,12 +133,10 @@ class Detector_Daemon():
         if rospy.has_param("detectors/" + self.detector_name + "/debouncing_threshold"):
             rospy.loginfo("[Detector Daemon]: %s. Obtained debouncing threshold", self.detector_name)
             self.debouncing_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/debouncing_threshold"))
-        self.tracker_list = []
+        self.bucket_list = []
         self.trackers_to_publish = {}
 
         self.tracker_id = 0
-        self.marker_dict = {}
-        self.labels_dict = {}
 
     def update_detection_buffer(self, data_frame):
         #rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
@@ -211,7 +211,7 @@ class Detector_Daemon():
                     time_stamp = data_frame[0].header.stamp
 
                     # match trackers and detections
-                    temp_tracker_holder = [tracker.localized_point for tracker in self.tracker_list]
+                    temp_tracker_holder = [tracker.localized_point for tracker in self.bucket_list]
                     matches, unmatch_dets, unmatch_tracks = \
                         self.map_det_to_tracker(temp_tracker_holder, measurements)
 
@@ -223,7 +223,7 @@ class Detector_Daemon():
                             measurement = np.asmatrix(measurement).T
 
                             #kalman update and predict
-                            tracker = self.tracker_list[tracker_ind]
+                            tracker = self.bucket_list[tracker_ind]
                             tracker.kalman_predict_and_update(measurement)
                             new_x = tracker.estimated_point.T[0].tolist()
 
@@ -250,12 +250,12 @@ class Detector_Daemon():
 
                             #add to list
                             self.tracker_id += 1
-                            self.tracker_list.append(new_tracker)
+                            self.bucket_list.append(new_tracker)
                             temp_tracker_holder.append(new_x[0])
 
                     if len(unmatch_tracks) > 0:
                         for tracker_ind in unmatch_tracks:
-                            tracker = self.tracker_list[tracker_ind]
+                            tracker = self.bucket_list[tracker_ind]
 
                             #override the update
                             tracker.kalman_predict_and_update(np.asmatrix([0, 0, 0]).T, True)
@@ -266,70 +266,10 @@ class Detector_Daemon():
                             temp_tracker_holder[tracker_ind] = new_x[0]
 
                     trackers_to_be_published = []
-                    for tracker in self.tracker_list:
+                    for tracker in self.bucket_list:
                         if tracker.detections >= self.debouncing_threshold:
                             trackers_to_be_published.append(tracker)
 
                     self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
-                    for tracker in self.trackers_to_publish:
-                        self.create_marker(self.trackers_to_publish[tracker], tracker)
-                    self.marker_pub.publish(self.marker_dict.values())
-                    self.marker_pub.publish(self.labels_dict.values())
+
             self.new_data = False
-
-    def create_marker(self, tracker, id):
-        tag = tracker[1]
-        pos = tracker[2]
-        marker_dims = [1.0, 1.0, 1.0]
-        marker_color = [1.0, 0.0, 0.0, 1.0]
-        marker_type = 2
-        if rospy.has_param(tag + "/marker_dims"):
-            marker_dims = np.asarray(rospy.get_param(tag + "/marker_dims")).astype(float)
-        if rospy.has_param(tag + "/marker_color"):
-            marker_color = np.asarray(rospy.get_param(tag + "/marker_color")).astype(float)
-        if rospy.has_param(tag + "/marker_type"):
-            marker_type = np.asarray(rospy.get_param(tag + "/marker_type")).astype(int)
-
-        # create detection marker
-        m = Marker()
-        m.header.frame_id = "odom"
-        m.id = id
-        m.ns = tag
-        m.type = marker_type
-        m.pose.position.x = pos[0]
-        m.pose.position.y = pos[1]
-        m.pose.position.z = pos[2]
-
-        m.color.b = marker_color[0]
-        m.color.g = marker_color[1]
-        m.color.r = marker_color[2]
-        m.color.a = marker_color[3]
-
-        m.scale.x = marker_dims[0]
-        m.scale.y = marker_dims[1]
-        m.scale.z = marker_dims[2]
-
-        # create text marker
-        l = Marker()
-        l.header.frame_id = "odom"
-        l.id = id
-        l.ns = tag + "_label"
-        l.type = 9
-        l.text = tag
-        l.pose.position.x = pos[0]
-        l.pose.position.y = pos[1]
-        l.pose.position.z = pos[2] + 0.25
-
-        l.color.b = 1.0
-        l.color.g = 1.0
-        l.color.r = 1.0
-        l.color.a = 1.0
-
-        l.scale.z = 0.30
-        self.marker_dict[id] = m
-        self.labels_dict[id] = l
-
-
-
-
-

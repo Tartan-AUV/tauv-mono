@@ -2,18 +2,15 @@
 
 import rospy
 from tauv_msgs.msg import BucketList, BucketDetection
-from visualization_msgs.msg import Marker, MarkerArray
 import time
 
 class Test:
     def __init__(self):
         rospy.init_node('tester', anonymous = True)
         self.bucket = rospy.Subscriber("bucket_list", BucketList, self.printer)
-        #self.markers = rospy.Subscriber("camera_daemon/filtered_det_marker", MarkerArray, self.printer)
 
     def printer(self,data):
-        for detection in data.bucket_list:
-            rospy.loginfo(f"{detection}")
+        rospy.loginfo(f"{data.bucket_list}")
 
 def listen():
     s = Test()

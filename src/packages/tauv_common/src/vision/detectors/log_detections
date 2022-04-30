@@ -22,11 +22,7 @@ class LogDetections():
 
         self.new_image = False
 
-        rospy.loginfo("working\n")
-
         rospy.init_node('image_detector', anonymous = True)
-
-        #self.depth_estimator = DepthEstimator()
 
         self.depth_camera_info = CameraInfo()
         self.bounding_boxes = BoundingBoxes()
@@ -38,13 +34,11 @@ class LogDetections():
         self.bounding_boxes = rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
         self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
                                               queue_size=10)
-        self.timer = rospy.Timer(rospy.Duration(5), self.spin_daemon)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
         
-    def spin_daemon(self, data):
-        self.detector_bucket.spin()
-        self.detector_bucket.publish()
+    def find(self, tag):
+        return self.detector_bucket.find_by_tag(tag)
 
     def update_position(self,data):
         self.cur_position = (data.position.x, data.position.y, data.position.z)
@@ -61,6 +55,9 @@ class LogDetections():
         roll = self.cur_orientation [0]
         pitch = self.cur_orientation [1]
         yaw = self.cur_orientation [2]
+
+        #rospy.loginfo(f"global orientation {self.cur_orientation}\n")
+        #rospy.loginfo(f"global position {self.cur_position}\n")
 
         (xr,yr,zr) = (relative[0]*math.cos(roll) - relative[1]*math.sin(roll), relative[0]*math.sin(roll)+relative[1]*math.cos(roll), relative[2])
         (xrp, yrp, zrp) = (xr, yr*math.cos(pitch)+zr*math.sin(pitch),zr*math.cos(pitch)-yr*math.sin(pitch))
@@ -85,8 +82,6 @@ class LogDetections():
 
             if(numpy.isnan(objdet.position.x)):
                 continue
-
-            #rospy.loginfo(f"objdet {objdet}\n")
 
             objects.objdets.append(objdet)
 

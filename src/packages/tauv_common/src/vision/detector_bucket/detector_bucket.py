@@ -9,8 +9,6 @@
 
 
 import rospy
-#import tf
-#import tf_conversions
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
@@ -21,17 +19,13 @@ from stereo_msgs.msg import DisparityImage
 from jsk_recognition_msgs.msg import BoundingBoxArray
 from geometry_msgs.msg import *
 from nav_msgs.msg import Odometry
-#from tf.transformations import *
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement,RegisterObjectDetections, RegisterMeasurement
-#from visualization_msgs.msg import Marker, MarkerArray
 from scipy.spatial.transform import Rotation as R
 
 
 class Detector_Bucket():
     def __init__(self):
-        #rospy.init_node('detector_bucket', anonymous = True)
-
         self.num_daemons = 1
         self.daemon_names = None
         self.daemon_dict = {}
@@ -39,38 +33,17 @@ class Detector_Bucket():
             rospy.logerr("[Detector Bucket]: Unable to initialize detector daemons, invalid information!")
         rospy.loginfo("[Detector Bucket]: Summoning Daemons: " + str(self.daemon_names))
 
-        #self.tf = tf.TransformListener()
         self.cv_bridge = CvBridge()
-        self.refresh_rate = 0
-        #self.bucket_dict = dict()
-        #self.bbox_3d_list = []
-        self.monotonic_det_id = -1
-        self.nn_threshold = .9
-        self.debouncing_threshold = 10
-        self.arrow_dict = {}
-        self.debouncing_tracker_dict = {}
-        self.debounced_detection_dict = {}
-        self.total_number_detection_dict = {}
-
-        self.bucket_list = BucketList()
-
-        #rospy.init_node('detector_bucket', anonymous = True)
 
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
-        #self.bbox_3d_list_pub = rospy.Publisher("bucket_bbox_3d_list", BoundingBoxArray, queue_size=50)
         self.detection_server = rospy.Subscriber("register_object_detection", RegisterObjectDetections,
                                               self.update_daemon_service)
-        #self.arrow_pub = rospy.Publisher("detection_marker", MarkerArray, queue_size=10)
-        #self.spin_callback = rospy.Timer(rospy.Duration(.010), self.spin)
-
-        #rospy.loginfo("initialized")
 
     def init_daemons(self):
         if rospy.has_param("detectors/total_number"):
             self.num_daemons = int(rospy.get_param("detectors/total_number"))
             rospy.loginfo("[Detector Bucket]: Initializing %d Daemons", self.num_daemons)
             self.daemon_names = rospy.get_param("detectors/names")
-            #rospy.loginfo(f"{self.daemon_names}")
             self.daemon_dict = {name: Detector_Daemon(name, ii) for ii, name in enumerate(self.daemon_names)}
             print(self.daemon_dict)
             return True
@@ -94,37 +67,13 @@ class Detector_Bucket():
         m.scale.z = .05
         self.arrow_dict[id] = m
 
-    """def transform_meas_to_world(self, measurement, child_frame, world_frame, time, translate=True):
-        self.tf.waitForTransform(world_frame, child_frame, time, rospy.Duration(4.0))
-        try:
-            (trans, rot) = self.tf.lookupTransform(world_frame, child_frame, time)
-            tf = R.from_quat(np.asarray(rot))
-            detection_pos = tf.apply(measurement)
-            if translate:
-                detection_pos += np.asarray(trans)
-            return detection_pos
-        except:
-            return np.array([np.nan])"""
 
     def update_daemon_service(self, req):
         data_frame = req.objdets
-
-        #print("called\n")
-
-        # transform detections to world frame
-        """for datum in data_frame:
-            pos_in_world = self.transform_meas_to_world(point_to_array(datum.position), \
-                                                        datum.header.frame_id, "odom", datum.header.stamp)
-            datum.position = array_to_point(pos_in_world)
-            datum.header.frame_id = "odom"
-        """
         
         # acquire and update data buffer on daemon
         daemon_name = req.detector_tag
-        #rospy.loginfo(f"dict {self.daemon_dict}\n")
         if daemon_name in self.daemon_dict:
-            #rospy.loginfo(f"data = {data_frame}")
-
             daemon = self.daemon_dict[daemon_name]
             daemon.mutex.acquire()
             daemon.update_detection_buffer(data_frame)
@@ -133,26 +82,37 @@ class Detector_Bucket():
             return True
         return False
 
-    #iterate through all daemons and call spin function to update tracking
-    def spin(self):
-        for daemon_name in self.daemon_dict:
-            daemon = self.daemon_dict[daemon_name]
-            daemon.mutex.acquire()
+    def spin_daemon(self, daemon):
+        daemon.mutex.acquire()
+        if(daemon.new_data):
             daemon.spin()
-            daemon.mutex.release()
+        daemon.mutex.release()
 
-    def publish(self):
-        self.bucket_list.bucket_list = list()
+    def publish(self, daemon_name = "camera"):
+        #rospy.loginfo("here")
+        daemon = self.daemon_dict[daemon_name]
+        #rospy.loginfo(f"daemon: {daemon}")
+        self.spin_daemon(daemon)
+        self.bucket_list_pub.publish(daemon)
+
+    def find(self, daemon_name = "camera"):
+        return self.daemon_dict[daemon_name]
+
+    #return the first bucket detection with the key matching name
+    def find_by_tag(self, tag, dameon_name = "camera"):
+        daemon = self.daemon_dict[daemon_name]
+        self.spin_daemon(daemon)
+        for entry in daemon.bucket_list:
+            if entry.tag == tag:
+                return entry
+        return None
+
+    #iterate through all daemons and call spin function to update tracking
+    def spin_all(self):
         for daemon_name in self.daemon_dict:
             daemon = self.daemon_dict[daemon_name]
+            self.spin_daemon(daemon)
 
-            for det in daemon.tracker_list:
-                #rospy.loginfo(f"{det}")
-
-                new_bucket = BucketDetection()
-                new_bucket.position = Point(det.estimated_point[0][0],det.estimated_point[1][0],det.estimated_point[2][0])
-                new_bucket.tag = det.tag
-
-                self.bucket_list.bucket_list.append(new_bucket)
-
-        self.bucket_list_pub.publish(self.bucket_list)
+    def publish_all(self):
+       for daemon_name in self.daemon_dict:
+            self.publish(daemon_name)
