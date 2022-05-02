@@ -6,29 +6,34 @@
 
 namespace transforms {
   enum Frame {
-    WORLD,
-    ODOM,
-    VEHICLE,
-    IMU,
-    DVL,
+    ODOM_NED,
+    ODOM_ENU,
+    VEHICLE_NED,
+    VEHICLE_ENU,
+    IMU_NED,
+    IMU_ENU,
+    DVL_ENU,
+    DVL_NED
   };
 
   class TransformClient {
     public:
       TransformClient(ros::NodeHandle &n);
 
-      bool transform_point(Eigen::Vector3d &v, Eigen::Vector3d &r, Frame from, Frame to);
-      bool transform_vector(Eigen::Vector3d &v, Eigen::Vector3d &r, Frame from, Frame to);
+      void transform_vector(Eigen::Vector3d &vin, Eigen::Vector3d &vout, Frame from, Frame to);
 
     private:
       tf::TransformListener tf_listener;
 
       const std::map<Frame, std::string> frame_ids {
-        { Frame::WORLD, "world" },
-        { Frame::ODOM, "odom" },
-        { Frame::VEHICLE, "vehicle" },
-        { Frame::IMU, "vehicle/imu" },
-        { Frame::DVL, "vehicle/dvl" },
+        { Frame::ODOM_NED, "odom_ned" },
+        { Frame::ODOM_ENU, "odom_enu" },
+        { Frame::VEHICLE_NED, "vehicle_ned" },
+        { Frame::VEHICLE_ENU, "vehicle_enu" },
+        { Frame::IMU_NED, "imu_ned" },
+        { Frame::IMU_ENU, "imu_enu" },
+        { Frame::DVL_NED, "dvl_ned" },
+        { Frame::DVL_ENU, "dvl_enu" },
       };
   };
 }

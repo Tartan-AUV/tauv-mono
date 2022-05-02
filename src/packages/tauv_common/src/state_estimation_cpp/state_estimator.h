@@ -6,13 +6,14 @@
 #include <nav_msgs/Odometry.h>
 #include <numeric>
 #include <ros/ros.h>
+#include <tauv_alarms/alarms.h>
+#include <tauv_alarms/alarm_client.h>
 #include <tauv_msgs/FluidDepth.h>
 #include <tauv_msgs/Pose.h>
 #include <tauv_msgs/TeledyneDvlData.h>
 #include <tauv_msgs/XsensImuData.h>
+#include <tauv_utils_cpp/transforms.h>
 #include <tf/transform_broadcaster.h>
-#include <tauv_alarms/alarms.h>
-#include <tauv_alarms/alarm_client.h>
 #include "ekf.h"
 
 #pragma once
@@ -35,6 +36,8 @@ class StateEstimator {
     ros::Timer timer;
 
     tauv_alarms::AlarmClient alarm_client;
+
+    transforms::TransformClient transform_client;
 
     ros::Subscriber imu_sub;
     ros::Subscriber dvl_sub;

@@ -1,4 +1,6 @@
 #include <ros/ros.h>
+#include <tf/transform_listener.h>
+#include <tf/transform_datatypes.h>
 #include <eigen3/Eigen/Dense>
 #include "transforms.h"
 
@@ -8,17 +10,19 @@ namespace transforms {
     
   }
 
-  bool TransformClient::transform_point(Eigen::Vector3d &v, Eigen::Vector3d &r, Frame from, Frame to)
+  void TransformClient::transform_vector(Eigen::Vector3d &vin, Eigen::Vector3d &vout, Frame from, Frame to)
   {
-    tf::StampedTransform tsf; 
+    tf::Stamped<tf::Vector3> tvin;
+    tvin.setValue(vin.x(), vin.y(), vin.z());
+    tvin.frame_id_ = this->frame_ids.find(from)->second;
+    tvin.stamp_ = ros::Time::now();
 
-    try {
-      this->tf_listener.lookupTransform(this->frame_ids.at(to), this->frame_ids.at(from), ros::Time(0.0), tsf);
-    } catch (tf::TransformException &ex) {
-      ROS_ERROR("%s", ex.what());
-      return false;
-    }
+    tf::Stamped<tf::Vector3> tvout;
+    this->tf_listener.transformVector(this->frame_ids.find(to)->second, ros::Time(0), tvin, this->frame_ids.find(from)->second, tvout);
 
-    return true;
+    vout(0) = tvout.x();
+    vout(1) = tvout.y();
+    vout(2) = tvout.z();
+    return;
   }
 }

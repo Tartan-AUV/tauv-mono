@@ -14,6 +14,7 @@ add_message_files(
   DynamicsTunings.msg
   ControlsTunings.msg
   SonarPulse.msg
+  Servos.msg
   PoseGraphMeasurement.msg
   Thrust.msg
   Battery.msg

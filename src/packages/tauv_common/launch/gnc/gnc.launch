@@ -35,7 +35,7 @@
             <remap from="hold_pose" to="/controller/hold_pose" />
         </node>
 
-        <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/>
+        <!-- <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/> -->
 
 <!--        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">-->
 <!--            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />-->

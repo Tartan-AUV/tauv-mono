@@ -80,8 +80,8 @@ class TeleopPlanner:
         elif not self._is_auto and is_joy_cmd_valid:
             self._set_hold(False)
             cmd = self._joy_cmd
-        elif self._is_auto and not is_mpc_cmd_valid:
-            self._set_hold(True)
+        # elif self._is_auto and not is_mpc_cmd_valid:
+        #    self._set_hold(True)
 
         msg: ControllerCmdMsg = ControllerCmdMsg()
         msg.a_x = cmd[0]

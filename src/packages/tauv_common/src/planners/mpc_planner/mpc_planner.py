@@ -123,11 +123,11 @@ class MPCPlanner:
         self._send_command(u)
 
         poses = PoseArray()
-        poses.header.frame_id = 'odom'
+        poses.header.frame_id = 'odom_ned'
         poses.poses = []
         for i in range(self._n + 1):
             position = tm(x_mpc[0:3, i], Vector3)
-            orientation = rpy_to_quat(np.flip(x_mpc[3:6, i]))
+            orientation = rpy_to_quat(np.array([0.0, 0.0, x_mpc[3, i]]))
             poses.poses.append(Pose(position, orientation))
         self._poses_pub.publish(poses)
 
@@ -155,7 +155,7 @@ class MPCPlanner:
         req.len = self._n + 1
         req.dt = self._tstep
         req.header.stamp = rospy.Time.now()
-        req.header.frame_id = 'odom'
+        req.header.frame_id = 'odom_ned'
         req.curr_time = rospy.Time.now()
 
         try:
@@ -167,7 +167,7 @@ class MPCPlanner:
             return None
 
         traj_poses = PoseArray()
-        traj_poses.header.frame_id = 'odom'
+        traj_poses.header.frame_id = 'odom_ned'
         traj_poses.poses = res.poses
         self._traj_poses_pub.publish(traj_poses)
 

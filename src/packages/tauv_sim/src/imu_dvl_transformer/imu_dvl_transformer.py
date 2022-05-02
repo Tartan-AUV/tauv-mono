@@ -23,7 +23,7 @@ class ImuDvlTransformer:
         msg.orientation = Vector3(-msg.orientation.x, msg.orientation.y, -msg.orientation.z)
         msg.rate_of_turn = Vector3(-msg.rate_of_turn.x, msg.rate_of_turn.y, -msg.rate_of_turn.z)
         msg.linear_acceleration = Vector3(-msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z)
-        msg.free_acceleration = Vector3(0, 0, 0)
+        msg.free_acceleration = Vector3(msg.free_acceleration.x, msg.free_acceleration.y, msg.free_acceleration.z)
 
         self._imu_pub.publish(msg)
 

@@ -15,7 +15,7 @@
 #include "ekf.h"
 #include "state_estimator.h"
 
-StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
+StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n), transform_client(n)
 {
   this->load_config();
 
@@ -34,7 +34,7 @@ StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
 
   this->timer = n.createTimer(this->dt, &StateEstimator::update, this);
 
-  this->checkpoints = boost::circular_buffer<StateEstimator::Checkpoint>(100);
+  this->checkpoints = boost::circular_buffer<StateEstimator::Checkpoint>(400);
 
   this->alarm_client.clear(tauv_alarms::AlarmType::STATE_ESTIMATION_NOT_INITIALIZED, "State estimation initialized.");
 }
@@ -82,9 +82,11 @@ void StateEstimator::update(const ros::TimerEvent& e)
 {
   if (!this->is_initialized) return;
 
-  ros::Time current_time = ros::Time::now() - ros::Duration(0.1);
+  ros::Time current_time = ros::Time::now() - ros::Duration(0.05);
 
-  if (!this->delayed_queue.empty() && !this->checkpoints.empty()) {
+  ROS_INFO("delayed: %ld, realtime: %ld", this->delayed_queue.size(), this->realtime_queue.size());
+
+  if (!this->delayed_queue.empty() && this->checkpoints.full()) {
     SensorMsg msg = this->delayed_queue.top();
     this->delayed_queue.pop();
 
@@ -94,48 +96,51 @@ void StateEstimator::update(const ros::TimerEvent& e)
       previous_checkpoint = *it;
       ++it;
     }
+    if (previous_checkpoint.stamp > msg.stamp) {
+      ROS_WARN("previous checkpoint stamp later than msg stamp");
+    } else {
+        // Revert state to previous checkpoint
+        // Then copy all the messages from the rest of the checkpoint buffer to a queue
+        // Squash all those messages and write the resulting checkpoints into the checkpoint buffer starting at the previous_checkpoint
 
-    // Revert state to previous checkpoint
-    // Then copy all the messages from the rest of the checkpoint buffer to a queue
-    // Squash all those messages and write the resulting checkpoints into the checkpoint buffer starting at the previous_checkpoint
-
-    this->ekf.set_state(previous_checkpoint.state);
-    this->ekf.set_cov(previous_checkpoint.cov);
-    this->ekf.set_time(previous_checkpoint.stamp.toSec());
+        this->ekf.set_state(previous_checkpoint.state);
+        this->ekf.set_cov(previous_checkpoint.cov);
+        this->ekf.set_time(previous_checkpoint.stamp.toSec());
 
 
-    boost::circular_buffer<Checkpoint>::iterator copy_it = it;
-    boost::heap::priority_queue<SensorMsg, boost::heap::compare<std::greater_equal<SensorMsg>>> msgs;
-    msgs.push(msg);
-    while (copy_it != this->checkpoints.end()) {
-      msgs.push(copy_it->msg); 
-      ++copy_it;
-    }
+        boost::circular_buffer<Checkpoint>::iterator copy_it = it;
+        boost::heap::priority_queue<SensorMsg, boost::heap::compare<std::greater_equal<SensorMsg>>> msgs;
+        msgs.push(msg);
+        while (copy_it != this->checkpoints.end()) {
+          msgs.push(copy_it->msg);
+          ++copy_it;
+        }
 
-    this->checkpoints.erase_end(std::distance(it, this->checkpoints.end()));
+        this->checkpoints.erase_end(std::distance(it, this->checkpoints.end()));
 
-    while (!this->delayed_queue.empty()) {
-      SensorMsg msg = this->delayed_queue.top();
-      this->delayed_queue.pop();
-      msgs.push(msg);
-    }
+        while (!this->delayed_queue.empty()) {
+          SensorMsg msg = this->delayed_queue.top();
+          this->delayed_queue.pop();
+          msgs.push(msg);
+        }
 
-    while (!msgs.empty()) {
-      StateEstimator::SensorMsg msg = msgs.top();
-      msgs.pop();
+        while (!msgs.empty()) {
+          StateEstimator::SensorMsg msg = msgs.top();
+          msgs.pop();
 
-      if (msg.is_imu()) {
-          this->apply_imu(msg.as_imu());
-      } else if (msg.is_dvl()) {
-          this->apply_dvl(msg.as_dvl());
-      } else if (msg.is_depth()) {
-          this->apply_depth(msg.as_depth());
-      }
+          if (msg.is_imu()) {
+              this->apply_imu(msg.as_imu());
+          } else if (msg.is_dvl()) {
+              this->apply_dvl(msg.as_dvl());
+          } else if (msg.is_depth()) {
+              this->apply_depth(msg.as_depth());
+          }
 
-      Checkpoint c(msg);
-      this->ekf.get_state(c.state);
-      this->ekf.get_cov(c.cov);
-      this->checkpoints.push_back(c);
+          Checkpoint c(msg);
+          this->ekf.get_state(c.state);
+          this->ekf.get_cov(c.cov);
+          this->checkpoints.push_back(c);
+        }
     }
   }
 
@@ -185,8 +190,8 @@ void StateEstimator::update(const ros::TimerEvent& e)
   Eigen::Quaterniond orientation_quat = rpy_to_quat(orientation);
   nav_msgs::Odometry odom_msg;
   odom_msg.header.stamp = current_time;
-  odom_msg.header.frame_id = "odom"; 
-  odom_msg.child_frame_id = "vehicle";
+  odom_msg.header.frame_id = "odom_ned";
+  odom_msg.child_frame_id = "vehicle_ned";
   odom_msg.pose.pose.position.x = position.x();
   odom_msg.pose.pose.position.y = position.y();
   odom_msg.pose.pose.position.z = position.z();
@@ -207,20 +212,22 @@ void StateEstimator::update(const ros::TimerEvent& e)
   tf::Quaternion odom_quat;
   odom_quat.setRPY(orientation.x(), orientation.y(), orientation.z());
   odom_tf.setRotation(odom_quat);
-  this->odom_tf_broadcaster.sendTransform(tf::StampedTransform(odom_tf, current_time, "odom", "vehicle"));
+  this->odom_tf_broadcaster.sendTransform(tf::StampedTransform(odom_tf, current_time, "odom_ned", "vehicle_ned"));
 }
 
 void StateEstimator::apply_imu(const tauv_msgs::XsensImuData::ConstPtr &msg)
 {
   double time = msg->header.stamp.toSec();
-  Eigen::Vector3d orientation { msg->orientation.x, msg->orientation.y, msg->orientation.z };
+  Eigen::Vector3d orientation { -msg->orientation.x, msg->orientation.y, -msg->orientation.z };
 
-  Eigen::Vector3d linear_acceleration { msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z };
-  Eigen::Vector3d rate_of_turn { msg->rate_of_turn.x, msg->rate_of_turn.y, msg->rate_of_turn.z };
+  Eigen::Vector3d linear_acceleration { -msg->linear_acceleration.x, msg->linear_acceleration.y, -msg->linear_acceleration.z };
+  Eigen::Vector3d rate_of_turn { -msg->rate_of_turn.x, msg->rate_of_turn.y, -msg->rate_of_turn.z };
 
   Eigen::Quaterniond orientation_quat = rpy_to_quat(orientation);
-  Eigen::Vector3d gravity { 0.0, 0.0, 9.81 };
-  Eigen::Vector3d free_acceleration = linear_acceleration - orientation_quat.inverse().toRotationMatrix() * gravity;
+  Eigen::Vector3d gravity { 0.0, 0.0, 9.806 };
+  Eigen::Vector3d body_gravity = orientation_quat.inverse().toRotationMatrix() * gravity;
+  body_gravity.z() = -1 * body_gravity.z();
+  Eigen::Vector3d free_acceleration = linear_acceleration - body_gravity;
 
   this->ekf.handle_imu_measurement(time, orientation, rate_of_turn, free_acceleration, this->imu_covariance);
 }
@@ -231,7 +238,7 @@ void StateEstimator::apply_dvl(const tauv_msgs::TeledyneDvlData::ConstPtr &msg)
 
   if (!msg->is_hr_velocity_valid) return;
 
-  Eigen::Vector3d velocity { msg->hr_velocity.x, msg->hr_velocity.y, msg->hr_velocity.z }; 
+  Eigen::Vector3d velocity { msg->hr_velocity.y, msg->hr_velocity.x, -msg->hr_velocity.z }; 
 
   double avg_covariance = 0.0;
   std::accumulate(msg->beam_standard_deviations.begin(), msg->beam_standard_deviations.end(), avg_covariance);
@@ -254,12 +261,13 @@ void StateEstimator::handle_imu(const tauv_msgs::XsensImuData::ConstPtr& msg)
 {
   if (!this->is_initialized) {
     this->is_initialized = true;
-    this->last_evaluation_time = msg->header.stamp - ros::Duration(0.1);
+    this->last_evaluation_time = msg->header.stamp - ros::Duration(0.05);
   }
-  if (msg->header.stamp < this->last_evaluation_time) {
-    this->delayed_queue.emplace(msg);
+  SensorMsg sensor_msg(msg);
+  if (msg->header.stamp < this->last_evaluation_time && this->checkpoints.full()) {
+    this->delayed_queue.push(sensor_msg);
   } else {
-    this->realtime_queue.emplace(msg);
+    this->realtime_queue.push(sensor_msg);
   }
 }
 
@@ -267,14 +275,15 @@ void StateEstimator::handle_dvl(const tauv_msgs::TeledyneDvlData::ConstPtr& msg)
 {
   if (!this->is_initialized) {
     this->is_initialized = true;
-    this->last_evaluation_time = msg->header.stamp - ros::Duration(0.1);
+    this->last_evaluation_time = msg->header.stamp - ros::Duration(0.05);
   }
 
-  if (!msg->is_hr_velocity_valid) return;
-  if (msg->header.stamp < this->last_evaluation_time) {
-    this->delayed_queue.emplace(msg);
+  // if (!msg->is_hr_velocity_valid) return;
+  SensorMsg sensor_msg(msg);
+  if (msg->header.stamp < this->last_evaluation_time && this->checkpoints.full()) {
+    this->delayed_queue.push(sensor_msg);
   } else {
-    this->realtime_queue.emplace(msg);
+    this->realtime_queue.push(sensor_msg);
   }
 }
 
@@ -282,11 +291,12 @@ void StateEstimator::handle_depth(const tauv_msgs::FluidDepth::ConstPtr& msg)
 {
   if (!this->is_initialized) {
     this->is_initialized = true;
-    this->last_evaluation_time = msg->header.stamp - ros::Duration(0.1);
+    this->last_evaluation_time = msg->header.stamp - ros::Duration(0.05);
   }
-  if (msg->header.stamp < this->last_evaluation_time) {
-    this->delayed_queue.emplace(msg);
+  SensorMsg sensor_msg(msg);
+  if (msg->header.stamp < this->last_evaluation_time && this->checkpoints.full()) {
+    this->delayed_queue.push(sensor_msg);
   } else {
-    this->realtime_queue.emplace(msg);
+    this->realtime_queue.push(sensor_msg);
   }
 }

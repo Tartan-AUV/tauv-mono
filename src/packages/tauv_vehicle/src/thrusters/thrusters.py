@@ -75,7 +75,7 @@ class Thrusters:
 
     def _handle_servos(self, msg: ServosMsg):
         for i in range(4):
-            self._maestro.setTarget(msg.target[i] * 4, self._servo_channels[i])
+            self._maestro.setTarget(floor(msg.targets[i] / 180 * 1000 + 1500) * 4, self._servo_channels[i])
 
     def _set_thrust(self, thruster: int, thrust: float):
         pwm_speed = self._get_pwm_speed(thruster, thrust)
@@ -117,7 +117,7 @@ class Thrusters:
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
 
-        print(f'thruster {thruster} speed {pwm_speed}')
+        # print(f'thruster {thruster} speed {pwm_speed}')
 
         return pwm_speed
 
