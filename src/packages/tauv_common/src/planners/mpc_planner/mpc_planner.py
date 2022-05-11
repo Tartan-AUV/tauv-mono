@@ -98,19 +98,17 @@ class MPCPlanner:
 
             ref_traj[:, i] = self._to_x(gpose, gtwist)
 
-        # TODO: Re-wind orientation
-
         # Re-wind yaw to prevent jumps when winding:
-        # psi = x[3]
-        # if ref_traj[3, 0] - psi < -np.pi:
-        #     ref_traj[3, 0] += 2 * np.pi
-        # if ref_traj[3, 0] - psi > np.pi:
-        #     ref_traj[3, 0] -= 2 * np.pi
-        # for i in range(len(ref_traj[3, 0:-1])):
-        #     if ref_traj[3, i + 1] - ref_traj[3, i] < -np.pi:
-        #         ref_traj[3, i + 1] += 2 * np.pi
-        #     if ref_traj[3, i + 1] - ref_traj[3, i] > np.pi:
-        #         ref_traj[3, i + 1] -= 2 * np.pi
+        psi = x[3]
+        if ref_traj[3, 0] - psi < -np.pi:
+            ref_traj[3, 0] += 2 * np.pi
+        if ref_traj[3, 0] - psi > np.pi:
+            ref_traj[3, 0] -= 2 * np.pi
+        for i in range(len(ref_traj[3, 0:-1])):
+            if ref_traj[3, i + 1] - ref_traj[3, i] < -np.pi:
+                ref_traj[3, i + 1] += 2 * np.pi
+            if ref_traj[3, i + 1] - ref_traj[3, i] > np.pi:
+                ref_traj[3, i + 1] -= 2 * np.pi
 
         u_mpc, x_mpc = self._mpc.solve(x, ref_traj)
 

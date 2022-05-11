@@ -42,7 +42,7 @@ class TeleopMission:
 
         self._path_pub: rospy.Publisher = rospy.Publisher('path', Path, queue_size=10)
 
-        self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('/thrusters/arm', SetBool)
+        self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('arm', SetBool)
 
     def start(self):
         while True:
@@ -204,10 +204,10 @@ class TeleopMission:
         start_orientation = quat_to_rpy(self._pose.orientation)
         start_pose = Pose(tm(start_position, Vector3), rpy_to_quat(start_orientation))
 
-        position_1 = start_position + R.apply(np.array([3.0, 0.01, 0.01]))
+        position_1 = start_position + R.apply(np.array([6.0, 0.01, 0.01]))
         orientation_1 = start_orientation + np.array([0.01, 0.01, 0.01])
         pose_1 = Pose(tm(position_1, Vector3), rpy_to_quat(orientation_1))
-        position_2 = start_position + R.apply(np.array([3.01, 0.02, 0.02]))
+        position_2 = start_position + R.apply(np.array([6.01, 0.02, 0.02]))
         orientation_2 = start_orientation + np.array([0.01, 0.01, pi])
         pose_2 = Pose(tm(position_2, Vector3), rpy_to_quat(orientation_2))
         position_3 = start_position + R.apply(np.array([0.01, 0.01, 0.01]))
@@ -292,7 +292,7 @@ class TeleopMission:
 
         prequal = subparsers.add_parser('prequal')
         prequal.add_argument('--l', type=float, nargs=3, default=[0.2, 0.2, 100.0])
-        prequal.add_argument('--a', type=float, nargs=3, default=[0.1, 0.2, 100.0])
+        prequal.add_argument('--a', type=float, nargs=3, default=[0.2, 0.2, 100.0])
         prequal.set_defaults(func=self._handle_prequal)
 
         return parser

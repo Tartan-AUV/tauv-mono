@@ -49,7 +49,11 @@ void Ekf::get_state_fields(double time, Eigen::Vector3d &position, Eigen::Vector
   angular_velocity << state(S::VROLL), state(S::VPITCH), state(S::VYAW);
 }
 
-void Ekf::handle_imu_measurement(double time, Eigen::Vector3d &orientation, Eigen::Vector3d &rate_of_turn, Eigen::Vector3d &linear_acceleration, Eigen::Matrix<double, 9, 1> &covariance)
+void Ekf::handle_imu_measurement(double time,
+    const Eigen::Vector3d &orientation,
+    const Eigen::Vector3d &rate_of_turn,
+    const Eigen::Vector3d &linear_acceleration,
+    const Eigen::Matrix<double, 9, 1> &covariance)
 {
   if (!this->initialized) {
     this->time = time;
@@ -78,7 +82,7 @@ void Ekf::handle_imu_measurement(double time, Eigen::Vector3d &orientation, Eige
   this->update(fields, y, cov);
 }
 
-void Ekf::handle_dvl_measurement(double time, Eigen::Vector3d &velocity, Eigen::Vector3d &covariance)
+void Ekf::handle_dvl_measurement(double time, const Eigen::Vector3d &velocity, const Eigen::Vector3d &covariance)
 {
   if (!this->initialized) {
     this->time = time;

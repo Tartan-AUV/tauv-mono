@@ -44,7 +44,7 @@ class TeleopPlanner:
 
         self._mpc_cmd: Optional[np.array] = None
         self._mpc_cmd_timestamp: Optional[rospy.Time] = None
-        self._mpc_cmd_timeout: float = 0.1
+        self._mpc_cmd_timeout: float = 0.5
 
         self._position: Optional[np.array] = None
         self._orientation: Optional[np.array] = None

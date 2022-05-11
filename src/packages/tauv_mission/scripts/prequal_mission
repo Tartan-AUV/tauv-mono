@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from prequal_mission import prequal_mission
+
+if __name__ == "__main__":
+    prequal_mission.main()

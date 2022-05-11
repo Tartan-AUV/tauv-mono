@@ -67,7 +67,8 @@ class Thrusters:
         return SetBoolResponse(True, '')
 
     def _handle_battery(self, msg: BatteryMsg):
-        self._battery_voltage = msg.voltage
+        pass
+        # self._battery_voltage = msg.voltage
 
     def _handle_wrench(self, msg: Wrench):
         self._wrench = msg

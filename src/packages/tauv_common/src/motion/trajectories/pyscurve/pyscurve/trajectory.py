@@ -1,6 +1,6 @@
 import numpy as np
 import logging
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 
 ACCELERATION_ID = 0
@@ -76,48 +76,49 @@ class Trajectory(object):
 
 
 def plot_trajectory(traj, dt):
-    dof = traj.dof
-    timesteps = int(max(traj.time) / dt)
-    time = np.linspace(0, max(traj.time), timesteps)
-
-    # NOW
-    # profiles[t]           --- profiles for each DOF at time x[t]
-    # profiles[t][d]        --- profile for d DOF at time x[t]
-    # profiles[t][d][k]     --- accel/vel/pos profile for d DOF at time x[t]
-    p_list = [traj(t) for t in time]
-    profiles = np.asarray(p_list)
-
-    # NEED
-    # profiles[d]       --- profiles for each DOF 0 <= d <= DOF number
-    # profiles[d][k]    --- accel/vel/pos profile for DOF d where j
-    # profiles[d][k][t] --- accel/vel/pos at time x[k] for DOF i
-    # profiles = np.reshape(profiles, (dof, 3, timesteps))
-    r_profiles = np.zeros((dof, 3, timesteps))
-    for d in range(dof):
-        for p in range(3):
-            r_profiles[d, p, :] = profiles[:, d, p]
-
-    fig = plt.figure(0)
-    # fig.suptitle("DOF profiles")
-
-    for i, profile in zip(range(dof), r_profiles):
-        plt.subplot(300 + dof*10 + (i+1))
-        plt.title("Acceleration profile")
-        plt.plot(time, profile[ACCELERATION_ID][:])
-        plt.xlim()
-        plt.ylim()
-
-        plt.subplot(300 + dof*10 + (i+1)+dof)
-        plt.title("Speed profile")
-        plt.plot(time, profile[SPEED_ID][:])
-        plt.xlim()
-        plt.ylim()
-
-        plt.subplot(300 + dof*10 + (i+1)+dof*2)
-        plt.title("Position profile")
-        plt.plot(time, profile[POSITION_ID][:])
-        plt.xlim()
-        plt.ylim()
-
-    plt.tight_layout()
-    plt.show()
+    pass
+#     dof = traj.dof
+#     timesteps = int(max(traj.time) / dt)
+#     time = np.linspace(0, max(traj.time), timesteps)
+#
+#     # NOW
+#     # profiles[t]           --- profiles for each DOF at time x[t]
+#     # profiles[t][d]        --- profile for d DOF at time x[t]
+#     # profiles[t][d][k]     --- accel/vel/pos profile for d DOF at time x[t]
+#     p_list = [traj(t) for t in time]
+#     profiles = np.asarray(p_list)
+#
+#     # NEED
+#     # profiles[d]       --- profiles for each DOF 0 <= d <= DOF number
+#     # profiles[d][k]    --- accel/vel/pos profile for DOF d where j
+#     # profiles[d][k][t] --- accel/vel/pos at time x[k] for DOF i
+#     # profiles = np.reshape(profiles, (dof, 3, timesteps))
+#     r_profiles = np.zeros((dof, 3, timesteps))
+#     for d in range(dof):
+#         for p in range(3):
+#             r_profiles[d, p, :] = profiles[:, d, p]
+#
+#     fig = plt.figure(0)
+#     # fig.suptitle("DOF profiles")
+#
+#     for i, profile in zip(range(dof), r_profiles):
+#         plt.subplot(300 + dof*10 + (i+1))
+#         plt.title("Acceleration profile")
+#         plt.plot(time, profile[ACCELERATION_ID][:])
+#         plt.xlim()
+#         plt.ylim()
+#
+#         plt.subplot(300 + dof*10 + (i+1)+dof)
+#         plt.title("Speed profile")
+#         plt.plot(time, profile[SPEED_ID][:])
+#         plt.xlim()
+#         plt.ylim()
+#
+#         plt.subplot(300 + dof*10 + (i+1)+dof*2)
+#         plt.title("Position profile")
+#         plt.plot(time, profile[POSITION_ID][:])
+#         plt.xlim()
+#         plt.ylim()
+#
+#     plt.tight_layout()
+#     plt.show()

@@ -25,17 +25,27 @@
             <remap from="tune_controls" to="/controller/tune_controls" />
         </node>
 
-        <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />
-            <remap from="joy" to="/joy" />
-            <remap from="cmd" to="/controller/cmd" />
-            <remap from="mpc_cmd" to="/mpc/cmd" />
-            <remap from="arm" to="/thrusters/arm" />
-            <remap from="pose" to="/gnc/pose" />
-            <remap from="hold_pose" to="/controller/hold_pose" />
-        </node>
+<!--        <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">-->
+<!--            <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />-->
+<!--            <remap from="joy" to="/joy" />-->
+<!--            <remap from="cmd" to="/controller/cmd" />-->
+<!--            <remap from="mpc_cmd" to="/mpc/cmd" />-->
+<!--            <remap from="arm" to="/thrusters/arm" />-->
+<!--            <remap from="pose" to="/gnc/pose" />-->
+<!--            <remap from="hold_pose" to="/controller/hold_pose" />-->
+<!--        </node>-->
 
-        <!-- <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/> -->
+        <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/>
+
+        <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />
+            <remap from="odom" to="/gnc/odom" />
+            <remap from="cmd" to="/controller/cmd" />
+            <remap from="get_traj" to="/get_traj" />
+            <remap from="traj_poses" to="/mpc/traj_poses" />
+            <remap from="poses" to="/mpc/poses" />
+            <remap from="servos" to="/servos/targets" />
+        </node>
 
 <!--        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">-->
 <!--            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />-->
