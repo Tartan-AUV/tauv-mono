@@ -1,4 +1,21 @@
-detectors:
-  total_number: 1
-  names:
-    0: camera
+detectors: {
+  total_number: 1,
+  names: ["camera"],
+  camera: {
+    type: "vision",
+    mahalanobis_threshold: 3.0,
+    debouncing_threshold: 100,
+    frame_id: "duo3d_optical_link_front"
+  }
+}
+
+object_tags: {
+  badge: {
+    dimensions: [0.5,.15, 1],
+    is_static: true,
+    total_number: 1,
+    marker_dims: [0.5,.15, 1],
+    marker_color: [0.062,0.105,0.898,.75],
+    marker_type: 3
+  }
+}
