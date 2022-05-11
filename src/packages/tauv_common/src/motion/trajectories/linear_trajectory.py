@@ -46,7 +46,7 @@ class LinearTrajectory(Trajectory):
         print(start.pose.position)
         print(end.pose.position)
 
-        start_position = tl(start.pose.position)
+        start_position = tl(start.pose.position) + 1e-4 * np.random.rand(3)
         end_position = tl(end.pose.position)
         start_linear_velocity = np.array([0.0, 0.0, 0.0])
         end_linear_velocity = np.array([0.0, 0.0, 0.0])
@@ -60,7 +60,7 @@ class LinearTrajectory(Trajectory):
         )
 
         start_yaw = quat_to_rpy(start.pose.orientation)[2]
-        end_yaw = quat_to_rpy(end.pose.orientation)[2]
+        end_yaw = quat_to_rpy(end.pose.orientation)[2] + 1e-4 * np.random.rand(1)
 
         start_yaw_velocity = 0.0
         end_yaw_velocity = 0.0

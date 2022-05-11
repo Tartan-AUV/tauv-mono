@@ -1,16 +1,19 @@
-#include <variant>
 #include <array>
-#include <ros/ros.h>
+#include <boost/circular_buffer.hpp>
 #include <boost/heap/priority_queue.hpp>
 #include <boost/variant.hpp>
 #include <eigen3/Eigen/Dense>
-#include <tauv_msgs/XsensImuData.h>
-#include <tauv_msgs/TeledyneDvlData.h>
+#include <mutex>
+#include <nav_msgs/Odometry.h>
+#include <numeric>
+#include <ros/ros.h>
+#include <tauv_alarms/alarms.h>
+#include <tauv_alarms/alarm_client.h>
 #include <tauv_msgs/FluidDepth.h>
 #include <tauv_msgs/Pose.h>
+#include <tauv_msgs/TeledyneDvlData.h>
+#include <tauv_msgs/XsensImuData.h>
 #include <tf/transform_broadcaster.h>
-#include <tauv_alarms/alarm_client.h>
-#include <tauv_alarms/alarms.h>
 #include "ekf.h"
 
 #pragma once
@@ -25,7 +28,11 @@ class StateEstimator {
     void handle_dvl(const tauv_msgs::TeledyneDvlData::ConstPtr& msg);
     void handle_depth(const tauv_msgs::FluidDepth::ConstPtr& msg);
 
+    class ImuMsg;
+    class DvlMsg;
+    class DepthMsg;
     class SensorMsg;
+    class Checkpoint;
 
   private:
     ros::NodeHandle& n;
@@ -44,22 +51,17 @@ class StateEstimator {
 
     Ekf ekf;
 
-    using SensorMsgQueue = boost::heap::priority_queue<SensorMsg>;
+    bool is_initialized;
 
+    ros::Time last_evaluation_time;
 
-    bool initialized; 
+    boost::circular_buffer<Checkpoint> checkpoints;
 
-    SensorMsgQueue msg_queue;
-    SensorMsgQueue delayed_queue;
-
-    Eigen::Matrix<double, 15, 1> checkpoint_state;
-    Eigen::Matrix<double, 15, 15> checkpoint_cov;
-    ros::Time last_checkpoint_time;
-    ros::Time checkpoint_time;
+    boost::heap::priority_queue<boost::shared_ptr<SensorMsg>, boost::heap::compare<std::greater_equal<boost::shared_ptr<SensorMsg>>>> realtime_queue;
+    boost::heap::priority_queue<boost::shared_ptr<SensorMsg>, boost::heap::compare<std::greater_equal<boost::shared_ptr<SensorMsg>>>> delayed_queue;
 
     ros::Duration dt;
-    ros::Duration checkpoint_timeout;
-    ros::Time last_time;
+    ros::Duration horizon_delay;
     Eigen::Vector3d dvl_offset;
     Eigen::Matrix<double, 15, 1> process_covariance;
     Eigen::Matrix<double, 9, 1> imu_covariance;
@@ -68,49 +70,119 @@ class StateEstimator {
 
     void load_config();
 
-    void apply_imu(const tauv_msgs::XsensImuData::ConstPtr &msg);
-    void apply_dvl(const tauv_msgs::TeledyneDvlData::ConstPtr &msg);
-    void apply_depth(const tauv_msgs::FluidDepth::ConstPtr &msg);
+    void apply_msg(boost::shared_ptr<SensorMsg> msg);
+    void apply_imu(const ImuMsg &msg);
+    void apply_dvl(const DvlMsg &msg);
+    void apply_depth(const DepthMsg &msg);
+
+    void publish_pose(
+        ros::Time time,
+        const Eigen::Vector3d &position,
+        const Eigen::Vector3d &velocity,
+        const Eigen::Vector3d &acceleration,
+        const Eigen::Vector3d &orientation,
+        const Eigen::Vector3d &angular_velocity);
+    void publish_odom(
+        ros::Time time,
+        const Eigen::Vector3d &position,
+        const Eigen::Vector3d &velocity,
+        const Eigen::Vector3d &orientation,
+        const Eigen::Vector3d &angular_velocity);
+    void publish_tf(
+        ros::Time time,
+        const Eigen::Vector3d &position,
+        const Eigen::Vector3d &orientation);
+};
+
+class StateEstimator::ImuMsg {
+public:
+  ros::Time stamp; 
+  Eigen::Vector3d orientation;
+  Eigen::Vector3d rate_of_turn;
+  Eigen::Vector3d linear_acceleration;
+
+  ImuMsg(const tauv_msgs::XsensImuData::ConstPtr &msg);
+};
+
+class StateEstimator::DvlMsg {
+public:
+  ros::Time stamp;
+  Eigen::Vector3d velocity;
+  double avg_beam_std_dev;
+  double altitute;
+
+  DvlMsg(const tauv_msgs::TeledyneDvlData::ConstPtr &msg);
+};
+
+class StateEstimator::DepthMsg {
+public:
+  ros::Time stamp;
+  double depth;
+
+  DepthMsg(const tauv_msgs::FluidDepth::ConstPtr &msg);
 };
 
 class StateEstimator::SensorMsg {
-  public:
-    enum Type { IMU, DVL, DEPTH };
+public:
+  enum Type { IMU, DVL, DEPTH };
 
-    Type type;
-    ros::Time time;
-    boost::variant<tauv_msgs::XsensImuData::ConstPtr, tauv_msgs::TeledyneDvlData::ConstPtr, tauv_msgs::FluidDepth::ConstPtr> msg;
+  Type type;
+  ros::Time stamp;
+  boost::variant<ImuMsg, DvlMsg, DepthMsg> msg;
 
-    SensorMsg(const tauv_msgs::XsensImuData::ConstPtr &raw_msg) : msg(raw_msg) {
-      this->type = Type::IMU;  
-      this->time = raw_msg->header.stamp;
-    };
-    SensorMsg(const tauv_msgs::TeledyneDvlData::ConstPtr &raw_msg) : msg(raw_msg) {
-      this->type = Type::DVL;  
-      this->time = raw_msg->header.stamp;
-    };
-    SensorMsg(const tauv_msgs::FluidDepth::ConstPtr &raw_msg) : msg(raw_msg) {
-      this->type = Type::DEPTH;  
-      this->time = raw_msg->header.stamp;
-    };
-    
-    bool is_imu() { return this->type == Type::IMU; };
-    bool is_dvl() { return this->type == Type::DVL; };
-    bool is_depth() { return this->type == Type::DEPTH; };
+  SensorMsg(const tauv_msgs::XsensImuData::ConstPtr &msg) : msg(msg) {
+    this->type = Type::IMU;
+    this->stamp = msg->header.stamp;
+  }
 
-    const tauv_msgs::XsensImuData::ConstPtr& as_imu() {
-      return boost::get<const tauv_msgs::XsensImuData::ConstPtr&>(this->msg);
-    };
-    const tauv_msgs::TeledyneDvlData::ConstPtr& as_dvl() {
-      return boost::get<const tauv_msgs::TeledyneDvlData::ConstPtr&>(this->msg);
-    };
-    const tauv_msgs::FluidDepth::ConstPtr& as_depth() {
-      return boost::get<const tauv_msgs::FluidDepth::ConstPtr&>(this->msg);
-    };
+  SensorMsg(const tauv_msgs::TeledyneDvlData::ConstPtr &msg) : msg(msg) {
+    this->type = Type::DVL;
+    this->stamp = msg->header.stamp;
+  }
+
+  SensorMsg(const tauv_msgs::FluidDepth::ConstPtr &msg) : msg(msg) {
+    this->type = Type::DEPTH;
+    this->stamp = msg->header.stamp;
+  }
+
+  const ImuMsg &as_imu() {
+    return boost::get<ImuMsg>(this->msg);
+  };
+
+  const DvlMsg &as_dvl() {
+    return boost::get<DvlMsg>(this->msg);
+  };
+
+  const DepthMsg &as_depth() {
+    return boost::get<DepthMsg>(this->msg);
+  };
 };
 
 bool operator < (const StateEstimator::SensorMsg &lhs, const StateEstimator::SensorMsg &rhs) 
 {
-  return lhs.time >= rhs.time;
+  return lhs.stamp < rhs.stamp;
 }
 
+bool operator >= (const StateEstimator::SensorMsg &lhs, const StateEstimator::SensorMsg &rhs) 
+{
+  return lhs.stamp >= rhs.stamp;
+}
+
+bool operator < (const boost::shared_ptr<StateEstimator::SensorMsg> &lhs, const boost::shared_ptr<StateEstimator::SensorMsg> &rhs) 
+{
+  return lhs->stamp < rhs->stamp;
+}
+
+bool operator >= (const boost::shared_ptr<StateEstimator::SensorMsg> &lhs, const boost::shared_ptr<StateEstimator::SensorMsg> &rhs) 
+{
+  return lhs->stamp >= rhs->stamp;
+}
+
+class StateEstimator::Checkpoint {
+  public:
+    boost::shared_ptr<StateEstimator::SensorMsg> msg;
+    Eigen::Matrix<double, 15, 1> state;
+    Eigen::Matrix<double, 15, 15> cov;
+
+    Checkpoint(boost::shared_ptr<StateEstimator::SensorMsg> msg) : msg(msg) {};
+};

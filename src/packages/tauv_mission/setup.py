@@ -25,10 +25,11 @@ setup_args = generate_distutils_setup(
               'tasks',
               'test_mission_scripts',
               'teleop_mission',
+              'prequal_mission'
               ],
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
-    scripts=['scripts/test_script', 'scripts/teleop_mission'],
+    scripts=['scripts/test_script', 'scripts/teleop_mission', 'scripts/prequal_mission'],
 )
 setup(**setup_args)

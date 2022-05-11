@@ -193,8 +193,8 @@ class Ensemble:
 
         if self.parsed_hr_bottom_track_data:
             msg.hr_velocity = Vector3(
-                0 if -self.hr_velocity_y == 0x80000000 else self.hr_velocity_y * 1e-5,
                 0 if -self.hr_velocity_x == 0x80000000 else self.hr_velocity_x * 1e-5,
+                0 if -self.hr_velocity_y == 0x80000000 else self.hr_velocity_y * 1e-5,
                 0 if -self.hr_velocity_z == 0x80000000 else self.hr_velocity_z * 1e-5,
             )
             msg.hr_velocity_error = 0 if -self.hr_velocity_error == 0x80000000 else self.hr_velocity_error * 1e-5

@@ -2,12 +2,14 @@ import rospy
 import argparse
 import numpy as np
 from typing import Optional
+from math import pi
 
 from tauv_msgs.msg import ControlsTunings, DynamicsTunings
 from tauv_msgs.srv import TuneControls, TuneControlsRequest, TuneControlsResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, GetTraj, GetTrajRequest, GetTrajResponse, HoldPose, HoldPoseRequest, HoldPoseResponse
 from geometry_msgs.msg import Pose, Twist, Vector3
 from nav_msgs.msg import Odometry as Odom, Path
 from tauv_util.types import tl, tm
+from std_srvs.srv import SetBool
 from tauv_util.transforms import rpy_to_quat, quat_to_rpy
 from scipy.spatial.transform import Rotation
 from motion.trajectories.linear_trajectory import Waypoint, LinearTrajectory
@@ -39,6 +41,8 @@ class TeleopMission:
         self._odom_sub: rospy.Subscriber = rospy.Subscriber('odom', Odom, self._handle_odom)
 
         self._path_pub: rospy.Publisher = rospy.Publisher('path', Path, queue_size=10)
+
+        self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('arm', SetBool)
 
     def start(self):
         while True:
@@ -186,9 +190,52 @@ class TeleopMission:
         except Exception as e:
             print(e)
 
+    def _handle_arm(self, args):
+        print('arm', args.arm)
+
+        self._arm_srv.call(args.arm)
+
+    def _handle_prequal(self, args):
+        print('prequal')
+
+        R = Rotation.from_quat(tl(self._pose.orientation))
+
+        start_position = tl(self._pose.position)
+        start_orientation = quat_to_rpy(self._pose.orientation)
+        start_pose = Pose(tm(start_position, Vector3), rpy_to_quat(start_orientation))
+
+        position_1 = start_position + R.apply(np.array([6.0, 0.01, 0.01]))
+        orientation_1 = start_orientation + np.array([0.01, 0.01, 0.01])
+        pose_1 = Pose(tm(position_1, Vector3), rpy_to_quat(orientation_1))
+        position_2 = start_position + R.apply(np.array([6.01, 0.02, 0.02]))
+        orientation_2 = start_orientation + np.array([0.01, 0.01, pi])
+        pose_2 = Pose(tm(position_2, Vector3), rpy_to_quat(orientation_2))
+        position_3 = start_position + R.apply(np.array([0.01, 0.01, 0.01]))
+        orientation_3 = start_orientation + np.array([0.01, 0.01, pi + 0.01])
+        pose_3 = Pose(tm(position_3, Vector3), rpy_to_quat(orientation_3))
+
+        start_waypoint = Waypoint(start_pose, 0.2, 0.2)
+        waypoint_1 = Waypoint(pose_1, 0.2, 0.2)
+        waypoint_2 = Waypoint(pose_2, 0.2, 0.2)
+        waypoint_3 = Waypoint(pose_3, 0.2, 0.2)
+
+        try:
+            self._traj = LinearTrajectory(
+                [start_waypoint, waypoint_1, waypoint_2, waypoint_3],
+                tuple(args.l),
+                tuple(args.a),
+            )
+
+            self._traj.set_executing()
+
+            self._path_pub.publish(self._traj.as_path())
+        except Exception as e:
+            print(e)
+
     def _handle_odom(self, msg: Odom):
         self._pose = msg.pose.pose
         self._twist = msg.twist.twist
+
 
     def _build_parser(self) -> argparse.ArgumentParser:
         parser = ThrowingArgumentParser(prog="teleop_mission")
@@ -238,6 +285,15 @@ class TeleopMission:
         hold_pose.add_argument('z', type=float)
         hold_pose.add_argument('--enable', action='store_true')
         hold_pose.set_defaults(func=self._handle_hold_pose)
+
+        arm = subparsers.add_parser('arm')
+        arm.add_argument('--arm', action='store_true')
+        arm.set_defaults(func=self._handle_arm)
+
+        prequal = subparsers.add_parser('prequal')
+        prequal.add_argument('--l', type=float, nargs=3, default=[0.2, 0.2, 100.0])
+        prequal.add_argument('--a', type=float, nargs=3, default=[0.2, 0.2, 100.0])
+        prequal.set_defaults(func=self._handle_prequal)
 
         return parser
 

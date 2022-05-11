@@ -1,0 +1,11 @@
+<launch>
+    <arg name="model_name" default="kingfisher"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_sim_description'))"/>
+
+    <node pkg="tauv_sim" type="imu_dvl_transformer" name="imu_dvl_transformer" output="screen">
+        <remap from="imu" to="/xsens_imu/data" />
+        <remap from="imu_out" to="/xsens_imu/fixed_data" />
+        <remap from="dvl" to="/teledyne_dvl/data" />
+        <remap from="dvl_out" to="/teledyne_dvl/fixed_data" />
+    </node>
+</launch>

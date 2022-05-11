@@ -43,7 +43,7 @@ struct ImuPublisher : public PacketCallback
 
     ImuPublisher(ros::NodeHandle &node)
     {
-        int pub_queue_size = 10;
+        int pub_queue_size = 100;
         data_pub = node.advertise<tauv_msgs::XsensImuData>("raw_data", pub_queue_size);
     }
 
@@ -77,9 +77,9 @@ struct ImuPublisher : public PacketCallback
         {
             XsEuler a = packet.orientationEuler();
 
-            orientation.x = -a.roll() * (M_PI / 180.0);
+            orientation.x = a.roll() * (M_PI / 180.0);
             orientation.y = a.pitch() * (M_PI / 180.0);
-            orientation.z = -a.yaw() * (M_PI / 180.0) + M_PI;
+            orientation.z = a.yaw() * (M_PI / 180.0);
         }
 
         geometry_msgs::Vector3 rate_of_turn;
@@ -87,9 +87,9 @@ struct ImuPublisher : public PacketCallback
         {
             XsVector a = packet.calibratedGyroscopeData();
 
-            rate_of_turn.x = -a[0] * (M_PI / 180.0);
+            rate_of_turn.x = a[0] * (M_PI / 180.0);
             rate_of_turn.y = a[1] * (M_PI / 180.0);
-            rate_of_turn.z = -a[2] * (M_PI / 180.0);
+            rate_of_turn.z = a[2] * (M_PI / 180.0);
         }
 
         geometry_msgs::Vector3 linear_acceleration;
@@ -97,9 +97,9 @@ struct ImuPublisher : public PacketCallback
         {
             XsVector a = packet.calibratedAcceleration();
 
-            linear_acceleration.x = -a[0];
+            linear_acceleration.x = a[0];
             linear_acceleration.y = a[1];
-            linear_acceleration.z = -a[2];
+            linear_acceleration.z = a[2];
         }
 
         geometry_msgs::Vector3 free_acceleration;
@@ -107,9 +107,9 @@ struct ImuPublisher : public PacketCallback
         {
             XsVector a = packet.freeAcceleration();
 
-            free_acceleration.x = -a[1];
-            free_acceleration.y = a[0];
-            free_acceleration.z = -a[2];
+            free_acceleration.x = a[0];
+            free_acceleration.y = a[1];
+            free_acceleration.z = a[2];
         }
 
         uint32_t status = packet.status();

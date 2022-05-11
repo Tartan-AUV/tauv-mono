@@ -1,0 +1,10 @@
+<launch>
+    <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
+
+    <node pkg="tauv_mission" type="prequal_mission" name="prequal_mission" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/prequal_mission.yaml" />
+        <remap from="odom" to="/gnc/odom" />
+        <remap from="get_traj" to="/get_traj" />
+        <remap from="arm" to="/thrusters/arm" />
+    </node>
+</launch>

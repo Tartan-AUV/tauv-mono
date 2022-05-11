@@ -141,9 +141,9 @@ class Controller:
         err = (err + pi) % (2 * pi) - pi
 
         efforts = np.array([
-            -self._roll_pid(err[0]),
-            -self._pitch_pid(err[1]),
-            -self._z_pid(err[2]),
+            self._roll_pid(err[0]),
+            self._pitch_pid(err[1]),
+            self._z_pid(err[2]),
         ])
 
         return efforts
@@ -232,17 +232,23 @@ class Controller:
             Ki=self._roll_tunings[1],
             Kd=self._roll_tunings[2],
             error_map=pi_clip,
+            proportional_on_measurement=False,
+            sample_time=0.05,
         )
         self._pitch_pid: PID = PID(
             Kp=self._pitch_tunings[0],
             Ki=self._pitch_tunings[1],
             Kd=self._pitch_tunings[2],
             error_map=pi_clip,
+            proportional_on_measurement=False,
+            sample_time=0.05,
         )
         self._z_pid: PID = PID(
             Kp=self._z_tunings[0],
             Ki=self._z_tunings[1],
             Kd=self._z_tunings[2],
+            proportional_on_measurement=False,
+            sample_time=0.05,
         )
 
 
