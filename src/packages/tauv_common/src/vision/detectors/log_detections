@@ -12,11 +12,17 @@ from vision.depth_estimation.depth_estimation import DepthEstimator
 from geometry_msgs.msg import Point
 from vision.detector_bucket.detector_bucket import Detector_Bucket
 import math
+from tauv_util import transforms
+from tauv_util import types
+from scipy.spatial.transform import Rotation
 
 class LogDetections():
     def __init__(self):
         self.cur_position = (0,0,0)
         self.cur_orientation = (0,0,0)
+
+        self.data = None
+
         self.depth_image = None
         self.created= False
 
@@ -34,15 +40,21 @@ class LogDetections():
         self.bounding_boxes = rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
         self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
                                               queue_size=10)
+        
+        rospy.Timer(rospy.Duration(.5),self.publish)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
         
+    def publish(self, event):
+        self.detector_bucket.publish()
+
     def find(self, tag):
         return self.detector_bucket.find_by_tag(tag)
 
     def update_position(self,data):
         self.cur_position = (data.position.x, data.position.y, data.position.z)
         self.cur_orientation = (data.orientation.x, data.orientation.y, data.orientation.z)
+        self.data = data
 
     def camera_info_callback(self, msg):
         self.depth_camera_info = msg
@@ -52,18 +64,27 @@ class LogDetections():
         self.created=True
 
     def calc_pos(self, relative):
-        roll = self.cur_orientation [0]
-        pitch = self.cur_orientation [1]
-        yaw = self.cur_orientation [2]
+        if (self.data is None):
+            return
+
+        #roll = self.cur_orientation [0]
+        #pitch = self.cur_orientation [1]
+        #yaw = self.cur_orientation [2]
+
+        R = Rotation.from_euler('ZYX', numpy.flip(types.tl(self.data.orientation))).inv()
+        new = numpy.array(types.tl(self.data.position)) + R.apply(relative)
+
+
 
         #rospy.loginfo(f"global orientation {self.cur_orientation}\n")
         #rospy.loginfo(f"global position {self.cur_position}\n")
 
-        (xr,yr,zr) = (relative[0]*math.cos(roll) - relative[1]*math.sin(roll), relative[0]*math.sin(roll)+relative[1]*math.cos(roll), relative[2])
-        (xrp, yrp, zrp) = (xr, yr*math.cos(pitch)+zr*math.sin(pitch),zr*math.cos(pitch)-yr*math.sin(pitch))
-        (xrpy, yrpy, zrpy) = (xrp*math.cos(yaw)-zrp*math.sin(yaw), yrp, xrp*math.sin(yaw)+zrp*math.cos(yaw))
+        # (xrpy, yrpy, zrpy) = (relative[0]*math.cos(yaw)-zrp*math.sin(yaw), yrp, xrp*math.sin(yaw)+zrp*math.cos(yaw))
+        # (xrp, yrp, zrp) = (xr, yr*math.cos(pitch)+zr*math.sin(pitch),zr*math.cos(pitch)-yr*math.sin(pitch))
+        # (xr,yr,zr) = (relative[0]*math.cos(roll) - relative[1]*math.sin(roll), relative[0]*math.sin(roll)+relative[1]*math.cos(roll), relative[2])
+        
 
-        return Point(self.cur_position[0] + zrpy, self.cur_position[1] + xrpy, self.cur_position[2] + yrpy)
+        return types.tm(new, Point)
 
     def bbox_callback(self, bboxes):
         if(not self.created):
@@ -79,6 +100,8 @@ class LogDetections():
             relative_pos = DepthEstimator.estimate_absolute_depth(self.depth_image, bbox, self.depth_camera_info)
 
             objdet.position = self.calc_pos(relative_pos)
+
+            rospy.loginfo(f"calculated pos: {objdet.position}\n")
 
             if(numpy.isnan(objdet.position.x)):
                 continue
