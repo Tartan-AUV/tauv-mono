@@ -13,10 +13,11 @@ class DepthEstimator():
     fy = depth_camera_info.K[4]
     cy = depth_camera_info.K[5]
 
+    width_to_run = 20
 
     center_x = (bbox.xmin + bbox.xmax) // 2
     center_y = (bbox.ymin + bbox.ymax) // 2
-    cur_depth = DepthEstimator.estimate_relative_depth(depth_image, center_x, center_y, 5, bbox)
+    cur_depth = DepthEstimator.estimate_relative_depth(depth_image, center_x, center_y, width_to_run, bbox)
 
     if (cur_depth != np.nan):
       cur_x = ((center_x - cx) * cur_depth) / (fx)

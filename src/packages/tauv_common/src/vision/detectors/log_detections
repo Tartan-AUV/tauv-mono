@@ -41,7 +41,7 @@ class LogDetections():
         self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
                                               queue_size=10)
         
-        rospy.Timer(rospy.Duration(.5),self.publish)
+        rospy.Timer(rospy.Duration(2),self.publish)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
         
@@ -76,8 +76,8 @@ class LogDetections():
 
 
 
-        #rospy.loginfo(f"global orientation {self.cur_orientation}\n")
-        #rospy.loginfo(f"global position {self.cur_position}\n")
+        rospy.loginfo(f"global orientation {self.cur_orientation}\n")
+        rospy.loginfo(f"global position {self.cur_position}\n")
 
         # (xrpy, yrpy, zrpy) = (relative[0]*math.cos(yaw)-zrp*math.sin(yaw), yrp, xrp*math.sin(yaw)+zrp*math.cos(yaw))
         # (xrp, yrp, zrp) = (xr, yr*math.cos(pitch)+zr*math.sin(pitch),zr*math.cos(pitch)-yr*math.sin(pitch))
@@ -98,6 +98,8 @@ class LogDetections():
             objdet.tag = bbox.Class
 
             relative_pos = DepthEstimator.estimate_absolute_depth(self.depth_image, bbox, self.depth_camera_info)
+
+            rospy.loginfo(f"depth pos: {relative_pos}\n")
 
             objdet.position = self.calc_pos(relative_pos)
 

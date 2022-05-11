@@ -139,7 +139,6 @@ class Detector_Daemon(BucketList):
         self.tracker_id = 0
 
     def update_detection_buffer(self, data_frame):
-        #rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
         self.detection_buffer.append(data_frame)
         self.new_data = True
 

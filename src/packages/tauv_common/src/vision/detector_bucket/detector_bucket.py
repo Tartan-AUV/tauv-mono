@@ -99,7 +99,6 @@ class Detector_Bucket():
         daemon.mutex.release()
 
     def publish(self, daemon_name = "camera"):
-        #rospy.loginfo("here")
         daemon = self.daemon_dict[daemon_name]
         rospy.loginfo(f"daemon: {daemon}")
         self.spin_daemon(daemon)
