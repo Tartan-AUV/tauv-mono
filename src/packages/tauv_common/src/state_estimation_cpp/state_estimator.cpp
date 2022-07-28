@@ -181,7 +181,7 @@ void StateEstimator::apply_dvl(const DvlMsg &msg)
 {
   double time = msg.stamp.toSec();
   this->ekf.handle_dvl_measurement(time, msg.velocity, msg.avg_beam_std_dev * this->dvl_covariance);
-  this->ekf.handle_depth_measurement(time, -msg.altitute, this->depth_covariance);
+  // this->ekf.handle_depth_measurement(time, -msg.altitute, this->depth_covariance);
 }
 
 void StateEstimator::apply_depth(const DepthMsg &msg)
