@@ -22,7 +22,7 @@ void sideRainbow(uint64_t t, uint64_t dur) {
   }  
 }
 
-void sideRace(uint64_t t, uint64_t dur) {
+void sideRace(uint64_t t, uint64_t dur, uint8_t brightness) {
   int i = SIDELEN * (-t%dur) / dur;
   int len = SIDELEN / 3;
   int j = 0;
@@ -35,7 +35,7 @@ void sideRace(uint64_t t, uint64_t dur) {
     if (d < 0)
       d = 0;
 //    Serial.print(d);
-    setSidePixelColor(j, Color(255*d/len, 0, 255*d/len));
+    setSidePixelColor(j, Color(255*d/len, 0, 255*d/len, brightness));
 //    Serial.print(",");
   }
 //  Serial.println("");
