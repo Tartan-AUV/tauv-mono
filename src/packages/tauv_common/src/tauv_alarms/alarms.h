@@ -4,11 +4,6 @@
 // This file is generated whenever tauv_common is built using catkin build.
 // See alarms/CMakeLists.txt for configuring the autogen build step
 // 
-<<<<<<< HEAD
-// Generated on Thu Jul 28 02:18:14 2022
-=======
-// Generated on Sun Apr 24 15:58:29 2022
->>>>>>> created a semi-functioning garbage bucket logger that updates every 5 seconds and fixed advaiths code while making it 10x uglier
 
 #pragma once
 
