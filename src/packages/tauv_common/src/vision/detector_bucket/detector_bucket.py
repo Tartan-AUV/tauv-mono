@@ -61,19 +61,6 @@ class Detector_Bucket():
         tag = new_detection.tag != ""
         return tag
 
-    def update_detection_arrows(self, bucket_detection, world_frame, robot_position, id):
-        pos = bucket_detection.position
-        m = Marker()
-        m.header.frame_id = world_frame
-        m.id = id
-        m.points = [robot_position, pos]
-        m.color.g = 1.0
-        m.color.a = 1.0
-        m.scale.x = .05
-        m.scale.y = .05
-        m.scale.z = .05
-        self.arrow_dict[id] = m
-
 
     def update_daemon_service(self, req):
         data_frame = req.objdets

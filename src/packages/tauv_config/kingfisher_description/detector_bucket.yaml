@@ -4,17 +4,17 @@ detectors: {
   camera: {
     type: "vision",
     mahalanobis_threshold: 3.0,
-    debouncing_threshold: 100,
+    debouncing_threshold: 10,
     frame_id: "duo3d_optical_link_front"
   }
 }
 
 object_tags: {
   badge: {
-    dimensions: [0.5,.15, 1],
+    dimensions: [1,.15, 2],
     is_static: true,
     total_number: 1,
-    marker_dims: [0.5,.15, 1],
+    marker_dims: [1,.15, 2],
     marker_color: [0.062,0.105,0.898,.75],
     marker_type: 3
   }

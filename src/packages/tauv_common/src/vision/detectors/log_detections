@@ -24,6 +24,7 @@ class LogDetections():
         self.data = None
 
         self.depth_image = None
+        self.data = None
         self.created= False
 
         self.new_image = False
@@ -35,9 +36,9 @@ class LogDetections():
         self.cv_bridge = CvBridge()
         self.detector_bucket = Detector_Bucket()
         
-        self.depth_image_streamer = rospy.Subscriber("zedm_A/zed_node_A/depth/depth_registered",Image,self.depth_callback)
-        self.depth_camera_info = rospy.Subscriber("/zedm_A/zed_node_A/left/camera_info",CameraInfo, self.camera_info_callback)
-        self.bounding_boxes = rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
+        rospy.Subscriber("zedm_A/zed_node_A/depth/depth_registered",Image,self.depth_callback)
+        rospy.Subscriber("/zedm_A/zed_node_A/left/camera_info",CameraInfo, self.camera_info_callback)
+        rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
         self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
                                               queue_size=10)
         
@@ -75,7 +76,6 @@ class LogDetections():
         new = numpy.array(types.tl(self.data.position)) + R.apply(relative)
 
 
-
         rospy.loginfo(f"global orientation {self.cur_orientation}\n")
         rospy.loginfo(f"global position {self.cur_position}\n")
 
@@ -97,15 +97,20 @@ class LogDetections():
             objdet = BucketDetection()
             objdet.tag = bbox.Class
 
+            if(not self.created):
+                continue
+
             relative_pos = DepthEstimator.estimate_absolute_depth(self.depth_image, bbox, self.depth_camera_info)
 
-            rospy.loginfo(f"depth pos: {relative_pos}\n")
+            #rospy.loginfo(f"current pos: {self.cur_position}\n")
+
+            #rospy.loginfo(f"depth pos: {relative_pos}\n")
 
             objdet.position = self.calc_pos(relative_pos)
 
-            rospy.loginfo(f"calculated pos: {objdet.position}\n")
+            #rospy.loginfo(f"calculated pos: {objdet.position}\n")
 
-            if(numpy.isnan(objdet.position.x)):
+            if(numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z)):
                 continue
 
             objects.objdets.append(objdet)
@@ -118,7 +123,7 @@ class LogDetections():
 def listen():
     s = LogDetections()
     rospy.spin()
-    rospy.loginfo("here!!!\n")
+
 
 if __name__=='__main__':
     listen()
