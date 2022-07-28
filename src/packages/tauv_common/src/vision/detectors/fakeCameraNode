@@ -1,0 +1,24 @@
+#!/usr/bin/env python3
+
+import rospy
+from sensor_msgs.msg import CameraInfo
+
+class Faker():
+    def __init__(self):
+        rospy.init_node('fake_camera', anonymous = True)
+
+        self.camera = CameraInfo()
+        self.camera.K = [694.4517211914062, 0.0, 651.51196280625, 0.0,694.4517211914062,352.3565368652344,0.0,0.0,1.0]
+        
+        self.camera_log = rospy.Publisher("/zedm_A/zed_node_A/left/camera_info", CameraInfo, queue_size = 10)
+        rospy.Timer(rospy.Duration(5), self.publish)
+
+    def publish(self, data):
+        self.camera_log.publish(self.camera)
+
+def listen():
+    s = Faker()
+    rospy.spin()
+
+if __name__=='__main__':
+    listen()

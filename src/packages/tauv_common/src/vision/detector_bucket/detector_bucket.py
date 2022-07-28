@@ -26,6 +26,8 @@ from scipy.spatial.transform import Rotation as R
 
 class Detector_Bucket():
     def __init__(self):
+        #rospy.init_node('detector_bucket', anonymous = True)
+
         self.num_daemons = 1
         self.daemon_names = None
         self.daemon_dict = {}
@@ -34,6 +36,10 @@ class Detector_Bucket():
         rospy.loginfo("[Detector Bucket]: Summoning Daemons: " + str(self.daemon_names))
 
         self.cv_bridge = CvBridge()
+
+        self.bucket_list = BucketList()
+
+        #rospy.init_node('detector_bucket', anonymous = True)
 
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
         self.detection_server = rospy.Subscriber("register_object_detection", RegisterObjectDetections,
@@ -44,6 +50,7 @@ class Detector_Bucket():
             self.num_daemons = int(rospy.get_param("detectors/total_number"))
             rospy.loginfo("[Detector Bucket]: Initializing %d Daemons", self.num_daemons)
             self.daemon_names = rospy.get_param("detectors/names")
+            #rospy.loginfo(f"{self.daemon_names}")
             self.daemon_dict = {name: Detector_Daemon(name, ii) for ii, name in enumerate(self.daemon_names)}
             print(self.daemon_dict)
             return True
@@ -54,26 +61,16 @@ class Detector_Bucket():
         tag = new_detection.tag != ""
         return tag
 
-    def update_detection_arrows(self, bucket_detection, world_frame, robot_position, id):
-        pos = bucket_detection.position
-        m = Marker()
-        m.header.frame_id = world_frame
-        m.id = id
-        m.points = [robot_position, pos]
-        m.color.g = 1.0
-        m.color.a = 1.0
-        m.scale.x = .05
-        m.scale.y = .05
-        m.scale.z = .05
-        self.arrow_dict[id] = m
-
 
     def update_daemon_service(self, req):
         data_frame = req.objdets
         
         # acquire and update data buffer on daemon
         daemon_name = req.detector_tag
+        #rospy.loginfo(f"dict {self.daemon_dict}\n")
         if daemon_name in self.daemon_dict:
+            #rospy.loginfo(f"data = {data_frame}")
+
             daemon = self.daemon_dict[daemon_name]
             daemon.mutex.acquire()
             daemon.update_detection_buffer(data_frame)
@@ -89,7 +86,6 @@ class Detector_Bucket():
         daemon.mutex.release()
 
     def publish(self, daemon_name = "camera"):
-        #rospy.loginfo("here")
         daemon = self.daemon_dict[daemon_name]
         rospy.loginfo(f"daemon: {daemon}")
         self.spin_daemon(daemon)
@@ -116,3 +112,25 @@ class Detector_Bucket():
     def publish_all(self):
        for daemon_name in self.daemon_dict:
             self.publish(daemon_name)
+    def spin(self):
+        for daemon_name in self.daemon_dict:
+            daemon = self.daemon_dict[daemon_name]
+            daemon.mutex.acquire()
+            daemon.spin()
+            daemon.mutex.release()
+
+    def publish(self):
+        self.bucket_list.bucket_list = list()
+        for daemon_name in self.daemon_dict:
+            daemon = self.daemon_dict[daemon_name]
+
+            for det in daemon.tracker_list:
+                #rospy.loginfo(f"{det}")
+
+                new_bucket = BucketDetection()
+                new_bucket.position = Point(det.estimated_point[1][0],det.estimated_point[1][0],det.estimated_point[2][0])
+                new_bucket.tag = det.tag
+
+                self.bucket_list.bucket_list.append(new_bucket)
+
+        self.bucket_list_pub.publish(self.bucket_list)

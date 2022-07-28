@@ -30,7 +30,7 @@ from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
 from scipy.optimize import linear_sum_assignment
 
-
+tracker_id = 0
 
 def array_to_point(arr):
     p = Point()
@@ -46,12 +46,16 @@ def point_to_array(point):
 class Detection_Tracker_Kalman(BucketDetection):
     def __init__(self, tag):
         self.id = -1
+        self.updated_now = False
+
         self.state_space_dim = 3
         self.localized_point = np.zeros((self.state_space_dim, 1))
         self.detections = 0
+
         self.tag = tag
         self.estimated_point = np.zeros((self.state_space_dim, 1))
         self.last_updated_time = 0.0
+
         self.position = Point(0,0,0)
         self.header = Header()
 
@@ -133,13 +137,21 @@ class Detector_Daemon(BucketList):
         if rospy.has_param("detectors/" + self.detector_name + "/debouncing_threshold"):
             rospy.loginfo("[Detector Daemon]: %s. Obtained debouncing threshold", self.detector_name)
             self.debouncing_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/debouncing_threshold"))
+        
         self.bucket_list = []
         self.trackers_to_publish = {}
+
+        self.frame_id = "odom"
+        if rospy.has_param("detectors/" + self.detector_name + "/frame_id"):
+            rospy.loginfo("[Detector Daemon]: %s. Obtained detector frame_id", self.detector_name)
+            self.frame_id = str(rospy.get_param("detectors/" + self.detector_name + "/frame_id"))
+        else:
+            rospy.logerr("[Detector Daemon]: %s: Detector frame_id not specified!" % self.detector_name)
 
         self.tracker_id = 0
 
     def update_detection_buffer(self, data_frame):
-        #rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
+        rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
         self.detection_buffer.append(data_frame)
         self.new_data = True
 
@@ -230,6 +242,7 @@ class Detector_Daemon(BucketList):
                             temp_tracker_holder[tracker_ind] = new_x[0]
                             tracker.localized_point = new_x[0]
                             tracker.detections += 1
+                            tracker.updated_now = True
 
                     if len(unmatch_dets) > 0:
                         for detection_ind in unmatch_dets:
@@ -246,6 +259,8 @@ class Detector_Daemon(BucketList):
                             new_x = new_tracker.estimated_point
                             new_x = new_x.T[0].tolist()
                             new_tracker.localized_point = new_x[0]
+
+                            global tracker_id
                             new_tracker.id = self.tracker_id
 
                             #add to list
@@ -269,7 +284,12 @@ class Detector_Daemon(BucketList):
                     for tracker in self.bucket_list:
                         if tracker.detections >= self.debouncing_threshold:
                             trackers_to_be_published.append(tracker)
+                        tracker.updated_now = False
 
                     self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
+                    rospy.loginfo("[Detector Daemon]: %s: Matched and Tracked Objects: " + str(self.trackers_to_publish))
 
             self.new_data = False
+
+
+

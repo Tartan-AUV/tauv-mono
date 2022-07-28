@@ -10,7 +10,9 @@ class Test:
         self.bucket = rospy.Subscriber("bucket_list", BucketList, self.printer)
 
     def printer(self,data):
+        rospy.loginfo("ENTRY:\n")
         rospy.loginfo(f"{data.bucket_list}")
+        rospy.loginfo("\n")
 
 def listen():
     s = Test()
