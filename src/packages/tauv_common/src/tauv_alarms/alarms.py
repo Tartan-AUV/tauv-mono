@@ -4,7 +4,7 @@
 # This file is generated whenever tauv_common is built using catkin build.
 # See alarms/CMakeLists.txt for configuring the autogen build step
 # 
-# Generated on Sun Apr 24 15:58:29 2022
+# Generated on Thu Jul 28 02:18:14 2022
 
 from .alarm_util import AlarmMeta, AlarmType, FailureLevel
 
@@ -43,6 +43,15 @@ class Alarm(metaclass=AlarmMeta):
         default_set=True,
         description="State estimation is not initialized yet",
         author="Theo Chemel",
+    )
+    
+    KILL_SWITCH_ACTIVE = AlarmType(
+        name="KILL_SWITCH_ACTIVE",
+        id=6,
+        failure_level=FailureLevel.MISSION_FAILURE,
+        default_set=False,
+        description="The hardware kill switch is active",
+        author="Tom Scherlis",
     )
     
 

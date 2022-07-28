@@ -10,11 +10,16 @@ from geometry_msgs.msg import Vector3
 from tauv_msgs.msg import Battery as BatteryMsg, Servos as ServosMsg
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from geometry_msgs.msg import Wrench
+from std_msgs.msg import Bool
+
+from tauv_alarms import Alarm, AlarmClient
 
 
 class Thrusters:
 
     def __init__(self):
+        self._ac: AlarmClient = AlarmClient()
+
         self._dt: float = 0.02
         self._timeout: float = 1.0
 
@@ -22,7 +27,7 @@ class Thrusters:
 
         while not self._try_init():
             rospy.sleep(0.5)
-        print('initialized maestro')
+        rospy.loginfo('initialized maestro')
 
         self._is_armed: bool = False
         self._arm_service: rospy.Service = rospy.Service('arm', SetBool, self._handle_arm)
@@ -35,6 +40,8 @@ class Thrusters:
         self._wrench: Wrench = Wrench()
         self._wrench_update_time: rospy.Time = rospy.Time.now()
 
+        self._killed_pub : rospy.Publisher = rospy.Publisher('killed', Bool, queue_size=1)
+
     def _try_init(self):
         try:
             self._maestro = Maestro(ttyStr=self._maestro_port)
@@ -44,13 +51,24 @@ class Thrusters:
             return False
 
     def start(self):
-        print('[thrusters] start')
+        rospy.loginfo('[thrusters] start')
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
         rospy.spin()
 
     def _update(self, timer_event):
+        _killed = True
+        try:
+            kval = self._maestro.getPosition(self._kill_channel)
+            _killed = kval < 400
+            # rospy.loginfo(kval)
+        except TypeError:
+            rospy.logwarn("read error")
+
+        self._killed_pub.publish(Bool(_killed))
+        self._ac.set(Alarm.KILL_SWITCH_ACTIVE, value=_killed)
+
         if (rospy.Time.now() - self._wrench_update_time).to_sec() > self._timeout \
-                or not self._is_armed:
+                or not self._is_armed or _killed:
             self._wrench = Wrench()
             self._wrench_update_time = rospy.Time.now()
 
@@ -61,8 +79,10 @@ class Thrusters:
         for (thruster, thrust) in enumerate(thrusts):
             self._set_thrust(thruster, thrust)
 
+        self._ac.clear(Alarm.THRUSTER_DRIVER_NOT_INITIALIZED)
+
     def _handle_arm(self, req: SetBoolRequest):
-        print('arming')
+        rospy.loginfo('arming')
         self._is_armed = req.data
         return SetBoolResponse(True, '')
 
@@ -75,7 +95,7 @@ class Thrusters:
         self._wrench_update_time = rospy.Time.now()
 
     def _handle_servos(self, msg: ServosMsg):
-        for i in range(4):
+        for i in range(len(self._servo_channels)):
             self._maestro.setTarget(floor(msg.targets[i] / 180 * 1000 + 1500) * 4, self._servo_channels[i])
 
     def _set_thrust(self, thruster: int, thrust: float):
@@ -140,7 +160,7 @@ class Thrusters:
         self._negative_thrust_coefficients: np.array = np.array(rospy.get_param('~negative_thrust_coefficients'))
         self._thrust_inversions: [float] = rospy.get_param('~thrust_inversions')
         self._tam: np.array = np.linalg.pinv(np.array(rospy.get_param('~tam')))
-
+        self._kill_channel : int = rospy.get_param('~kill_channel')
 
 def main():
     rospy.init_node('thrusters')

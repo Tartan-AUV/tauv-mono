@@ -39,3 +39,10 @@ Alarms:
     default_set: True
     description: State estimation is not initialized yet
     author: Theo Chemel
+
+- KILL_SWITCH_ACTIVE:
+    id: 6
+    failure_level: MISSION_FAILURE
+    default_set: False
+    description: The hardware kill switch is active
+    author: Tom Scherlis
