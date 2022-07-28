@@ -60,7 +60,6 @@ class Thrusters:
         try:
             kval = self._maestro.getPosition(self._kill_channel)
             _killed = kval < 400
-            # rospy.loginfo(kval)
         except TypeError:
             rospy.logwarn("read error")
 
@@ -82,13 +81,12 @@ class Thrusters:
         self._ac.clear(Alarm.THRUSTER_DRIVER_NOT_INITIALIZED)
 
     def _handle_arm(self, req: SetBoolRequest):
-        rospy.loginfo('arming')
+        rospy.loginfo('armed' if req.data else 'disarmed')
         self._is_armed = req.data
         return SetBoolResponse(True, '')
 
     def _handle_battery(self, msg: BatteryMsg):
-        pass
-        # self._battery_voltage = msg.voltage
+        self._battery_voltage = msg.voltage
 
     def _handle_wrench(self, msg: Wrench):
         self._wrench = msg
@@ -137,8 +135,6 @@ class Thrusters:
 
             if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
                 pwm_speed = target_pwm_speed
-
-        # print(f'thruster {thruster} speed {pwm_speed}')
 
         return pwm_speed
 
