@@ -34,7 +34,7 @@ class AlarmClient:
                 self._lastupdated = msg.stamp
                 self._active = set([Alarm(i) for i in msg.active_alarms])
     
-    def set(self, a: AlarmType, msg="", value=True):
+    def set(self, a: AlarmType, msg: str="", value: bool=True):
         if self._monitor:
             raise RuntimeError("Alarm Clients in Monitor mode cannot set/clear exceptions!")
 

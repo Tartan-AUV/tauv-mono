@@ -27,7 +27,7 @@ class Thrusters:
 
         while not self._try_init():
             rospy.sleep(0.5)
-        print('initialized maestro')
+        rospy.loginfo('initialized maestro')
 
         self._is_armed: bool = False
         self._arm_service: rospy.Service = rospy.Service('arm', SetBool, self._handle_arm)
@@ -51,14 +51,21 @@ class Thrusters:
             return False
 
     def start(self):
-        print('[thrusters] start')
+        rospy.loginfo('[thrusters] start')
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
         rospy.spin()
 
     def _update(self, timer_event):
-        _killed = self._maestro.getPosition(self._kill_channel) > 100
+        _killed = True
+        try:
+            kval = self._maestro.getPosition(self._kill_channel)
+            _killed = kval < 400
+            # rospy.loginfo(kval)
+        except TypeError:
+            rospy.logwarn("read error")
+
         self._killed_pub.publish(Bool(_killed))
-        self.ac.set(Alarm.KILL_SWITCH_ACTIVE, _killed)
+        self._ac.set(Alarm.KILL_SWITCH_ACTIVE, value=_killed)
 
         if (rospy.Time.now() - self._wrench_update_time).to_sec() > self._timeout \
                 or not self._is_armed or _killed:
@@ -72,10 +79,10 @@ class Thrusters:
         for (thruster, thrust) in enumerate(thrusts):
             self._set_thrust(thruster, thrust)
 
-        self.ac.clear(Alarm.THRUSTER_DRIVER_NOT_INITIALIZED)
+        self._ac.clear(Alarm.THRUSTER_DRIVER_NOT_INITIALIZED)
 
     def _handle_arm(self, req: SetBoolRequest):
-        print('arming')
+        rospy.loginfo('arming')
         self._is_armed = req.data
         return SetBoolResponse(True, '')
 

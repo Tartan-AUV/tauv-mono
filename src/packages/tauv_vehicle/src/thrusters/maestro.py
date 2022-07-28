@@ -102,7 +102,7 @@ class Maestro:
     # If channel is configured for digital output, values < 6000 = Low ouput
     def setTarget(self, target, chan=0):
         # if Min is defined and Target is below, force to Min
-        print(f'{chan}: {target}')
+        # print(f'{chan}: {target}')
         if self.Mins[chan] > 0 and target < self.Mins[chan]:
             target = self.Mins[chan]
         # if Max is defined and Target is above, force to Max
