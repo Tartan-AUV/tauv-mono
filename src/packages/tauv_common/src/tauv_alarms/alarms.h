@@ -4,7 +4,7 @@
 // This file is generated whenever tauv_common is built using catkin build.
 // See alarms/CMakeLists.txt for configuring the autogen build step
 // 
-// Generated on Sun Apr 24 15:58:29 2022
+// Generated on Thu Jul 28 01:32:37 2022
 
 #pragma once
 
@@ -14,5 +14,6 @@ namespace tauv_alarms {
      THRUSTER_DRIVER_NOT_INITIALIZED=1, 
      DVL_DRIVER_NOT_INITIALIZED=4, 
      STATE_ESTIMATION_NOT_INITIALIZED=5, 
+     KILL_SWITCH_ACTIVE=6, 
   };
 }
