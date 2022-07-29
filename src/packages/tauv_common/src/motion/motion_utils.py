@@ -37,6 +37,8 @@ class MotionUtils:
         self.pose = None
         self.twist = None
 
+        self.holdpos = None
+
         self._odom_sub = rospy.Subscriber('/gnc/odom', OdometryMsg, self._handle_odom)
 
         # 10Hz status update loop:
@@ -45,8 +47,7 @@ class MotionUtils:
             rospy.sleep(0.05)
 
     def abort(self):
-        # TODO
-        pass
+        self.traj = None
 
     def set_trajectory(self, traj):
         assert isinstance(traj, Trajectory)
