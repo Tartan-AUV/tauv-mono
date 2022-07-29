@@ -52,10 +52,10 @@ int main(int argc, char *argv[])
 	xdaInterface->registerPublishers(node);
 
 	while (!xdaInterface->connectDevice())
-	    ROS_INFO("Failed to connect to device, trying again");
+	    ROS_INFO_THROTTLE(10, "Failed to connect to device, trying again");
 
    while (!xdaInterface->prepare())
-        ROS_INFO("Failed to prepare device, trying again");
+        ROS_INFO_THROTTLE(10, "Failed to prepare device, trying again");
 
     ROS_INFO("Connected");
 

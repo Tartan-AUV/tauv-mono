@@ -53,7 +53,8 @@ setup_args = generate_distutils_setup(
              'scripts/alarm_server',
              'scripts/detector_bucket',
              'scripts/log_detections',
-             'scripts/message_printer'],
+             'scripts/message_printer',
+             'scripts/watchdogs'],
 
 )
 setup(**setup_args)
