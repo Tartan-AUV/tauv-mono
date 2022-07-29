@@ -108,7 +108,7 @@ class LinearTrajectory(Trajectory):
 
             start_position = tl(start_waypoint.pose.position)
             target_position = tl(target_waypoint.pose.position)
-            segment_direction = target_position / start_position
+            segment_direction = target_position - start_position
             normalized_segment_direction = segment_direction / np.linalg.norm(segment_direction)
 
             position = segment_position * normalized_segment_direction + start_position
