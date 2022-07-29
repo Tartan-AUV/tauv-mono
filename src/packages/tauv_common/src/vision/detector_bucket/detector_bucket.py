@@ -87,8 +87,8 @@ class Detector_Bucket():
 
     def publish(self, daemon_name = "camera"):
         daemon = self.daemon_dict[daemon_name]
-        rospy.loginfo(f"daemon: {daemon}")
         self.spin_daemon(daemon)
+        # rospy.loginfo(f"daemon: {daemon}")
         self.bucket_list_pub.publish(daemon)
 
     def find(self, daemon_name = "camera"):
@@ -112,25 +112,3 @@ class Detector_Bucket():
     def publish_all(self):
        for daemon_name in self.daemon_dict:
             self.publish(daemon_name)
-    def spin(self):
-        for daemon_name in self.daemon_dict:
-            daemon = self.daemon_dict[daemon_name]
-            daemon.mutex.acquire()
-            daemon.spin()
-            daemon.mutex.release()
-
-    def publish(self):
-        self.bucket_list.bucket_list = list()
-        for daemon_name in self.daemon_dict:
-            daemon = self.daemon_dict[daemon_name]
-
-            for det in daemon.tracker_list:
-                #rospy.loginfo(f"{det}")
-
-                new_bucket = BucketDetection()
-                new_bucket.position = Point(det.estimated_point[1][0],det.estimated_point[1][0],det.estimated_point[2][0])
-                new_bucket.tag = det.tag
-
-                self.bucket_list.bucket_list.append(new_bucket)
-
-        self.bucket_list_pub.publish(self.bucket_list)

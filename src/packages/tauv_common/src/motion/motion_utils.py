@@ -37,12 +37,17 @@ class MotionUtils:
         self.pose = None
         self.twist = None
 
+        self.holdpos = None
+
         self._odom_sub = rospy.Subscriber('/gnc/odom', OdometryMsg, self._handle_odom)
 
         # 10Hz status update loop:
         rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status)
         while not self.initialized:
             rospy.sleep(0.05)
+
+    def abort(self):
+        self.traj = None
 
     def set_trajectory(self, traj):
         assert isinstance(traj, Trajectory)
@@ -53,6 +58,9 @@ class MotionUtils:
 
     def get_robot_state(self):
         return self.pose, self.twist
+
+    def get_position(self):
+        return (self.pose.position.x, self.pose.position.y, self.pose.position.z)
 
     def get_motion_status(self):
         if self.traj is None:

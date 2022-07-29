@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
         sensor_msgs
         tf
         tauv_msgs
+        tauv_common
 )
 
 ## System dependencies are found with CMake's conventions
@@ -131,6 +132,7 @@ catkin_package(
         imu_transformer
         tauv_msgs
         std_srvs
+        tauv_common
 #  DEPENDS system_lib
 )
 

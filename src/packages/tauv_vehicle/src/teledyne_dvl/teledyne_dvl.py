@@ -33,7 +33,7 @@ class TeledyneDVL:
                 rospy.logwarn('No ensemble')
                 continue
 
-            rospy.loginfo(f'[teledyne_dvl] timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
+            rospy.logdebug(f'[teledyne_dvl] timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
 
             self._sweep_sync_timestamps(ensemble.receive_time)
 
@@ -42,8 +42,8 @@ class TeledyneDVL:
                 self._sync_timestamps
             ))
 
-            rospy.loginfo(f'[teledyne_dvl] swept_timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
-            rospy.loginfo(f'[teledyne_dvl] valid_timestamps: {list(map(lambda t: t.to_sec(), valid_timestamps))}')
+            rospy.logdebug(f'[teledyne_dvl] swept_timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
+            rospy.logdebug(f'[teledyne_dvl] valid_timestamps: {list(map(lambda t: t.to_sec(), valid_timestamps))}')
 
             msg: DvlDataMsg = ensemble.to_msg()
 
@@ -59,7 +59,7 @@ class TeledyneDVL:
                     lambda t: t.to_sec() != valid_timestamps[0].to_sec(),
                    self._sync_timestamps
                 ))
-                rospy.loginfo(f'[teledyne_dvl] new valid_timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
+                rospy.logdebug(f'[teledyne_dvl] new valid_timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
             else:
                 rospy.logwarn(f'[teledyne_dvl] no valid timestamps')
                 self._ac.set(Alarm.DVL_NO_TIMESTAMPS)
