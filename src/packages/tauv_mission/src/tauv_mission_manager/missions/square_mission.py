@@ -12,8 +12,8 @@ class SquareMission(Mission):
 
     def run(self) -> None:
         self.p.status("hello")
-        self.dive.run()
-        self.square.run()
+        self.dive.run(1)
+        self.square.run(2)
 
     def cancel(self) -> None:
         self.p.status("byeeee")
