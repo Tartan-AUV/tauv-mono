@@ -18,7 +18,8 @@ class Messager:
         m = Message()
         m.stamp = rospy.Time.now()
         m.message = f"[ {self._name} ] {message}"
-        m.color_code=self._code
+        m.color_code_256 = self._code
+        m.severity = severity
         self._pub.publish(m)
 
         if severity == Messager.SEV_DEBUG:

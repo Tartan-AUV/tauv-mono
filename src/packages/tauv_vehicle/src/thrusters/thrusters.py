@@ -65,6 +65,7 @@ class Thrusters:
 
         self._killed_pub.publish(Bool(_killed))
         self._ac.set(Alarm.KILL_SWITCH_ACTIVE, value=_killed)
+        self._ac.set(Alarm.SUB_DISARMED, value=not self._is_armed)
 
         if (rospy.Time.now() - self._wrench_update_time).to_sec() > self._timeout \
                 or not self._is_armed or _killed:

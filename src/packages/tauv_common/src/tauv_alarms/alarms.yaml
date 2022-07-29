@@ -85,7 +85,7 @@ Alarms:
 - STATE_ESTIMATION_DELAYED:
     id: 10
     failure_level: NO_FAILURE
-    default_set: True
+    default_set: False
     description: State estimation delayed queue is too large
     author: Theo Chemel
 
@@ -109,3 +109,10 @@ Alarms:
     default_set: True
     description: MPC Planner is not initialized yet
     author: Theo Chemel
+
+- SUB_DISARMED:
+    id: 14
+    failure_level: NO_FAILURE
+    default_set: False
+    description: The sub is disarmed
+    author: Tom Scherlis

@@ -1,4 +1,3 @@
-from build.tauv_common.src.alarms.alarms import AlarmTypes
 import rospy
 
 from .alarm_util import AlarmType, FailureLevel
@@ -39,11 +38,11 @@ class AlarmServer:
             self._stamp = rospy.Time.now()
             for a in srv.diff:
                 if a.set:
-                    if a not in self._active:
+                    if Alarm(a.id) not in self._active:
                         self._logger.log(f"{Alarm(a.id).name} set: {a.message}", severity=Messager.SEV_WARNING)
                     self._active.add(Alarm(a.id))
                 else:
-                    if a in self._active:
+                    if Alarm(a.id) in self._active:
                         self._logger.log(f"{Alarm(a.id).name} cleared: {a.message}", severity=Messager.SEV_INFO)
                     self._active.discard(Alarm(a.id))
             res.active_alarms = [a.id for a in self._active]

@@ -49,7 +49,7 @@ class Arduino:
 
         timestamp = rospy.Time.now()
 
-        rospy.loginfo(serial_data)
+        # rospy.loginfo(serial_data)
 
         if serial_data_split[0] == "D":
             if serial_data_split[1].lower() != "nan":
@@ -62,7 +62,8 @@ class Arduino:
             else:
                 rospy.logwarn("bad depth reading")
         else:
-            rospy.logwarn(f'unknown message type: {serial_message_type}')
+            pass
+            # rospy.logwarn(f'unknown message type: {serial_message_type}')
 
         self._ac.clear(Alarm.ARDUINO_NOT_INITIALIZED)
 

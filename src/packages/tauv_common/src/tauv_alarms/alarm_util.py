@@ -49,4 +49,3 @@ class AlarmMeta(type):
     def __iter__(cls) -> typing.Iterator[AlarmType]:
         yield from [cls.__dict__[k] for k in cls.__dict__.keys() if k[:2] != '__']
 
-    def 

@@ -8,19 +8,20 @@ def c(color: int):
     return f"\u001b[38;5;{color}m"
 r="\u001b\u001b[0m"
 
+ec = {
+    Messager.SEV_ERROR: 196,
+    Messager.SEV_WARNING: 172,
+    Messager.SEV_DEBUG: 59,
+    Messager.SEV_INFO: 15
+}
+es = {
+    Messager.SEV_ERROR:   "[ERROR]",
+    Messager.SEV_WARNING: "[ WARN]",
+    Messager.SEV_DEBUG:   "[DEBUG]",
+    Messager.SEV_INFO:    "[ INFO]"
+}
+
 class MessagePrinter:
-    ec = {
-        Messager.SEV_ERROR: 196,
-        Messager.SEV_WARNING: 172,
-        Messager.SEV_DEBUG: 59,
-        Messager.SEV_INFO: 15
-    }
-    es = {
-        Messager.SEV_ERROR:   "[ERROR]",
-        Messager.SEV_WARNING: "[ WARN]",
-        Messager.SEV_DEBUG:   "[DEBUG]",
-        Messager.SEV_INFO:    "[ INFO]"
-    }
 
     def __init__(self) -> None:
         self.sub = rospy.Subscriber("/messages", Message, self.handle_message)
@@ -31,7 +32,7 @@ class MessagePrinter:
         code = msg.color_code_256
         t = msg.stamp.to_sec()
         
-        print(f"[{t:.1f}]{ec(s)}{es(s)}{r} {c(code)}{m}{r}")
+        print(f"[{t:.1f}]{ec[s]}{es[s]}{r} {c(code)}{m}{r}")
         
         if s == Messager.SEV_DEBUG:
             rospy.logdebug(m)
