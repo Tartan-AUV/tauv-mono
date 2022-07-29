@@ -38,7 +38,8 @@ setup_args = generate_distutils_setup(
               'dynamics',
               'tauv_alarms',
               'tauv_util',
-              'motion'],
+              'motion',
+              'tauv_messages'],
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
@@ -51,7 +52,8 @@ setup_args = generate_distutils_setup(
              'scripts/state_estimation',
              'scripts/alarm_server',
              'scripts/detector_bucket',
-             'scripts/log_detections'],
+             'scripts/log_detections',
+             'scripts/message_printer'],
 
 )
 setup(**setup_args)
