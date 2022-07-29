@@ -20,7 +20,6 @@ find_package(catkin REQUIRED COMPONENTS
         sensor_msgs
         tf
         tauv_msgs
-
 )
 
 ## System dependencies are found with CMake's conventions

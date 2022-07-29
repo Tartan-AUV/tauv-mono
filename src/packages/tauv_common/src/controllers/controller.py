@@ -13,9 +13,12 @@ from tauv_util.transforms import quat_to_rpy, twist_body_to_world
 from nav_msgs.msg import Odometry as OdometryMsg
 from scipy.spatial.transform import Rotation
 
+from tauv_alarms import Alarm, AlarmClient
 
 class Controller:
     def __init__(self):
+        self._ac = AlarmClient()
+
         self._dt: float = 1.0 / rospy.get_param('~frequency')
 
         self._pose: Optional[Pose] = None
@@ -90,6 +93,8 @@ class Controller:
         wrench.force = Vector3(tau[0], tau[1], tau[2])
         wrench.torque = Vector3(tau[3], tau[4], tau[5])
         self._wrench_pub.publish(wrench)
+
+        self._ac.clear(Alarm.CONTROLLER_NOT_INITIALIZED)
 
     def _get_acceleration(self) -> np.array:
         efforts = self._get_efforts()

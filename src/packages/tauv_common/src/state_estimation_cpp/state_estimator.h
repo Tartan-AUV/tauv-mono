@@ -61,6 +61,7 @@ class StateEstimator {
     boost::heap::priority_queue<boost::shared_ptr<SensorMsg>, boost::heap::compare<std::greater_equal<boost::shared_ptr<SensorMsg>>>> delayed_queue;
 
     ros::Duration dt;
+    int max_delayed_queue_size;
     ros::Duration horizon_delay;
     Eigen::Vector3d dvl_offset;
     Eigen::Matrix<double, 15, 1> process_covariance;

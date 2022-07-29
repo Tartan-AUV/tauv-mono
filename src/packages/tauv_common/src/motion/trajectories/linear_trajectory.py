@@ -48,12 +48,12 @@ class LinearTrajectory(Trajectory):
 
         start_position = tl(start.pose.position) + 1e-4 * np.random.rand(3)
         end_position = tl(end.pose.position)
-        start_linear_velocity = np.array([0.0, 0.0, 0.0])
-        end_linear_velocity = np.array([0.0, 0.0, 0.0])
+
+        length = np.linalg.norm(end_position - start_position)
 
         self._linear_traj = self._p.plan_trajectory(
-            start_position, end_position,
-            start_linear_velocity, end_linear_velocity,
+            np.array([0.0]), np.array([length]),
+            np.array([0.0]), np.array([0.0]),
             v_max=self._linear_constraints[0],
             a_max=self._linear_constraints[1],
             j_max=self._linear_constraints[2],
@@ -62,15 +62,12 @@ class LinearTrajectory(Trajectory):
         start_yaw = quat_to_rpy(start.pose.orientation)[2]
         end_yaw = quat_to_rpy(end.pose.orientation)[2] + 1e-4 * np.random.rand(1)
 
-        start_yaw_velocity = 0.0
-        end_yaw_velocity = 0.0
-
         # start_body_twist = twist_world_to_body(req.curr_pose, req.curr_twist)
         # start_yaw_velocity = tl(start_body_twist.angular)[2]
 
         self._yaw_traj = self._p.plan_trajectory(
             np.array([start_yaw]), np.array([end_yaw]),
-            np.array([start_yaw_velocity]), np.array([end_yaw_velocity]),
+            np.array([0.0]), np.array([0.0]),
             v_max=self._angular_constraints[0],
             a_max=self._angular_constraints[1],
             j_max=self._angular_constraints[2],
@@ -80,6 +77,7 @@ class LinearTrajectory(Trajectory):
 
 
     def get_points(self, req: GetTrajRequest) -> GetTrajResponse:
+        start_waypoint = self._waypoints[self._target - 1]
         target_waypoint = self._waypoints[self._target]
 
         target_reached = linear_distance(req.curr_pose, target_waypoint.pose) < target_waypoint.linear_error and \
@@ -105,8 +103,16 @@ class LinearTrajectory(Trajectory):
             t_linear = min(t, linear_duration)
             t_yaw = min(t, yaw_duration)
 
-            position = self._linear_traj(t_linear)[:,2]
-            linear_velocity = self._linear_traj(t_linear)[:,1]
+            segment_position = self._linear_traj(t_linear)[0,2]
+            segment_linear_velocity = self._linear_traj(t_linear)[0,1]
+
+            start_position = tl(start_waypoint.pose.position)
+            target_position = tl(target_waypoint.pose.position)
+            segment_direction = target_position / start_position
+            normalized_segment_direction = segment_direction / np.linalg.norm(segment_direction)
+
+            position = segment_position * normalized_segment_direction + start_position
+            linear_velocity = segment_linear_velocity * normalized_segment_direction
 
             yaw = self._yaw_traj(t_yaw)[0,2]
             yaw_velocity = self._yaw_traj(t_yaw)[0,1]

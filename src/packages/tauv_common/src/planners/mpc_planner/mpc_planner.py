@@ -11,9 +11,12 @@ from scipy.spatial.transform import Rotation
 
 from .mpc.mpc import MPC
 
+from tauv_alarms import Alarm, AlarmClient
 
 class MPCPlanner:
     def __init__(self):
+        self._ac = AlarmClient()
+
         self._dt: float = 0.05
 
         self._get_traj_service: rospy.ServiceProxy = rospy.ServiceProxy('get_traj', GetTraj)
@@ -128,6 +131,8 @@ class MPCPlanner:
             orientation = rpy_to_quat(np.array([0.0, 0.0, x_mpc[3, i]]))
             poses.poses.append(Pose(position, orientation))
         self._poses_pub.publish(poses)
+
+        self._ac.clear(Alarm.MPC_PLANNER_NOT_INITIALIZED)
 
     def _send_command(self, cmd: np.array):
         if self._pose is None:

@@ -1,11 +1,14 @@
 import rospy
 from tauv_msgs.msg import FluidDepth as DepthMsg
+from tauv_alarms import Alarm, AlarmClient
 import serial
 
 
 class Arduino:
 
     def __init__(self):
+        self._ac: AlarmClient = AlarmClient()
+
         self._dt: float = 0.10
 
         self._depth_pub: rospy.Publisher = rospy.Publisher('depth', DepthMsg, queue_size=10)
@@ -60,6 +63,8 @@ class Arduino:
                 rospy.logwarn("bad depth reading")
         else:
             rospy.logwarn(f'unknown message type: {serial_message_type}')
+
+        self._ac.clear(Alarm.ARDUINO_NOT_INITIALIZED)
 
 
 def main():

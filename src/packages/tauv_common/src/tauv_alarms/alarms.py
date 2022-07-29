@@ -4,7 +4,7 @@
 # This file is generated whenever tauv_common is built using catkin build.
 # See alarms/CMakeLists.txt for configuring the autogen build step
 # 
-# Generated on Thu Jul 28 02:18:14 2022
+# Generated on Thu Jul 28 15:44:08 2022
 
 from .alarm_util import AlarmMeta, AlarmType, FailureLevel
 
@@ -14,44 +14,125 @@ class Alarm(metaclass=AlarmMeta):
         id=0,
         failure_level=FailureLevel.NO_FAILURE,
         default_set=False,
-        description="special alarm indicating that the client is not connected to the server. Do not set manually.",
+        description="Special alarm indicating that the client is not connected to the server. Do not set manually.",
         author="Tom Scherlis",
     )
     
-    THRUSTER_DRIVER_NOT_INITIALIZED = AlarmType(
-        name="THRUSTER_DRIVER_NOT_INITIALIZED",
+    THRUSTERS_NOT_INITIALIZED = AlarmType(
+        name="THRUSTERS_NOT_INITIALIZED",
         id=1,
         failure_level=FailureLevel.PREDIVE_FAILURE,
         default_set=True,
-        description="Thruster driver not yet initialized",
+        description="Thrusters not yet initialized",
         author="Tom Scherlis",
     )
     
-    DVL_DRIVER_NOT_INITIALIZED = AlarmType(
-        name="DVL_DRIVER_NOT_INITIALIZED",
+    ARDUINO_NOT_INITIALIZED = AlarmType(
+        name="ARDUINO_NOT_INITIALIZED",
+        id=2,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="Arduino is not initialized yet",
+        author="Theo Chemel",
+    )
+    
+    IMU_NOT_INITIALIZED = AlarmType(
+        name="IMU_NOT_INITIALIZED",
+        id=3,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="IMU is not initialized yet",
+        author="Theo Chemel",
+    )
+    
+    IMU_SYNC_NOT_INITIALIZED = AlarmType(
+        name="IMU_SYNC_NOT_INITIALIZED",
         id=4,
         failure_level=FailureLevel.PREDIVE_FAILURE,
         default_set=True,
-        description="DVL Driver is not initialized yet",
+        description="IMU sync is not initialized yet",
+        author="Theo Chemel",
+    )
+    
+    DVL_NOT_INITIALIZED = AlarmType(
+        name="DVL_NOT_INITIALIZED",
+        id=5,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="DVL is not initialized yet",
         author="Tom Scherlis",
+    )
+    
+    DVL_NO_TIMESTAMPS = AlarmType(
+        name="DVL_NO_TIMESTAMPS",
+        id=6,
+        failure_level=FailureLevel.NO_FAILURE,
+        default_set=False,
+        description="DVL has no valid IMU sync timestamps",
+        author="Theo Chemel",
+    )
+    
+    DVL_NO_LOCK = AlarmType(
+        name="DVL_NO_LOCK",
+        id=7,
+        failure_level=FailureLevel.NO_FAILURE,
+        default_set=False,
+        description="DVL has no bottom lock",
+        author="Theo Chemel",
+    )
+    
+    SONAR_NOT_INITIALIZED = AlarmType(
+        name="SONAR_NOT_INITIALIZED",
+        id=8,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="Sonar is not initialized yet",
+        author="Theo Chemel",
     )
     
     STATE_ESTIMATION_NOT_INITIALIZED = AlarmType(
         name="STATE_ESTIMATION_NOT_INITIALIZED",
-        id=5,
+        id=9,
         failure_level=FailureLevel.PREDIVE_FAILURE,
         default_set=True,
         description="State estimation is not initialized yet",
         author="Theo Chemel",
     )
     
+    STATE_ESTIMATION_DELAYED = AlarmType(
+        name="STATE_ESTIMATION_DELAYED",
+        id=10,
+        failure_level=FailureLevel.NO_FAILURE,
+        default_set=True,
+        description="State estimation delayed queue is too large",
+        author="Theo Chemel",
+    )
+    
     KILL_SWITCH_ACTIVE = AlarmType(
         name="KILL_SWITCH_ACTIVE",
-        id=6,
+        id=11,
         failure_level=FailureLevel.MISSION_FAILURE,
         default_set=False,
         description="The hardware kill switch is active",
         author="Tom Scherlis",
+    )
+    
+    CONTROLLER_NOT_INITIALIZED = AlarmType(
+        name="CONTROLLER_NOT_INITIALIZED",
+        id=12,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="Controller is not initialized yet",
+        author="Theo Chemel",
+    )
+    
+    MPC_PLANNER_NOT_INITIALIZED = AlarmType(
+        name="MPC_PLANNER_NOT_INITIALIZED",
+        id=13,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="MPC Planner is not initialized yet",
+        author="Theo Chemel",
     )
     
 

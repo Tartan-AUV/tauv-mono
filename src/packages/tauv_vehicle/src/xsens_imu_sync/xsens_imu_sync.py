@@ -4,6 +4,8 @@ import numpy as np
 from tauv_msgs.msg import XsensImuSync as ImuSyncMsg, XsensImuData as ImuDataMsg
 from std_msgs.msg import Header
 
+from tauv_alarms import Alarm, AlarmClient
+
 class ImuSync:
     VAR_OFFSET_INIT = 2e-3 ** 2
     VAR_SKEW_INIT = 1e-3 ** 2
@@ -11,6 +13,8 @@ class ImuSync:
     VAR_SKEW = 2e-6 ** 2
 
     def __init__(self):
+        self._ac: AlarmClient = AlarmClient()
+
         self._sync_pub = rospy.Publisher('imu_sync', ImuSyncMsg, queue_size=10)
         self._data_pub = rospy.Publisher('imu_data', ImuDataMsg, queue_size=10)
         self._raw_data_sub = rospy.Subscriber('imu_raw_data', ImuDataMsg, self._handle_imu_data)
@@ -31,6 +35,7 @@ class ImuSync:
         self._last_corrected_time = None
         self._last_ros_time = None
         self._last_imu_time = None
+
 
     def start(self):
         rospy.spin()
@@ -101,6 +106,9 @@ class ImuSync:
         self._last_corrected_time = corrected_time
         self._last_ros_time = ros_time
         self._last_imu_time = imu_time
+
+        self._ac.clear(Alarm.IMU_SYNC_NOT_INITIALIZED)
+        self._ac.clear(Alarm.IMU_NOT_INITIALIZED)
 
     def convert_imu_time(self, imu_time):
         dt = (imu_time - self._last_imu_time).to_sec()

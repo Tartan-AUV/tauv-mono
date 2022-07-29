@@ -3,7 +3,7 @@
     <!-- This includes the cascaded pid controller, teleop node, and (TODO) the trajectory planner. -->
 
     <!-- Name of the robot model  -->
-    <arg name="model_name" default="kingfisher"/>
+    <arg name="model_name" default="kingfisher_sim"/>
     <!-- path to config package  -->
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
     <!-- force topic (for the thruster manager) to publish to -->
@@ -35,7 +35,7 @@
             <remap from="hold_pose" to="/controller/hold_pose" />
         </node>
 
-        <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/>
+<!--        <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/>-->
 
         <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />

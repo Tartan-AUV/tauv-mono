@@ -51,7 +51,7 @@ class Thrusters:
             return False
 
     def start(self):
-        rospy.loginfo('[thrusters] start')
+        rospy.loginfo('start')
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
         rospy.spin()
 
@@ -78,7 +78,7 @@ class Thrusters:
         for (thruster, thrust) in enumerate(thrusts):
             self._set_thrust(thruster, thrust)
 
-        self._ac.clear(Alarm.THRUSTER_DRIVER_NOT_INITIALIZED)
+        self._ac.clear(Alarm.THRUSTERS_NOT_INITIALIZED)
 
     def _handle_arm(self, req: SetBoolRequest):
         rospy.loginfo('armed' if req.data else 'disarmed')

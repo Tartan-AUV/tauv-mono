@@ -53,6 +53,8 @@ void StateEstimator::load_config()
   this->n.getParam("frequency", frequency);
   this->dt = ros::Duration(1.0 / double(frequency));
 
+  this->n.getParam("max_delayed_queue_size", this->max_delayed_queue_size);
+
   double horizon_delay;
   this->n.getParam("horizon_delay", horizon_delay);
   this->horizon_delay = ros::Duration(horizon_delay);
@@ -97,6 +99,12 @@ void StateEstimator::update(const ros::TimerEvent& e)
   ros::Time current_time = ros::Time::now() - this->horizon_delay;
 
   ROS_INFO("delayed: %ld, realtime: %ld", this->delayed_queue.size(), this->realtime_queue.size());
+
+  if (this->delayed_queue.size() > (unsigned) this->max_delayed_queue_size) {
+      this->alarm_client.set(tauv_alarms::AlarmType::STATE_ESTIMATION_DELAYED, "Delayed queue is too large.");
+  } else {
+      this->alarm_client.clear(tauv_alarms::AlarmType::STATE_ESTIMATION_DELAYED, "Delayed queue is acceptable.");
+  }
 
   if (!this->delayed_queue.empty() && this->checkpoints.full()) {
     boost::shared_ptr<SensorMsg> msg = this->delayed_queue.top();
@@ -187,7 +195,7 @@ void StateEstimator::apply_dvl(const DvlMsg &msg)
 void StateEstimator::apply_depth(const DepthMsg &msg)
 {
   double time = msg.stamp.toSec();
-  this->ekf.handle_depth_measurement(time, msg.depth, this->depth_covariance); 
+  this->ekf.handle_depth_measurement(time, msg.depth, this->depth_covariance);
 }
 
 void StateEstimator::handle_imu(const tauv_msgs::XsensImuData::ConstPtr& msg)
@@ -227,7 +235,7 @@ void StateEstimator::handle_depth(const tauv_msgs::FluidDepth::ConstPtr& msg)
 {
   if (!this->is_initialized) {
     this->is_initialized = true;
-    this->last_evaluation_time = msg->header.stamp - this->horizon_delay; 
+    this->last_evaluation_time = msg->header.stamp - this->horizon_delay;
   }
 
   boost::shared_ptr<SensorMsg> sensor_msg = boost::shared_ptr<SensorMsg>(new SensorMsg(msg));

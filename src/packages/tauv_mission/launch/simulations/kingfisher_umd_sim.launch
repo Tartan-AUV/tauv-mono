@@ -7,6 +7,8 @@
     <!-- path to config package  -->
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
+    <include file="$(find tauv_common)/launch/alarms/alarms.launch" />
+
     <include file="$(find uuv_gazebo_worlds)/launch/umd.launch" />
 
     <include file="$(arg config_pkg)/launch/upload.launch">
@@ -14,10 +16,10 @@
         <arg name="y" value="5" />
     </include>
 
-    <include file="$(find tauv_common)/launch/gnc/gnc.launch">
-       <arg name="model_name" value="kingfisher_sim" />
-        <arg name="config_pkg" value="$(arg config_pkg)" />
-    </include>
+<!--    <include file="$(find tauv_common)/launch/gnc/gnc.launch">-->
+<!--        <arg name="model_name" value="kingfisher_sim" />-->
+<!--        <arg name="config_pkg" value="$(arg config_pkg)" />-->
+<!--    </include>-->
 
     <include file="$(find tauv_sim)/launch/kingfisher_vehicle.launch" />
 
