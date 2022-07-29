@@ -3,7 +3,7 @@ import rospy
 
 from .alarm_util import AlarmType, FailureLevel
 from .alarms import Alarm
-from tauv_msgs.msg import AlarmReport, AlarmWithMessage
+from tauv_msgs.msg import AlarmReport, AlarmWithMessage, ReadableAlarmReport
 from tauv_msgs.srv import SyncAlarms
 from threading import Lock
 import typing
@@ -21,8 +21,10 @@ class AlarmServer:
                 self._active.add(at)
 
         self.pub = rospy.Publisher('/alarms/report', AlarmReport, queue_size=10)
+        self.pub_readable = rospy.Publisher('/alarms/readable', ReadableAlarmReport, queue_size=10)
         rospy.Service('/alarms/sync', SyncAlarms, self.handle_request)
         rospy.Timer(rospy.Duration(0.1), self.pub_report)
+        rospy.Timer(rospy.Duration(0.5), self.print_readable)
 
     def pub_report(self, timer_event):
         report = AlarmReport()
@@ -48,6 +50,24 @@ class AlarmServer:
             res.stamp = self._stamp
             res.success = True
         return res
+
+    def print_readable(self, timer_event):
+        rep = ReadableAlarmReport()
+        maxfl = FailureLevel.NO_FAILURE
+        for a in self._active:
+            if a.failure_level == FailureLevel.NO_FAILURE:
+                rep.alarms_no_failure.append(a.name)
+            elif a.failure_level == FailureLevel.PREDIVE_FAILURE:
+                rep.alarms_predive_failure.append(a.name)
+            elif a.failure_level == FailureLevel.MISSION_FAILURE:
+                rep.alarms_mission_failure.append(a.name)
+            elif a.failure_level == FailureLevel.CRITICAL_FAILURE:
+                rep.alarms_critical_failure.append(a.name)
+            
+            if a.failure_level.value > maxfl.value:
+                maxfl = a.failure_level
+        rep.failure_level = maxfl.name
+        self.pub_readable.publish(rep)
 
 def main():
     rospy.init_node('alarm_server')

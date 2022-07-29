@@ -79,5 +79,12 @@ class AlarmClient:
             return self._active.union(set([Alarm.UNKNOWN_ALARMS]))
         return self._active
 
-    def check(self, a: AlarmType):
+    def check(self, a: AlarmType) -> bool:
         return a in self._active or (a == Alarm.UNKNOWN_ALARMS and rospy.Time.now() - self._lastupdated > self._timeout)
+
+    def get_failure_level(self) -> FailureLevel:
+        fl = FailureLevel.NO_FAILURE
+        for a in self._active:
+            if a.failure_level.value > fl.value:
+                fl = a.failure_level
+        return fl

@@ -19,6 +19,7 @@ add_message_files(
   RegisterMeasurement.msg
   RegisterObjectDetections.msg
   PoseGraphMeasurement.msg
+  ReadableAlarmReport.msg
   Thrust.msg
   Battery.msg
   XsensImuSync.msg
