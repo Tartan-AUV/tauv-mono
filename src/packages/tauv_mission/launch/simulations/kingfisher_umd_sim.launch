@@ -9,6 +9,8 @@
 
     <include file="$(find tauv_common)/launch/alarms/alarms.launch" />
 
+    <include file="$(find tauv_sim)/launch/imu_dvl_transformer/imu_dvl_transformer.launch" />
+
     <include file="$(find uuv_gazebo_worlds)/launch/umd.launch" />
 
     <include file="$(arg config_pkg)/launch/upload.launch">

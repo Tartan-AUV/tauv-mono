@@ -4,20 +4,25 @@ from enum import Enum
 from typing import Dict, Optional
 
 from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg, Pose as PoseMsg
-from tauv_msgs.srv import HoldPose, HoldPoseRequest, HoldPoseResponse
+from tauv_msgs.srv import SetTargetPose, SetTargetPoseRequest, SetTargetPoseResponse
 from tauv_util.types import tm, tl
 from tauv_util.transforms import rpy_to_quat
 from geometry_msgs.msg import Pose, Vector3
 from sensor_msgs.msg import Joy as JoyMsg
-from std_srvs.srv import SetBool, SetBoolResponse
+from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 
 
 class ButtonInput(Enum):
     ESTOP = 'estop'
     ARM = 'arm'
-    AUTO = 'auto'
     MANUAL = 'manual'
+    MPC = 'mpc'
+    HOLD = 'hold'
 
+class Mode(Enum):
+    MANUAL = 'manual'
+    MPC = 'mpc'
+    HOLD = 'hold'
 
 class AxisInput(Enum):
     X = 'x'
@@ -35,8 +40,8 @@ class TeleopPlanner:
         self._parse_config()
 
         self._is_armed: bool = False
-        self._is_auto: bool = False
-        self._is_hold: bool = False
+        self._is_hold_enabled: bool = False
+        self._mode: Mode = Mode.MANUAL
 
         self._joy_cmd: Optional[np.array] = None
         self._joy_cmd_timestamp: Optional[rospy.Time] = None
@@ -54,7 +59,9 @@ class TeleopPlanner:
         self._pose_sub: rospy.Subscriber = rospy.Subscriber('pose', PoseMsg, self._handle_pose)
         self._cmd_pub: rospy.Publisher = rospy.Publisher('cmd', ControllerCmdMsg, queue_size=10)
         self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('arm', SetBool)
-        self._hold_pose_srv: rospy.ServiceProxy = rospy.ServiceProxy('hold_pose', HoldPose)
+
+        self._target_pose_srv: rospy.ServiceProxy = rospy.ServiceProxy('set_target_pose', SetTargetPose)
+        self._hold_z_srv: rospy.ServiceProxy = rospy.ServiceProxy('set_hold_z', SetBool)
 
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
@@ -74,14 +81,10 @@ class TeleopPlanner:
         cmd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         if not self._is_armed:
             cmd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        elif self._is_auto and is_mpc_cmd_valid:
-            self._set_hold(False)
+        elif self._mode == Mode.MPC and is_mpc_cmd_valid:
             cmd = self._mpc_cmd
-        elif not self._is_auto and is_joy_cmd_valid:
-            self._set_hold(False)
+        elif self._mode == Mode.MANUAL or self._mode == Mode.HOLD and is_joy_cmd_valid:
             cmd = self._joy_cmd
-        # elif self._is_auto and not is_mpc_cmd_valid:
-        #    self._set_hold(True)
 
         msg: ControllerCmdMsg = ControllerCmdMsg()
         msg.a_x = cmd[0]
@@ -99,9 +102,14 @@ class TeleopPlanner:
             self._set_arm(True)
 
         if self._is_pressed(msg, ButtonInput.MANUAL):
-            self._is_auto = False
-        elif self._is_pressed(msg, ButtonInput.AUTO):
-            self._is_auto = True
+            self._mode = Mode.MANUAL
+            self._set_hold(False)
+        elif self._is_pressed(msg, ButtonInput.MPC):
+            self._mode = Mode.MPC
+            self._set_hold(False)
+        elif self._is_pressed(msg, ButtonInput.HOLD):
+            self._mode = Mode.HOLD
+            self._set_hold(True)
 
         self._joy_cmd = np.array([
             self._axis_value(msg, AxisInput.X),
@@ -141,23 +149,36 @@ class TeleopPlanner:
     def _set_hold(self, enable: bool):
         if self._position is None \
                 or self._orientation is None \
-                or self._is_hold == enable:
+                or self._is_hold_enabled == enable:
             return
 
-        pose: Pose = Pose()
-        pose.position = tm(self._position, Vector3)
-        pose.orientation = rpy_to_quat([0.0, 0.0, self._orientation[2]])
+        if enable:
+            pose: Pose = Pose()
+            pose.position = tm(self._position, Vector3)
+            pose.orientation = rpy_to_quat([0.0, 0.0, self._orientation[2]])
+            req = SetTargetPoseRequest(pose=pose)
 
-        req = HoldPoseRequest(enable=enable, pose=pose)
+            try:
+                res: SetTargetPoseResponse = self._target_pose_srv(req)
+                if not res.success:
+                    rospy.logerr('Set target pose request failed')
+                    return
+
+            except rospy.ServiceException:
+                rospy.logerr('Set target pose service not responding')
+                return
+
+        req = SetBoolRequest(enable)
 
         try:
-            res: HoldPoseResponse = self._hold_pose_srv(req)
+            res: SetBoolResponse = self._hold_z_srv(req)
             if not res.success:
-                rospy.logwarn('Hold pose request failed')
+                rospy.logwarn('Set hold z request failed')
 
-            self._is_hold = enable
+            self._is_hold_enabled = enable
         except rospy.ServiceException:
-            rospy.logwarn('Hold pose server not responding')
+            rospy.logwarn('Set hold z service not responding')
+
 
     def _axis_value(self, msg: JoyMsg, axis: AxisInput):
         return self._axis_scales[axis.value] * msg.axes[self._axis_ids[axis.value]]

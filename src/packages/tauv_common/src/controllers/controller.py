@@ -5,9 +5,10 @@ from math import pi
 from simple_pid import PID
 
 from dynamics.dynamics import Dynamics
-from geometry_msgs.msg import Pose, Twist, Wrench, Vector3
+from geometry_msgs.msg import Pose, Twist, Wrench, Vector3, Quaternion
 from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg
-from tauv_msgs.srv import HoldPose, HoldPoseRequest, HoldPoseResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TuneControls, TuneControlsRequest, TuneControlsResponse
+from tauv_msgs.srv import SetTargetPose, SetTargetPoseRequest, SetTargetPoseResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TuneControls, TuneControlsRequest, TuneControlsResponse
+from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from tauv_util.types import tl, tm
 from tauv_util.transforms import quat_to_rpy, twist_body_to_world
 from nav_msgs.msg import Odometry as OdometryMsg
@@ -24,7 +25,8 @@ class Controller:
         self._pose: Optional[Pose] = None
         self._body_twist: Optional[Twist] = None
         self._target_pose: Pose = Pose()
-        self._hold_depth: bool = False
+        self._target_pose.orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
+        self._hold_z: bool = False
 
         self._roll_tunings: np.array = np.array(rospy.get_param('~roll_tunings'))
         self._pitch_tunings: np.array = np.array(rospy.get_param('~pitch_tunings'))
@@ -32,7 +34,8 @@ class Controller:
 
         self._build_pids()
 
-        self._hold_pose_srv: rospy.Service = rospy.Service('hold_pose', HoldPose, self._handle_hold_pose)
+        self._target_pose_srv: rospy.Service = rospy.Service('set_target_pose', SetTargetPose, self._handle_target_pose)
+        self._hold_z_srv: rospy.Service = rospy.Service('set_hold_z', SetBool, self._handle_hold_z)
         self._tune_dynamics_srv: rospy.Service = rospy.Service('tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
         self._tune_pids_srv: rospy.Service = rospy.Service('tune_controls', TuneControls, self._handle_tune_controls)
 
@@ -71,7 +74,8 @@ class Controller:
         rospy.spin()
 
     def _update(self, timer_event):
-        if self._pose is None or self._body_twist is None or (self._cmd_acceleration is None and self._hold_pose is None):
+        print(self._pose, self._body_twist, self._cmd_acceleration)
+        if self._pose is None or self._body_twist is None or self._cmd_acceleration is None:
             return
 
         eta = np.concatenate((
@@ -87,8 +91,8 @@ class Controller:
 
         tau = self._dyn.compute_tau(eta, v, vd)
         while not np.allclose(np.minimum(np.abs(tau), self._max_wrench), np.abs(tau)):
-            vd = 0.75 * vd
-            tau = self._dyn.compute_tau(eta, v, vd)
+            tau = 0.75 * tau
+            # tau = self._dyn.compute_tau(eta, v, vd)
         # bounded_tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
         wrench: Wrench = Wrench()
@@ -101,19 +105,19 @@ class Controller:
     def _get_acceleration(self) -> np.array:
         efforts = self._get_efforts()
 
-        if self._hold_depth:
+        if self._hold_z:
             R = Rotation.from_quat(tl(self._pose.orientation)).inv()
 
             world_acceleration = np.array([0.0, 0.0, efforts[2]])
             body_acceleration = R.apply(world_acceleration)
 
-            vd = np.concatenate([
-                body_acceleration[0],
-                body_acceleration[1],
-                body_acceleration[2],
+            vd = np.array([
+                body_acceleration[0] + self._cmd_acceleration[0],
+                body_acceleration[1] + self._cmd_acceleration[1],
+                body_acceleration[2] + self._cmd_acceleration[2],
                 efforts[0],
                 efforts[1],
-                0.0,
+                self._cmd_acceleration[5],
             ])
         else:
             vd = np.array([
@@ -170,9 +174,13 @@ class Controller:
             msg.a_yaw,
         ])
 
-    def _handle_hold_pose(self, req: HoldPoseRequest) -> HoldPoseResponse:
-        self._hold_pose = req.pose if req.enable else None
-        return HoldPoseResponse(True)
+    def _handle_target_pose(self, req: SetTargetPoseRequest) -> SetTargetPoseResponse:
+        self._target_pose = req.pose
+        return SetTargetPoseResponse(True)
+
+    def _handle_hold_z(self, req: SetBoolRequest) -> SetBoolResponse:
+        self._hold_z = req.data
+        return SetBoolResponse(True, "")
 
     def _handle_tune_dynamics(self, req: TuneDynamicsRequest) -> TuneDynamicsResponse:
         if req.tunings.update_mass:

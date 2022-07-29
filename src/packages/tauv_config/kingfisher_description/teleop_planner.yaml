@@ -1,8 +1,9 @@
 button_ids:
   arm: 0
   estop: 1
-  auto: 3
+  mpc: 3
   manual: 2
+  hold: 5
 axis_ids:
   x: 4
   y: 0

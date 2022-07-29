@@ -20,7 +20,8 @@
             <remap from="odom" to="/gnc/odom"/>
             <remap from="controller_cmd" to="/controller/cmd"/>
             <remap from="wrench" to="/thrusters/wrench"/>
-            <remap from="hold_pose" to="/controller/hold_pose" />
+            <remap from="set_target_pose" to="/controller/set_target_pose" />
+            <remap from="set_hold_z" to="/controller/set_hold_z" />
             <remap from="tune_dynamics" to="/controller/tune_dynamics" />
             <remap from="tune_controls" to="/controller/tune_controls" />
         </node>
@@ -32,7 +33,8 @@
             <remap from="mpc_cmd" to="/mpc/cmd" />
             <remap from="arm" to="/thrusters/arm" />
             <remap from="pose" to="/gnc/pose" />
-            <remap from="hold_pose" to="/controller/hold_pose" />
+            <remap from="set_target_pose" to="/controller/set_target_pose" />
+            <remap from="set_hold_z" to="/controller/set_hold_z" />
         </node>
 
         <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/>

@@ -5,7 +5,7 @@ from typing import Optional
 from math import pi
 
 from tauv_msgs.msg import ControlsTunings, DynamicsTunings
-from tauv_msgs.srv import TuneControls, TuneControlsRequest, TuneControlsResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, GetTraj, GetTrajRequest, GetTrajResponse, HoldPose, HoldPoseRequest, HoldPoseResponse
+from tauv_msgs.srv import TuneControls, TuneControlsRequest, TuneControlsResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, GetTraj, GetTrajRequest, GetTrajResponse, SetTargetPose, SetTargetPoseRequest, SetTargetPoseResponse
 from geometry_msgs.msg import Pose, Twist, Vector3
 from nav_msgs.msg import Odometry as Odom, Path
 from tauv_util.types import tl, tm
@@ -36,7 +36,7 @@ class TeleopMission:
 
         self._tune_controls_srv: rospy.ServiceProxy = rospy.ServiceProxy('tune_controls', TuneControls)
         self._tune_dynamics_srv: rospy.ServiceProxy = rospy.ServiceProxy('tune_dynamics', TuneDynamics)
-        self._hold_pose_srv: rospy.ServiceProxy = rospy.ServiceProxy('hold_pose', HoldPose)
+        self._target_pose_srv: rospy.ServiceProxy = rospy.ServiceProxy('set_target_pose', SetTargetPose)
 
         self._odom_sub: rospy.Subscriber = rospy.Subscriber('odom', Odom, self._handle_odom)
 
@@ -158,10 +158,9 @@ class TeleopMission:
         pose.position = Vector3(0.0, 0.0, args.z)
         pose.orientation = rpy_to_quat(np.array([args.roll, args.pitch, 0.0]))
 
-        req: HoldPoseRequest = HoldPoseRequest()
-        req.enable = args.enable is not None
+        req: SetTargetPoseRequest = SetTargetPoseRequest()
         req.pose = pose
-        self._hold_pose_srv.call(req)
+        self._target_pose_srv.call(req)
 
     def _handle_go(self, args):
         print('go', args.x, args.y, args.z, args.yaw)

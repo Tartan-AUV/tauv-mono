@@ -32,7 +32,7 @@ add_service_files(
   TuneDynamics.srv
   TuneControls.srv
   GetTraj.srv
-  HoldPose.srv
+  SetTargetPose.srv
   SetPose.srv
 )
 
