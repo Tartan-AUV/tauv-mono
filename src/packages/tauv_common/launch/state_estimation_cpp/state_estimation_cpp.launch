@@ -2,7 +2,7 @@
     <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
     <arg name="debug" default="none" />
 
-    <group ns="gnc">
+<!--    <group ns="gnc">-->
         <node
             pkg="tauv_common"
             type="state_estimation_cpp"
@@ -18,5 +18,5 @@
             <remap from="/gnc/state_estimation_cpp/dvl" to="/teledyne_dvl/data" />
             <remap from="/gnc/state_estimation_cpp/depth" to="/arduino/depth" />
         </node>
-    </group>
+<!--    </group>-->
 </launch>
