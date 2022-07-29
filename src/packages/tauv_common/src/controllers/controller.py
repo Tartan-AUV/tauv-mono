@@ -16,11 +16,16 @@ from scipy.spatial.transform import Rotation
 
 from tauv_alarms import Alarm, AlarmClient
 
+
 class Controller:
     def __init__(self):
         self._ac = AlarmClient()
 
         self._dt: float = 1.0 / rospy.get_param('~frequency')
+
+        self._effort_buffer_index = 0
+        self._effort_buffer_size = 10
+        self._effort_buffer = np.zeros((self._effort_buffer_size, 3))
 
         self._pose: Optional[Pose] = None
         self._body_twist: Optional[Twist] = None
@@ -149,7 +154,7 @@ class Controller:
             self._pose.position.z
         ])
 
-        err = target - current
+        err = current - target
         err = (err + pi) % (2 * pi) - pi
 
         efforts = np.array([
@@ -158,7 +163,12 @@ class Controller:
             self._z_pid(err[2]),
         ])
 
-        return efforts
+        self._effort_buffer[self._effort_buffer_index] = efforts
+        self._effort_buffer_index = (self._effort_buffer_index + 1) % self._effort_buffer_size
+
+        filtered_efforts = np.mean(self._effort_buffer, axis=0)
+
+        return filtered_efforts
 
     def _handle_odom(self, msg: OdometryMsg):
         self._pose = msg.pose.pose
@@ -249,7 +259,7 @@ class Controller:
             Kd=self._roll_tunings[2],
             error_map=pi_clip,
             proportional_on_measurement=False,
-            sample_time=0.05,
+            # sample_time=0.05,
         )
         self._pitch_pid: PID = PID(
             Kp=self._pitch_tunings[0],
@@ -257,14 +267,14 @@ class Controller:
             Kd=self._pitch_tunings[2],
             error_map=pi_clip,
             proportional_on_measurement=False,
-            sample_time=0.05,
+            # sample_time=0.05,
         )
         self._z_pid: PID = PID(
             Kp=self._z_tunings[0],
             Ki=self._z_tunings[1],
             Kd=self._z_tunings[2],
             proportional_on_measurement=False,
-            sample_time=0.05,
+            # sample_time=0.,
         )
 
 

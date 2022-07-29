@@ -79,11 +79,11 @@ class TeleopPlanner:
             and (time - self._mpc_cmd_timestamp).to_sec() < self._mpc_cmd_timeout
 
         cmd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        if not self._is_armed:
-            cmd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        elif self._mode == Mode.MPC and is_mpc_cmd_valid:
+        # if not self._is_armed:
+        #     cmd = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        if self._mode == Mode.MPC and is_mpc_cmd_valid:
             cmd = self._mpc_cmd
-        elif self._mode == Mode.MANUAL or self._mode == Mode.HOLD and is_joy_cmd_valid:
+        elif (self._mode == Mode.MANUAL or self._mode == Mode.HOLD) and is_joy_cmd_valid:
             cmd = self._joy_cmd
 
         msg: ControllerCmdMsg = ControllerCmdMsg()
@@ -137,12 +137,12 @@ class TeleopPlanner:
         self._orientation = tl(msg.orientation)
 
     def _set_arm(self, arm: bool):
-        self._is_armed = arm
-
         try:
-            res: SetBoolResponse = self._arm_srv(arm)
+            res: SetBoolResponse = self._arm_srv.call(arm)
             if not res.success:
                 rospy.logwarn('Arm request failed')
+            else:
+                self._is_armed = arm
         except rospy.ServiceException:
             rospy.logwarn('Arm server not responding')
 
@@ -156,10 +156,11 @@ class TeleopPlanner:
             pose: Pose = Pose()
             pose.position = tm(self._position, Vector3)
             pose.orientation = rpy_to_quat([0.0, 0.0, self._orientation[2]])
-            req = SetTargetPoseRequest(pose=pose)
+            req = SetTargetPoseRequest()
+            req.pose = pose
 
             try:
-                res: SetTargetPoseResponse = self._target_pose_srv(req)
+                res: SetTargetPoseResponse = self._target_pose_srv.call(req)
                 if not res.success:
                     rospy.logerr('Set target pose request failed')
                     return
@@ -171,7 +172,7 @@ class TeleopPlanner:
         req = SetBoolRequest(enable)
 
         try:
-            res: SetBoolResponse = self._hold_z_srv(req)
+            res: SetBoolResponse = self._hold_z_srv.call(req)
             if not res.success:
                 rospy.logwarn('Set hold z request failed')
 
