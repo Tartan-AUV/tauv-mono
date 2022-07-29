@@ -23,7 +23,8 @@ class Controller:
 
         self._pose: Optional[Pose] = None
         self._body_twist: Optional[Twist] = None
-        self._hold_pose: Optional[Pose] = None
+        self._target_pose: Pose = Pose()
+        self._hold_depth: bool = False
 
         self._roll_tunings: np.array = np.array(rospy.get_param('~roll_tunings'))
         self._pitch_tunings: np.array = np.array(rospy.get_param('~pitch_tunings'))
@@ -86,7 +87,8 @@ class Controller:
 
         tau = self._dyn.compute_tau(eta, v, vd)
         while not np.allclose(np.minimum(np.abs(tau), self._max_wrench), np.abs(tau)):
-            tau = 0.75 * tau
+            vd = 0.75 * vd
+            tau = self._dyn.compute_tau(eta, v, vd)
         # bounded_tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
         wrench: Wrench = Wrench()
@@ -99,16 +101,20 @@ class Controller:
     def _get_acceleration(self) -> np.array:
         efforts = self._get_efforts()
 
-        if self._hold_pose is not None:
+        if self._hold_depth:
             R = Rotation.from_quat(tl(self._pose.orientation)).inv()
 
             world_acceleration = np.array([0.0, 0.0, efforts[2]])
             body_acceleration = R.apply(world_acceleration)
 
-            vd = np.concatenate((
-                body_acceleration,
-                np.array([efforts[0], efforts[1], 0.0])
-            ))
+            vd = np.concatenate([
+                body_acceleration[0],
+                body_acceleration[1],
+                body_acceleration[2],
+                efforts[0],
+                efforts[1],
+                0.0,
+            ])
         else:
             vd = np.array([
                 self._cmd_acceleration[0],
@@ -125,24 +131,21 @@ class Controller:
         if self._pose is None or self._body_twist is None:
             return np.array([0.0, 0.0, 0.0])
 
-        targets = np.array([0.0, 0.0, 0.0])
-
-        if self._hold_pose is not None:
-            rot = quat_to_rpy(self._hold_pose.orientation)
-            targets = np.array([
-                rot[0],
-                rot[1],
-                self._hold_pose.position.z,
-            ])
-
-        rot = quat_to_rpy(self._pose.orientation)
-        pos = np.array([
-            rot[0],
-            rot[1],
-            self._pose.position.z,
+        target_rpy = quat_to_rpy(self._target_pose.orientation)
+        target = np.array([
+            target_rpy[0],
+            target_rpy[1],
+            self._target_pose.position.z,
         ])
 
-        err = targets - pos
+        current_rpy = quat_to_rpy(self._pose.orientation)
+        current = np.array([
+            current_rpy[0],
+            current_rpy[1],
+            self._pose.position.z
+        ])
+
+        err = target - current
         err = (err + pi) % (2 * pi) - pi
 
         efforts = np.array([
