@@ -81,7 +81,7 @@ bool XdaInterface::connectDevice()
 	{
 		int baudrateParam = 0;
 		ros::param::get("~baudrate", baudrateParam);
-		ROS_INFO("Found baudrate parameter: %d", baudrateParam);
+		ROS_INFO_THROTTLE(10, "Found baudrate parameter: %d", baudrateParam);
 		baudrate = XsBaud::numericToRate(baudrateParam);
 	} else {
 	    return handleError("No baudrate specified");
@@ -93,9 +93,9 @@ bool XdaInterface::connectDevice()
 	{
 		std::string portName;
 		ros::param::get("~port", portName);
-		ROS_INFO("Found port name parameter: %s", portName.c_str());
+		ROS_INFO_THROTTLE(10, "Found port name parameter: %s", portName.c_str());
 		mtPort = XsPortInfo(portName, baudrate);
-		ROS_INFO("Scanning port %s ...", portName.c_str());
+		ROS_INFO_THROTTLE(10, "Scanning port %s ...", portName.c_str());
 		if (!XsScanner::scanPort(mtPort, baudrate))
 			return handleError("No MTi device found. Verify port and baudrate.");
 	} else {
@@ -170,7 +170,7 @@ void XdaInterface::registerCallback(PacketCallback *cb)
 
 bool XdaInterface::handleError(std::string error)
 {
-	ROS_ERROR("%s", error.c_str());
+	ROS_ERROR_THROTTLE(10, "%s", error.c_str());
 	close();
 	return false;
 }

@@ -90,7 +90,7 @@ void StateEstimator::update(const ros::TimerEvent& e)
 
   ros::Time current_time = ros::Time::now() - this->horizon_delay;
 
-  ROS_INFO("delayed: %ld, realtime: %ld", this->delayed_queue.size(), this->realtime_queue.size());
+  ROS_DEBUG("delayed: %ld, realtime: %ld", this->delayed_queue.size(), this->realtime_queue.size());
 
   if (this->delayed_queue.size() > (unsigned) this->max_delayed_queue_size) {
       this->alarm_client.set(tauv_alarms::AlarmType::STATE_ESTIMATION_DELAYED, "Delayed queue is too large.");

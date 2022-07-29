@@ -7,17 +7,19 @@ add_message_files(
   FILES
   AlarmReport.msg
   AlarmWithMessage.msg
+  ControllerCmd.msg
+  ControlsTunings.msg
   BucketDetection.msg
   BucketList.msg
   FluidDepth.msg
-  ControllerCmd.msg
   DynamicsTunings.msg
-  ControlsTunings.msg
+  Message.msg
   SonarPulse.msg
   Servos.msg
   RegisterMeasurement.msg
   RegisterObjectDetections.msg
   PoseGraphMeasurement.msg
+  ReadableAlarmReport.msg
   Thrust.msg
   Battery.msg
   XsensImuSync.msg
@@ -34,6 +36,7 @@ add_service_files(
   GetTraj.srv
   SetTargetPose.srv
   SetPose.srv
+  RunBasicMission.srv
 )
 
 

@@ -21,7 +21,7 @@ from setuptools import find_packages
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['mission_manager',
+    packages=['tauv_mission_manager',
               'tasks',
               'test_mission_scripts',
               'teleop_mission',
