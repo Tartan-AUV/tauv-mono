@@ -1,3 +1,4 @@
+from typing import Tuple
 import rospy
 import numpy as np
 
@@ -17,6 +18,11 @@ class Waypoint:
         self.linear_error: float = linear_error
         self.angular_error: float = angular_error
 
+    def __init__(self, target: tuple, linear_error=0.25, angular_error=0.25):
+        self.pose = Pose(Vector3(pos[0],pos[1],pos[2]), Vector3())
+        self.linear_error = linear_error
+        self.angular_error = angular_error
+
     def to_pose_stamped(self) -> PoseStamped:
         ps = PoseStamped()
         ps.header.frame_id = 'odom'
@@ -25,7 +31,7 @@ class Waypoint:
 
 
 class LinearTrajectory(Trajectory):
-    def __init__(self, waypoints: [Waypoint], linear_constraints: (float, float, float), angular_constraints: (float, float, float)):
+    def __init__(self, waypoints: [Waypoint], linear_constraints: tuple=(1,1,1), angular_constraints: tuple=(1,1,1)):
         self._waypoints: [Waypoint] = waypoints
         self._target: int = 1
 

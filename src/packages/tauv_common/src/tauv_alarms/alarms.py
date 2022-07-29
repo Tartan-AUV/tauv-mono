@@ -4,7 +4,7 @@
 # This file is generated whenever tauv_common is built using catkin build.
 # See alarms/CMakeLists.txt for configuring the autogen build step
 # 
-# Generated on Thu Jul 28 19:34:01 2022
+# Generated on Fri Jul 29 15:34:56 2022
 
 from .alarm_util import AlarmMeta, AlarmType, FailureLevel
 
@@ -103,7 +103,7 @@ class Alarm(metaclass=AlarmMeta):
         name="STATE_ESTIMATION_DELAYED",
         id=10,
         failure_level=FailureLevel.NO_FAILURE,
-        default_set=True,
+        default_set=False,
         description="State estimation delayed queue is too large",
         author="Theo Chemel",
     )
@@ -133,6 +133,51 @@ class Alarm(metaclass=AlarmMeta):
         default_set=True,
         description="MPC Planner is not initialized yet",
         author="Theo Chemel",
+    )
+    
+    SUB_DISARMED = AlarmType(
+        name="SUB_DISARMED",
+        id=14,
+        failure_level=FailureLevel.NO_FAILURE,
+        default_set=False,
+        description="The sub is disarmed",
+        author="Tom Scherlis",
+    )
+    
+    CAMERA_NO_VIDEO_FRONT = AlarmType(
+        name="CAMERA_NO_VIDEO_FRONT",
+        id=15,
+        failure_level=FailureLevel.MISSION_FAILURE,
+        default_set=True,
+        description="No video from camera A (front cam)",
+        author="Tom Scherlis",
+    )
+    
+    CAMERA_NO_VIDEO_BOTTOM = AlarmType(
+        name="CAMERA_NO_VIDEO_BOTTOM",
+        id=16,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="No video from camera B (bottom cam)",
+        author="Tom Scherlis",
+    )
+    
+    GNC_NO_POSE = AlarmType(
+        name="GNC_NO_POSE",
+        id=17,
+        failure_level=FailureLevel.MISSION_FAILURE,
+        default_set=True,
+        description="No pose published from GNC system",
+        author="Tom Scherlis",
+    )
+    
+    MISSION_MANAGER_NOT_INITIALIZED = AlarmType(
+        name="MISSION_MANAGER_NOT_INITIALIZED",
+        id=18,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="Mission manager is not initialized",
+        author="Tom Scherlis",
     )
     
 

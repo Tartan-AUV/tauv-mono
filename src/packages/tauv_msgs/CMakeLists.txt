@@ -36,6 +36,7 @@ add_service_files(
   GetTraj.srv
   SetTargetPose.srv
   SetPose.srv
+  RunBasicMission.srv
 )
 
 

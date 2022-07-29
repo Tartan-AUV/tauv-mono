@@ -44,6 +44,10 @@ class MotionUtils:
         while not self.initialized:
             rospy.sleep(0.05)
 
+    def abort(self):
+        # TODO
+        pass
+
     def set_trajectory(self, traj):
         assert isinstance(traj, Trajectory)
         self.traj = traj
@@ -53,6 +57,9 @@ class MotionUtils:
 
     def get_robot_state(self):
         return self.pose, self.twist
+
+    def get_position(self):
+        return (self.pose.position.x, self.pose.position.y, self.pose.position.z)
 
     def get_motion_status(self):
         if self.traj is None:

@@ -34,14 +34,14 @@ class MessagePrinter:
         
         print(f"[{t:.1f}]{ec[s]}{es[s]}{r} {c(code)}{m}{r}")
         
-        if s == Messager.SEV_DEBUG:
-            rospy.logdebug(m)
-        elif s == Messager.SEV_INFO:
-            rospy.loginfo(m)
-        elif s == Messager.SEV_WARNING:
-            rospy.logwarn(m)
-        elif s == Messager.SEV_ERROR:
-            rospy.logerr(m)
+        # if s == Messager.SEV_DEBUG:
+        #     rospy.logdebug(m)
+        # elif s == Messager.SEV_INFO:
+        #     rospy.loginfo(m)
+        # elif s == Messager.SEV_WARNING:
+        #     rospy.logwarn(m)
+        # elif s == Messager.SEV_ERROR:
+        #     rospy.logerr(m)
 
 def main():
     rospy.init_node('message_printer')

@@ -137,3 +137,10 @@ Alarms:
     default_set: True
     description: No pose published from GNC system
     author: Tom Scherlis
+
+- MISSION_MANAGER_NOT_INITIALIZED:
+    id: 18
+    failure_level: PREDIVE_FAILURE
+    default_set: True
+    description: Mission manager is not initialized
+    author: Tom Scherlis
