@@ -6,6 +6,7 @@ Ekf::Ekf()
 {
   this->cov = 1e-9 * Eigen::Matrix<double, 15, 15>::Identity();
   this->state = Eigen::Matrix<double, 15, 1>::Zero();
+  this->reference_yaw = 0;
 }
 
 void Ekf::get_state(Eigen::Matrix<double, 15, 1> &state)
@@ -42,10 +43,13 @@ void Ekf::get_state_fields(double time, Eigen::Vector3d &position, Eigen::Vector
   Eigen::Matrix<double, 15, 1> state = Eigen::Matrix<double, 15, 1>::Zero();
   this->extrapolate_state(dt, this->state, state);
 
+  Eigen::Vector3d corrected_orientation { state(S::ROLL), state(S::PITCH), state(S::YAW) - this->reference_yaw };
+  this->wrap_angles(corrected_orientation);
+
   position << state(S::X), state(S::Y), state(S::Z);
   velocity << state(S::VX), state(S::VY), state(S::VZ);
   acceleration << state(S::AX), state(S::AY), state(S::AZ);
-  orientation << state(S::ROLL), state(S::PITCH), state(S::YAW);
+  orientation << corrected_orientation.x(), corrected_orientation.y(), corrected_orientation.z();
   angular_velocity << state(S::VROLL), state(S::VPITCH), state(S::VYAW);
 }
 
@@ -74,7 +78,7 @@ void Ekf::handle_imu_measurement(double time,
 
   Eigen::VectorXi angle_fields(3);
   angle_fields << 0, 1, 2;
-  this->wrap_angles(angle_fields, y);
+//  this->wrap_angles(angle_fields, y);
 
   Eigen::VectorXd cov(9);
   cov << covariance;
@@ -166,7 +170,7 @@ void Ekf::update(Eigen::VectorXi &fields, Eigen::VectorXd &inn, Eigen::VectorXd 
 
   Eigen::VectorXi angle_fields(3); 
   angle_fields << StateIndex::ROLL, StateIndex::PITCH, StateIndex::YAW;
-  this->wrap_angles(angle_fields, this->state);
+//  this->wrap_angles(angle_fields, this->state);
 
   this->cov = (I - K * H) * this->cov * (I - K * H).transpose();
   this->cov += (K * R) * K.transpose();
@@ -184,7 +188,7 @@ void Ekf::extrapolate_state(double dt, Eigen::Matrix<double, 15, 1> &old_state, 
 
   Eigen::VectorXi fields(3); 
   fields << S::ROLL, S::PITCH, S::YAW;
-  this->wrap_angles(fields, new_state);
+//  this->wrap_angles(fields, new_state);
 }
 
 void Ekf::extrapolate_cov(double dt, Eigen::Matrix<double, 15, 15> &old_cov, Eigen::Matrix<double, 15, 15> &new_cov)
@@ -199,6 +203,13 @@ double wrap(double angle)
 {
   // phttps://stackoverflow.com/a/29871193
   return -M_PI + fmod(2 * M_PI + fmod(angle + M_PI, 2 * M_PI), 2 * M_PI);
+}
+
+void Ekf::wrap_angles(Eigen::Vector3d &state)
+{
+  for (int i = 0; i < 3; i++) {
+    state(i) = wrap(state(i));
+  }
 }
 
 void Ekf::wrap_angles(Eigen::VectorXi &fields, Eigen::Matrix<double, 15, 1> &state)
@@ -356,4 +367,20 @@ double Ekf::get_partial(double xc, double yc, double zc, double dt)
   double az = this->state(S::AZ);
 
   return (xc * vx + yc * vy + zc * vz) * dt + (xc * ax + yc * ay + zc * az) * 0.5 * dt * dt;
+}
+
+void Ekf::set_reference_yaw(double reference_yaw)
+{
+    this->reference_yaw = reference_yaw;
+}
+
+Eigen::Quaterniond rpy_to_quat(const Eigen::Vector3d &rpy)
+{
+    Eigen::AngleAxisd roll_angle(-rpy.x(), Eigen::Vector3d::UnitX());
+    Eigen::AngleAxisd pitch_angle(-rpy.y(), Eigen::Vector3d::UnitY());
+    Eigen::AngleAxisd yaw_angle(-rpy.z(), Eigen::Vector3d::UnitZ());
+
+    Eigen::Quaterniond q = yaw_angle * pitch_angle * roll_angle;
+
+    return q;
 }

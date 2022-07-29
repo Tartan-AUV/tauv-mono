@@ -13,6 +13,7 @@
 #include <tf/transform_broadcaster.h>
 #include <tauv_alarms/alarms.h>
 #include <tauv_alarms/alarm_client.h>
+#include <tauv_msgs/SetPose.h>
 #include "ekf.h"
 #include "state_estimator.h"
 
@@ -41,6 +42,8 @@ StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
 
   this->pose_pub = n.advertise<tauv_msgs::Pose>("pose", TOPIC_QUEUE_SIZE);
   this->odom_pub = n.advertise<nav_msgs::Odometry>("odom", TOPIC_QUEUE_SIZE);
+
+  this->set_pose_srv = n.advertiseService("set_pose", &StateEstimator::handle_set_pose, this);
 
   this->timer = n.createTimer(this->dt, &StateEstimator::update, this);
 
@@ -79,17 +82,6 @@ void StateEstimator::load_config()
   this->n.getParam("depth_covariance", depth_covariance);
   assert(depth_covariance.size() == 1);
   this->depth_covariance = depth_covariance.front(); 
-}
-
-Eigen::Quaterniond rpy_to_quat(const Eigen::Vector3d &rpy)
-{
-    Eigen::AngleAxisd roll_angle(-rpy.x(), Eigen::Vector3d::UnitX());
-    Eigen::AngleAxisd pitch_angle(-rpy.y(), Eigen::Vector3d::UnitY());
-    Eigen::AngleAxisd yaw_angle(-rpy.z(), Eigen::Vector3d::UnitZ());
-
-    Eigen::Quaterniond q = yaw_angle * pitch_angle * roll_angle;
-
-    return q;
 }
 
 void StateEstimator::update(const ros::TimerEvent& e)
@@ -245,6 +237,40 @@ void StateEstimator::handle_depth(const tauv_msgs::FluidDepth::ConstPtr& msg)
   } else {
     this->realtime_queue.push(sensor_msg);
   }
+}
+
+bool StateEstimator::handle_set_pose(
+  tauv_msgs::SetPose::Request &req,
+  tauv_msgs::SetPose::Response &res)
+{
+    ROS_INFO("handle set pose");
+
+    if (!this->is_initialized) {
+        res.success = false;
+        return false;
+    }
+
+    ros::Time current_time = ros::Time::now() - this->horizon_delay;
+
+    this->checkpoints.clear();
+    this->last_evaluation_time = current_time;
+
+    Eigen::Matrix<double, 15, 1> state = Eigen::Matrix<double, 15, 1>::Zero();
+    state[0] = req.position.x;
+    state[1] = req.position.y;
+    state[2] = req.position.z;
+
+    Eigen::Matrix<double, 15, 15> cov = 1e-9 * Eigen::Matrix<double, 15, 15>::Identity();
+
+    this->ekf.set_state(state);
+    this->ekf.set_cov(cov);
+    this->ekf.set_time(current_time.toSec());
+    this->ekf.set_reference_yaw(req.yaw);
+
+    this->last_evaluation_time = current_time;
+
+    res.success = true;
+    return true;
 }
 
 void StateEstimator::publish_pose(

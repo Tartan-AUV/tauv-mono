@@ -1,3 +1,4 @@
-geometry_msgs/Pose pose
+geometry_msgs/Vector3 position
+float64 yaw
 ---
 bool success

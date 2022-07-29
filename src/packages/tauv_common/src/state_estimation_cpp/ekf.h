@@ -20,6 +20,8 @@ class Ekf {
 
     void set_time(double time);
 
+    void set_reference_yaw(double yaw);
+
     void get_state_fields(double time,
         Eigen::Vector3d &position,
         Eigen::Vector3d &velocity,
@@ -46,12 +48,15 @@ class Ekf {
     Eigen::Matrix<double, 15, 1> state;
     Eigen::Matrix<double, 15, 15> cov;
 
+    double reference_yaw;
+
     void predict(double time);
     void update(Eigen::VectorXi &fields, Eigen::VectorXd &inn, Eigen::VectorXd &cov);
 
     void extrapolate_state(double dt, Eigen::Matrix<double, 15, 1> &old_state, Eigen::Matrix<double, 15, 1> &new_state);
     void extrapolate_cov(double dt, Eigen::Matrix<double, 15, 15> &old_cov, Eigen::Matrix<double, 15, 15> &new_cov);
 
+    void wrap_angles(Eigen::Vector3d &state);
     void wrap_angles(Eigen::VectorXi &fields, Eigen::Matrix<double, 15, 1> &state);
     void wrap_angles(Eigen::VectorXi &fields, Eigen::VectorXd &state);
 
@@ -62,3 +67,5 @@ class Ekf {
     void get_J(double dt, Eigen::Matrix<double, 15, 15> &J);
     double get_partial(double xc, double yc, double zc, double dt);
 };
+
+Eigen::Quaterniond rpy_to_quat(const Eigen::Vector3d &rpy);

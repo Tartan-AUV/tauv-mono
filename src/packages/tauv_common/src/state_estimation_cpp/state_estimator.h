@@ -14,6 +14,7 @@
 #include <tauv_msgs/TeledyneDvlData.h>
 #include <tauv_msgs/XsensImuData.h>
 #include <tf/transform_broadcaster.h>
+#include <tauv_msgs/SetPose.h>
 #include "ekf.h"
 
 #pragma once
@@ -47,6 +48,8 @@ class StateEstimator {
     ros::Publisher pose_pub;
     ros::Publisher odom_pub;
 
+    ros::ServiceServer set_pose_srv;
+
     tf::TransformBroadcaster odom_tf_broadcaster;
 
     Ekf ekf;
@@ -75,6 +78,8 @@ class StateEstimator {
     void apply_imu(const ImuMsg &msg);
     void apply_dvl(const DvlMsg &msg);
     void apply_depth(const DepthMsg &msg);
+
+    bool handle_set_pose(tauv_msgs::SetPose::Request &req, tauv_msgs::SetPose::Response &res);
 
     void publish_pose(
         ros::Time time,
