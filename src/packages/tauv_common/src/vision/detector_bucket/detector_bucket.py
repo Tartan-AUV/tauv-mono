@@ -37,12 +37,10 @@ class Detector_Bucket():
 
         self.cv_bridge = CvBridge()
 
-        self.bucket_list = BucketList()
-
         #rospy.init_node('detector_bucket', anonymous = True)
 
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
-        self.detection_server = rospy.Subscriber("register_object_detection", RegisterObjectDetections,
+        rospy.Subscriber("register_object_detection", RegisterObjectDetections,
                                               self.update_daemon_service)
         self.ac.clear(Alarm.BUCKET_NOT_INITIALIZED, "Bucket initialized!")
 
@@ -91,24 +89,6 @@ class Detector_Bucket():
         self.spin_daemon(daemon)
         # rospy.loginfo(f"daemon: {daemon}")
         self.bucket_list_pub.publish(daemon)
-
-    def find(self, daemon_name = "camera"):
-        return self.daemon_dict[daemon_name]
-
-    #return the first bucket detection with the key matching name
-    def find_by_tag(self, tag, dameon_name = "camera"):
-        daemon = self.daemon_dict[daemon_name]
-        self.spin_daemon(daemon)
-        for entry in daemon.bucket_list:
-            if entry.tag == tag:
-                return entry
-        return None
-
-    #iterate through all daemons and call spin function to update tracking
-    def spin_all(self):
-        for daemon_name in self.daemon_dict:
-            daemon = self.daemon_dict[daemon_name]
-            self.spin_daemon(daemon)
 
     def publish_all(self):
        for daemon_name in self.daemon_dict:

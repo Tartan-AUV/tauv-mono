@@ -41,14 +41,14 @@ class LogDetections():
         rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
         self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
                                               queue_size=10)
-
+        
         
         rospy.Timer(rospy.Duration(2),self.publish)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
         
     def publish(self, event):
-        self.detector_bucket.publish()
+        self.detector_bucket.publish_all()
 
     def find(self, tag):
         return self.detector_bucket.find_by_tag(tag)
@@ -111,8 +111,8 @@ class LogDetections():
 
 
     def bbox_callback(self, bboxes):
-        #if(not self.created):
-        #    return
+        if(not self.created):
+            return
 
         sub_or = self.cur_orientation
         sub_pos = self.cur_position
@@ -128,6 +128,9 @@ class LogDetections():
                 continue
 
             relative_pos = DepthEstimator.estimate_absolute_depth(self.depth_image, bbox, self.depth_camera_info)
+
+            if(relative_pos == numpy.nan):
+                continue
 
             #rospy.loginfo(f"current pos: {self.cur_position}\n")
 
@@ -156,7 +159,6 @@ def array_to_point(arr):
 def listen():
     s = LogDetections()
     rospy.spin()
-
 
 if __name__=='__main__':
     listen()

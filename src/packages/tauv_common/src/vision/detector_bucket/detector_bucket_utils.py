@@ -45,7 +45,7 @@ def point_to_array(point):
     return np.asarray([point.x, point.y, point.z])
 
 # constant position Kalman Filter for stationary object tracking
-class Detection_Tracker_Kalman(BucketDetection):
+class Detection_Tracker_Kalman():
     def __init__(self, tag):
         self.id = -1
         self.updated_now = False
@@ -144,8 +144,8 @@ class Detector_Daemon(BucketList):
             rospy.loginfo("[Detector Daemon]: %s. Obtained debouncing threshold", self.detector_name)
             self.debouncing_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/debouncing_threshold"))
         
+        self.tracker_list = []
         self.bucket_list = []
-        self.trackers_to_publish = {}
 
         self.frame_id = "odom"
         if rospy.has_param("detectors/" + self.detector_name + "/frame_id"):
@@ -277,7 +277,7 @@ class Detector_Daemon(BucketList):
                     temp_tracker_holder = []
                     tracker_tags = []
 
-                    for tracker in self.bucket_list:
+                    for tracker in self.tracker_list:
                         tracker_tags.append(tracker.tag)
                         temp_tracker_holder.append(tracker.localized_point)
 
@@ -295,7 +295,7 @@ class Detector_Daemon(BucketList):
                             measurement = np.asmatrix(measurement).T
 
                             #kalman update and predict
-                            tracker = self.bucket_list[tracker_ind]
+                            tracker = self.tracker_list[tracker_ind]
                             tracker.kalman_predict_and_update(measurement)
                             new_x = tracker.estimated_point.T[0].tolist()
 
@@ -330,7 +330,7 @@ class Detector_Daemon(BucketList):
 
                             #add to list
                             self.tracker_id += 1
-                            self.bucket_list.append(new_tracker)
+                            self.tracker_list.append(new_tracker)
                             temp_tracker_holder.append(new_x[0])
 
                             self.track_map[new_tracker.tag] = 1
@@ -341,7 +341,7 @@ class Detector_Daemon(BucketList):
 
                     if len(unmatch_tracks) > 0:
                         for tracker_ind in unmatch_tracks:
-                            tracker = self.bucket_list[tracker_ind]
+                            tracker = self.tracker_list[tracker_ind]
 
                             #override the update
                             tracker.kalman_predict_and_update(np.asmatrix([0, 0, 0]).T, True)
@@ -351,13 +351,13 @@ class Detector_Daemon(BucketList):
                             tracker.localized_point = new_x[0]
                             temp_tracker_holder[tracker_ind] = new_x[0]
 
-                    trackers_to_be_published = []
-                    for tracker in self.bucket_list:
+                    self.bucket_list = []
+                    for tracker in self.tracker_list:
                         if tracker.detections >= self.debouncing_threshold:
-                            trackers_to_be_published.append(tracker)
+                            self.bucket_list.append(tracker)
                         tracker.updated_now = False
 
-                    self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
+                    #self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
                     #rospy.loginfo("[Detector Daemon]: %s: Matched and Tracked Objects: " + str(self.trackers_to_publish))
 
             self.new_data = False
