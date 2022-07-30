@@ -42,6 +42,8 @@ class Thrusters:
 
         self._killed_pub : rospy.Publisher = rospy.Publisher('killed', Bool, queue_size=1)
 
+        self._active_pub : rospy.Publisher = rospy.Publisher('active', Bool, queue_size=10)
+    
     def _try_init(self):
         try:
             self._maestro = Maestro(ttyStr=self._maestro_port)
@@ -71,6 +73,9 @@ class Thrusters:
                 or not self._is_armed or _killed:
             self._wrench = Wrench()
             self._wrench_update_time = rospy.Time.now()
+            self._active_pub.publish(False)
+        else:
+            self._active_pub.publish(True)
 
         thrusts = self._get_thrusts(self._wrench)
 

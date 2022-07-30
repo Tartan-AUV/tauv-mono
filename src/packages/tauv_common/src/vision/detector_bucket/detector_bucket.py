@@ -22,12 +22,12 @@ from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Quaternion
 from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement,RegisterObjectDetections, RegisterMeasurement
 from scipy.spatial.transform import Rotation as R
-
+from tauv_alarms.alarm_client import Alarm, AlarmClient
 
 class Detector_Bucket():
     def __init__(self):
         #rospy.init_node('detector_bucket', anonymous = True)
-
+        self.ac = AlarmClient()
         self.num_daemons = 1
         self.daemon_names = None
         self.daemon_dict = {}
@@ -44,6 +44,7 @@ class Detector_Bucket():
         self.bucket_list_pub = rospy.Publisher("bucket_list", BucketList, queue_size=50)
         self.detection_server = rospy.Subscriber("register_object_detection", RegisterObjectDetections,
                                               self.update_daemon_service)
+        self.ac.clear(Alarm.BUCKET_NOT_INITIALIZED, "Bucket initialized!")
 
     def init_daemons(self):
         if rospy.has_param("detectors/total_number"):

@@ -63,7 +63,7 @@ Alarms:
 
 - DVL_NO_LOCK:
     id: 7
-    failure_level: NO_FAILURE
+    failure_level: PREDIVE_FAILURE
     default_set: False
     description: DVL has no bottom lock
     author: Theo Chemel
@@ -71,14 +71,14 @@ Alarms:
 - SONAR_NOT_INITIALIZED:
     id: 8
     failure_level: PREDIVE_FAILURE
-    default_set: True
+    default_set: False # Temporarily disabled (no sonar exists)
     description: Sonar is not initialized yet
     author: Theo Chemel
 
 - STATE_ESTIMATION_NOT_INITIALIZED:
     id: 9
     failure_level: PREDIVE_FAILURE
-    default_set: True
+    default_set: False # This is broken
     description: State estimation is not initialized yet
     author: Theo Chemel
 
@@ -126,7 +126,7 @@ Alarms:
 
 - CAMERA_NO_VIDEO_BOTTOM:
     id: 16
-    failure_level: PREDIVE_FAILURE
+    failure_level: NO_FAILURE
     default_set: True
     description: No video from camera B (bottom cam)
     author: Tom Scherlis
@@ -143,4 +143,25 @@ Alarms:
     failure_level: PREDIVE_FAILURE
     default_set: True
     description: Mission manager is not initialized
+    author: Tom Scherlis
+
+- BUCKET_NOT_INITIALIZED:
+    id: 19
+    failure_level: PREDIVE_FAILURE
+    default_set: True
+    description: Bucket system is not yet running
+    author: Katia Nikiforova
+
+- BUCKET_LIST_NOT_PUBLISHING:
+    id: 20
+    failure_level: NO_FAILURE
+    default_set: True
+    description: Bucket detection list is not actively being published
+    author: Katia Nikiforova
+
+- DARKNET_NOT_PUBLISHING:
+    id: 21
+    failure_level: NO_FAILURE
+    default_set: True
+    description: Darknet isn't running
     author: Tom Scherlis

@@ -4,7 +4,7 @@
 // This file is generated whenever tauv_common is built using catkin build.
 // See alarms/CMakeLists.txt for configuring the autogen build step
 // 
-// Generated on Fri Jul 29 15:34:56 2022
+// Generated on Sat Jul 30 05:06:13 2022
 
 #pragma once
 
@@ -29,5 +29,8 @@ namespace tauv_alarms {
      CAMERA_NO_VIDEO_BOTTOM=16, 
      GNC_NO_POSE=17, 
      MISSION_MANAGER_NOT_INITIALIZED=18, 
+     BUCKET_NOT_INITIALIZED=19, 
+     BUCKET_LIST_NOT_PUBLISHING=20, 
+     DARKNET_NOT_PUBLISHING=21, 
   };
 }

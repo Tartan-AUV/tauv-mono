@@ -65,6 +65,8 @@ class MPCPlanner:
                              x_constraints=self._x_constraints,
                              u_constraints=self._u_constraints)
 
+        self._ac.clear(Alarm.MPC_PLANNER_NOT_INITIALIZED)
+
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
         rospy.spin()
@@ -131,8 +133,6 @@ class MPCPlanner:
             orientation = rpy_to_quat(np.array([0.0, 0.0, x_mpc[3, i]]))
             poses.poses.append(Pose(position, orientation))
         self._poses_pub.publish(poses)
-
-        self._ac.clear(Alarm.MPC_PLANNER_NOT_INITIALIZED)
 
     def _send_command(self, cmd: np.array):
         if self._pose is None:

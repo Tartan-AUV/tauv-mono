@@ -40,6 +40,7 @@ class TeleopMission:
         self._tune_controls_srv: rospy.ServiceProxy = rospy.ServiceProxy('tune_controls', TuneControls)
         self._tune_dynamics_srv: rospy.ServiceProxy = rospy.ServiceProxy('tune_dynamics', TuneDynamics)
         self._target_pose_srv: rospy.ServiceProxy = rospy.ServiceProxy('set_target_pose', SetTargetPose)
+        self._hold_z_srv: rospy.ServiceProxy = rospy.ServiceProxy('set_hold_z', SetBool)
 
         self._odom_sub: rospy.Subscriber = rospy.Subscriber('odom', Odom, self._handle_odom)
 
@@ -74,13 +75,25 @@ class TeleopMission:
             t.update_roll = True
             t.roll_tunings = args.roll
 
+        if args.roll_limits is not None:
+            t.update_roll_limits = True
+            t.roll_limits = args.roll_limits
+
         if args.pitch is not None:
             t.update_pitch = True
             t.pitch_tunings = args.pitch
 
+        if args.pitch_limits is not None:
+            t.update_pitch_limits = True
+            t.pitch_limits = args.pitch_limits
+
         if args.z is not None:
             t.update_z = True
             t.z_tunings = args.z
+
+        if args.z_limits is not None:
+            t.update_z_limits = True
+            t.z_limits = args.z_limits
 
         req: TuneControlsRequest = TuneControlsRequest()
         req.tunings = t
@@ -165,6 +178,8 @@ class TeleopMission:
         req.pose = pose
         self._target_pose_srv.call(req)
 
+        self._hold_z_srv.call(args.enable)
+
     def _handle_go(self, args):
         print('go', args.x, args.y, args.z, args.yaw)
 
@@ -247,8 +262,11 @@ class TeleopMission:
 
         tune_controls = subparsers.add_parser('tune_controls')
         tune_controls.add_argument('--roll', type=float, nargs=3)
+        tune_controls.add_argument('--roll-limits', type=float, nargs=2)
         tune_controls.add_argument('--pitch', type=float, nargs=3)
+        tune_controls.add_argument('--pitch-limits', type=float, nargs=2)
         tune_controls.add_argument('--z', type=float, nargs=3)
+        tune_controls.add_argument('--z-limits', type=float, nargs=2)
         tune_controls.set_defaults(func=self._handle_tune_controls)
 
         tune_dynamics = subparsers.add_parser('tune_dynamics')

@@ -213,7 +213,6 @@ void StateEstimator::handle_dvl(const tauv_msgs::TeledyneDvlData::ConstPtr& msg)
     this->last_evaluation_time = msg->header.stamp - this->horizon_delay;
   }
 
-  if (!msg->is_hr_velocity_valid) return;
   boost::shared_ptr<SensorMsg> sensor_msg = boost::shared_ptr<SensorMsg>(new SensorMsg(msg));
 
   if (msg->header.stamp < this->last_evaluation_time && this->checkpoints.full()) {

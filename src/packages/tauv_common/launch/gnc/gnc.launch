@@ -24,6 +24,7 @@
             <remap from="set_hold_z" to="/controller/set_hold_z" />
             <remap from="tune_dynamics" to="/controller/tune_dynamics" />
             <remap from="tune_controls" to="/controller/tune_controls" />
+            <remap from="active" to="/thrusters/active" />
         </node>
 
         <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">

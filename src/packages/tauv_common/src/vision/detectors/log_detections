@@ -43,7 +43,7 @@ class LogDetections():
                                               queue_size=10)
 
         
-        rospy.Timer(rospy.Duration(5),self.publish)
+        rospy.Timer(rospy.Duration(2),self.publish)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
         

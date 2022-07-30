@@ -1,0 +1,3 @@
+float32 ang_err_x
+float32 ang_err_y
+float32 ang_err_z

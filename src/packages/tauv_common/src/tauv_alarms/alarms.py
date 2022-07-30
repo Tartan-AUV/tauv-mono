@@ -4,7 +4,7 @@
 # This file is generated whenever tauv_common is built using catkin build.
 # See alarms/CMakeLists.txt for configuring the autogen build step
 # 
-# Generated on Fri Jul 29 15:34:56 2022
+# Generated on Sat Jul 30 05:06:13 2022
 
 from .alarm_util import AlarmMeta, AlarmType, FailureLevel
 
@@ -75,7 +75,7 @@ class Alarm(metaclass=AlarmMeta):
     DVL_NO_LOCK = AlarmType(
         name="DVL_NO_LOCK",
         id=7,
-        failure_level=FailureLevel.NO_FAILURE,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
         default_set=False,
         description="DVL has no bottom lock",
         author="Theo Chemel",
@@ -85,7 +85,7 @@ class Alarm(metaclass=AlarmMeta):
         name="SONAR_NOT_INITIALIZED",
         id=8,
         failure_level=FailureLevel.PREDIVE_FAILURE,
-        default_set=True,
+        default_set=False,
         description="Sonar is not initialized yet",
         author="Theo Chemel",
     )
@@ -94,7 +94,7 @@ class Alarm(metaclass=AlarmMeta):
         name="STATE_ESTIMATION_NOT_INITIALIZED",
         id=9,
         failure_level=FailureLevel.PREDIVE_FAILURE,
-        default_set=True,
+        default_set=False,
         description="State estimation is not initialized yet",
         author="Theo Chemel",
     )
@@ -111,7 +111,7 @@ class Alarm(metaclass=AlarmMeta):
     KILL_SWITCH_ACTIVE = AlarmType(
         name="KILL_SWITCH_ACTIVE",
         id=11,
-        failure_level=FailureLevel.MISSION_FAILURE,
+        failure_level=FailureLevel.CRITICAL_FAILURE,
         default_set=False,
         description="The hardware kill switch is active",
         author="Tom Scherlis",
@@ -156,7 +156,7 @@ class Alarm(metaclass=AlarmMeta):
     CAMERA_NO_VIDEO_BOTTOM = AlarmType(
         name="CAMERA_NO_VIDEO_BOTTOM",
         id=16,
-        failure_level=FailureLevel.PREDIVE_FAILURE,
+        failure_level=FailureLevel.NO_FAILURE,
         default_set=True,
         description="No video from camera B (bottom cam)",
         author="Tom Scherlis",
@@ -177,6 +177,33 @@ class Alarm(metaclass=AlarmMeta):
         failure_level=FailureLevel.PREDIVE_FAILURE,
         default_set=True,
         description="Mission manager is not initialized",
+        author="Tom Scherlis",
+    )
+    
+    BUCKET_NOT_INITIALIZED = AlarmType(
+        name="BUCKET_NOT_INITIALIZED",
+        id=19,
+        failure_level=FailureLevel.PREDIVE_FAILURE,
+        default_set=True,
+        description="Bucket system is not yet running",
+        author="Katia Nikiforova",
+    )
+    
+    BUCKET_LIST_NOT_PUBLISHING = AlarmType(
+        name="BUCKET_LIST_NOT_PUBLISHING",
+        id=20,
+        failure_level=FailureLevel.NO_FAILURE,
+        default_set=True,
+        description="Bucket detection list is not actively being published",
+        author="Katia Nikiforova",
+    )
+    
+    DARKNET_NOT_PUBLISHING = AlarmType(
+        name="DARKNET_NOT_PUBLISHING",
+        id=21,
+        failure_level=FailureLevel.NO_FAILURE,
+        default_set=True,
+        description="Darknet isn't running",
         author="Tom Scherlis",
     )
     

@@ -8,6 +8,7 @@ add_message_files(
   AlarmReport.msg
   AlarmWithMessage.msg
   ControllerCmd.msg
+  ControllerDebug.msg
   ControlsTunings.msg
   BucketDetection.msg
   BucketList.msg
