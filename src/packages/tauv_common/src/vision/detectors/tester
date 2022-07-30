@@ -1,18 +1,70 @@
 #!/usr/bin/env python3
 
 import rospy
-from tauv_msgs.msg import BucketList, BucketDetection
+from tauv_msgs.msg import BucketList, BucketDetection, Pose
 import time
+import tf2_ros
+import tf
+import geometry_msgs.msg
 
 class Test:
     def __init__(self):
-        rospy.init_node('tester', anonymous = True)
+        rospy.init_node('tf2_broadcaster')
         self.bucket = rospy.Subscriber("bucket_list", BucketList, self.printer)
+        rospy.Subscriber("gnc/pose", Pose, self.sub)
+        self.broadcaster = tf2_ros.StaticTransformBroadcaster()
 
-    def printer(self,data):
-        rospy.loginfo("ENTRY:\n")
-        rospy.loginfo(f"{data.bucket_list}")
-        rospy.loginfo("\n")
+        self.broadcasters = list()
+
+    def printer(self, data):
+        rospy.loginfo(f"BUCKETS: {data.bucket_list}")
+
+    def rviz_shit(self,data):
+        rospy.loginfo(f"BUCKETS: {data.bucket_list}")
+        for i in range(len(data.bucket_list)):
+            entry = data.bucket_list[i]
+            if(i>=len(self.broadcasters)):
+                broadcaster = tf2_ros.StaticTransformBroadcaster()
+                self.broadcasters.append(broadcaster)
+            else:
+                broadcaster = self.broadcasters[i]
+            static_transformStamped = geometry_msgs.msg.TransformStamped()
+
+            static_transformStamped.header.stamp = rospy.Time.now()
+            static_transformStamped.header.frame_id = "global"
+            static_transformStamped.transform.translation.x = entry.position.x
+            static_transformStamped.transform.translation.y = entry.position.y
+            static_transformStamped.transform.translation.z = entry.position.z
+            static_transformStamped.child_frame_id = "bucket"+str(i)
+
+            quat = [0,0,0,1]
+            static_transformStamped.transform.rotation.x = quat[0]
+            static_transformStamped.transform.rotation.y = quat[1]
+            static_transformStamped.transform.rotation.z = quat[2]
+            static_transformStamped.transform.rotation.w = quat[3]
+
+            broadcaster.sendTransform(static_transformStamped)
+        
+    def sub(self,data):
+        static_transformStamped = geometry_msgs.msg.TransformStamped()
+
+        static_transformStamped.header.stamp = rospy.Time.now()
+        static_transformStamped.header.frame_id = "global"
+        static_transformStamped.transform.translation.x = data.position.x
+        static_transformStamped.transform.translation.y = data.position.y
+        static_transformStamped.transform.translation.z = data.position.z
+        static_transformStamped.child_frame_id = "pose"
+        
+        qx,qy,qz, qw = tf.transformations.quaternion_from_euler(data.orientation.x,data.orientation.y,data.orientation.z)
+
+        quat = [qx,qy,qz,qw]
+
+        static_transformStamped.transform.rotation.x = quat[0]
+        static_transformStamped.transform.rotation.y = quat[1]
+        static_transformStamped.transform.rotation.z = quat[2]
+        static_transformStamped.transform.rotation.w = quat[3]
+
+        self.broadcaster.sendTransform(static_transformStamped)
 
 def listen():
     s = Test()

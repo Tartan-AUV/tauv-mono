@@ -21,8 +21,6 @@ class LogDetections():
         self.cur_position = (0,0,0)
         self.cur_orientation = (0,0,0)
 
-        self.data = None
-
         self.depth_image = None
         self.data = None
         self.created= False
@@ -35,14 +33,17 @@ class LogDetections():
         self.bounding_boxes = BoundingBoxes()
         self.cv_bridge = CvBridge()
         self.detector_bucket = Detector_Bucket()
+
+        rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
         
-        rospy.Subscriber("zedm_A/zed_node_A/depth/depth_registered",Image,self.depth_callback)
+        rospy.Subscriber("/zedm_A/zed_node_A/depth/depth_registered",Image,self.depth_callback)
         rospy.Subscriber("/zedm_A/zed_node_A/left/camera_info",CameraInfo, self.camera_info_callback)
         rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
         self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
                                               queue_size=10)
+
         
-        rospy.Timer(rospy.Duration(2),self.publish)
+        rospy.Timer(rospy.Duration(5),self.publish)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
         
@@ -55,7 +56,6 @@ class LogDetections():
     def update_position(self,data):
         self.cur_position = (data.position.x, data.position.y, data.position.z)
         self.cur_orientation = (data.orientation.x, data.orientation.y, data.orientation.z)
-        self.data = data
 
     def camera_info_callback(self, msg):
         self.depth_camera_info = msg
@@ -64,31 +64,58 @@ class LogDetections():
         self.depth_image = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
         self.created=True
 
-    def calc_pos(self, relative):
-        if (self.data is None):
-            return
+    def calc_pos(self, relative, cur_orientation, cur_position):
+        #if (self.data is None):
+        #    return
 
-        #roll = self.cur_orientation [0]
-        #pitch = self.cur_orientation [1]
-        #yaw = self.cur_orientation [2]
+        roll = cur_orientation [0]
+        pitch = cur_orientation [1]
+        yaw = cur_orientation [2]
 
-        R = Rotation.from_euler('ZYX', numpy.flip(types.tl(self.data.orientation))).inv()
-        new = numpy.array(types.tl(self.data.position)) + R.apply(relative)
+        relative = numpy.array([relative[2], relative[0], relative[1]])
 
+        #cur_orientation = array_to_point(cur_orientation)
+        #cur_position = array_to_point(cur_position)
 
-        rospy.loginfo(f"global orientation {self.cur_orientation}\n")
-        rospy.loginfo(f"global position {self.cur_position}\n")
+        #R = Rotation.from_euler('ZYX', numpy.flip(types.tl(cur_orientation))).inv()
+        #new = R.apply(relative)
 
-        # (xrpy, yrpy, zrpy) = (relative[0]*math.cos(yaw)-zrp*math.sin(yaw), yrp, xrp*math.sin(yaw)+zrp*math.cos(yaw))
-        # (xrp, yrp, zrp) = (xr, yr*math.cos(pitch)+zr*math.sin(pitch),zr*math.cos(pitch)-yr*math.sin(pitch))
-        # (xr,yr,zr) = (relative[0]*math.cos(roll) - relative[1]*math.sin(roll), relative[0]*math.sin(roll)+relative[1]*math.cos(roll), relative[2])
+        #angl = roll + math.arctan(-relative.x/relative.y)
+        #c = math.sqrt(relative.x**2+relative.y**2)
+        #rel = (relative.z, c*math.sin(angl), math.abs(c*math.cos(angl)))
+
+        #rospy.loginfo(f"global orientation {self.cur_orientation}\n")
+        #rospy.loginfo(f"global position {self.cur_position}\n")
+
+        #(xr,yr,zr) = (relative[0], relative[1]*math.cos(roll) - relative[1]*math.sin(roll), relative[2]*math.sin(roll)+relative[1]*math.cos(roll))
+        #(xrp, yrp, zrp) = (xr, yr*math.cos(pitch)+zr*math.sin(pitch),zr*math.cos(pitch)-yr*math.sin(pitch))
+        #final = (relative[0]*math.cos(yaw)-zrp*math.sin(yaw), yrp, xrp*math.sin(yaw)+zrp*math.cos(yaw))
         
+        #rospy.loginfo(f"rel position: {new}")
+        #rospy.loginfo(f"rel position2: {final}")
 
-        return types.tm(new, Point)
+
+        #return types.tm(new+numpy.array(types.tl(cur_position)), Point)
+
+        #return cur_position + 
+
+        rpy = numpy.array([[math.cos(pitch)*math.cos(yaw), -math.cos(roll)*math.sin(yaw)+math.cos(yaw)*math.sin(pitch)*math.sin(roll), math.sin(roll)*math.sin(yaw)+math.cos(roll)*math.sin(pitch)*math.cos(yaw)],
+        [math.cos(pitch)*math.sin(yaw), math.cos(roll)*math.cos(yaw)+math.sin(roll)*math.sin(pitch)*math.sin(yaw), -math.sin(roll)*math.cos(yaw)+math.cos(roll)*math.sin(pitch)*math.sin(yaw)],
+        [-math.sin(pitch), math.sin(roll)*math.cos(pitch), math.cos(roll)*math.cos(pitch)]])
+
+        return array_to_point(cur_position+numpy.matmul(rpy, relative))
+
+
+    def invalid_pos(self, objdet):
+        return (numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z))
+
 
     def bbox_callback(self, bboxes):
-        if(not self.created):
-            return
+        #if(not self.created):
+        #    return
+
+        sub_or = self.cur_orientation
+        sub_pos = self.cur_position
 
         objects = RegisterObjectDetections()
         objects.objdets = list()
@@ -106,19 +133,25 @@ class LogDetections():
 
             #rospy.loginfo(f"depth pos: {relative_pos}\n")
 
-            objdet.position = self.calc_pos(relative_pos)
+            objdet.position = self.calc_pos(relative_pos, sub_or, sub_pos)
 
-            #rospy.loginfo(f"calculated pos: {objdet.position}\n")
+            if(self.invalid_pos(objdet)):
+               continue
 
-            if(numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z)):
-                continue
-
+            #rospy.loginfo(f"CALCULATE pos: {objdet.position}\n")
+        
             objects.objdets.append(objdet)
 
         objects.detector_tag = "camera"
 
         self.detector.publish(objects)
 
+def array_to_point(arr):
+    p = Point()
+    p.x = arr[0]
+    p.y = arr[1]
+    p.z = arr[2]
+    return p
 
 def listen():
     s = LogDetections()

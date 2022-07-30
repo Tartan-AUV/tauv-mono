@@ -48,7 +48,7 @@ class Detector_Bucket():
     def init_daemons(self):
         if rospy.has_param("detectors/total_number"):
             self.num_daemons = int(rospy.get_param("detectors/total_number"))
-            rospy.loginfo("[Detector Bucket]: Initializing %d Daemons", self.num_daemons)
+            #rospy.loginfo("[Detector Bucket]: Initializing %d Daemons", self.num_daemons)
             self.daemon_names = rospy.get_param("detectors/names")
             #rospy.loginfo(f"{self.daemon_names}")
             self.daemon_dict = {name: Detector_Daemon(name, ii) for ii, name in enumerate(self.daemon_names)}
