@@ -1,5 +1,6 @@
 
 import numpy as np 
+from geometry_msgs.msg import Point
 
 
 class DepthEstimator():

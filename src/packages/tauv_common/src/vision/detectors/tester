@@ -10,7 +10,7 @@ import geometry_msgs.msg
 class Test:
     def __init__(self):
         rospy.init_node('tf2_broadcaster')
-        self.bucket = rospy.Subscriber("bucket_list", BucketList, self.printer)
+        self.bucket = rospy.Subscriber("bucket_list", BucketList, self.rviz_shit)
         rospy.Subscriber("gnc/pose", Pose, self.sub)
         self.broadcaster = tf2_ros.StaticTransformBroadcaster()
 
