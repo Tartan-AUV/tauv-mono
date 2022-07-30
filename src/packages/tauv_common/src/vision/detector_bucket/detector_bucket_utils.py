@@ -29,6 +29,8 @@ from scipy.spatial.transform import Rotation as R
 from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
 from scipy.optimize import linear_sum_assignment
+from scipy.spatial import distance
+
 
 tracker_id = 0
 
@@ -122,6 +124,10 @@ class Detector_Daemon(BucketList):
         self.mutex = Lock()
         self.header = Header()
 
+        #used to see how many of a particular object were identified
+        self.track_map = dict()
+        self.max_map = dict()
+
         #each daemon will call the service to report a measurement
         self.mahalanobis_threshold = 1
         if rospy.has_param("detectors/" + self.detector_name + "/mahalanobis_threshold"):
@@ -151,12 +157,13 @@ class Detector_Daemon(BucketList):
         self.tracker_id = 0
 
     def update_detection_buffer(self, data_frame):
-        rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
+        #rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
+        #rospy.loginfo(f"DATAFRAM: {data_frame}")
         self.detection_buffer.append(data_frame)
         self.new_data = True
 
     # performs assignment to trackers and detections
-    def map_det_to_tracker(self, trackers, dets):
+    def map_det_to_tracker(self, trackers, dets, tracker_tags, det_tags):
         trackers_len = len(trackers)
         dets_len = len(dets)
 
@@ -171,6 +178,7 @@ class Detector_Daemon(BucketList):
         else:
             tracker_matches, det_matches = np.array([]), np.array([])
 
+
         unmatch_tracks, unmatch_dets = [], []
         whole_trackers = set(list(range(trackers_len)))
         whole_dets = set(list(range(dets_len)))
@@ -181,8 +189,12 @@ class Detector_Daemon(BucketList):
         for match in range(len(tracker_matches)):
             i = tracker_matches[match]
             j = det_matches[match]
-            if adjacency_cost_matrix[i, j] < self.mahalanobis_threshold:
+            #rospy.loginfo(f"malanobis: {self.mahalanobis_threshold}")
+            if(adjacency_cost_matrix[i, j] < self.mahalanobis_threshold and tracker_tags[i]==det_tags[j]):
                 matches.append(np.array([i, j]))
+            #elif(self.track_map[det_tags[j]]!=self.max_map[det_tags[j]]):
+                #rospy.loginfo(f"cost: {adjacency_cost_matrix[i, j]}")
+                #rospy.loginfo(f"adjacency matrix: {adjacency_cost_matrix}")
             else:
                 unmatch_tracks.append(i)
                 unmatch_dets.append(j)
@@ -194,7 +206,36 @@ class Detector_Daemon(BucketList):
         else:
             matches = np.stack(matches,axis=0)
 
+        #rospy.loginfo(f"matches: {matches.size()} unmatched: {unmatch_dets.size()}")
+
         return matches, np.array(unmatch_dets), np.array(unmatch_tracks)
+
+        
+    def match_by_euclidian(self, tracker, detections):
+        unmatch_dets, unmatch_tracks, matches = [], [], []
+
+        for detection_index in range(len(detections)):
+            min_dist = self.mahalanobis_threshold
+            min_track = 0
+            for tracker_index in range(len(tracker)):
+                if(tracker[tracker_index].tag != detections[detection_index].tag):
+                    continue
+                dist = distance.euclidean(point_to_array(detections[detection_index].position) , point_to_array(tracker[tracker_index].position))
+                if(dist<min_dist):
+                    min_track = tracker_index
+                    min_dist = dist
+
+ 
+            if(min_dist < self.mahalanobis_threshold):
+                matches.append(np.array([min_track, detection_index]))
+            #elif(len(tracker)!=0 and self.track_map[detections[detection_index].tag]==self.max_map[detections[detection_index].tag]):
+            #    matches.append(np.array([min_track, detection_index]))
+            else:
+                unmatch_dets.append(detection_index)
+
+
+        return matches, unmatch_dets, []
+
 
     # incorporates any priors about the landmark position
     def override_localization(self, dets):
@@ -219,18 +260,37 @@ class Detector_Daemon(BucketList):
                 data_frame = self.detection_buffer.pop(0)
                 if len(data_frame) > 0:
                     self.override_localization(data_frame)
-                    measurements = np.asmatrix([point_to_array(datum.position) for datum in data_frame])
+
+                    temp = []
+                    det_tags = []
+
+                    for datum in data_frame:
+                        #rospy.loginfo(f"POSITION: {datum.position}")
+                        temp.append(point_to_array(datum.position))
+                        det_tags.append(datum.tag)
+
+                    measurements = np.asmatrix(temp)
+
                     time_stamp = data_frame[0].header.stamp
 
                     # match trackers and detections
-                    temp_tracker_holder = [tracker.localized_point for tracker in self.bucket_list]
-                    matches, unmatch_dets, unmatch_tracks = \
-                        self.map_det_to_tracker(temp_tracker_holder, measurements)
+                    temp_tracker_holder = []
+                    tracker_tags = []
+
+                    for tracker in self.bucket_list:
+                        tracker_tags.append(tracker.tag)
+                        temp_tracker_holder.append(tracker.localized_point)
+
+
+                    matches, unmatch_dets, unmatch_tracks = self.map_det_to_tracker(temp_tracker_holder, measurements, tracker_tags, det_tags)
+
+                    #matches, unmatch_dets, unmatch_tracks = self.match_by_euclidian(self.bucket_list, data_frame)
+
 
                     if matches.size > 0:
                         for ii in range(len(matches)):
-                            tracker_ind = matches[ii, 0]
-                            detection_ind = matches[ii, 1]
+                            tracker_ind = matches[ii,0]
+                            detection_ind = matches[ii,1]
                             measurement = measurements[detection_ind]
                             measurement = np.asmatrix(measurement).T
 
@@ -242,12 +302,17 @@ class Detector_Daemon(BucketList):
                             temp_tracker_holder[tracker_ind] = new_x[0]
                             tracker.localized_point = new_x[0]
                             tracker.detections += 1
+
+                            self.track_map[tracker.tag] += 1
+
                             tracker.updated_now = True
 
                     if len(unmatch_dets) > 0:
                         for detection_ind in unmatch_dets:
                             measurement = measurements[detection_ind]
                             measurement = measurement.T
+
+                            rospy.loginfo("[Detector Daemon]: Unmatched: " + str(measurement))
 
                             #create new tracker
                             tag = data_frame[detection_ind].tag
@@ -268,6 +333,12 @@ class Detector_Daemon(BucketList):
                             self.bucket_list.append(new_tracker)
                             temp_tracker_holder.append(new_x[0])
 
+                            self.track_map[new_tracker.tag] = 1
+                            self.max_map[new_tracker.tag] = 2
+
+                            if(rospy.has_param("object_tags/" + new_tracker.tag +"/total_number")):
+                                self.max_map[new_tracker.tag] = int(rospy.get_param("object_tags/" + new_tracker.tag +"/total_number"))
+
                     if len(unmatch_tracks) > 0:
                         for tracker_ind in unmatch_tracks:
                             tracker = self.bucket_list[tracker_ind]
@@ -287,7 +358,7 @@ class Detector_Daemon(BucketList):
                         tracker.updated_now = False
 
                     self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
-                    rospy.loginfo("[Detector Daemon]: %s: Matched and Tracked Objects: " + str(self.trackers_to_publish))
+                    #rospy.loginfo("[Detector Daemon]: %s: Matched and Tracked Objects: " + str(self.trackers_to_publish))
 
             self.new_data = False
 
