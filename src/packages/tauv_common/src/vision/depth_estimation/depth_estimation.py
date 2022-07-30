@@ -24,6 +24,6 @@ class DepthEstimator():
       cur_x = ((center_x - cx) * cur_depth) / (fx)
       cur_y = ((center_y - cy) * cur_depth) / (fy)
       
-      return cur_x, cur_y, cur_depth
+      return (cur_x, cur_y, cur_depth)
     
     return cur_depth
