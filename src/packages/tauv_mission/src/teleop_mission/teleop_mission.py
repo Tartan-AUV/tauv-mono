@@ -13,6 +13,7 @@ from std_srvs.srv import SetBool
 from tauv_util.transforms import rpy_to_quat, quat_to_rpy
 from scipy.spatial.transform import Rotation
 from motion.trajectories.linear_trajectory import Waypoint, LinearTrajectory
+from motion.motion_utils import MotionUtils
 
 
 class ArgumentParserError(Exception): pass
@@ -28,11 +29,13 @@ class TeleopMission:
     def __init__(self):
         self._parser = self._build_parser()
 
+        self._motion = MotionUtils()
+
         self._traj: Optional[LinearTrajectory] = None
         self._pose: Optional[Pose] = None
         self._twist: Optional[Twist] = None
 
-        self._get_traj_srv: rospy.Service = rospy.Service('get_traj', GetTraj, self._handle_get_traj)
+        # self._get_traj_srv: rospy.Service = rospy.Service('get_traj', GetTraj, self._handle_get_traj)
 
         self._tune_controls_srv: rospy.ServiceProxy = rospy.ServiceProxy('tune_controls', TuneControls)
         self._tune_dynamics_srv: rospy.ServiceProxy = rospy.ServiceProxy('tune_dynamics', TuneDynamics)
@@ -183,9 +186,11 @@ class TeleopMission:
                 tuple(args.a),
             )
 
-            self._traj.set_executing()
+            self._motion.set_trajectory(self._traj)
 
-            self._path_pub.publish(self._traj.as_path())
+            # self._traj.start()
+
+            # self._path_pub.publish(self._traj.as_path())
         except Exception as e:
             print(e)
 

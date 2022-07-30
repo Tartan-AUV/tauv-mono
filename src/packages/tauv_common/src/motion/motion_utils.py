@@ -13,6 +13,7 @@
 #
 
 import rospy
+import numpy as np
 from scipy.spatial.transform import Rotation
 from tauv_msgs.msg import Pose as PoseMsg
 from geometry_msgs.msg import PoseArray
@@ -31,8 +32,7 @@ class MotionUtils:
 
         self.arm_proxy = rospy.ServiceProxy('/arm', SetBool)
         self.traj = None
-        self.path_pub = rospy.Publisher('/gnc/path_viz', Path, queue_size=10)
-        self._pose_array_pub = rospy.Publisher('gnc/pose_array', PoseArray, queue_size=10)
+        self.path_pub = rospy.Publisher('/gnc/path', Path, queue_size=10)
 
         self.pose = None
         self.twist = None
@@ -43,8 +43,6 @@ class MotionUtils:
 
         # 10Hz status update loop:
         rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status)
-        while not self.initialized:
-            rospy.sleep(0.05)
 
     def abort(self):
         self.traj = None
@@ -52,35 +50,30 @@ class MotionUtils:
     def set_trajectory(self, traj):
         assert isinstance(traj, Trajectory)
         self.traj = traj
-        if self.traj.get_status() != TrajectoryStatus.INITIALIZED:
-            return
-        self.traj.set_executing()
+        self.traj.start()
 
     def get_robot_state(self):
         return self.pose, self.twist
 
     def get_position(self):
-        return (self.pose.position.x, self.pose.position.y, self.pose.position.z)
+        return np.array([self.pose.position.x, self.pose.position.y, self.pose.position.z])
 
     def get_motion_status(self):
         if self.traj is None:
-            return TrajectoryStatus.TIMEOUT
+            return TrajectoryStatus.PENDING
+
         return self.traj.get_status()
 
     def arm(self, armed):
         try:
-            self.arm_proxy(SetBoolRequest(armed))
+            self.arm_proxy.call(SetBoolRequest(armed))
         except rospy.ServiceException:
             rospy.logwarn_throttle('[Motion Utils] Cannot arm/disarm: Arm server not responding. (This could be due '
                                    'to running in simulation)')
 
     def _update_status(self, timer_event):
         if self.traj is not None:
-            path = Path()
-            path.header.frame_id = 'odom'
-            path.header.stamp = rospy.Time.now()
-
-            path = self.traj.as_path(dt=0.5)
+            path = self.traj.as_path()
 
             self.path_pub.publish(path)
 
@@ -95,13 +88,6 @@ class MotionUtils:
             return response
 
         response = self.traj.get_points(req)
-
-        if response.success:
-            msg = PoseArray()
-            msg.header = Header()
-            msg.header.frame_id = 'odom'
-            msg.poses = response.poses
-            self._pose_array_pub.publish(msg)
 
         return response
 

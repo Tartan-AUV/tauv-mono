@@ -1,8 +1,7 @@
-from typing import Tuple
 import rospy
 import numpy as np
 
-from geometry_msgs.msg import Pose, PoseStamped, Twist, Vector3
+from geometry_msgs.msg import Pose, PoseStamped, Twist, Vector3, Quaternion
 from nav_msgs.msg import Path
 from tauv_msgs.srv import GetTrajRequest, GetTrajResponse
 from tauv_util.types import tl, tm
@@ -13,15 +12,15 @@ from .pyscurve import ScurvePlanner
 
 
 class Waypoint:
-    def __init__(self, pose: Pose, linear_error: float, angular_error: float):
+    def __init__(self, pose: Pose, linear_error: float = 0.25, angular_error: float = 0.25):
         self.pose: Pose = pose
         self.linear_error: float = linear_error
         self.angular_error: float = angular_error
 
-    def __init__(self, target: tuple, linear_error=0.25, angular_error=0.25):
-        self.pose = Pose(Vector3(pos[0],pos[1],pos[2]), Vector3())
-        self.linear_error = linear_error
-        self.angular_error = angular_error
+    # def __init__(self, position: np.array, linear_error: float = 0.25, angular_error: float = 0.25):
+    #     self.pose = Pose(tm(position, Vector3), Quaternion(0.0, 0.0, 0.0, 1.0))
+    #     self.linear_error: float = linear_error
+    #     self.angular_error: float = angular_error
 
     def to_pose_stamped(self) -> PoseStamped:
         ps = PoseStamped()
@@ -41,16 +40,10 @@ class LinearTrajectory(Trajectory):
         self._status = TrajectoryStatus.PENDING
 
         self._p = ScurvePlanner()
-        self._plan()
-
-        self._status = TrajectoryStatus.INITIALIZED
 
     def _plan(self):
         start = self._waypoints[self._target - 1]
         end = self._waypoints[self._target]
-
-        print(start.pose.position)
-        print(end.pose.position)
 
         start_position = tl(start.pose.position) + 1e-4 * np.random.rand(3)
         end_position = tl(end.pose.position)
@@ -81,8 +74,17 @@ class LinearTrajectory(Trajectory):
 
         self._start_time = rospy.Time.now()
 
+        linear_duration = self._linear_traj.time[0]
+        yaw_duration = self._yaw_traj.time[0]
+        self._segment_duration = rospy.Duration.from_sec(max(linear_duration, yaw_duration))
+
 
     def get_points(self, req: GetTrajRequest) -> GetTrajResponse:
+        if self._status != TrajectoryStatus.EXECUTING:
+            res: GetTrajResponse = GetTrajResponse()
+            res.success = False
+            return res
+
         start_waypoint = self._waypoints[self._target - 1]
         target_waypoint = self._waypoints[self._target]
 
@@ -92,6 +94,9 @@ class LinearTrajectory(Trajectory):
 
         if target_reached and self._target == len(self._waypoints) - 1:
             self._status = TrajectoryStatus.STABILIZED
+        elif (req.curr_time - self._start_time).to_sec() > self._segment_duration.to_sec()\
+                and self._target == len(self._waypoints) - 1:
+            self._status = TrajectoryStatus.FINISHED
         elif target_reached:
             self._target += 1
             self._plan()
@@ -141,13 +146,11 @@ class LinearTrajectory(Trajectory):
         res.success = True
         return res
 
-    def get_duration(self) -> rospy.Duration:
-        return rospy.Duration.from_sec(0)
+    def get_segment_duration(self) -> rospy.Duration:
+        return self._segment_duration
 
-    def get_time_remaining(self) -> rospy.Duration:
-        return rospy.Duration.from_sec(0)
-
-    def set_executing(self):
+    def start(self):
+        self._plan()
         self._status = TrajectoryStatus.EXECUTING
 
     def get_status(self) -> TrajectoryStatus:
@@ -155,6 +158,6 @@ class LinearTrajectory(Trajectory):
 
     def as_path(self) -> Path:
         path = Path()
-        path.header.frame_id = 'odom'
+        path.header.frame_id = 'odom_ned'
         path.poses = list(map(lambda w: w.to_pose_stamped(), self._waypoints))
         return path
