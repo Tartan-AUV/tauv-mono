@@ -138,7 +138,7 @@ class MPCPlanner:
         if self._pose is None:
             return
 
-        R = Rotation.from_quat(tl(self._pose.orientation)).inv()
+        R = Rotation.from_euler('ZYX', np.flip(tl(self._pose.orientation))).inv()
         body_accel = R.apply(cmd[0:3])
 
         msg: ControllerCmdMsg = ControllerCmdMsg()
