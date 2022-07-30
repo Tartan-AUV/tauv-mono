@@ -31,7 +31,7 @@ bool MS5837::begin(SoftwareWire &wirePort) {
 bool MS5837::init(SoftwareWire &wirePort) {
 	_i2cPort = &wirePort; //Grab which port the user wants us to use
   
-  _i2cPort->setTimeout(3000);
+  _i2cPort->setTimeout(1000);
 
 	// Reset the MS5837, per datasheet
 	_i2cPort->beginTransmission(MS5837_ADDR);

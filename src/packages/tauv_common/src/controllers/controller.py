@@ -79,7 +79,7 @@ class Controller:
         rospy.spin()
 
     def _update(self, timer_event):
-        print(self._pose, self._body_twist, self._cmd_acceleration)
+        # print(self._pose, self._body_twist, self._cmd_acceleration)
         if self._pose is None or self._body_twist is None or self._cmd_acceleration is None:
             return
 

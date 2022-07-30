@@ -41,6 +41,42 @@ void sideRace(uint64_t t, uint64_t dur, uint8_t brightness) {
 //  Serial.println("");
 }
 
+void sideBreath(uint64_t t, uint8_t brightness) {
+  uint64_t period = 1000;
+  uint64_t t2 = t%period;
+  if (t2 > period/2) {
+    t2 = period - t2;
+//      t2 = period/2;
+  }
+  uint64_t intensity = t2 * brightness / (period/2);
+
+  uint32_t color = Color(255, 150, 0, intensity);
+  for (int i = 0; i < SIDELEN; i++) {
+    setSidePixelColor(i, color);
+  }
+}
+
+void sideStrobe(uint64_t t, uint8_t brightness) {
+  int period = 500;
+  int t2 = t%period;
+  int intensity = 0;
+  if (t2 > period/2) {
+    intensity = 255;
+  }
+
+  uint32_t color = Color(255, 0, 0, intensity);
+  for (int i = 0; i < SIDELEN; i++) {
+    setSidePixelColor(i, color);
+  }
+}
+
+void setRed(uint8_t brightness) {
+  uint32_t color = Color(255, 0, 0, brightness);
+  for (int i = 0; i < SIDELEN; i++) {
+    setSidePixelColor(i, color);
+  }  
+}
+
 void panic(uint64_t t) {
   uint16_t bt = 100;
   unsigned int i = (t % (2*bt));

@@ -22,7 +22,7 @@ void setup() {
   clock_prescale_set(clock_div_1); // Enable 16 MHz on Trinket
 #endif
 
-  wire.setClock(10000);
+  wire.setClock(20000);
   wire.begin();
   Serial.begin(115200);
 
@@ -33,17 +33,37 @@ void setup() {
 
 uint64_t last_depth_read = 0;
 bool sensor_init = false;
+char state = 'x';
+uint64_t last_state_read = 0;
 
 void loop() {
   int t = millis();
 
   // get the state
-//  if (Serial.readln()
+  if (Serial.available()) {
+    state = Serial.read();
+    last_state_read = millis();
+  }
 
-  
+  if (millis() - last_state_read > 1000) {
+    state = 'x';
+  }
+
   // command the strip
   strip.clear();
-  sideRace(t, 1000, 25);
+  if (state == 'x') {
+    setRed(60);
+  } else if (state == 'p') {
+    sideRace(t, 1000, 100);
+  } else if (state == 'g') {
+    sideRainbow(t, 1000);
+  } else if (state == 'm') {
+    sideBreath(t, 255);
+  } else if (state == 'c') {
+    sideStrobe(t,255);
+  }
+
+  
   strip.show();
 
   

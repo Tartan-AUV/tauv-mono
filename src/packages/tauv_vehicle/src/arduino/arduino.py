@@ -1,8 +1,14 @@
 import rospy
 from tauv_msgs.msg import FluidDepth as DepthMsg
-from tauv_alarms import Alarm, AlarmClient
+from tauv_alarms.alarm_client import Alarm, AlarmClient, FailureLevel
 import serial
 
+arduino_fl_codes = {
+    FailureLevel.NO_FAILURE: 'g',
+    FailureLevel.PREDIVE_FAILURE: 'p',
+    FailureLevel.MISSION_FAILURE: 'm',
+    FailureLevel.CRITICAL_FAILURE: 'c'
+}
 
 class Arduino:
 
@@ -64,6 +70,10 @@ class Arduino:
         else:
             pass
             # rospy.logwarn(f'unknown message type: {serial_message_type}')
+
+        fl = self._ac.get_failure_level()
+        c = arduino_fl_codes[fl]
+        self._serial.write(bytearray(c, 'utf-8'))
 
         self._ac.clear(Alarm.ARDUINO_NOT_INITIALIZED)
 

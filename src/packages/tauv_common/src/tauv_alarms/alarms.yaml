@@ -91,7 +91,7 @@ Alarms:
 
 - KILL_SWITCH_ACTIVE:
     id: 11
-    failure_level: MISSION_FAILURE
+    failure_level: CRITICAL_FAILURE
     default_set: False
     description: The hardware kill switch is active
     author: Tom Scherlis
