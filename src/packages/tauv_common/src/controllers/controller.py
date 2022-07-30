@@ -183,7 +183,7 @@ class Controller:
         cd.ang_d_y = self._pitch_pid._derivative
         cd.d_z = self._z_pid._derivative
 
-        if self._pose is None is None or not self._is_active:
+        if self._pose is None or not self._is_active:
             self._debug_pub.publish(cd)
             cd.enable = False
             return np.array([0.0, 0.0, 0.0])
