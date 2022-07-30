@@ -72,7 +72,7 @@ class LogDetections():
         pitch = cur_orientation [1]
         yaw = cur_orientation [2]
 
-        relative = numpy.array([relative[2], relative[0], relative[1]])
+        relative = numpy.array([relative[2] + 0.465, relative[0], relative[1]])
 
         #cur_orientation = array_to_point(cur_orientation)
         #cur_position = array_to_point(cur_position)

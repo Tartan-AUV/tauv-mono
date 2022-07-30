@@ -1,7 +1,7 @@
 from tauv_mission_manager.mission_utils import Mission, Task, TaskParams
 from tauv_mission_manager.tasks import Dive, Bouey
 
-class SquareMission(Mission):
+class BuoyMission(Mission):
     x = 3
     def __init__(self, params: TaskParams) -> None:
         self.p = params

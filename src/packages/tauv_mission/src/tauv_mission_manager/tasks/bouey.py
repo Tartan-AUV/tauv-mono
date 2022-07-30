@@ -2,7 +2,7 @@ from motion.trajectories.trajectories import TrajectoryStatus
 import rospy
 from tauv_mission_manager.mission_utils import Task, TaskParams
 from motion.trajectories.linear_trajectory import LinearTrajectory, Waypoint
-from vision.detectors import Finder
+from vision.detectors.finder import Finder
 
 class Bouey(Task):
     def __init__(self, params: TaskParams) -> None:

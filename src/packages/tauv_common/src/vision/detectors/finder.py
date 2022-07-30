@@ -6,12 +6,10 @@ import geometry_msgs.msg
 
 class Finder():
     def __init__(self):
-        rospy.init_node('bucket_finder')
-        self.bucket = rospy.Subscriber("bucket_list", BucketList, self.update)
-
+        # rospy.init_node('bucket_finder')
         self.bucket_list = []
-
-        rospy.spin()
+        self.bucket = rospy.Subscriber("bucket_list", BucketList, self.update)
+        # rospy.spin()
 
     #return the first bucket detection with the key matching name
     def find_by_tag(self, tag):
