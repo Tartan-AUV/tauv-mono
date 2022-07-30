@@ -2,12 +2,12 @@ import rospy
 import numpy as np
 from typing import Optional
 from math import pi
-from simple_pid import PID
+from controllers.tpid import PID
 
 from dynamics.dynamics import Dynamics
-from geometry_msgs.msg import Pose, Twist, Wrench, Vector3, Quaternion
+from geometry_msgs.msg import Twist, Wrench, Vector3, Quaternion
 from tauv_msgs.msg import ControllerCmd as ControllerCmdMsg
-from tauv_msgs.msg import ControllerDebug
+from tauv_msgs.msg import ControllerDebug, Pose
 from tauv_msgs.srv import SetTargetPose, SetTargetPoseRequest, SetTargetPoseResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TuneControls, TuneControlsRequest, TuneControlsResponse
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from std_msgs.msg import Bool
@@ -25,10 +25,9 @@ class Controller:
 
         self._dt: float = 1.0 / rospy.get_param('~frequency')
 
-        self._is_active = True
+        self._is_active = False
 
         self._pose: Optional[Pose] = None
-        self._body_twist: Optional[Twist] = None
         self._target_pose: Pose = Pose()
         self._target_pose.orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
         self._hold_z: bool = False
@@ -41,6 +40,10 @@ class Controller:
         self._pitch_limits: np.array = np.array(rospy.get_param('~pitch_limits'))
         self._z_limits: np.array = np.array(rospy.get_param('~z_limits'))
 
+        self._tau_z: np.array = np.array(rospy.get_param('~tau_z'))
+        self._tau_roll: np.array = np.array(rospy.get_param('~tau_roll'))
+        self._tau_pitch: np.array = np.array(rospy.get_param('~tau_pitch'))
+        
         self._build_pids()
 
         self._target_pose_srv: rospy.Service = rospy.Service('set_target_pose', SetTargetPose, self._handle_target_pose)
@@ -48,7 +51,7 @@ class Controller:
         self._tune_dynamics_srv: rospy.Service = rospy.Service('tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
         self._tune_pids_srv: rospy.Service = rospy.Service('tune_controls', TuneControls, self._handle_tune_controls)
 
-        self._odom_sub: rospy.Subscriber = rospy.Subscriber('odom', OdometryMsg, self._handle_odom)
+        self._odom_sub: rospy.Subscriber = rospy.Subscriber('pose', Pose, self._handle_pose)
         self._command_sub: rospy.Subscriber = rospy.Subscriber('controller_cmd', ControllerCmdMsg, self._handle_command)
         self._wrench_pub: rospy.Publisher = rospy.Publisher('wrench', Wrench, queue_size=10)
         self._debug_pub = rospy.Publisher('debug', ControllerDebug, queue_size=10)
@@ -86,16 +89,16 @@ class Controller:
 
     def _update(self, timer_event):
         # print(self._pose, self._body_twist, self._cmd_acceleration)
-        if self._pose is None or self._body_twist is None or self._cmd_acceleration is None:
+        if self._pose is None is None or self._cmd_acceleration is None:
             return
 
         eta = np.concatenate((
             tl(self._pose.position),
-            quat_to_rpy(self._pose.orientation)
+            tl(self._pose.orientation)
         ))
         v = np.concatenate((
-            tl(self._body_twist.linear),
-            tl(self._body_twist.angular),
+            tl(self._pose.velocity),
+            tl(self._pose.angular_velocity),
             # np.flip(tl(self._body_twist.angular))
         ))
         vd = self._get_acceleration()
@@ -106,7 +109,7 @@ class Controller:
         #     tau = 0.75 * tau
         #     # TODO FIX THIS
         #     # tau = self._dyn.compute_tau(eta, v, vd)
-        tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
+        # tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
         wrench: Wrench = Wrench()
         wrench.force = Vector3(tau[0], tau[1], tau[2])
@@ -119,7 +122,7 @@ class Controller:
         efforts = self._get_efforts()
 
         if self._hold_z:
-            R = Rotation.from_quat(tl(self._pose.orientation)).inv()
+            R = Rotation.from_euler('ZYX', np.flip(tl(self._pose.orientation))).inv()
 
             world_acceleration = np.array([0.0, 0.0, efforts[2]])
             body_acceleration = R.apply(world_acceleration)
@@ -145,8 +148,7 @@ class Controller:
         return vd
 
     def _get_efforts(self):
-        if self._pose is None or self._body_twist is None or not self._is_active:
-            return np.array([0.0, 0.0, 0.0])
+        cd = ControllerDebug()
 
         target_rpy = quat_to_rpy(self._target_pose.orientation)
         target = np.array([
@@ -155,33 +157,50 @@ class Controller:
             self._target_pose.position.z,
         ])
 
-        current_rpy = quat_to_rpy(self._pose.orientation)
+        # current_rpy = quat_to_rpy(self._pose.orientation)
         current = np.array([
-            current_rpy[0],
-            current_rpy[1],
+            self._pose.orientation.x,
+            self._pose.orientation.y,
             self._pose.position.z
         ])
 
         err = current - target
         err[0:2] = (err[0:2] + pi) % (2 * pi) - pi
 
-        efforts = np.array([
-            self._roll_pid(err[0]),
-            self._pitch_pid(err[1]),
-            self._z_pid(err[2]),
-        ])
-
-        cd = ControllerDebug()
+        cd.ang_x = current[0]
+        cd.ang_y = current[1]
+        cd.z = current[2]
+        cd.ang_target_x = target[0]
+        cd.ang_target_y = target[1]
+        cd.target_z = target[2]
         cd.ang_err_x = err[0]
         cd.ang_err_y = err[1]
-        cd.ang_err_z = err[2]
+        cd.err_z = err[2]
+        cd.ang_i_x = self._roll_pid._integral
+        cd.ang_i_y = self._pitch_pid._integral
+        cd.i_z = self._z_pid._integral
+        cd.ang_d_x = self._roll_pid._derivative
+        cd.ang_d_y = self._pitch_pid._derivative
+        cd.d_z = self._z_pid._derivative
+
+        if self._pose is None is None or not self._is_active:
+            self._debug_pub.publish(cd)
+            cd.enable = False
+            return np.array([0.0, 0.0, 0.0])
+        
+        cd.enable = True
+        efforts = np.array([
+            self._roll_pid(err[0], dt=self._dt),
+            self._pitch_pid(err[1], dt=self._dt),
+            self._z_pid(err[2], dt=self._dt),
+        ])
+
         self._debug_pub.publish(cd)
 
         return efforts
 
-    def _handle_odom(self, msg: OdometryMsg):
-        self._pose = msg.pose.pose
-        self._body_twist = msg.twist.twist
+    def _handle_pose(self, msg: Pose):
+        self._pose = msg
 
     def _handle_command(self, msg: ControllerCmdMsg):
         self._cmd_acceleration = np.array([
@@ -255,6 +274,10 @@ class Controller:
             self._z_tunings = req.tunings.z_tunings
         if req.tunings.update_z_limits:
             self._z_limits = req.tunings.z_limits
+        if req.tunings.update_tau:
+            self._tau_roll = req.tunings.tau[0]
+            self._tau_pitch = req.tunings.tau[1]
+            self._tau_z = req.tunings.tau[2]
         self._build_pids()
         return TuneControlsResponse(True)
 
@@ -274,6 +297,7 @@ class Controller:
             output_limits=self._roll_limits,
             proportional_on_measurement=False,
             sample_time=0.02,
+            d_alpha=self._dt/self._tau_roll if self._tau_roll > 0 else 1
         )
         self._pitch_pid: PID = PID(
             Kp=self._pitch_tunings[0],
@@ -283,13 +307,16 @@ class Controller:
             output_limits=self._pitch_limits,
             proportional_on_measurement=False,
             sample_time=0.02,
+            d_alpha=self._dt/self._tau_pitch if self._tau_pitch > 0 else 1
         )
+        print(f"z alpha: {self._dt/self._tau_z if self._tau_z > 0 else 1}")
         self._z_pid: PID = PID(
             Kp=self._z_tunings[0],
             Ki=self._z_tunings[1],
             Kd=self._z_tunings[2],
             output_limits=self._z_limits,
             proportional_on_measurement=False,
+            d_alpha=self._dt/self._tau_z if self._tau_z > 0 else 1
             # sample_time=0.,
         )
 

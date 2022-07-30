@@ -95,6 +95,10 @@ class TeleopMission:
             t.update_z_limits = True
             t.z_limits = args.z_limits
 
+        if args.tau is not None:
+            t.update_tau = True
+            t.tau = args.tau
+
         req: TuneControlsRequest = TuneControlsRequest()
         req.tunings = t
         self._tune_controls_srv.call(req)
@@ -267,6 +271,7 @@ class TeleopMission:
         tune_controls.add_argument('--pitch-limits', type=float, nargs=2)
         tune_controls.add_argument('--z', type=float, nargs=3)
         tune_controls.add_argument('--z-limits', type=float, nargs=2)
+        tune_controls.add_argument('--tau', type=float, nargs=3)
         tune_controls.set_defaults(func=self._handle_tune_controls)
 
         tune_dynamics = subparsers.add_parser('tune_dynamics')

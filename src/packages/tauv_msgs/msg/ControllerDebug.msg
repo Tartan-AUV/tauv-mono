@@ -1,3 +1,16 @@
 float32 ang_err_x
 float32 ang_err_y
-float32 ang_err_z
+float32 err_z
+float32 ang_i_x
+float32 ang_i_y
+float32 i_z
+float32 ang_d_x
+float32 ang_d_y
+float32 d_z
+float32 ang_target_x
+float32 ang_target_y
+float32 target_z
+float32 ang_x
+float32 ang_y
+float32 z
+bool enable

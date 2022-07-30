@@ -11,3 +11,5 @@ bool update_z
 float64[3] z_tunings
 bool update_z_limits
 float64[2] z_limits
+bool update_tau
+float64[3] tau
