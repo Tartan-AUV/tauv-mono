@@ -202,9 +202,8 @@ class Detector_Daemon(BucketList):
             #rospy.loginfo(f"malanobis: {self.mahalanobis_threshold}")
             if(adjacency_cost_matrix[i, j] < self.mahalanobis_threshold and tracker_tags[i]==det_tags[j]):
                 matches.append(np.array([i, j]))
-            #elif(self.track_map[det_tags[j]]!=self.max_map[det_tags[j]]):
-                #rospy.loginfo(f"cost: {adjacency_cost_matrix[i, j]}")
-                #rospy.loginfo(f"adjacency matrix: {adjacency_cost_matrix}")
+            elif(self.track_map[det_tags[j]]>=self.max_map[det_tags[j]]):
+                matches.append(np.array([i, j]))
             else:
                 unmatch_tracks.append(i)
                 unmatch_dets.append(j)
