@@ -156,11 +156,21 @@ class Detector_Daemon(BucketList):
 
         self.tracker_id = 0
 
+    def reset(self):
+        self.mutex.acquire()
+        self.tracker_list = []
+        self.bucket_list = []
+        self.track_map = {}
+        self.max_map = {}
+        self.mutex.release()
+
     def update_detection_buffer(self, data_frame):
         #rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
         #rospy.loginfo(f"DATAFRAM: {data_frame}")
+        self.mutex.acquire()
         self.detection_buffer.append(data_frame)
         self.new_data = True
+        self.mutex.release()
 
     # performs assignment to trackers and detections
     def map_det_to_tracker(self, trackers, dets, tracker_tags, det_tags):
@@ -255,6 +265,7 @@ class Detector_Daemon(BucketList):
 
     # performs association, finds matches and updates Kalman trackers, then publishes them to pose graph
     def spin(self):
+        self.mutex.acquire()
         if self.new_data:
             while len(self.detection_buffer) > 0:
                 data_frame = self.detection_buffer.pop(0)
@@ -361,6 +372,7 @@ class Detector_Daemon(BucketList):
                     #rospy.loginfo("[Detector Daemon]: %s: Matched and Tracked Objects: " + str(self.trackers_to_publish))
 
             self.new_data = False
+        self.mutex.release()
 
 
 

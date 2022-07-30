@@ -15,6 +15,7 @@ import math
 from tauv_util import transforms
 from tauv_util import types
 from scipy.spatial.transform import Rotation
+from std_srvs.srv import Trigger
 
 class LogDetections():
     def __init__(self):
@@ -42,11 +43,15 @@ class LogDetections():
         self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
                                               queue_size=10)
         
-        
+        rospy.Service("/bucket/reset", Trigger, self.reset)
+
         rospy.Timer(rospy.Duration(2),self.publish)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
         
+    def reset(self, srv):
+        self.detector_bucket.reset()
+
     def publish(self, event):
         self.detector_bucket.publish_all()
 

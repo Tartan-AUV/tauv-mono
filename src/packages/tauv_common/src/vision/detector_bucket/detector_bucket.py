@@ -44,6 +44,12 @@ class Detector_Bucket():
                                               self.update_daemon_service)
         self.ac.clear(Alarm.BUCKET_NOT_INITIALIZED, "Bucket initialized!")
 
+
+    def reset(self):
+       for daemon_name in self.daemon_dict:
+            self.daemon_dict[daemon_name].reset()
+        
+
     def init_daemons(self):
         if rospy.has_param("detectors/total_number"):
             self.num_daemons = int(rospy.get_param("detectors/total_number"))
@@ -71,18 +77,14 @@ class Detector_Bucket():
             #rospy.loginfo(f"data = {data_frame}")
 
             daemon = self.daemon_dict[daemon_name]
-            daemon.mutex.acquire()
             daemon.update_detection_buffer(data_frame)
-            daemon.mutex.release()
 
             return True
         return False
 
     def spin_daemon(self, daemon):
-        daemon.mutex.acquire()
         if(daemon.new_data):
             daemon.spin()
-        daemon.mutex.release()
 
     def publish(self, daemon_name = "camera"):
         daemon = self.daemon_dict[daemon_name]
