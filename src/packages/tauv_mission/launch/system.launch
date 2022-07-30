@@ -21,6 +21,8 @@
   <include file="$(find tauv_vehicle)/launch/$(arg model_name)_vehicle.launch"/>
   <include file="$(find tauv_vehicle)/launch/zed/zedm.launch"/>
 
+  <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch"/>
+
   <!-- =======================  -->
   <!-- Launch abstract systems  -->
   <!-- =======================  -->
