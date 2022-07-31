@@ -5,7 +5,7 @@
     <xacro:property name="kingfisher_cob" value="0 0 0"/>
 
     <!-- Vehicle's actual volume (Gazebo cannot compute the volume out of the mesh) -->
-    <xacro:property name="kingfisher_volume" value="0.0214"/>
+    <xacro:property name="kingfisher_volume" value="0.0229"/>
 
     <!-- Describing the dimensions of the vehicle's bounding box -->
     <xacro:property name="kingfisher_length" value="1"/>
