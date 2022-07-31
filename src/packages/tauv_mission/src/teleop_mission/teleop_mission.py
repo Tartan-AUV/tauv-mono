@@ -41,6 +41,8 @@ class TeleopMission:
         self._tune_dynamics_srv: rospy.ServiceProxy = rospy.ServiceProxy('tune_dynamics', TuneDynamics)
         self._target_pose_srv: rospy.ServiceProxy = rospy.ServiceProxy('set_target_pose', SetTargetPose)
         self._hold_z_srv: rospy.ServiceProxy = rospy.ServiceProxy('set_hold_z', SetBool)
+        self._hold_xy_srv: rospy.ServiceProxy = rospy.ServiceProxy('set_hold_xy', SetBool)
+        self._hold_yaw_srv: rospy.ServiceProxy = rospy.ServiceProxy('set_hold_yaw', SetBool)
 
         self._odom_sub: rospy.Subscriber = rospy.Subscriber('odom', Odom, self._handle_odom)
 
@@ -86,6 +88,20 @@ class TeleopMission:
         if args.pitch_limits is not None:
             t.update_pitch_limits = True
             t.pitch_limits = args.pitch_limits
+
+        if args.yaw is not None:
+            t.update_yaw = True
+            t.yaw_tunings = args.yaw
+
+        if args.yaw_limits is not None:
+            t.update_yaw_limits = True
+            t.yaw_limits = args.yaw_limits
+
+        if args.xy is not None:
+            t.update_x = True
+            t.x_tunings = args.x
+            t.update_y = True
+            t.y_tunings = args.y
 
         if args.z is not None:
             t.update_z = True
@@ -147,29 +163,29 @@ class TeleopMission:
         req.tunings = t
         self._tune_dynamics_srv.call(req)
 
-    def _handle_goto(self, args):
-        print('goto', args.x, args.y, args.z, args.roll, args.pitch, args.yaw, args.l, args.a)
-
-        start_waypoint = Waypoint(self._pose, 0.1, 0.1)
-
-        end_pose = Pose()
-        end_pose.position = Vector3(args.x, args.y, args.z)
-        end_pose.orientation = rpy_to_quat(np.array([args.roll, args.pitch, args.yaw]))
-
-        end_waypoint = Waypoint(end_pose, 0.1, 0.1)
-
-        try:
-            self._traj = LinearTrajectory(
-                [start_waypoint, end_waypoint],
-                tuple(args.l),
-                tuple(args.a),
-            )
-
-            self._traj.set_executing()
-
-            self._path_pub.publish(self._traj.as_path())
-        except Exception as e:
-            print(e)
+    # def _handle_goto(self, args):
+    #     print('goto', args.x, args.y, args.z, args.roll, args.pitch, args.yaw, args.l, args.a)
+    #
+    #     start_waypoint = Waypoint(self._pose, 0.1, 0.1)
+    #
+    #     end_pose = Pose()
+    #     end_pose.position = Vector3(args.x, args.y, args.z)
+    #     end_pose.orientation = rpy_to_quat(np.array([args.roll, args.pitch, args.yaw]))
+    #
+    #     end_waypoint = Waypoint(end_pose, 0.1, 0.1)
+    #
+    #     try:
+    #         self._traj = LinearTrajectory(
+    #             [start_waypoint, end_waypoint],
+    #             tuple(args.l),
+    #             tuple(args.a),
+    #         )
+    #
+    #         self._traj.set_executing()
+    #
+    #         self._path_pub.publish(self._traj.as_path())
+    #     except Exception as e:
+    #         print(e)
 
     def _handle_hold_pose(self, args):
         print('hold_pose', args.enable, args.roll, args.pitch, args.z)
@@ -212,6 +228,31 @@ class TeleopMission:
             # self._path_pub.publish(self._traj.as_path())
         except Exception as e:
             print(e)
+
+    def _handle_goto(self, args):
+        v = args.v if args.v is not None else .4
+        a = args.a if args.a is not None else .4
+        j = args.j if args.j is not None else .4
+        self._motion.goto(
+            (args.x, args.y, args.z),
+            args.yaw,
+            v=v,
+            a=a,
+            j=j
+        )
+
+    def _handle_enable_pids(self, args):
+        pose = Pose()
+        pose.position = Vector3(0.0, 0.0, args.z)
+        pose.orientation = rpy_to_quat(np.array([args.roll, args.pitch, 0.0]))
+
+        req: SetTargetPoseRequest = SetTargetPoseRequest()
+        req.pose = pose
+        self._target_pose_srv.call(req)
+
+        self._hold_xy_srv.call(args.enable_xy)
+        self._hold_z_srv.call(args.enable_z)
+        self._hold_yaw_srv.call(args.enable_yaw)
 
     def _handle_arm(self, args):
         print('arm', args.arm)
@@ -269,9 +310,12 @@ class TeleopMission:
         tune_controls.add_argument('--roll-limits', type=float, nargs=2)
         tune_controls.add_argument('--pitch', type=float, nargs=3)
         tune_controls.add_argument('--pitch-limits', type=float, nargs=2)
+        tune_controls.add_argument('--yaw', type=float, nargs=3)
+        tune_controls.add_argument('--yaw-limits', type=float, nargs=2)
+        tune_controls.add_argument('--xy', type=float, nargs=3)
         tune_controls.add_argument('--z', type=float, nargs=3)
         tune_controls.add_argument('--z-limits', type=float, nargs=2)
-        tune_controls.add_argument('--tau', type=float, nargs=3)
+        tune_controls.add_argument('--tau', type=float, nargs=6)
         tune_controls.set_defaults(func=self._handle_tune_controls)
 
         tune_dynamics = subparsers.add_parser('tune_dynamics')
@@ -286,15 +330,24 @@ class TeleopMission:
         tune_dynamics.add_argument('--added_mass', type=float, nargs=6)
         tune_dynamics.set_defaults(func=self._handle_tune_dynamics)
 
+        # goto = subparsers.add_parser('goto')
+        # goto.add_argument('x', type=float)
+        # goto.add_argument('y', type=float)
+        # goto.add_argument('z', type=float)
+        # goto.add_argument('roll', type=float)
+        # goto.add_argument('pitch', type=float)
+        # goto.add_argument('yaw', type=float)
+        # goto.add_argument('--l', type=float, nargs=3, default=[0.2, 0.2, 100.0])
+        # goto.add_argument('--a', type=float, nargs=3, default=[0.1, 0.2, 100.0])
+        # goto.set_defaults(func=self._handle_goto)
         goto = subparsers.add_parser('goto')
         goto.add_argument('x', type=float)
         goto.add_argument('y', type=float)
         goto.add_argument('z', type=float)
-        goto.add_argument('roll', type=float)
-        goto.add_argument('pitch', type=float)
         goto.add_argument('yaw', type=float)
-        goto.add_argument('--l', type=float, nargs=3, default=[0.2, 0.2, 100.0])
-        goto.add_argument('--a', type=float, nargs=3, default=[0.1, 0.2, 100.0])
+        goto.add_argument('--v', type=float)
+        goto.add_argument('--a', type=float)
+        goto.add_argument('--j', type=float)
         goto.set_defaults(func=self._handle_goto)
 
         go = subparsers.add_parser('go')
@@ -306,7 +359,18 @@ class TeleopMission:
         go.add_argument('--a', type=float, nargs=3, default=[0.1, 0.2, 100.0])
         go.set_defaults(func=self._handle_go)
 
-        hold_pose = subparsers.add_parser('hold_pose')
+        enable_pids = subparsers.add_parser('enable_pids')
+        enable_pids.add_argument('x',  type=float)
+        enable_pids.add_argument('y',  type=float)
+        enable_pids.add_argument('z',  type=float)
+        enable_pids.add_argument('yaw',  type=float)
+        enable_pids.add_argument('--enable-xy', action='store_true')
+        enable_pids.add_argument('--enable-z', action='store_true')
+        enable_pids.add_argument('--enable-yaw', action='store_true')
+        enable_pids.set_defaults(func=self._handle_enable_pids)
+
+        hold_pose = subparsers.add_parser('hold')
+        hold_pose.add_argument('--enable', action='store_true')
         hold_pose.add_argument('roll', type=float)
         hold_pose.add_argument('pitch', type=float)
         hold_pose.add_argument('z', type=float)

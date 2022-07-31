@@ -45,7 +45,7 @@ class MotionUtils:
         rospy.wait_for_message("/gnc/odom", rospy.AnyMsg, timeout=None)
         # 10Hz status update loop:
         rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status)
-        rospy.Timer(rospy.Duration.from_sec(0.05), self._pub_target)
+        # rospy.Timer(rospy.Duration.from_sec(0.05), self._pub_target)
 
     def abort(self):
         self.traj = None

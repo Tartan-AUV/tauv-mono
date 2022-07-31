@@ -22,6 +22,8 @@
             <remap from="wrench" to="/thrusters/wrench"/>
             <remap from="set_target_pose" to="/controller/set_target_pose" />
             <remap from="set_hold_z" to="/controller/set_hold_z" />
+            <remap from="set_hold_xy" to="/controller/set_hold_xy" />
+            <remap from="set_hold_yaw" to="/controller/set_hold_yaw" />
             <remap from="tune_dynamics" to="/controller/tune_dynamics" />
             <remap from="tune_controls" to="/controller/tune_controls" />
             <remap from="active" to="/thrusters/active" />
@@ -40,7 +42,7 @@
 
         <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/>
 
-        <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">
+        <!-- <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />
             <remap from="odom" to="/gnc/odom" />
             <remap from="cmd" to="/mpc/cmd" />
@@ -48,7 +50,7 @@
             <remap from="traj_poses" to="/mpc/traj_poses" />
             <remap from="poses" to="/mpc/poses" />
             <remap from="servos" to="/servos/targets" />
-        </node>
+        </node> -->
 
 <!--        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">-->
 <!--            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />-->

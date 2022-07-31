@@ -10,5 +10,7 @@
         <remap from="arm" to="/thrusters/arm" />
         <remap from="set_target_pose" to="/controller/set_target_pose" />
         <remap from="set_hold_z" to="/controller/set_hold_z" />
+        <remap from="set_hold_xy" to="/controller/set_hold_xy" />
+        <remap from="set_hold_yaw" to="/controller/set_hold_yaw" />
     </node>
 </launch>

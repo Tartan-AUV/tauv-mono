@@ -138,6 +138,8 @@ class MPCPlanner:
         if self._pose is None:
             return
 
+        cmd[2] = 0
+
         R = Rotation.from_quat(tl(self._pose.orientation)).inv()
         body_accel = R.apply(cmd[0:3])
 

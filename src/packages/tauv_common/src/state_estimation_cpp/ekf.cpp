@@ -73,7 +73,7 @@ void Ekf::handle_imu_measurement(double time,
   this->get_H(fields, H);
 
   Eigen::VectorXd y(9);
-  y << orientation, rate_of_turn, linear_acceleration;
+  y << orientation, rate_of_turn, 0, 0, 0;
   y -= H * this->state;
 
   Eigen::VectorXi angle_fields(3);

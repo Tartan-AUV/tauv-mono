@@ -16,6 +16,7 @@
         <remap from="/gnc/state_estimation_cpp/imu" to="/xsens_imu/data" />
         <remap from="/gnc/state_estimation_cpp/dvl" to="/teledyne_dvl/data" />
         <remap from="/gnc/state_estimation_cpp/depth" to="/arduino/depth" />
+        <remap from="/gnc/state_estimation_cpp/set_pose" to="/gnc/set_pose" />
     </node>
 <!--     </group>-->
 </launch>

@@ -22,6 +22,7 @@ add_message_files(
   PoseGraphMeasurement.msg
   ReadableAlarmReport.msg
   Thrust.msg
+  TrajPoint.msg
   Battery.msg
   XsensImuSync.msg
   XsensImuData.msg
