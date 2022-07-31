@@ -16,14 +16,15 @@ import rospy
 import numpy as np
 from scipy.spatial.transform import Rotation
 from tauv_msgs.msg import Pose as PoseMsg
-from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import PoseArray, Pose, Twist
 from std_msgs.msg import Header
 from tauv_msgs.srv import GetTraj, GetTrajResponse
 from std_srvs.srv import SetBool, SetBoolRequest
 from tauv_util.transforms import twist_body_to_world
 from nav_msgs.msg import Path, Odometry as OdometryMsg
-from .trajectories import Trajectory, TrajectoryStatus
-
+from motion.trajectories import Trajectory, TrajectoryStatus
+from motion.trajectories.fixed_linear_trajectory import LinearTrajectory
+import typing
 
 class MotionUtils:
     def __init__(self):
@@ -34,8 +35,8 @@ class MotionUtils:
         self.traj = None
         self.path_pub = rospy.Publisher('/gnc/path', Path, queue_size=10)
 
-        self.pose = None
-        self.twist = None
+        self.pose = None    # pose
+        self.twist = None   # world frame velocities
 
         self.holdpos = None
 
@@ -70,6 +71,32 @@ class MotionUtils:
         except rospy.ServiceException:
             rospy.logwarn_throttle('[Motion Utils] Cannot arm/disarm: Arm server not responding. (This could be due '
                                    'to running in simulation)')
+
+    def goto(self, pos: typing.Tuple[float],
+                   heading: float = None, 
+                   block_until: TrajectoryStatus = TrajectoryStatus.FINISHED, 
+                   v=.4, a=.4, j=.4,
+                   threshold_lin=0.5, threshold_ang=0.5):
+        start_pose, start_twist = self.get_target()
+        newtraj = LinearTrajectory(start_pose, start_twist, pos, heading, v=v, a=a, j=j)
+        self.set_trajectory(newtraj)
+        while(self.get_motion_status() < block_until):
+            rospy.sleep(0.1)
+
+    def get_target(self) -> typing.Tuple[Pose, Twist]:
+        if self.get_motion_status() == TrajectoryStatus.PENDING:
+            # Return current position? or none?
+            return self.pose, self.twist
+        else:
+            req = GetTraj._request_class()
+            req.curr_time = rospy.Time.now()
+            req.len = 1
+            req.curr_pose = self.pose
+            req.curr_twist = self.twist
+            req.dt = .1 # i guess
+            res: GetTrajResponse = self.traj.get_points(req)
+            return res.poses[0], res.twists[0]
+
 
     def _update_status(self, timer_event):
         if self.traj is not None:

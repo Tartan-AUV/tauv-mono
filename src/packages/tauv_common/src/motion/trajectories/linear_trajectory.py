@@ -78,7 +78,6 @@ class LinearTrajectory(Trajectory):
         yaw_duration = self._yaw_traj.time[0]
         self._segment_duration = rospy.Duration.from_sec(max(linear_duration, yaw_duration))
 
-
     def get_points(self, req: GetTrajRequest) -> GetTrajResponse:
         if self._status != TrajectoryStatus.EXECUTING:
             res: GetTrajResponse = GetTrajResponse()
@@ -153,7 +152,7 @@ class LinearTrajectory(Trajectory):
         self._plan()
         self._status = TrajectoryStatus.EXECUTING
 
-    def get_status(self) -> TrajectoryStatus:
+    def get_status(self, pose) -> TrajectoryStatus:
         return self._status
 
     def as_path(self) -> Path:

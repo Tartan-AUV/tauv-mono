@@ -40,9 +40,13 @@ class Trajectory(object):
         pass
 
     @abc.abstractmethod
-    def get_status(self):
+    def get_status(self, pose):
         pass
 
     @abc.abstractmethod
     def as_path(self):
+        pass
+
+    @abc.abstractclassmethod
+    def get_target(self):
         pass
