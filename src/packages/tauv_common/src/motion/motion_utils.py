@@ -88,7 +88,6 @@ class MotionUtils:
     def get_target(self) -> typing.Tuple[Pose, Twist]:
         if self.get_motion_status() == TrajectoryStatus.PENDING:
             # Return current position? or none?
-            print("pending")
             return self.pose, self.twist
         else:
             req = GetTraj._request_class()
