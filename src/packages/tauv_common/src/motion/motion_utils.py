@@ -107,6 +107,17 @@ class MotionUtils:
         newtraj = LinearTrajectory(start_pose, start_twist, [world_pos], [world_heading], v=v, a=a, j=j, autowind_headings=False)
         self.set_trajectory(newtraj)
 
+    # def goto_relative(self, pos: typing.Tuple[float],
+    #                heading: float = None, 
+    #                block_until: TrajectoryStatus = TrajectoryStatus.FINISHED, 
+    #                v=.4, a=.4, j=.4,
+    #                threshold_lin=0.5, threshold_ang=0.5):
+    #     start_pose, start_twist = self.get_target()
+    #     newtraj = LinearTrajectory(start_pose, start_twist, [pos], heading, v=v, a=a, j=j)
+    #     self.set_trajectory(newtraj)
+    #     while(self.get_motion_status().value < block_until.value):
+    #         rospy.sleep(0.1)
+
     def get_target(self) -> typing.Tuple[Pose, Twist]:
         if self.get_motion_status() == TrajectoryStatus.PENDING:
             # Return current position? or none?
