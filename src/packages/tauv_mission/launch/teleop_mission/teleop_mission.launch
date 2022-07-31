@@ -7,7 +7,6 @@
         <remap from="hold_pose" to="/controller/hold_pose" />
         <remap from="odom" to="/gnc/odom" />
         <remap from="path" to="/gnc/path" />
-        <remap from="get_traj" to="/get_traj" />
         <remap from="arm" to="/thrusters/arm" />
         <remap from="set_target_pose" to="/controller/set_target_pose" />
         <remap from="set_hold_z" to="/controller/set_hold_z" />
