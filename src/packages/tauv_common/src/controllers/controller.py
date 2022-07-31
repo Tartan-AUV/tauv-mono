@@ -110,7 +110,7 @@ class Controller:
 
     def _update(self, timer_event):
         # print(self._pose, self._body_twist, self._cmd_acceleration)
-        if self._pose is None is None or self._cmd_acceleration is None:
+        if self._pose is None or self._cmd_acceleration is None:
             return
 
         eta = np.concatenate((
@@ -122,9 +122,9 @@ class Controller:
             tl(self._pose.angular_velocity),
             # np.flip(tl(self._body_twist.angular))
         ))
-        vd = self._get_acceleration()
+        v_feedforward, vd = self._get_inputs()
 
-        tau = self._dyn.compute_tau(eta, v, vd)
+        tau = self._dyn.compute_tau(eta, v + v_feedforward, vd)
 
         # while not np.allclose(np.minimum(np.abs(tau), self._max_wrench), np.abs(tau)):
         #     tau = 0.75 * tau
@@ -139,11 +139,24 @@ class Controller:
 
         self._ac.clear(Alarm.CONTROLLER_NOT_INITIALIZED)
 
-    def _get_acceleration(self) -> np.array:
+    def _get_inputs(self) -> np.array:
         efforts = self._get_efforts()
 
-        world_acceleration = np.array([0.0, 0.0, 0.0])
+        world_velocity = tl(self._target_twist.linear)
+        yaw_velocity = tl(self._target_twist.angular)[2]
+
         R = Rotation.from_euler('ZYX', np.flip(tl(self._pose.orientation))).inv()
+
+        if not self._hold_x:
+            world_velocity[0] = 0
+        if not self._hold_y:
+            world_velocity[1] = 0
+        if not self._hold_z:
+            world_velocity[2] = 0
+        if not self._hold_yaw:
+            yaw_velocity = 0
+
+        world_acceleration = np.array([0.0, 0.0, 0.0])
 
         if self._hold_x:
             world_acceleration[0] = efforts[3]
@@ -156,7 +169,17 @@ class Controller:
         if self._hold_yaw:
             yaw_effort = efforts[2]
 
+        body_velocity = R.apply(world_velocity)
         body_acceleration = R.apply(world_acceleration)
+
+        v = np.array([
+            body_velocity[0],
+            body_velocity[1],
+            body_velocity[2],
+            0,
+            0,
+            yaw_velocity
+        ])
 
         vd = np.array([
             body_acceleration[0] + self._cmd_acceleration[0],
@@ -167,7 +190,7 @@ class Controller:
             self._cmd_acceleration[5] + yaw_effort,
         ])
 
-        return vd
+        return v, vd
 
     def _get_efforts(self):
         cd = ControllerDebug()
@@ -182,9 +205,7 @@ class Controller:
             self._target_pose.position.z,
         ])
 
-
         self.goal_pub.publish(self._target_pose)
-
 
         # current_rpy = quat_to_rpy(self._pose.orientation)
         current = np.array([
@@ -275,7 +296,7 @@ class Controller:
 
     def _handle_target_trajpoint(self, msg: TrajPoint):
         self._target_pose = msg.pose
-        self._hold_z = True
+        self._target_twist = msg.twist
         self._hold_x = True
         self._hold_y = True
         self._hold_yaw = True

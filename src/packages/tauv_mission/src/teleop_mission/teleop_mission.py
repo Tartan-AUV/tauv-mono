@@ -159,6 +159,22 @@ class TeleopMission:
         except Exception as e:
             print(e)
 
+    def _handle_goto_relative(self, args):
+        v = args.v if args.v is not None else .4
+        a = args.a if args.a is not None else .4
+        j = args.j if args.j is not None else .4
+
+        try:
+            self._motion.goto_relative(
+                (args.x, args.y, args.z),
+                args.yaw,
+                v=v,
+                a=a,
+                j=j
+            )
+        except Exception as e:
+            print(e)
+
     def _handle_enable_pids(self, args):
         pose = Pose()
         pose.position = Vector3(args.x, args.y, args.z)
@@ -219,6 +235,16 @@ class TeleopMission:
         goto.add_argument('--a', type=float)
         goto.add_argument('--j', type=float)
         goto.set_defaults(func=self._handle_goto)
+
+        goto_relative = subparsers.add_parser('goto_relative')
+        goto_relative.add_argument('x', type=float)
+        goto_relative.add_argument('y', type=float)
+        goto_relative.add_argument('z', type=float)
+        goto_relative.add_argument('yaw', type=float)
+        goto_relative.add_argument('--v', type=float)
+        goto_relative.add_argument('--a', type=float)
+        goto_relative.add_argument('--j', type=float)
+        goto_relative.set_defaults(func=self._handle_goto_relative)
 
         enable_pids = subparsers.add_parser('enable_pids')
         enable_pids.add_argument('x',  type=float)

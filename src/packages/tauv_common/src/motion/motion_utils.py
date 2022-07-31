@@ -13,6 +13,7 @@
 #
 
 import rospy
+import math
 import numpy as np
 from geometry_msgs.msg import PoseArray, Pose, PoseStamped, Twist
 from tauv_msgs.srv import GetTraj, GetTrajResponse
@@ -20,6 +21,8 @@ from std_srvs.srv import SetBool, SetBoolRequest
 from tauv_util.transforms import twist_body_to_world
 from nav_msgs.msg import Path, Odometry as OdometryMsg
 from motion.trajectories import Trajectory, TrajectoryStatus
+from tauv_util.types import tl, tm
+from scipy.spatial.transform import Rotation
 from motion.trajectories.fixed_linear_trajectory import LinearTrajectory
 import typing
 from tauv_msgs.msg import TrajPoint
@@ -78,11 +81,30 @@ class MotionUtils:
 
     def goto(self, pos: typing.Tuple[float],
                    heading: float = None, 
-                   block_until: TrajectoryStatus = TrajectoryStatus.FINISHED, 
                    v=.4, a=.4, j=.4,
                    threshold_lin=0.5, threshold_ang=0.5):
         start_pose, start_twist = self.get_target()
         newtraj = LinearTrajectory(start_pose, start_twist, [pos], [heading], v=v, a=a, j=j)
+        self.set_trajectory(newtraj)
+
+    def goto_relative(self, pos: typing.Tuple[float],
+                      heading: float = None,
+                      v=.4, a=.4, j=.4):
+
+        current_heading = Rotation.from_quat(tl(self.pose.orientation)).as_euler('ZYX')[0]
+        current_pos = tl(self.pose.position)
+
+        world_pos = current_pos + np.array([
+            math.cos(current_heading) * pos[0] - math.sin(current_heading) * pos[1],
+            math.sin(current_heading) * pos[0] + math.cos(current_heading) * pos[1],
+            pos[2]])
+        world_heading = heading + current_heading
+
+        print(current_pos, world_pos)
+        print(current_heading, world_heading)
+
+        start_pose, start_twist = self.get_target()
+        newtraj = LinearTrajectory(start_pose, start_twist, [world_pos], [world_heading], v=v, a=a, j=j, autowind_headings=False)
         self.set_trajectory(newtraj)
 
     def get_target(self) -> typing.Tuple[Pose, Twist]:
