@@ -25,6 +25,7 @@ from nav_msgs.msg import Path, Odometry as OdometryMsg
 from motion.trajectories import Trajectory, TrajectoryStatus
 from motion.trajectories.fixed_linear_trajectory import LinearTrajectory
 import typing
+from tauv_msgs.msg import TrajPoint
 
 class MotionUtils:
     def __init__(self):
@@ -45,7 +46,9 @@ class MotionUtils:
         rospy.wait_for_message("/gnc/odom", rospy.AnyMsg, timeout=None)
         # 10Hz status update loop:
         rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status)
-        # rospy.Timer(rospy.Duration.from_sec(0.05), self._pub_target)
+
+        self.target_pub = rospy.Publisher("/gnc/traj_target", TrajPoint, queue_size=10)
+        rospy.Timer(rospy.Duration.from_sec(0.05), self._pub_target)
 
     def abort(self):
         self.traj = None
@@ -99,6 +102,10 @@ class MotionUtils:
             res: GetTrajResponse = self.traj.get_points(req)
             return res.poses[0], res.twists[0]
 
+    def _pub_target(self):
+        pos, twist = self.get_target()
+        tp = TrajPoint(pos, twist)
+        self.target_pub.publish(tp)
 
     def _update_status(self, timer_event):
         if self.traj is not None:

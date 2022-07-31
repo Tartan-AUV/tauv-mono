@@ -4,7 +4,7 @@ roll_limits: [-1, 1]
 roll_tunings: [0.05, 0.1, 0.1]
 pitch_tunings: [0.5, 0.1, 0.3]
 pitch_limits: [-1, 1]
-yaw_tunings: [0.5, 0.1, 0.3]
+yaw_tunings: [0.4, 0.1, 0.3]
 yaw_limits: [-1, 1]
 x_tunings: [6, 0, 4]
 x_limits: [-1, 1]
@@ -15,7 +15,7 @@ z_limits: [-1, 1]
 
 tau_roll: 0.05
 tau_pitch: 0.05
-tau_yaw: 0.05
+tau_yaw: 0.2
 tau_x: 0.2
 tau_y: 0.2
 tau_z: 0.2
