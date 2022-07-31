@@ -16,13 +16,6 @@ class Dive(Task):
         self.do_traj(traj)
         self.status(f"Dive done :)")
             
-    def do_traj(self, traj: LinearTrajectory):
-        self.mu.set_trajectory(traj)
-        while self.mu.get_motion_status() < TrajectoryStatus.FINISHED \
-            and not self.cancelled:
-            rospy.sleep(rospy.Duration(0.5))
-            # TODO: print eta
-
     def cancel(self):
         self.mu.abort()
         self.cancelled = True

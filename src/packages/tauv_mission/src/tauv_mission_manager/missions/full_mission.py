@@ -23,7 +23,12 @@ class FullMission(Mission):
 
     def run(self) -> None:
         self.p.status("hello")
+
+        # Dive
+        self.p.status("Diving")
         self.dive.run(1)
+
+
         start_pos = self.mu.get_position()
         # self.square.run(2)
         pos = self.mu.get_position()
