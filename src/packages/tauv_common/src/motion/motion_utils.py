@@ -82,7 +82,7 @@ class MotionUtils:
                    v=.4, a=.4, j=.4,
                    threshold_lin=0.5, threshold_ang=0.5):
         start_pose, start_twist = self.get_target()
-        newtraj = LinearTrajectory(start_pose, start_twist, [pos], heading, v=v, a=a, j=j)
+        newtraj = LinearTrajectory(start_pose, start_twist, [pos], [heading], v=v, a=a, j=j)
         self.set_trajectory(newtraj)
 
     def get_target(self) -> typing.Tuple[Pose, Twist]:

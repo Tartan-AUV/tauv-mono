@@ -102,7 +102,7 @@ class LinearTrajectory(Trajectory):
             assert(len(headings) == len(positions))
 
         start_pos = tl(start_pose.position) + 1e-4 * np.random.rand(3)
-        start_psi = Rotation.from_quat(tl(start_pose.orientation)).as_euler("ZYX")[0] + np.random.rand(1)
+        start_psi = Rotation.from_quat(tl(start_pose.orientation)).as_euler("ZYX")[0] + 1e-4 * np.random.rand(1)
         start_vel = tl(start_twist.linear)
         start_ang_vel = tl(start_twist.angular)
 
