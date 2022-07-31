@@ -32,8 +32,15 @@ class Controller:
         self._is_active = False
 
         self._pose: Optional[Pose] = None
+
+        self._cmd: np.array = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
         self._target_pose: GeoPose = GeoPose()
+        self._target_pose.position = Vector3(0, 0, 0)
         self._target_pose.orientation = Quaternion(0.0, 0.0, 0.0, 1.0)
+
+        self._target_twist: Twist = Twist()
+
         self._hold_x: bool = False
         self._hold_y: bool = False
         self._hold_z: bool = False
@@ -110,7 +117,7 @@ class Controller:
 
     def _update(self, timer_event):
         # print(self._pose, self._body_twist, self._cmd_acceleration)
-        if self._pose is None or self._cmd_acceleration is None:
+        if self._pose is None:
             return
 
         eta = np.concatenate((
@@ -299,10 +306,12 @@ class Controller:
         self._target_twist = msg.twist
         self._hold_x = True
         self._hold_y = True
+        self._hold_z = True
         self._hold_yaw = True
 
     def _handle_target_pose(self, req: SetTargetPoseRequest) -> SetTargetPoseResponse:
         self._target_pose = req.pose
+        self._target_twist = Twist()
         return SetTargetPoseResponse(True)
 
     def _handle_hold_z(self, req: SetBoolRequest) -> SetBoolResponse:
