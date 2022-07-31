@@ -380,7 +380,7 @@ Eigen::Quaterniond rpy_to_quat(const Eigen::Vector3d &rpy)
     Eigen::AngleAxisd pitch_angle(-rpy.y(), Eigen::Vector3d::UnitY());
     Eigen::AngleAxisd yaw_angle(-rpy.z(), Eigen::Vector3d::UnitZ());
 
-    Eigen::Quaterniond q = yaw_angle * pitch_angle * roll_angle;
+    Eigen::Quaterniond q = roll_angle * pitch_angle * yaw_angle;
 
     return q;
 }
