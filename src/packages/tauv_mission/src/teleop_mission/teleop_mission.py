@@ -148,13 +148,16 @@ class TeleopMission:
         a = args.a if args.a is not None else .4
         j = args.j if args.j is not None else .4
 
-        self._motion.goto(
-            (args.x, args.y, args.z),
-            args.yaw,
-            v=v,
-            a=a,
-            j=j
-        )
+        try:
+            self._motion.goto(
+                (args.x, args.y, args.z),
+                args.yaw,
+                v=v,
+                a=a,
+                j=j
+            )
+        except Exception as e:
+            print(e)
 
     def _handle_enable_pids(self, args):
         pose = Pose()

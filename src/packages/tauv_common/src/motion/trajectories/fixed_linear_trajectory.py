@@ -94,8 +94,6 @@ class LinearTrajectory(Trajectory):
         #
         self.status = TrajectoryStatus.PENDING
 
-        positions = [tl(p) for p in positions]
-
         assert(len(positions) > 0)
         assert(all([len(e) == 3 for e in positions]))
         if headings is not None:
@@ -103,8 +101,8 @@ class LinearTrajectory(Trajectory):
                 headings = [headings]
             assert(len(headings) == len(positions))
 
-        start_pos = tl(start_pose.position)
-        start_psi = Rotation.from_quat(tl(start_pose.orientation)).as_euler("ZYX")[0]
+        start_pos = tl(start_pose.position) + 1e-4 * np.random.rand(3)
+        start_psi = Rotation.from_quat(tl(start_pose.orientation)).as_euler("ZYX")[0] + np.random.rand(1)
         start_vel = tl(start_twist.linear)
         start_ang_vel = tl(start_twist.angular)
 
@@ -186,7 +184,7 @@ class LinearTrajectory(Trajectory):
             p = self.segments[seg](t, order=0)
             v = self.segments[seg](t, order=1)
 
-            pose = Pose(tm(p[0:3], Point), Quaternion(cos(p[3]/2),0,0,sin(p[3]/2)))
+            pose = Pose(tm(p[0:3], Point), tm(Rotation.from_euler('ZYX', [p[3], 0, 0]).as_quat(), Quaternion))
             twist = Twist(tm(v[0:3], Vector3), Vector3(0, 0, v[3]))
             poses.append(pose)
             twists.append(twist)
@@ -204,7 +202,7 @@ class LinearTrajectory(Trajectory):
         end_time = rospy.Time(self.start_time) + self.duration()
         return end_time - rospy.Time.now()
 
-    def set_executing(self):
+    def start(self):
         self.status = TrajectoryStatus.EXECUTING
 
     def get_status(self, pose: Pose):

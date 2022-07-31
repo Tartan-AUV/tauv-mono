@@ -14,7 +14,7 @@
 
 import rospy
 import numpy as np
-from geometry_msgs.msg import PoseArray, Pose, Twist
+from geometry_msgs.msg import PoseArray, Pose, PoseStamped, Twist
 from tauv_msgs.srv import GetTraj, GetTrajResponse
 from std_srvs.srv import SetBool, SetBoolRequest
 from tauv_util.transforms import twist_body_to_world
@@ -42,9 +42,10 @@ class MotionUtils:
 
         rospy.wait_for_message("/gnc/odom", rospy.AnyMsg, timeout=None)
         # 10Hz status update loop:
-        rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status)
+        # rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status)
 
         self.target_pub = rospy.Publisher("/gnc/traj_target", TrajPoint, queue_size=10)
+        self.target_pose_stamped_pub = rospy.Publisher("/gnc/traj_target_pose_stamped", PoseStamped, queue_size=10)
 
         rospy.Timer(rospy.Duration.from_sec(0.05), self._pub_target)
 
@@ -83,12 +84,11 @@ class MotionUtils:
         start_pose, start_twist = self.get_target()
         newtraj = LinearTrajectory(start_pose, start_twist, [pos], heading, v=v, a=a, j=j)
         self.set_trajectory(newtraj)
-        while(self.get_motion_status().value < block_until.value):
-            rospy.sleep(0.1)
 
     def get_target(self) -> typing.Tuple[Pose, Twist]:
         if self.get_motion_status() == TrajectoryStatus.PENDING:
             # Return current position? or none?
+            print("pending")
             return self.pose, self.twist
         else:
             req = GetTraj._request_class()
@@ -100,18 +100,20 @@ class MotionUtils:
             res: GetTrajResponse = self.traj.get_points(req)
             return res.poses[0], res.twists[0]
 
-    def _pub_target(self):
-        pos, twist = self.get_target()
-        tp = TrajPoint(pos, twist)
+    def _pub_target(self, timer_event):
+        pose, twist = self.get_target()
+        tp = TrajPoint(pose, twist)
         self.target_pub.publish(tp)
 
-    def _update_status(self, timer_event):
+        tp_pose_stamped = PoseStamped()
+        tp_pose_stamped.header.frame_id = "odom_ned"
+        tp_pose_stamped.pose = pose
+        self.target_pose_stamped_pub.publish(tp_pose_stamped)
+
         if self.traj is not None:
             path = self.traj.as_path()
 
             self.path_pub.publish(path)
-
-        # TODO: also post current status, such as eta for current trajectory, percent done, etc.
 
     def _handle_get_traj(self, req):
         response = GetTrajResponse()
