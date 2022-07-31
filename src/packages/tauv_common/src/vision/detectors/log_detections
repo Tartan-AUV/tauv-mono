@@ -40,6 +40,7 @@ class LogDetections():
         rospy.Subscriber("/zedm_A/zed_node_A/depth/depth_registered",Image,self.depth_callback)
         rospy.Subscriber("/zedm_A/zed_node_A/left/camera_info",CameraInfo, self.camera_info_callback)
         rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
+        rospy.Subscriber("/color_detector", BoundingBoxes, self.bbox_callback)
         self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
                                               queue_size=10)
         
@@ -70,39 +71,12 @@ class LogDetections():
         self.created=True
 
     def calc_pos(self, relative, cur_orientation, cur_position):
-        #if (self.data is None):
-        #    return
 
         roll = cur_orientation [0]
         pitch = cur_orientation [1]
         yaw = cur_orientation [2]
 
         relative = numpy.array([relative[2] + 0.465, relative[0], relative[1]])
-
-        #cur_orientation = array_to_point(cur_orientation)
-        #cur_position = array_to_point(cur_position)
-
-        #R = Rotation.from_euler('ZYX', numpy.flip(types.tl(cur_orientation))).inv()
-        #new = R.apply(relative)
-
-        #angl = roll + math.arctan(-relative.x/relative.y)
-        #c = math.sqrt(relative.x**2+relative.y**2)
-        #rel = (relative.z, c*math.sin(angl), math.abs(c*math.cos(angl)))
-
-        #rospy.loginfo(f"global orientation {self.cur_orientation}\n")
-        #rospy.loginfo(f"global position {self.cur_position}\n")
-
-        #(xr,yr,zr) = (relative[0], relative[1]*math.cos(roll) - relative[1]*math.sin(roll), relative[2]*math.sin(roll)+relative[1]*math.cos(roll))
-        #(xrp, yrp, zrp) = (xr, yr*math.cos(pitch)+zr*math.sin(pitch),zr*math.cos(pitch)-yr*math.sin(pitch))
-        #final = (relative[0]*math.cos(yaw)-zrp*math.sin(yaw), yrp, xrp*math.sin(yaw)+zrp*math.cos(yaw))
-        
-        #rospy.loginfo(f"rel position: {new}")
-        #rospy.loginfo(f"rel position2: {final}")
-
-
-        #return types.tm(new+numpy.array(types.tl(cur_position)), Point)
-
-        #return cur_position + 
 
         rpy = numpy.array([[math.cos(pitch)*math.cos(yaw), -math.cos(roll)*math.sin(yaw)+math.cos(yaw)*math.sin(pitch)*math.sin(roll), math.sin(roll)*math.sin(yaw)+math.cos(roll)*math.sin(pitch)*math.cos(yaw)],
         [math.cos(pitch)*math.sin(yaw), math.cos(roll)*math.cos(yaw)+math.sin(roll)*math.sin(pitch)*math.sin(yaw), -math.sin(roll)*math.cos(yaw)+math.cos(roll)*math.sin(pitch)*math.sin(yaw)],
@@ -112,7 +86,13 @@ class LogDetections():
 
 
     def invalid_pos(self, objdet):
-        return (numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z))
+        if(numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z)):
+            return True
+        
+        if(objdet.position.z>0):
+            return True
+    
+        return False
 
 
     def bbox_callback(self, bboxes):
@@ -127,6 +107,7 @@ class LogDetections():
 
         for bbox in bboxes.bounding_boxes:
             objdet = BucketDetection()
+
             objdet.tag = bbox.Class
 
             if(not self.created):
@@ -137,16 +118,10 @@ class LogDetections():
             if(relative_pos == numpy.nan):
                 continue
 
-            #rospy.loginfo(f"current pos: {self.cur_position}\n")
-
-            #rospy.loginfo(f"depth pos: {relative_pos}\n")
-
             objdet.position = self.calc_pos(relative_pos, sub_or, sub_pos)
 
             if(self.invalid_pos(objdet)):
                continue
-
-            #rospy.loginfo(f"CALCULATE pos: {objdet.position}\n")
         
             objects.objdets.append(objdet)
 
