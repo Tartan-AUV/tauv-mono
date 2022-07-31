@@ -14,10 +14,7 @@
 
 import rospy
 import numpy as np
-from scipy.spatial.transform import Rotation
-from tauv_msgs.msg import Pose as PoseMsg
 from geometry_msgs.msg import PoseArray, Pose, Twist
-from std_msgs.msg import Header
 from tauv_msgs.srv import GetTraj, GetTrajResponse
 from std_srvs.srv import SetBool, SetBoolRequest
 from tauv_util.transforms import twist_body_to_world
@@ -30,7 +27,7 @@ from tauv_msgs.msg import TrajPoint
 class MotionUtils:
     def __init__(self):
         self.initialized = False
-        self.traj_service = rospy.Service('/gnc/get_traj', GetTraj, self._traj_callback)
+        self.traj_service = rospy.Service('/gnc/get_traj', GetTraj, self._handle_get_traj)
 
         self.arm_proxy = rospy.ServiceProxy('/arm', SetBool)
         self.traj = None
@@ -48,6 +45,7 @@ class MotionUtils:
         rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status)
 
         self.target_pub = rospy.Publisher("/gnc/traj_target", TrajPoint, queue_size=10)
+
         rospy.Timer(rospy.Duration.from_sec(0.05), self._pub_target)
 
     def abort(self):
@@ -113,10 +111,9 @@ class MotionUtils:
 
             self.path_pub.publish(path)
 
-
         # TODO: also post current status, such as eta for current trajectory, percent done, etc.
 
-    def _traj_callback(self, req):
+    def _handle_get_traj(self, req):
         response = GetTrajResponse()
 
         if self.traj is None:
