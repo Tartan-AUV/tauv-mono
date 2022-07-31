@@ -82,14 +82,18 @@ class MotionUtils:
     def goto(self, pos: typing.Tuple[float],
                    heading: float = None, 
                    v=.4, a=.4, j=.4,
-                   threshold_lin=0.5, threshold_ang=0.5):
+                   threshold_lin=0.5, threshold_ang=0.5,
+                   block=TrajectoryStatus.FINISHED):
         start_pose, start_twist = self.get_target()
         newtraj = LinearTrajectory(start_pose, start_twist, [pos], [heading], v=v, a=a, j=j)
         self.set_trajectory(newtraj)
+        while not self.get_motion_status().value < block.value:
+            rospy.sleep(0.05)
 
     def goto_relative(self, pos: typing.Tuple[float],
                       heading: float = None,
-                      v=.4, a=.4, j=.4):
+                      v=.4, a=.4, j=.4,
+                      block=TrajectoryStatus.FINISHED):
 
         current_heading = Rotation.from_quat(tl(self.pose.orientation)).as_euler('ZYX')[0]
         current_pos = tl(self.pose.position)
@@ -106,6 +110,8 @@ class MotionUtils:
         start_pose, start_twist = self.get_target()
         newtraj = LinearTrajectory(start_pose, start_twist, [world_pos], [world_heading], v=v, a=a, j=j, autowind_headings=False)
         self.set_trajectory(newtraj)
+        while not self.get_motion_status().value < block.value:
+            rospy.sleep(0.05)
 
     # def goto_relative(self, pos: typing.Tuple[float],
     #                heading: float = None, 

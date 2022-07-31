@@ -25,7 +25,8 @@ class MissionManager:
         rospy.Service('cancel_mission', Trigger, self.cancel)
 
         rospy.Service('start_mission/square', RunBasicMission, lambda x: self.run_mission(x, 'square'))
-        rospy.Service('start_mission/coin', RunBasicMission, lambda x: self.run_mission(x, 'coin'))
+        # rospy.Service('start_mission/coin', RunBasicMission, lambda x: self.run_mission(x, 'coin'))
+        rospy.Service('start_mission/pool', RunBasicMission, lambda x: self.run_mission(x, 'pool'))
 
         self.ac.clear(Alarm.MISSION_MANAGER_NOT_INITIALIZED, "Initialized!")
 
@@ -71,9 +72,9 @@ class MissionManager:
         from tauv_mission_manager.missions.square_mission import SquareMission
         mapping['square'] = SquareMission
 
-        importlib.reload(tauv_mission_manager.missions.coin_mission)
-        from tauv_mission_manager.missions.square_mission import CoinMission
-        mapping['coin'] = CoinMission
+        importlib.reload(tauv_mission_manager.missions.full_mission)
+        from tauv_mission_manager.missions.full_mission import PoolMission
+        mapping['coin'] = PoolMission
 
         print(SquareMission.x)
 

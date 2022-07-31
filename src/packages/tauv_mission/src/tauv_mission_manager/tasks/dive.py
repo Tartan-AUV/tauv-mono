@@ -10,10 +10,7 @@ class Dive(Task):
 
     def run(self, depth):
         if (self.cancelled): return
-        
-
-        self.status(f"Starting trajectory! ETA: {traj.get_duration():.1f}s")
-        self.do_traj(traj)
+        self.mu.goto_relative((0.5, 0, depth))
         self.status(f"Dive done :)")
             
     def cancel(self):
