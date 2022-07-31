@@ -1,6 +1,5 @@
-from turtle import heading
 import rospy
-from trajectories import TrajectoryStatus, Trajectory
+from motion.trajectories.trajectories import TrajectoryStatus, Trajectory
 
 from tauv_msgs.srv import GetTrajResponse, GetTrajRequest
 from geometry_msgs.msg import Pose, Vector3, Quaternion, Point, Twist, PoseStamped
@@ -12,7 +11,7 @@ from collections import Iterable
 from tauv_util.types import tl, tm
 
 # imports for s-curve traj lib:
-from pyscurve import ScurvePlanner
+from motion.trajectories.pyscurve import ScurvePlanner
 
 # math
 from math import sin, cos, atan2, sqrt, ceil, fabs
@@ -187,8 +186,8 @@ class LinearTrajectory(Trajectory):
             p = self.segments[seg](t, order=0)
             v = self.segments[seg](t, order=1)
 
-            pose = Pose(tm(p[0:3], Point), tm(Rotation.from_euler("ZYX", [p[3], 0, 0]).as_quat(), Quaternion))
-            twist = Twist(tm(v[0:3], Vector3), tm([0, 0, v[3]], Vector3))
+            pose = Pose(tm(p[0:3], Point), Quaternion(cos(p[3]/2),0,0,sin(p[3]/2)))
+            twist = Twist(tm(v[0:3], Vector3), Vector3(0, 0, v[3]))
             poses.append(pose)
             twists.append(twist)
 
@@ -209,7 +208,7 @@ class LinearTrajectory(Trajectory):
         self.status = TrajectoryStatus.EXECUTING
 
     def get_status(self, pose: Pose):
-        if self.time_remaining().to_sec() <= 0 and self.status < TrajectoryStatus.FINISHED:
+        if self.time_remaining().to_sec() <= 0 and self.status.value < TrajectoryStatus.FINISHED.value:
             self.status = TrajectoryStatus.FINISHED
 
         R: Rotation = Rotation.from_quat(tl(pose.orientation))

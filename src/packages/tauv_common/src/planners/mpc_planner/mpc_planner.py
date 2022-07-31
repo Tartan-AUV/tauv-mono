@@ -138,7 +138,7 @@ class MPCPlanner:
         if self._pose is None:
             return
 
-        R = Rotation.from_euler('ZYX', np.flip(tl(self._pose.orientation))).inv()
+        R = Rotation.from_quat(tl(self._pose.orientation)).inv()
         body_accel = R.apply(cmd[0:3])
 
         msg: ControllerCmdMsg = ControllerCmdMsg()
@@ -161,10 +161,13 @@ class MPCPlanner:
         req.header.frame_id = 'odom_ned'
         req.curr_time = rospy.Time.now()
 
+        t0 = rospy.Time.now()
         try:
             res =  self._get_traj_service(req)
         except:
             return None
+        t1 = rospy.Time.now()
+        rospy.loginfo(f"traj took {(t1-t0).to_sec()}s to calc")
 
         if not res.success:
             return None

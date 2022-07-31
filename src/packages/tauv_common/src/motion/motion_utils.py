@@ -42,8 +42,10 @@ class MotionUtils:
 
         self._odom_sub = rospy.Subscriber('/gnc/odom', OdometryMsg, self._handle_odom)
 
+        rospy.wait_for_message("/gnc/odom", rospy.AnyMsg, timeout=None)
         # 10Hz status update loop:
         rospy.Timer(rospy.Duration.from_sec(0.1), self._update_status)
+        rospy.Timer(rospy.Duration.from_sec(0.05), self._pub_target)
 
     def abort(self):
         self.traj = None
@@ -63,7 +65,7 @@ class MotionUtils:
         if self.traj is None:
             return TrajectoryStatus.PENDING
 
-        return self.traj.get_status()
+        return self.traj.get_status(self.pose)
 
     def arm(self, armed):
         try:
@@ -78,9 +80,9 @@ class MotionUtils:
                    v=.4, a=.4, j=.4,
                    threshold_lin=0.5, threshold_ang=0.5):
         start_pose, start_twist = self.get_target()
-        newtraj = LinearTrajectory(start_pose, start_twist, pos, heading, v=v, a=a, j=j)
+        newtraj = LinearTrajectory(start_pose, start_twist, [pos], heading, v=v, a=a, j=j)
         self.set_trajectory(newtraj)
-        while(self.get_motion_status() < block_until):
+        while(self.get_motion_status().value < block_until.value):
             rospy.sleep(0.1)
 
     def get_target(self) -> typing.Tuple[Pose, Twist]:

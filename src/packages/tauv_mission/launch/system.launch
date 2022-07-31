@@ -41,6 +41,6 @@
 
   <!-- Start the vision system: -->
   <include file="$(find tauv_common)/launch/vision/log_detections.launch"/>
-  <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/>
+  <!-- <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
   <!-- Launch mission system -->
 </launch>
