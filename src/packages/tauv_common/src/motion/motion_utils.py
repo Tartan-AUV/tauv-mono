@@ -140,7 +140,8 @@ class MotionUtils:
         world_pos = current_pos + np.array([
             math.cos(current_heading) * pos[0] - math.sin(current_heading) * pos[1],
             math.sin(current_heading) * pos[0] + math.cos(current_heading) * pos[1],
-            pos[2]])
+            0])
+        world_pos[2] = pos[2] # Z is NOT relative!!
         world_heading = heading + current_heading
 
         print(current_pos, world_pos)

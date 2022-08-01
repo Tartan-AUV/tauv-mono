@@ -23,21 +23,21 @@ POOL_LEN = 7*LANE_WIDTH_X + 6*2*FT
 # GATE_POS_Y = 2.7 * LANE_WIDTH_Y
 
 # OCT_POS_X = POOL_LEN - (.5 + .67) * LANE_WIDTH_X - 2 * M
-OCT_POS_X = 6.1 * LANE_WIDTH_X + 0.1 * M
-OCT_POS_Y = 4.2 * LANE_WIDTH_Y + 0.25 * M
+OCT_POS_X = 6.1 * LANE_WIDTH_X
+OCT_POS_Y = 2.75 * LANE_WIDTH_Y
 
 GATE_POS_X = 1 * LANE_WIDTH_X
-GATE_POS_Y = 2.65 * LANE_WIDTH_Y
+GATE_POS_Y = 2.9 * LANE_WIDTH_Y
 
 BUOY_SEARCH_X1 = 5.0 * LANE_WIDTH_X
-BUOY_SEARCH_Y1 = 0.5 * LANE_WIDTH_Y
-BUOY_SEARCH_X2 = 4.0 * LANE_WIDTH_X
-BUOY_SEARCH_Y2 = 0.5 * LANE_WIDTH_Y
+BUOY_SEARCH_Y1 = 3.0 * LANE_WIDTH_Y
+BUOY_SEARCH_X2 = 5.0 * LANE_WIDTH_X
+BUOY_SEARCH_Y2 = 4.5 * LANE_WIDTH_Y
 # BUOY_SEARCH_Y_MIN = 3 * LANE_WIDTH_Y
 # BUOY_SEARCH_Y_MAX = 5 * LANE_WIDTH_Y
 BUOY_SEARCH_DEPTH = 0.7
 PI = 3.14
-BUOY_LOOK_ANGLE = 3.15*PI/4
+BUOY_LOOK_ANGLE = PI
 BUOYTAG = "badge"
 
 class PoolMission(Mission):
@@ -81,7 +81,7 @@ class PoolMission(Mission):
         self.p.status("WERE GONNA HIT THE PENTAGON")
         self.mu.goto((OCT_POS_X, OCT_POS_Y, .7), v=0.7)
         self.p.status("BOOM")
-        self.mu.goto_relative((0,0,-0.5))
+        self.mu.goto_relative((0,0,-0.1))
         self.mu.disable()
         rospy.sleep(5)
         self.mu.enable()
@@ -92,7 +92,7 @@ class PoolMission(Mission):
         self.mu.goto((BUOY_SEARCH_X1, BUOY_SEARCH_Y1, BUOY_SEARCH_DEPTH), heading=BUOY_LOOK_ANGLE)
         self.mu.goto((BUOY_SEARCH_X2, BUOY_SEARCH_Y2, BUOY_SEARCH_DEPTH), heading=BUOY_LOOK_ANGLE)
         # self.mu.goto((BUOY_SEARCH_X, BUOY_SEARCH_Y_MAX, BUOY_SEARCH_DEPTH), heading=BUOY_LOOK_ANGLE)
-        self.buoy_hitter.run(BUOYTAG, (2.5*LANE_WIDTH_X, 1.5*LANE_WIDTH_Y, 2.5))
+        self.buoy_hitter.run(BUOYTAG, (2.8*LANE_WIDTH_X, 4*LANE_WIDTH_Y, 2.5))
 
         # disarm
         self.p.status("done")
@@ -107,4 +107,4 @@ class PoolMission(Mission):
         self.p.status("byeeee")
         self.dive.cancel()
         self.mu.disable()
-        self.square.cancel()
+        # self.square.cancel()

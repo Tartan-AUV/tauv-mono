@@ -17,12 +17,13 @@ M = 1
 YD = 0.9144
 FT = 0.3048
 IN = FT / 12
+PI = 3.14159265
 
 LANE_WIDTH_Y = 7 * FT
 LANE_WIDTH_X = 9 * FT
 # START_X = -0.5 * LANE_WIDTH_X + 0.5 * M
-START_X = -6 * FT + 17 * IN 
-START_Y = 2 * LANE_WIDTH_Y
+START_X = -6 * FT + 17 * IN + 2.5 * FT
+START_Y = 1 * LANE_WIDTH_Y
 
 class MissionManager:
     def __init__(self) -> None:

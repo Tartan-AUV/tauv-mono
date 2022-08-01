@@ -3,28 +3,36 @@
 <launch>
   <!-- Console launch prefix -->
   <arg name="launch_prefix" default=""/>
-  <arg name="image" default="/zedm/zed_node/left/image_rect_color" />
   <arg name="model_name" default="kingfisher"/>
   <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
 
   <!-- Config and weights folder. -->
   <arg name="yolo_weights_path"          default="/shared/weights"/>
   <arg name="yolo_config_path"           default="$(arg config_pkg)/yolo_config"/>
 
   <!-- ROS and network parameter files -->
-  <arg name="ros_param_file"             default="$(arg config_pkg)/darknet_config/ros.yaml"/>
-  <arg name="network_param_file"         default="$(arg config_pkg)/darknet_config/yolov3-tiny.yaml"/>
+  <arg name="ros_param_file_front"             default="$(arg config_pkg)/darknet_config/ros_front.yaml"/>
+  <arg name="network_param_file_front"         default="$(arg config_pkg)/darknet_config/yolov3-tiny-front.yaml"/>
+  <arg name="ros_param_file_bottom"             default="$(arg config_pkg)/darknet_config/ros_bottom.yaml"/>
+  <arg name="network_param_file_bottom"         default="$(arg config_pkg)/darknet_config/yolov3-tiny-bottom.yaml"/>
 
   <!-- Load parameters -->
-  <rosparam command="load" ns="darknet_ros" file="$(arg ros_param_file)"/>
-  <rosparam command="load" ns="darknet_ros" file="$(arg network_param_file)"/>
+  <rosparam command="load" ns="darknet_ros_front" file="$(arg ros_param_file_front)"/>
+  <rosparam command="load" ns="darknet_ros_front" file="$(arg network_param_file_front)"/>
+
+  <rosparam command="load" ns="darknet_ros_bottom" file="$(arg ros_param_file_bottom)"/>
+  <rosparam command="load" ns="darknet_ros_bottom" file="$(arg network_param_file_bottom)"/>
 
   <!-- Start darknet and ros wrapper -->
-  <node pkg="darknet_ros" type="darknet_ros" name="darknet_ros" output="screen" launch-prefix="$(arg launch_prefix)">
+  <node pkg="darknet_ros" type="darknet_ros" name="darknet_ros_front" output="screen" launch-prefix="$(arg launch_prefix)">
     <param name="weights_path"          value="$(arg yolo_weights_path)" />
     <param name="config_path"           value="$(arg yolo_config_path)" />
-    <remap from="camera/rgb/image_raw"  to="$(arg image)" />
   </node>
+  <!-- <node pkg="darknet_ros" type="darknet_ros" name="darknet_ros_bottom" output="screen" launch-prefix="$(arg launch_prefix)">
+    <param name="weights_path"          value="$(arg yolo_weights_path)" />
+    <param name="config_path"           value="$(arg yolo_config_path)" />
+  </node> -->
 
  <!--<node name="republish" type="republish" pkg="image_transport" output="screen" 	args="compressed in:=/front_camera/image_raw raw out:=/camera/image_raw" /> -->
 </launch>
