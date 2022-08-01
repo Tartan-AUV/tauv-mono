@@ -3,12 +3,14 @@
 import rospy
 from tauv_msgs.msg import BucketList, BucketDetection, Pose
 import geometry_msgs.msg
+from std_srvs.srv import Trigger
 
 class Finder():
     def __init__(self):
         # rospy.init_node('bucket_finder')
         self.bucket_list = []
-        self.bucket = rospy.Subscriber("bucket_list", BucketList, self.update)
+        self.reset_proxy = rospy.ServiceProxy("/bucket/reset", Trigger)
+        self.bucket = rospy.Subscriber("/bucket_list", BucketList, self.update)
         # rospy.spin()
 
     #return the first bucket detection with the key matching name
@@ -26,3 +28,6 @@ class Finder():
         entry = self.find_by_tag("badge")
         if(entry!=None):
             rospy.loginfo(f"badge position: {entry.position}")
+
+    def reset(self):
+        self.reset_proxy()

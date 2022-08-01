@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+import rospy
+from tauv_msgs.msg import BucketList, BucketDetection, Pose
+from visualization_msgs.msg import Marker, MarkerArray
+import typing
+from geometry_msgs.msg import Vector3
+from std_msgs.msg import ColorRGBA
+
+pub = rospy.Publisher("/markers", MarkerArray, queue_size=10)
+
+def update(msg: BucketList):
+    dets: typing.List[BucketDetection] = msg.bucket_list
+    ma = MarkerArray()
+    id = 0
+    for d in dets:
+        m = Marker()
+        m.type = Marker.CUBE
+        m.ns = "bucket_item"
+        m.pose.position = d.position
+        m.scale = Vector3(.7, .7, .7)
+        m.header.stamp = rospy.Time.now()
+        m.header.frame_id = "odom_ned"
+        m.action = 0
+        m.id = id
+        id += 1
+        m.frame_locked = True
+        m.color = ColorRGBA(0, 1, 0, 1)
+
+        ma.markers.append(m)
+
+    pub.publish(ma)
+
+sub = rospy.Subscriber("/bucket_list", BucketList, update)
+rospy.spin()
