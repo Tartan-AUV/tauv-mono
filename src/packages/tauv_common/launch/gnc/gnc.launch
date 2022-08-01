@@ -6,6 +6,7 @@
     <arg name="model_name" default="kingfisher_sim"/>
     <!-- path to config package  -->
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+    <arg name="debug" default="none" />
     <!-- force topic (for the thruster manager) to publish to -->
 <!--    <arg name="thruster_manager_topic" default="/$(arg model_name)/thruster_manager/input"/>-->
 <!--    &lt;!&ndash; odom topic to listen on &ndash;&gt;-->
@@ -17,30 +18,50 @@
 
         <node pkg="tauv_common" type="controller" name="controller" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/controller.yaml" />
-            <remap from="odom" to="/gnc/odom"/>
+            <remap from="pose" to="/gnc/pose"/>
             <remap from="controller_cmd" to="/controller/cmd"/>
+            <remap from="debug" to="/gnc/debug"/>
+            <remap from="traj_target" to="/gnc/traj_target"/>
             <remap from="wrench" to="/thrusters/wrench"/>
+            <remap from="active" to="/thrusters/active" />
             <remap from="set_target_pose" to="/controller/set_target_pose" />
             <remap from="set_hold_z" to="/controller/set_hold_z" />
             <remap from="set_hold_xy" to="/controller/set_hold_xy" />
             <remap from="set_hold_yaw" to="/controller/set_hold_yaw" />
             <remap from="tune_dynamics" to="/controller/tune_dynamics" />
             <remap from="tune_controls" to="/controller/tune_controls" />
-            <remap from="active" to="/thrusters/active" />
         </node>
 
-        <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />
-            <remap from="joy" to="/joy" />
-            <remap from="cmd" to="/controller/cmd" />
-            <remap from="mpc_cmd" to="/mpc/cmd" />
-            <remap from="arm" to="/thrusters/arm" />
-            <remap from="pose" to="/gnc/pose" />
-            <remap from="set_target_pose" to="/controller/set_target_pose" />
-            <remap from="set_hold_z" to="/controller/set_hold_z" />
+<!--        <node pkg="tauv_common" type="teleop_planner" name="teleop_planner" output="screen">-->
+<!--            <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />-->
+<!--            <remap from="joy" to="/joy" />-->
+<!--            <remap from="cmd" to="/controller/cmd" />-->
+<!--            <remap from="mpc_cmd" to="/mpc/cmd" />-->
+<!--            <remap from="arm" to="/thrusters/arm" />-->
+<!--            <remap from="pose" to="/gnc/pose" />-->
+<!--            <remap from="set_target_pose" to="/controller/set_target_pose" />-->
+<!--            <remap from="set_hold_z" to="/controller/set_hold_z" />-->
+<!--            <remap from="set_hold_xy" to="/controller/set_hold_xy" />-->
+<!--            <remap from="set_hold_yaw" to="/controller/set_hold_yaw" />-->
+<!--        </node>-->
+
+        <node
+            pkg="tauv_common"
+            type="state_estimation_cpp"
+            name="state_estimation_cpp"
+            output="screen"
+            launch-prefix="$(eval 'gdb -ex \'break main\' -ex run --args' if arg('debug') == 'gdb' else 'valgrind --leak-check=full --track-origins=yes' if arg('debug') == 'valgrind' else 'valgrind --tool=callgrind --callgrind-out-file=/home/theo/catkin_ws/callgrind-out' if arg('debug') == 'callgrind' else '')"
+        >
+            <rosparam command="load" file="$(arg config_pkg)/state_estimation_cpp.yaml" />
+            <remap from="/gnc/state_estimation_cpp/pose" to="/gnc/pose" />
+            <remap from="/gnc/state_estimation_cpp/odom" to="/gnc/odom" />
+            <remap from="/gnc/state_estimation_cpp/imu" to="/xsens_imu/data" />
+            <remap from="/gnc/state_estimation_cpp/dvl" to="/teledyne_dvl/data" />
+            <remap from="/gnc/state_estimation_cpp/depth" to="/arduino/depth" />
+            <remap from="/gnc/state_estimation_cpp/set_pose" to="/gnc/set_pose" />
         </node>
 
-        <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/>
+<!--        <include file="$(find tauv_common)/launch/state_estimation_cpp/state_estimation_cpp.launch"/>-->
 
         <!-- <node pkg="tauv_common" type="mpc_planner" name="mpc_planner" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/mpc_planner.yaml" />

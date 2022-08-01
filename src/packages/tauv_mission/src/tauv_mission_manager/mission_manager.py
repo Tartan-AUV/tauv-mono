@@ -13,21 +13,35 @@ import os
 import glob
 import tauv_mission_manager.missions
 
+M = 1
+YD = 0.9144
+FT = 0.3048
+LANE_WIDTH_Y = 7 * FT
+LANE_WIDTH_X = 2.75 * M
+START_X = -0.5 * LANE_WIDTH_X + 0.5 * M
+START_Y = 1 * LANE_WIDTH_Y
+
 class MissionManager:
     def __init__(self) -> None:
         # self.mu = MotionUtils()
         self.ac = AlarmClient()
-        self.mu = None
+        self.ac.clear(Alarm.MPC_PLANNER_NOT_INITIALIZED) # TODO: not this
+        self.mu = MotionUtils()
 
         self.active_mission: typing.Optional[Mission] = None
         self.log = Messager("Mission", color=207)
 
         rospy.Service('cancel_mission', Trigger, self.cancel)
+        rospy.Service('retare', Trigger, self.retare)
 
         rospy.Service('start_mission/square', RunBasicMission, lambda x: self.run_mission(x, 'square'))
-        rospy.Service('start_mission/coin', RunBasicMission, lambda x: self.run_mission(x, 'coin'))
+        # rospy.Service('start_mission/coin', RunBasicMission, lambda x: self.run_mission(x, 'coin'))
+        rospy.Service('start_mission/pool', RunBasicMission, lambda x: self.run_mission(x, 'pool'))
 
         self.ac.clear(Alarm.MISSION_MANAGER_NOT_INITIALIZED, "Initialized!")
+
+    def retare(self, srv):
+        self.mu.retare(START_X, START_Y, 0)
 
     def run_mission(self, srv: RunBasicMission._request_class, name: str):
         if self.active_mission is not None:
@@ -71,9 +85,9 @@ class MissionManager:
         from tauv_mission_manager.missions.square_mission import SquareMission
         mapping['square'] = SquareMission
 
-        importlib.reload(tauv_mission_manager.missions.coin_mission)
-        from tauv_mission_manager.missions.square_mission import CoinMission
-        mapping['coin'] = CoinMission
+        importlib.reload(tauv_mission_manager.missions.full_mission)
+        from tauv_mission_manager.missions.full_mission import PoolMission
+        mapping['pool'] = PoolMission
 
         print(SquareMission.x)
 

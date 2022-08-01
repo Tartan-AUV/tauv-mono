@@ -25,7 +25,9 @@ import tf
 
 class Controller:
     def __init__(self):
+        print("controller init")
         self._ac = AlarmClient()
+        print("post ac")
 
         self._dt: float = 1.0 / rospy.get_param('~frequency')
 
@@ -33,7 +35,7 @@ class Controller:
 
         self._pose: Optional[Pose] = None
 
-        self._cmd: np.array = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        self._cmd_acceleration: np.array = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
         self._target_pose: GeoPose = GeoPose()
         self._target_pose.position = Vector3(0, 0, 0)
@@ -78,7 +80,7 @@ class Controller:
         self._tune_dynamics_srv: rospy.Service = rospy.Service('tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
         self._tune_pids_srv: rospy.Service = rospy.Service('tune_controls', TuneControls, self._handle_tune_controls)
 
-        self._odom_sub: rospy.Subscriber = rospy.Subscriber('pose', Pose, self._handle_pose)
+        self._pose_sub: rospy.Subscriber = rospy.Subscriber('pose', Pose, self._handle_pose)
         self._command_sub: rospy.Subscriber = rospy.Subscriber('controller_cmd', ControllerCmdMsg, self._handle_command)
         self._wrench_pub: rospy.Publisher = rospy.Publisher('wrench', Wrench, queue_size=10)
         self._debug_pub = rospy.Publisher('debug', ControllerDebug, queue_size=10)
@@ -108,8 +110,6 @@ class Controller:
             D2=self._D2,
             Ma=self._Ma,
         )
-
-        self._cmd_acceleration: Optional[np.array] = None
 
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)

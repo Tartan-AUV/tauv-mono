@@ -255,6 +255,10 @@ bool StateEstimator::handle_set_pose(
     this->checkpoints.clear();
     this->last_evaluation_time = current_time;
 
+    Eigen::Matrix<double, 15, 1> original_state;
+    this->ekf.get_state(original_state);
+    double original_yaw = original_state(Ekf::StateIndex::YAW);
+
     Eigen::Matrix<double, 15, 1> state = Eigen::Matrix<double, 15, 1>::Zero();
     state[0] = req.position.x;
     state[1] = req.position.y;
@@ -265,7 +269,7 @@ bool StateEstimator::handle_set_pose(
     this->ekf.set_state(state);
     this->ekf.set_cov(cov);
     this->ekf.set_time(current_time.toSec());
-    this->ekf.set_reference_yaw(req.yaw);
+    this->ekf.set_reference_yaw(original_yaw);
 
     this->last_evaluation_time = current_time;
 

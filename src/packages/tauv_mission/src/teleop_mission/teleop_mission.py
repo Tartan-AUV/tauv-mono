@@ -189,9 +189,29 @@ class TeleopMission:
         self._hold_yaw_srv.call(args.enable_yaw)
 
     def _handle_arm(self, args):
-        print('arm', args.enable)
+        print('arm')
 
-        self._arm_srv.call(args.enable)
+        self._arm_srv.call(True)
+
+    def _handle_disarm(self, args):
+        print('disarm')
+
+        self._arm_srv.call(False)
+
+    def _handle_enable(self, args):
+        print('enable')
+
+        self._motion.enable()
+
+    def _handle_disable(self, args):
+        print('disable')
+
+        self._motion.disable()
+
+    def _handle_start_mission(self, args):
+        print('start mission')
+
+        # start mission with args.delay
 
     def _handle_odom(self, msg: Odom):
         self._pose = msg.pose.pose
@@ -257,8 +277,20 @@ class TeleopMission:
         enable_pids.set_defaults(func=self._handle_enable_pids)
 
         arm = subparsers.add_parser('arm')
-        arm.add_argument('enable', type=bool)
         arm.set_defaults(func=self._handle_arm)
+
+        arm = subparsers.add_parser('disarm')
+        arm.set_defaults(func=self._handle_disarm)
+
+        enable = subparsers.add_parser('enable')
+        enable.set_defaults(func=self._handle_enable)
+
+        disable = subparsers.add_parser('disable')
+        disable.set_defaults(func=self._handle_disable)
+
+        start_mission = subparsers.add_parser('start_mission')
+        start_mission.add_argument('delay', type=float)
+        start_mission.set_defaults(func=self._handle_start_mission)
 
         return parser
 

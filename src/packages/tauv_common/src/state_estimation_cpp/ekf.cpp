@@ -44,9 +44,10 @@ void Ekf::get_state_fields(double time, Eigen::Vector3d &position, Eigen::Vector
   this->extrapolate_state(dt, this->state, state);
 
   Eigen::Vector3d corrected_orientation { state(S::ROLL), state(S::PITCH), state(S::YAW) - this->reference_yaw };
+  Eigen::Vector3d corrected_position {  cos(-this->reference_yaw) * state(S::X) - sin(-this->reference_yaw) * state(S::Y), sin(-this->reference_yaw) * state(S::X) + cos(-this->reference_yaw) * state(S::Y), state(S::Z) };
   this->wrap_angles(corrected_orientation);
 
-  position << state(S::X), state(S::Y), state(S::Z);
+  position << corrected_position.x(), corrected_position.y(), corrected_position.z();
   velocity << state(S::VX), state(S::VY), state(S::VZ);
   acceleration << state(S::AX), state(S::AY), state(S::AZ);
   orientation << corrected_orientation.x(), corrected_orientation.y(), corrected_orientation.z();
