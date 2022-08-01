@@ -24,13 +24,16 @@ class LogDetections():
 
         self.front_depth_image = None
         self.data = None
-        self.created= False
+
+        self.front_depth_created= False
+        self.bottom_depth_created = False
 
         self.new_image = False
 
         rospy.init_node('image_detector', anonymous = True)
 
-        self.depth_camera_info = CameraInfo()
+        self.front_depth_camera_info = CameraInfo()
+        self.bottom_depth_camera_info = CameraInfo()
         self.bounding_boxes = BoundingBoxes()
         self.cv_bridge = CvBridge()
         self.detector_bucket = Detector_Bucket()
@@ -69,12 +72,18 @@ class LogDetections():
         self.cur_position = (data.position.x, data.position.y, data.position.z)
         self.cur_orientation = (data.orientation.x, data.orientation.y, data.orientation.z)
 
-    def camera_info_callback(self, msg):
+    def front_camera_info_callback(self, msg):
         self.depth_camera_info = msg
 
-    def depth_callback(self, msg):
+    def front_depth_callback(self, msg):
         self.front_depth_image = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
         self.front_created=True
+
+    def bottom_depth_callback(self, msg):
+        return
+
+    def bottom_camera_info_callback(self, msg):
+        return
 
     def calc_pos(self, relative, cur_orientation, cur_position):
         roll = cur_orientation [0]
@@ -94,20 +103,14 @@ class LogDetections():
         if(numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z)):
             return True
         
-<<<<<<< HEAD
-        # if(objdet.position.z>0):
-        #     return True
-=======
         if(objdet.position.z<0):
             return True
->>>>>>> Added partial bottom camera support
     
         return False
 
 
     def bbox_callback(self, bboxes):
-        if(not self.created):
-            return
+        rospy.loginfo(f"bboxes: {bboxes}")
 
         sub_or = self.cur_orientation
         sub_pos = self.cur_position
@@ -120,20 +123,12 @@ class LogDetections():
 
             objdet.tag = bbox.Class
 
-<<<<<<< HEAD
-            if len(objects.objdets) > 2:
+            if len(objects.objdets) > 2 or (not self.front_depth_created):
                 continue
 
-            if(not self.created):
-                print("not created")
-                continue
-
-=======
->>>>>>> Added partial bottom camera support
             relative_pos = DepthEstimator.estimate_absolute_depth(self.depth_image, bbox, self.depth_camera_info)
 
             if(relative_pos == numpy.nan):
-                print("relative pos is nan")
                 continue
 
             # print(relative_pos)
@@ -141,7 +136,6 @@ class LogDetections():
             objdet.position = self.calc_pos(relative_pos, sub_or, sub_pos)
 
             if(self.invalid_pos(objdet)):
-                print("invalid pos")
                 continue
 
             #rospy.loginfo(f"CALCULATE pos: {objdet.position}\n")
