@@ -1,15 +1,42 @@
 #!/usr/bin/env python3
 
 import rospy
-from tauv_msgs.msg import BucketList, BucketDetection, Pose
+from tauv_msgs.msg import BucketList, BucketDetection, Pose, RegisterObjectDetections
 from visualization_msgs.msg import Marker, MarkerArray
 import typing
 from geometry_msgs.msg import Vector3
 from std_msgs.msg import ColorRGBA
 
+rospy.init_node('bucket_to_tf')
 pub = rospy.Publisher("/markers", MarkerArray, queue_size=10)
 
+det_id_counter = 0
+def update_dets(msg: RegisterObjectDetections):
+    global det_id_counter
+    print("bucket to tf running")
+    dets: typing.List[BucketDetection] = msg.objdets
+    ma = MarkerArray()
+    for d in dets:
+        m = Marker()
+        m.type = Marker.CUBE
+        m.ns = "bucket_detection"
+        m.pose.position = d.position
+        m.scale = Vector3(.1, .1, .1)
+        m.header.stamp = rospy.Time.now()
+        m.header.frame_id = "odom_ned"
+        m.action = 0
+        m.id = det_id_counter
+        m.lifetime = rospy.Duration(2)
+        det_id_counter += 1
+        m.frame_locked = True
+        m.color = ColorRGBA(0, 0, 1, 1)
+
+        ma.markers.append(m)
+
+    pub.publish(ma)
+
 def update(msg: BucketList):
+    print("bucket to tf running")
     dets: typing.List[BucketDetection] = msg.bucket_list
     ma = MarkerArray()
     id = 0
@@ -25,11 +52,13 @@ def update(msg: BucketList):
         m.id = id
         id += 1
         m.frame_locked = True
-        m.color = ColorRGBA(0, 1, 0, 1)
+        m.color = ColorRGBA(0, 1, 0, .7)
 
         ma.markers.append(m)
 
     pub.publish(ma)
 
+sub = rospy.Subscriber("/register_object_detection", RegisterObjectDetections, update_dets)
 sub = rospy.Subscriber("/bucket_list", BucketList, update)
+
 rospy.spin()

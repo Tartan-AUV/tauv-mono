@@ -34,7 +34,7 @@ class LinearSegment(object):
         # Build s-curve 1-dof trajectory for position:
         q0 = [0]
         q1 = [dist]
-        v0 = [start_velocity_aligned]
+        v0 = [np.sign(start_velocity_aligned)*min(abs(start_velocity_aligned), params_lin.v_max-0.02)]
         v1 = [0]
         v_max = params_lin.v_max
         a_max = params_lin.a_max
@@ -44,7 +44,7 @@ class LinearSegment(object):
         # Build s-curve 1-dof trajectory for heading:
         q0 = [h0]
         q1 = [h1]
-        v0 = [start_angular_velocity]
+        v0 = [np.sign(start_angular_velocity)*min(abs(start_angular_velocity), params_ang.v_max-0.02)]
         v1 = [0]
         v_max = params_ang.v_max
         a_max = params_ang.a_max

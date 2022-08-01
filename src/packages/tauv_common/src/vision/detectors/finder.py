@@ -4,11 +4,12 @@ import rospy
 from tauv_msgs.msg import BucketList, BucketDetection, Pose
 import geometry_msgs.msg
 from std_srvs.srv import Trigger
+import typing
 
 class Finder():
     def __init__(self):
         # rospy.init_node('bucket_finder')
-        self.bucket_list = []
+        self.bucket_list: typing.List[BucketDetection] = []
         self.reset_proxy = rospy.ServiceProxy("/bucket/reset", Trigger)
         self.bucket = rospy.Subscriber("/bucket_list", BucketList, self.update)
         # rospy.spin()
@@ -18,7 +19,7 @@ class Finder():
         res = []
         for entry in self.bucket_list:
             if entry.tag == tag:
-                res += entry
+                res.append(entry)
         return res
 
     def update(self, lst):

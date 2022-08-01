@@ -73,7 +73,7 @@ class Detector_Bucket():
         daemon_name = req.detector_tag
         #rospy.loginfo(f"dict {self.daemon_dict}\n")
         if daemon_name in self.daemon_dict:
-            #rospy.loginfo(f"data = {data_frame}")
+            # rospy.loginfo(f"data = {data_frame}")
 
             daemon = self.daemon_dict[daemon_name]
             daemon.mutex.acquire()

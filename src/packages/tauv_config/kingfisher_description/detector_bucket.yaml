@@ -3,8 +3,8 @@ detectors: {
   names: ["camera"],
   camera: {
     type: "vision",
-    mahalanobis_threshold: 5.0,
-    debouncing_threshold: 10,
+    mahalanobis_threshold: 10.0,
+    debouncing_threshold: 100,
     frame_id: "duo3d_optical_link_front"
   }
 }

@@ -54,7 +54,8 @@ setup_args = generate_distutils_setup(
              'scripts/detector_bucket',
              'scripts/log_detections',
              'scripts/message_printer',
-             'scripts/watchdogs'],
+             'scripts/watchdogs',
+             'scripts/bucket_to_tf'],
 
 )
 setup(**setup_args)

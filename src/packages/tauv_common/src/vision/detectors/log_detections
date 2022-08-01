@@ -45,15 +45,18 @@ class LogDetections():
                                               queue_size=10)
         
         rospy.Service("/bucket/reset", Trigger, self.reset)
-        rospy.Timer(rospy.Duration(2),self.publish)
+        rospy.Timer(rospy.Duration(0.1),self.publish)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
 
     def reset(self, srv):
         self.detector_bucket.reset()
+        return Trigger._response_class(True, "success")
         
     def publish(self, event):
+        print("publishing detector bucket list")
         self.detector_bucket.publish_all()
+        print("done publishing detector bucket list")
 
     def find(self, tag):
         return self.detector_bucket.find_by_tag(tag)
@@ -87,8 +90,8 @@ class LogDetections():
         if(numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z)):
             return True
         
-        if(objdet.position.z>0):
-            return True
+        # if(objdet.position.z>0):
+        #     return True
     
         return False
 
@@ -108,18 +111,26 @@ class LogDetections():
 
             objdet.tag = bbox.Class
 
+            if len(objects.objdets) > 2:
+                continue
+
             if(not self.created):
+                print("not created")
                 continue
 
             relative_pos = DepthEstimator.estimate_absolute_depth(self.depth_image, bbox, self.depth_camera_info)
 
             if(relative_pos == numpy.nan):
+                print("relative pos is nan")
                 continue
+
+            # print(relative_pos)
 
             objdet.position = self.calc_pos(relative_pos, sub_or, sub_pos)
 
             if(self.invalid_pos(objdet)):
-               continue
+                print("invalid pos")
+                continue
 
             #rospy.loginfo(f"CALCULATE pos: {objdet.position}\n")
         

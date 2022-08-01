@@ -30,7 +30,7 @@ from scipy.linalg import inv, block_diag
 from threading import Thread, Lock
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial import distance
-
+import typing
 
 tracker_id = 0
 
@@ -75,13 +75,13 @@ class Detection_Tracker_Kalman(BucketDetection):
                               [0, 0, 1]])  # z = zz
 
         # State covariance, initialize to very large number
-        self.P = 100000*np.eye(3)
+        self.P = 10000*np.eye(3)
 
         # Process noise covariance
-        self.Q = .0001*np.eye(3)
+        self.Q = .1*np.eye(3)
 
         # Measurement covariance (x,y,z), assume the sensor is very noisy
-        self.R = 100000*np.eye(3)
+        self.R = 100*np.eye(3)
 
         #need a override covariance for when no measurements are available
         self.R_override = (10**10)*np.eye(3)
@@ -146,7 +146,7 @@ class Detector_Daemon(BucketList):
             rospy.loginfo("[Detector Daemon]: %s. Obtained debouncing threshold", self.detector_name)
             self.debouncing_threshold = float(rospy.get_param("detectors/" + self.detector_name + "/debouncing_threshold"))
         
-        self.tracker_list = []
+        self.tracker_list: typing.List[BucketDetection] = []
         self.bucket_list = []
 
         self.frame_id = "odom"
@@ -312,9 +312,12 @@ class Detector_Daemon(BucketList):
 
                             temp_tracker_holder[tracker_ind] = new_x[0]
                             tracker.localized_point = new_x[0]
-                            tracker.count += 1
+                            tracker.count = min(100, tracker.count + 1)
 
                             self.track_map[tracker.tag] += 1
+                            for i in range(len(self.tracker_list)):
+                                if i != tracker_ind and self.tracker_list[i].count > 5:
+                                    self.tracker_list[i].count -= 2
 
                             tracker.updated_now = True
 

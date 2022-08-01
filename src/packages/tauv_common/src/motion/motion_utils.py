@@ -17,7 +17,7 @@ import math
 import numpy as np
 from geometry_msgs.msg import PoseArray, Pose, PoseStamped, Twist
 from tauv_msgs.srv import GetTraj, GetTrajResponse
-from std_srvs.srv import SetBool, SetBoolRequest
+from std_srvs.srv import SetBool, SetBoolRequest, Trigger
 from tauv_util.transforms import twist_body_to_world
 from nav_msgs.msg import Path, Odometry as OdometryMsg
 from motion.trajectories import Trajectory, TrajectoryStatus
@@ -27,6 +27,7 @@ from motion.trajectories.fixed_linear_trajectory import LinearTrajectory
 import typing
 from tauv_msgs.msg import TrajPoint
 from tauv_msgs.srv import SetPose, SetPoseRequest, SetPoseResponse
+from motion.trajectories.pyscurve.pyscurve.trajectory import PlanningError
 
 class MotionUtils:
     def __init__(self):
@@ -44,6 +45,7 @@ class MotionUtils:
         self._hold_xy_srv = rospy.ServiceProxy('/controller/set_hold_xy', SetBool)
         self._hold_yaw_srv = rospy.ServiceProxy('/controller/set_hold_yaw', SetBool)
         self._setpose_srv = rospy.ServiceProxy('/gnc/set_pose', SetPose)
+        self._bucket_reset_srv = rospy.ServiceProxy('/bucket/reset', Trigger)
 
         self._path_pub = rospy.Publisher('/gnc/path', Path, queue_size=10)
         self._target_pub = rospy.Publisher("/gnc/traj_target", TrajPoint, queue_size=10)
@@ -100,12 +102,15 @@ class MotionUtils:
         self._hold_yaw_srv.call(SetBoolRequest(False))
 
     def retare(self, x, y, h):
+        print("Retaring nav")
         req = SetPoseRequest()
         req.position.x = x
         req.position.y = y
         req.yaw = h
         res = self._setpose_srv(req)
         print(f"retare: {res}")
+        print("Resetting bucket")
+        self._bucket_reset_srv()
 
     def goto(self, pos: typing.Tuple[float],
                    heading: float = None, 
@@ -113,10 +118,15 @@ class MotionUtils:
                    threshold_lin=0.5, threshold_ang=0.5,
                    block: TrajectoryStatus = TrajectoryStatus.FINISHED):
         start_pose, start_twist = self.get_target()
-        newtraj = LinearTrajectory(start_pose, start_twist, [pos], [heading], v=v, a=a, j=j)
+        try:
+            newtraj = LinearTrajectory(start_pose, start_twist, [pos], [heading], v=v, a=a, j=j)
+        except PlanningError:
+            rospy.logwarn("Trajectory planning failure!")
+            return False
         self.set_trajectory(newtraj)
         while self.get_motion_status().value < block.value:
             rospy.sleep(0.1)
+        return True
 
     def goto_relative(self, pos: typing.Tuple[float],
                       heading: float = 0,
@@ -136,7 +146,11 @@ class MotionUtils:
         print(current_pos, world_pos)
         print(current_heading, world_heading)
 
-        newtraj = LinearTrajectory(start_pose, start_twist, [world_pos], [world_heading], v=v, a=a, j=j, autowind_headings=False)
+        try:
+            newtraj = LinearTrajectory(start_pose, start_twist, [world_pos], [world_heading], v=v, a=a, j=j, autowind_headings=False)
+        except PlanningError:
+            rospy.logwarn("Trajectory planning failure!")
+            return False
         self.set_trajectory(newtraj)
         while self.get_motion_status().value < block.value:
             rospy.sleep(0.1)

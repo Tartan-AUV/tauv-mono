@@ -106,7 +106,7 @@ Alarms:
 - MPC_PLANNER_NOT_INITIALIZED:
     id: 13
     failure_level: PREDIVE_FAILURE
-    default_set: True
+    default_set: False
     description: MPC Planner is not initialized yet
     author: Theo Chemel
 

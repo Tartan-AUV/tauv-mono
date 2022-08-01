@@ -31,6 +31,7 @@ class VizServo(Task):
             for d in dets:
                 num_dets = max(d.count, 50)
                 if num_dets < 3:
+                    self.status(f"found a bad detection")
                     continue
                 dist = np.sqrt((d.position.x - nominal_pos[0])**2 + (d.position.y - nominal_pos[1])**2)
                 score = dist - num_dets/20
@@ -43,18 +44,23 @@ class VizServo(Task):
                 return
 
             my_pos = self.mu.get_position()
-            vec_to_obj = np.array(best_pos.x, best_pos.y, best_pos.z) - my_pos
-            
+            vec_to_obj = np.array([best_pos.x, best_pos.y, best_pos.z]) - my_pos
+            vec_to_obj_len = np.linalg.norm(vec_to_obj)
+            vec_to_obj = vec_to_obj / vec_to_obj_len * (vec_to_obj_len - 0.4)
 
-            if np.linalg.norm(vec_to_obj) > 0.25:
+
+            if np.linalg.norm(vec_to_obj) > 1:
                 self.mu.goto(tl(best_pos), block=TrajectoryStatus.EXECUTING)
             else:
                 self.status("Bop!")
-                self.mu.goto(tl(best_pos), block=TrajectoryStatus.FINISHED)
+                self.mu.goto(tl(best_pos))
                 self.mu.goto_relative((-1, 0, best_pos.z))
                 return
 
-            rospy.sleep(0.5)
+            if np.linalg.norm(vec_to_obj) < 3:
+                rospy.sleep(0.2)
+            else:
+                rospy.sleep(0.5)
 
         self.status("Timed out :/")
         return

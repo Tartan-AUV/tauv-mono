@@ -16,10 +16,13 @@ import tauv_mission_manager.missions
 M = 1
 YD = 0.9144
 FT = 0.3048
+IN = FT / 12
+
 LANE_WIDTH_Y = 7 * FT
-LANE_WIDTH_X = 2.75 * M
-START_X = -0.5 * LANE_WIDTH_X + 0.5 * M
-START_Y = 1 * LANE_WIDTH_Y
+LANE_WIDTH_X = 9 * FT
+# START_X = -0.5 * LANE_WIDTH_X + 0.5 * M
+START_X = -6 * FT + 17 * IN 
+START_Y = 2 * LANE_WIDTH_Y
 
 class MissionManager:
     def __init__(self) -> None:
@@ -37,11 +40,13 @@ class MissionManager:
         rospy.Service('start_mission/square', RunBasicMission, lambda x: self.run_mission(x, 'square'))
         # rospy.Service('start_mission/coin', RunBasicMission, lambda x: self.run_mission(x, 'coin'))
         rospy.Service('start_mission/pool', RunBasicMission, lambda x: self.run_mission(x, 'pool'))
+        rospy.Service('start_mission/test_buoy', RunBasicMission, lambda x: self.run_mission(x, 'buoy'))
 
         self.ac.clear(Alarm.MISSION_MANAGER_NOT_INITIALIZED, "Initialized!")
 
     def retare(self, srv):
         self.mu.retare(START_X, START_Y, 0)
+        return Trigger._response_class(True, "success")
 
     def run_mission(self, srv: RunBasicMission._request_class, name: str):
         if self.active_mission is not None:
@@ -59,6 +64,7 @@ class MissionManager:
         self.active_mission = mission_type(taskparams)
         rospy.Timer(rospy.Duration(max(srv.delay, 1.0)), self.do_start_mission, oneshot=True)
         self.log.log(f"Starting mission in {srv.delay:.1f} seconds...")
+        return Trigger._response_class(True, "success")
 
     def do_start_mission(self, timer_event):
         if self.active_mission is None:
@@ -88,6 +94,10 @@ class MissionManager:
         importlib.reload(tauv_mission_manager.missions.full_mission)
         from tauv_mission_manager.missions.full_mission import PoolMission
         mapping['pool'] = PoolMission
+
+        importlib.reload(tauv_mission_manager.missions.buoy_only_mission)
+        from tauv_mission_manager.missions.buoy_only_mission import BuoyMission
+        mapping['buoy'] = BuoyMission
 
         print(SquareMission.x)
 
