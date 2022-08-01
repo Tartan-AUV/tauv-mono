@@ -12,15 +12,15 @@ class Finder():
         # rospy.spin()
 
     #return the first bucket detection with the key matching name
-    def find_by_tag(self, tag):
+    def find_by_tag(self, tag, boundary):
         for entry in self.bucket_list:
-            if entry.tag == tag:
-                return entry
-        return None
+            if entry.tag == tag and entry.count>max_det:
+                max_det = entry.count
+                max_entry=entry
+        return max_entry
 
     def update(self, lst):
         self.bucket_list = lst.bucket_list
-
 
     def printer(self):
         entry = self.find_by_tag("badge")

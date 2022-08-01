@@ -40,19 +40,17 @@ class LogDetections():
         rospy.Subscriber("/zedm_A/zed_node_A/depth/depth_registered",Image,self.depth_callback)
         rospy.Subscriber("/zedm_A/zed_node_A/left/camera_info",CameraInfo, self.camera_info_callback)
         rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
-        rospy.Subscriber("/color_detector", BoundingBoxes, self.bbox_callback)
         self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
                                               queue_size=10)
         
         rospy.Service("/bucket/reset", Trigger, self.reset)
-
         rospy.Timer(rospy.Duration(2),self.publish)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
-        
+
     def reset(self, srv):
         self.detector_bucket.reset()
-
+        
     def publish(self, event):
         self.detector_bucket.publish_all()
 
@@ -71,12 +69,11 @@ class LogDetections():
         self.created=True
 
     def calc_pos(self, relative, cur_orientation, cur_position):
-
         roll = cur_orientation [0]
         pitch = cur_orientation [1]
         yaw = cur_orientation [2]
 
-        relative = numpy.array([relative[2] + 0.465, relative[0], relative[1]])
+        relative = numpy.array([relative[2]+ 0.465, relative[0], relative[1]])
 
         rpy = numpy.array([[math.cos(pitch)*math.cos(yaw), -math.cos(roll)*math.sin(yaw)+math.cos(yaw)*math.sin(pitch)*math.sin(roll), math.sin(roll)*math.sin(yaw)+math.cos(roll)*math.sin(pitch)*math.cos(yaw)],
         [math.cos(pitch)*math.sin(yaw), math.cos(roll)*math.cos(yaw)+math.sin(roll)*math.sin(pitch)*math.sin(yaw), -math.sin(roll)*math.cos(yaw)+math.cos(roll)*math.sin(pitch)*math.sin(yaw)],
@@ -86,13 +83,7 @@ class LogDetections():
 
 
     def invalid_pos(self, objdet):
-        if(numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z)):
-            return True
-        
-        if(objdet.position.z>0):
-            return True
-    
-        return False
+        return (numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z))
 
 
     def bbox_callback(self, bboxes):
@@ -107,7 +98,6 @@ class LogDetections():
 
         for bbox in bboxes.bounding_boxes:
             objdet = BucketDetection()
-
             objdet.tag = bbox.Class
 
             if(not self.created):
@@ -122,6 +112,8 @@ class LogDetections():
 
             if(self.invalid_pos(objdet)):
                continue
+
+            rospy.loginfo(f"CALCULATE pos: {objdet.position}\n")
         
             objects.objdets.append(objdet)
 
