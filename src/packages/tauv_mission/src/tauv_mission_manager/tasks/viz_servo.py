@@ -3,6 +3,8 @@ from motion.trajectories.trajectories import TrajectoryStatus
 import rospy
 from tauv_mission_manager.mission_utils import Task, TaskParams
 from vision.detectors.finder import Finder
+import typing
+from tauv_msgs.msg import BucketDetection
 
 class VizServo(Task):
     def __init__(self, params: TaskParams) -> None:
@@ -17,7 +19,7 @@ class VizServo(Task):
         self.status(f"Looking for a {tag}")
         hunting = True
         while hunting:
-            dets:  = self.f.find_by_tag(tag)
+            dets: typing.List[BucketDetection] = self.f.find_by_tag(tag)
             # Choose the right buouy
 
         
