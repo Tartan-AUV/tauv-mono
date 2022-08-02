@@ -37,7 +37,9 @@ class OctagonDetector():
 
             box = BoundingBox()
             box.xmin = x + self.octagon_offset
-            box.xmax = x + w + self.octagon_offset
+            box.xmax = x + w + 
+            
+            self.octagon_offset
             box.ymin = y
             box.ymax = y + h
 
