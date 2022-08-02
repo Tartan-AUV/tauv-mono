@@ -52,11 +52,7 @@ def update_dets(msg: RegisterObjectDetections):
     pub.publish(ma)
 
 def update(msg: BucketList):
-<<<<<<< HEAD
     #print("bucket to tf running")
-=======
-    # print("bucket to tf running")
->>>>>>> multicam and marker dropper task
     dets: typing.List[BucketDetection] = msg.bucket_list
     ma = MarkerArray()
     id = 0
