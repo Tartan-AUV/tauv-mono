@@ -22,18 +22,18 @@ class LogDetections():
         self.cur_position = (0,0,0)
         self.cur_orientation = (0,0,0)
 
-        self.front_depth_image = None
-        self.data = None
-
-        self.front_depth_created= False
-        self.bottom_depth_created = False
-
-        self.new_image = False
+        self.front_camera = "zedm_A_left_camera_optical_frame"
 
         rospy.init_node('image_detector', anonymous = True)
 
-        self.front_depth_camera_info = CameraInfo()
-        self.bottom_depth_camera_info = CameraInfo()
+        self.front_camera_info = None
+        self.front_depth_image = None
+        self.front_image_ready = False
+
+        self.bottom_camera_info = None
+        self.bottom_depth_image = None
+        self.bottom_image_ready = False
+
         self.bounding_boxes = BoundingBoxes()
         self.cv_bridge = CvBridge()
         self.detector_bucket = Detector_Bucket()
@@ -61,9 +61,7 @@ class LogDetections():
         return Trigger._response_class(True, "success")
         
     def publish(self, event):
-        print("publishing detector bucket list")
         self.detector_bucket.publish_all()
-        print("done publishing detector bucket list")
 
     def find(self, tag):
         return self.detector_bucket.find_by_tag(tag)
@@ -73,19 +71,21 @@ class LogDetections():
         self.cur_orientation = (data.orientation.x, data.orientation.y, data.orientation.z)
 
     def front_camera_info_callback(self, msg):
-        self.depth_camera_info = msg
+        self.front_camera_info = msg
 
     def front_depth_callback(self, msg):
         self.front_depth_image = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
-        self.front_created=True
+        self.front_image_ready = True
 
     def bottom_depth_callback(self, msg):
-        return
+        self.bottom_camera_info = msg
 
     def bottom_camera_info_callback(self, msg):
-        return
+        self.bottom_depth_image = self.cv_bridge.imgmsg_to_cv2(msg, "passthrough")
+        self.bottom_image_ready = True
 
-    def calc_pos(self, relative, cur_orientation, cur_position):
+    def calc_front_pos(self, relative, cur_orientation, cur_position):
+        #print("FRONT")
         roll = cur_orientation [0]
         pitch = cur_orientation [1]
         yaw = cur_orientation [2]
@@ -98,42 +98,65 @@ class LogDetections():
 
         return array_to_point(cur_position+numpy.matmul(rpy, relative))
 
+    def calc_bottom_pos(self, relative, cur_orientation, cur_position):
+        #print("BOTTOM")
+        roll = cur_orientation [0]
+        pitch = cur_orientation [1]
+        yaw = cur_orientation [2]
+
+        relative = numpy.array([-relative[0]+0.3302, -relative[1], relative[2]])
+
+        rpy = numpy.array([[math.cos(pitch)*math.cos(yaw), -math.cos(roll)*math.sin(yaw)+math.cos(yaw)*math.sin(pitch)*math.sin(roll), math.sin(roll)*math.sin(yaw)+math.cos(roll)*math.sin(pitch)*math.cos(yaw)],
+        [math.cos(pitch)*math.sin(yaw), math.cos(roll)*math.cos(yaw)+math.sin(roll)*math.sin(pitch)*math.sin(yaw), -math.sin(roll)*math.cos(yaw)+math.cos(roll)*math.sin(pitch)*math.sin(yaw)],
+        [-math.sin(pitch), math.sin(roll)*math.cos(pitch), math.cos(roll)*math.cos(pitch)]])
+
+        return array_to_point(cur_position+numpy.matmul(rpy, relative))
+
 
     def invalid_pos(self, objdet):
         if(numpy.isnan(objdet.position.x) or numpy.isnan(objdet.position.y) or numpy.isnan(objdet.position.z)):
             return True
         
-        if(objdet.position.z<0):
-            return True
+        #if(objdet.position.z<0):
+        #    return True
     
         return False
 
 
     def bbox_callback(self, bboxes):
-        rospy.loginfo(f"bboxes: {bboxes}")
+        #rospy.loginfo("BBOX ALERT")
 
         sub_or = self.cur_orientation
         sub_pos = self.cur_position
+        front = bboxes.image_header.frame_id==self.front_camera #is front camera?
+
+        if((front and (not self.front_image_ready)) or ((not front) and (not self.bottom_image_ready))):
+            return
 
         objects = RegisterObjectDetections()
         objects.objdets = list()
+
+        #rospy.loginfo(f"box : {bboxes.bounding_boxes}")
 
         for bbox in bboxes.bounding_boxes:
             objdet = BucketDetection()
 
             objdet.tag = bbox.Class
 
-            if len(objects.objdets) > 2 or (not self.front_depth_created):
+            if(len(objects.objdets) > 2):
                 continue
 
-            relative_pos = DepthEstimator.estimate_absolute_depth(self.depth_image, bbox, self.depth_camera_info)
-
+            relative_pos = DepthEstimator.estimate_absolute_depth(self.front_depth_image, bbox, self.front_camera_info)
+            
             if(relative_pos == numpy.nan):
                 continue
 
-            # print(relative_pos)
+            objdet.position = (numpy.nan, numpy.nan, numpy.nan)
+            if(front):
+                objdet.position = self.calc_front_pos(relative_pos, sub_or, sub_pos)
+            else:
+                objdet.position = self.calc_bottom_pos(relative_pos, sub_or, sub_pos)
 
-            objdet.position = self.calc_pos(relative_pos, sub_or, sub_pos)
 
             if(self.invalid_pos(objdet)):
                 continue
@@ -144,7 +167,9 @@ class LogDetections():
 
         objects.detector_tag = "camera"
 
+
         self.detector.publish(objects)
+
 
 def array_to_point(arr):
     p = Point()

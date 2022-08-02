@@ -13,7 +13,7 @@ pub = rospy.Publisher("/markers", MarkerArray, queue_size=10)
 det_id_counter = 0
 def update_dets(msg: RegisterObjectDetections):
     global det_id_counter
-    print("bucket to tf running")
+    #print("bucket to tf running")
     dets: typing.List[BucketDetection] = msg.objdets
     ma = MarkerArray()
     for d in dets:
@@ -36,7 +36,7 @@ def update_dets(msg: RegisterObjectDetections):
     pub.publish(ma)
 
 def update(msg: BucketList):
-    print("bucket to tf running")
+    #print("bucket to tf running")
     dets: typing.List[BucketDetection] = msg.bucket_list
     ma = MarkerArray()
     id = 0

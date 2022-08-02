@@ -61,7 +61,7 @@ class Detection_Tracker_Kalman(BucketDetection):
         self.position = Point(0,0,0)
         self.header = Header()
 
-        self.count = 0
+        self.count = 1
 
         # Process matrix
         self.F = np.asmatrix([[1, 0, 0], # x' = x
@@ -199,7 +199,6 @@ class Detector_Daemon(BucketList):
         for match in range(len(tracker_matches)):
             i = tracker_matches[match]
             j = det_matches[match]
-            #rospy.loginfo(f"malanobis: {self.mahalanobis_threshold}")
             if(adjacency_cost_matrix[i, j] < self.mahalanobis_threshold and tracker_tags[i]==det_tags[j]):
                 matches.append(np.array([i, j]))
             #elif(self.track_map[det_tags[j]]!=self.max_map[det_tags[j]]):
@@ -219,32 +218,6 @@ class Detector_Daemon(BucketList):
         #rospy.loginfo(f"matches: {matches.size()} unmatched: {unmatch_dets.size()}")
 
         return matches, np.array(unmatch_dets), np.array(unmatch_tracks)
-
-        
-    def match_by_euclidian(self, tracker, detections):
-        unmatch_dets, unmatch_tracks, matches = [], [], []
-
-        for detection_index in range(len(detections)):
-            min_dist = self.mahalanobis_threshold
-            min_track = 0
-            for tracker_index in range(len(tracker)):
-                if(tracker[tracker_index].tag != detections[detection_index].tag):
-                    continue
-                dist = distance.euclidean(point_to_array(detections[detection_index].position) , point_to_array(tracker[tracker_index].position))
-                if(dist<min_dist):
-                    min_track = tracker_index
-                    min_dist = dist
-
- 
-            if(min_dist < self.mahalanobis_threshold):
-                matches.append(np.array([min_track, detection_index]))
-            #elif(len(tracker)!=0 and self.track_map[detections[detection_index].tag]==self.max_map[detections[detection_index].tag]):
-            #    matches.append(np.array([min_track, detection_index]))
-            else:
-                unmatch_dets.append(detection_index)
-
-
-        return matches, unmatch_dets, []
 
 
     # incorporates any priors about the landmark position
@@ -365,13 +338,7 @@ class Detector_Daemon(BucketList):
                             tracker.localized_point = new_x[0]
                             temp_tracker_holder[tracker_ind] = new_x[0]
 
-                    self.bucket_list = []
-                    for tracker in self.tracker_list:
-                        #if tracker.detections >= self.debouncing_threshold:
-                        self.bucket_list.append(tracker)
-                        tracker.updated_now = False
+                    self.bucket_list = self.tracker_list
 
-                    #self.trackers_to_publish = {tracker.id: (time_stamp, tracker.tag, tracker.localized_point) for tracker in trackers_to_be_published}
-                    #rospy.loginfo("[Detector Daemon]: %s: Matched and Tracked Objects: " + str(self.bucket_list))
 
             self.new_data = False
