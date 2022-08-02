@@ -38,8 +38,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <arg name="node_name_2"            default="zed_node_B" />
     <arg name="camera_name_2"          default="zedm_B" />
 
-    <arg name="camera_sn_1"             default="10029642" />
-    <arg name="camera_sn_2"             default="10029656" />
+    <arg name="camera_sn_1"             default="10029656" />
+    <arg name="camera_sn_2"             default="17233420" />
 
 
     <group ns="$(arg camera_name_1)">
@@ -59,7 +59,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <arg name="cam_pitch"           value="$(arg cam_pitch)" />
             <arg name="cam_yaw"             value="$(arg cam_yaw)" />
             <arg name="camera_id"           value="0" />
+            <!-- <remap from="left/image_rect_color" to="/cameras/footage_merged"/> -->
         </include>
+        <node name="cam_b_remapper" pkg="topic_tools" type="relay" args="zed_node_A/left/image_rect_color /cameras/merged"/>
+        <!-- <remap from="zed_node_A/left/image_rect_color" to="/cameras/footage_merged"/> -->
     </group>
     <group ns="$(arg camera_name_2)">
         <include file="$(find tauv_vehicle)/launch/zed/include/zed_camera.launch.xml">
@@ -79,5 +82,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
             <arg name="cam_yaw"             value="$(arg cam_yaw)" />
             <arg name="camera_id"           value="1" />
         </include>
+        <node name="cam_b_remapper" pkg="topic_tools" type="relay" args="zed_node_B/left/image_rect_color /cameras/merged"/>
+        <!-- <remap from="zed_node_B/left/image_rect_color" to="/cameras/footage_merged"/> -->
+        <!-- <remap from="left/image_rect_color" to="/cameras/footage_merged"/> -->
     </group>
 </launch>

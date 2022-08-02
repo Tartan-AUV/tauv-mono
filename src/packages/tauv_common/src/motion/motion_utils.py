@@ -28,6 +28,7 @@ import typing
 from tauv_msgs.msg import TrajPoint
 from tauv_msgs.srv import SetPose, SetPoseRequest, SetPoseResponse
 from motion.trajectories.pyscurve.pyscurve.trajectory import PlanningError
+from motion.trajectories.hold_pos import HoldPos
 
 class MotionUtils:
     def __init__(self):
@@ -111,6 +112,23 @@ class MotionUtils:
         print(f"retare: {res}")
         print("Resetting bucket")
         self._bucket_reset_srv()
+
+    def goto_pid(self, pos: typing.Tuple[float],
+                   heading: float = None,
+                   threshold_lin=0.1, threshold_ang=0.1,
+                   block: TrajectoryStatus = TrajectoryStatus.FINISHED):
+        start_pose, start_twist = self.get_target()
+        try:
+            if heading is None:
+                heading = Rotation.from_quat(tl(start_pose.orientation)).as_euler('ZYX')[0]
+            newtraj = HoldPos(pos, heading)
+        except PlanningError:
+            rospy.logwarn("Trajectory planning failure!")
+            return False
+        self.set_trajectory(newtraj)
+        while self.get_motion_status().value < block.value:
+            rospy.sleep(0.1)
+        return True
 
     def goto(self, pos: typing.Tuple[float],
                    heading: float = None, 

@@ -10,6 +10,22 @@ from std_msgs.msg import ColorRGBA
 rospy.init_node('bucket_to_tf')
 pub = rospy.Publisher("/markers", MarkerArray, queue_size=10)
 
+def hsv_to_rgb(h, s, v):
+    if s == 0.0: return (v, v, v)
+    i = int(h*6.) # XXX assume int() truncates!
+    f = (h*6.)-i; p,q,t = v*(1.-s), v*(1.-s*f), v*(1.-s*(1.-f)); i%=6
+    if i == 0: return (v, t, p)
+    if i == 1: return (q, v, p)
+    if i == 2: return (p, v, t)
+    if i == 3: return (p, q, v)
+    if i == 4: return (t, p, v)
+    if i == 5: return (v, p, q)
+
+def string_to_color(s: str, alpha):
+    hue = (s.__hash__() % 1000000) / 1000000
+    rgb = hsv_to_rgb(hue, 1, 1)
+    return ColorRGBA(rgb[0], rgb[1], rgb[2], alpha) 
+
 det_id_counter = 0
 def update_dets(msg: RegisterObjectDetections):
     global det_id_counter
@@ -18,7 +34,7 @@ def update_dets(msg: RegisterObjectDetections):
     ma = MarkerArray()
     for d in dets:
         m = Marker()
-        m.type = Marker.CUBE
+        m.type = Marker.SPHERE
         m.ns = "bucket_detection"
         m.pose.position = d.position
         m.scale = Vector3(.1, .1, .1)
@@ -29,14 +45,18 @@ def update_dets(msg: RegisterObjectDetections):
         m.lifetime = rospy.Duration(2)
         det_id_counter += 1
         m.frame_locked = True
-        m.color = ColorRGBA(0, 0, 1, 1)
+        m.color = string_to_color(d.tag, 1.)
 
         ma.markers.append(m)
 
     pub.publish(ma)
 
 def update(msg: BucketList):
+<<<<<<< HEAD
     #print("bucket to tf running")
+=======
+    # print("bucket to tf running")
+>>>>>>> multicam and marker dropper task
     dets: typing.List[BucketDetection] = msg.bucket_list
     ma = MarkerArray()
     id = 0
@@ -52,7 +72,7 @@ def update(msg: BucketList):
         m.id = id
         id += 1
         m.frame_locked = True
-        m.color = ColorRGBA(0, 1, 0, .7)
+        m.color = string_to_color(d.tag, .5)
 
         ma.markers.append(m)
 
