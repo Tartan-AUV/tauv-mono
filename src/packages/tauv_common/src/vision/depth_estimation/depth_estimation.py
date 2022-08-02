@@ -8,7 +8,7 @@ class DepthEstimator():
       box = depth_image[max(bbox.ymin, y - w) : min(bbox.ymax, y + w+1), max(bbox.xmin, x - w) : min(bbox.xmax, x + w + 1)]
       return np.nanmean(box)
 
-  def estimate_absolute_depth(depth_image, bbox, depth_camera_info):
+  def estimate_absolute_depth(depth_image, bbox, depth_camera_info, known_z=None):
     fx = depth_camera_info.K[0]
     cx = depth_camera_info.K[2]
     fy = depth_camera_info.K[4]

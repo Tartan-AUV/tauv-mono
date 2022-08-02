@@ -3,9 +3,9 @@ yolo_model:
   config_file:
     name: yolov3-tiny-0414.cfg
   weight_file:
-    name: yolov3-comp_combined_6800.weights
+    name: yolov3-comp_combined_4000.weights
   threshold:
-    value: 0.3
+    value: 0.1
   detection_classes:
     names:
       - badge

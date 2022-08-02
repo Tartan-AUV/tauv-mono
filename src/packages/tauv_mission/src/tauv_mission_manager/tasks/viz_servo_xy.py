@@ -1,5 +1,6 @@
 from importlib.abc import Finder
 from motion.trajectories.trajectories import TrajectoryStatus
+from packages.tauv_mission.src.tauv_mission_manager.mission_manager import IN
 import rospy
 from tauv_mission_manager.mission_utils import Task, TaskParams
 from vision.detectors.finder import Finder
@@ -7,8 +8,12 @@ import typing
 from tauv_msgs.msg import BucketDetection, Servos
 import numpy as np
 from tauv_util.types import tl
+from math import sin, cos
 
-class VizServo(Task):
+FT = 0.3048
+IN = FT / 12
+
+class VizServoXY(Task):
     APROACHING = 0
     SERVOING = 1
     DONE = 2
@@ -23,6 +28,12 @@ class VizServo(Task):
         self.current_height = 0
         self.drop_height = 0.3
         self.drop_heading = heading
+
+        body_offset_x = -7 * IN
+        body_offset_y = -7 * IN
+
+        self.offset_x = body_offset_x * cos(heading) + body_offset_y * sin(heading) 
+        self.offset_y = body_offset_y * cos(heading) + body_offset_x * sin(heading)
 
     def run(self, tag, nominal_pos):
         if (self.cancelled): return
@@ -78,7 +89,7 @@ class VizServo(Task):
                 if self.current_height <= tgt_height and self.dropped < 2:
                     self.status("Bombs away!")
                     self.drop()
-                    self.mu.goto_pid(best_pos[0], best_pos[1], 1)
+                    self.mu.goto_pid(best_pos[0] + self.offset_x, best_pos[1] + self.offset_y, 1)
 
             if self.dropped == 2:
                 self.state = VizServo.DONE

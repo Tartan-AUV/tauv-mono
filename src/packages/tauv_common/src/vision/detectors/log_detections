@@ -17,6 +17,11 @@ from tauv_util import types
 from scipy.spatial.transform import Rotation
 from std_srvs.srv import Trigger
 
+FT = 0.3048
+IN = FT / 12
+
+FORCE_DEPTH_BOTTOM = 4 * FT + 3 * IN
+
 class LogDetections():
     def __init__(self):
         self.cur_position = (0,0,0)
@@ -104,7 +109,16 @@ class LogDetections():
         pitch = cur_orientation [1]
         yaw = cur_orientation [2]
 
-        relative = numpy.array([-relative[0]+0.3302, -relative[1], relative[2]])
+        # scale relative vector to force depth
+        fd = FORCE_DEPTH_BOTTOM
+        real_z_dist = fd - self.cur_position[2]
+        thought_z_dist = relative[2]
+
+        real_x = relative[0] * real_z_dist / thought_z_dist
+        real_y = relative[1] * real_z_dist / thought_z_dist
+
+
+        relative = numpy.array([-real_x+0.3302, -real_y, fd])
 
         rpy = numpy.array([[math.cos(pitch)*math.cos(yaw), -math.cos(roll)*math.sin(yaw)+math.cos(yaw)*math.sin(pitch)*math.sin(roll), math.sin(roll)*math.sin(yaw)+math.cos(roll)*math.sin(pitch)*math.cos(yaw)],
         [math.cos(pitch)*math.sin(yaw), math.cos(roll)*math.cos(yaw)+math.sin(roll)*math.sin(pitch)*math.sin(yaw), -math.sin(roll)*math.cos(yaw)+math.cos(roll)*math.sin(pitch)*math.sin(yaw)],
@@ -142,6 +156,9 @@ class LogDetections():
             objdet = BucketDetection()
 
             objdet.tag = bbox.Class
+
+            if objdet.tag == "badge" and bbox.probability < 0.3:
+                continue
 
             if(len(objects.objdets) > 2):
                 continue
