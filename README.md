@@ -3,7 +3,7 @@
 
 This is the monorepo for all TAUV ROS packages. Each package contains its own ROS nodes or other common code.
 
-## Setup and File Hierarchy
+## Setup
 ### ROS Installation (Noetic)
 This repository relies on ROS being installed, so follow the instructions from the following installation guide for ROS Noetic.
 *This repository and ROs should be installed on a clean version of Ubuntu 20.04*
