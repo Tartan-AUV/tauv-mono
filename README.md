@@ -7,8 +7,8 @@ This is the monorepo for all TAUV ROS packages. Each package contains its own RO
 
 *Disclaimer: whenever `/path/to/TAUV-ROS-Packages/` is written, this should be the file path to the location of the `TAUV-ROS-Packages` cloned directory on your local computer. For example, mine is `/home/mreich/Documents/TAUV-ROS-Packages`*
 
-## Setup
-### `zsh` Installation
+# Setup
+## `zsh` Installation
 First, make sure you are logged in as a user and not as root. Then, install the `zsh` shell with the following commands:
 ```bash
 sudo apt-get update
@@ -26,14 +26,14 @@ chsh -s $(which zsh)
 ```
 Log out of the session and log back in. When you open a terminal, it should now be using `zsh`. 
 
-### ROS Installation (Noetic)
+## ROS Installation (Noetic)
 This repository relies on ROS being installed, so follow the instructions from the following installation guide for ROS Noetic. Whenever prompted, follow the instructions for a `zsh` shell (rather than `bash`).
 
 http://wiki.ros.org/noetic/Installation/Ubuntu
 
 Use the full-desktop-install since we need Gazebo and other dependencies. Stop at the end of this tutorial page and do not execute `catkin_make`.
 
-### Repository Installation
+## Repository Installation
 To install:
 ```bash
 cd ~ # or wherever you want this repository to live
@@ -68,7 +68,7 @@ catkin build # (This is what "make" calls)
 tauvmake # (If you sourced aliases.sh)
 ```
 
-### The Setup Script
+## The Setup Script
 You need to `source devel/setup.zsh` every time you build and every time you open a terminal. This is annoying. Consider adding:
 ```bash
 source /path/to/TAUV-ROS-Packages/aliases.sh
@@ -80,11 +80,13 @@ to your `~/.zshrc`. This will automatically source it. The `aliases.sh` file exp
  * `tauvclean` cleans the build and devel folders. Consider running if you have weird build errors and need to build from scratch
  * `tauvmake` builds the repo.
 
-## Conventions
+# Conventions
 We use NED for most things. (If you see ENU somewhere, flag it since we should update all code to be consistent with the NED frame system)
 ![NED Frame](https://www.researchgate.net/publication/324590547/figure/fig3/AS:616757832200198@1524057934794/Body-frame-and-NED-frame-representation-of-linear-velocities-u-v-w-forces-X-Y-Z.png)
 
-## Dependencies
+TODO: move this somewhere else
+
+# Dependencies
 
 ROS Package dependencies MUST be acyclic. Therefore, only create new ros packages when you really want to encapsulate something that does not need to be tightly coupled to the rest of the system.
 
