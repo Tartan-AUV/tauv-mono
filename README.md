@@ -92,10 +92,15 @@ ROS Package dependencies MUST be acyclic. Therefore, only create new ros package
 
 Current dependency tree:
 
-    tauv_mission
-	    - tauv_common
-	    - tauv_vehicle
-		    - tauv_common
+```
+tauv_mission
+- tauv_common
+- tauv_vehicle
+	- tauv_common
+```
+
+TODO: is this even accurate..?
+
 # Package list
 Each package contains a more detailed readme in their folder.
 
