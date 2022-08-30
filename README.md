@@ -8,8 +8,15 @@ This is the monorepo for all TAUV ROS packages. Each package contains its own RO
 *Disclaimer: whenever `/path/to/TAUV-ROS-Packages/` is written, this should be the file path to the location of the `TAUV-ROS-Packages` cloned directory on your local computer. For example, mine is `/home/mreich/Documents/TAUV-ROS-Packages`*
 
 # Setup
+## Ubuntu 20.04 Installation
+Since ROS and all the dependencies used here require the Ubuntu 20.04 operating system, you must somehow get it.
+
+If you're on an M1 Mac, look up "UTM M1 Ubuntu 20.04 VM" and follow instructions to install all the required stuff. If you're on another kind of machine, look up "Dual boot {your operating system} and Ubuntu". Make sure that, despite what a tutorial might use, you download and use files (like `.iso` files) for Ubuntu version 20.04.
+
+Return once you are able to access Ubuntu.
+
 ## `zsh` Installation
-First, make sure you are logged in as a user and not as root. Then, install the `zsh` shell with the following commands:
+First, make sure you are logged in as a user with sudo permission (but not as root) to a Ubuntu 20.04 machine (or VM). Then, install the `zsh` shell with the following commands:
 ```bash
 sudo apt-get update
 sudo apt-get install zsh
