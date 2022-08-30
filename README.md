@@ -3,10 +3,31 @@
 
 This is the monorepo for all TAUV ROS packages. Each package contains its own ROS nodes or other common code.
 
+*This repository and ROS should be installed on a clean version of Ubuntu 20.04*
+
+*Disclaimer: whenever `/path/to/TAUV-ROS-Packages/` is written, this should be the file path to the location of the `TAUV-ROS-Packages` cloned directory on your local computer. For example, mine is `/home/mreich/Documents/TAUV-ROS-Packages`*
+
 ## Setup
+### `zsh` Installation
+First, make sure you are logged in as a user and not as root. Then, install the `zsh` shell with the following commands:
+```bash
+sudo apt-get update
+sudo apt-get install zsh
+```
+
+Ensure that everything was installed properly with:
+``
+zsh --version # this should tell you which version of zsh was installed
+``
+
+Now, set `zsh` to be your default shell instead of `bash` with:
+```bash
+chsh -s $(which zsh)
+```
+Log out of the session and log back in. When you open a terminal, it should now be using `zsh`. 
+
 ### ROS Installation (Noetic)
-This repository relies on ROS being installed, so follow the instructions from the following installation guide for ROS Noetic.
-*This repository and ROs should be installed on a clean version of Ubuntu 20.04*
+This repository relies on ROS being installed, so follow the instructions from the following installation guide for ROS Noetic. Whenever prompted, follow the instructions for a `zsh` shell (rather than `bash`).
 
 http://wiki.ros.org/noetic/Installation/Ubuntu
 
@@ -27,40 +48,33 @@ If the following sequence of commands runs without problems, continue. If you ru
 sudo chmod 755 -R /path/to/TAUV-ROS-Packages/ # use chmod to allow Makefiles and .sh files to be executed
 ```
 
-## Editing the bashrc (or zshrc)
-If you followed the ROS installation tutorial, this line might already be in your ./bashrc or ./zshrc file. If not, you should:
+## Editing the `~/.zshrc`
+If you followed the ROS installation tutorial, this line might already be in your `./zshrc` file. If not, you should:
 ```bash
-vim ~/.bashrc
-source /opt/ros/noetic/setup.bash
+echo "source /opt/ros/noetic/setup.zsh" >> ~/.zshrc
 ```
 
-Or, if you use zsh:
-```bash
-vim ~/.zshrc
-source /opt/ros/noetic/setup.zsh
-```
-
-## Building your ROS project
+## Building Your ROS Project
 When you make changes like adding new message types or add new dependencies to a CMake file, etc. you must rebuild the package with:
 ```bash
 cd /path/to/TAUV-ROS-Packages/
 make
-source devel/setup.bash # (or setup.zsh if you use zsh)
+source devel/setup.zsh
 ```
     
-### Other ways to build
+### Other Ways to Build
 ```bash
 catkin build # (This is what "make" calls)
 tauvmake # (If you sourced aliases.sh)
 ```
 
-### The setup script
-You need to source `devel/setup.bash` (or `devel/setup.zsh`) every time you build and every time you open a terminal. This is annoying. Consider adding:
+### The Setup Script
+You need to `source devel/setup.zsh` every time you build and every time you open a terminal. This is annoying. Consider adding:
 ```bash
-source /path/to/TAUV-ROS-Packages/aliases.sh # (or whatever the path is for you)
+source /path/to/TAUV-ROS-Packages/aliases.sh
 tauvsh
 ```
-to your `~/.bashrc` (or `~/.zshrc`). This will automatically source it. The `aliases.sh` file exposes three nice commands you can run from anywhere (not just the base of the repo:
+to your `~/.zshrc`. This will automatically source it. The `aliases.sh` file exposes three nice commands you can run from anywhere (not just the base of the repo:
 
  * `tauvsh` sources devel/setup.zsh, allowing you to use ros shell commands.
  * `tauvclean` cleans the build and devel folders. Consider running if you have weird build errors and need to build from scratch
