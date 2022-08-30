@@ -7,7 +7,7 @@ This is the monorepo for all TAUV ROS packages. Each package contains its own RO
 ## Setup and File Hierarchy
 ### This stuff all relies on ROS, so install from here:
 
-http://wiki.ros.org/melodic/Installation/Ubuntu
+http://wiki.ros.org/noetic/Installation/Ubuntu
 (Use the full install, since we need gazebo and stuff)
 
 To install:
