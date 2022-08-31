@@ -22,8 +22,8 @@ sudo apt-get update
 sudo apt-get install zsh
 ```
 
-E`nsure that everything was installed properly with:
-``bash
+Ensure that everything was installed properly with:
+```bash
 zsh --version # this should tell you which version of zsh was installed
 ```
 
