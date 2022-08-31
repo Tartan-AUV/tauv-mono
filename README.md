@@ -22,10 +22,10 @@ sudo apt-get update
 sudo apt-get install zsh
 ```
 
-Ensure that everything was installed properly with:
-``
+E`nsure that everything was installed properly with:
+``bash
 zsh --version # this should tell you which version of zsh was installed
-``
+```
 
 Now, set `zsh` to be your default shell instead of `bash` with:
 ```bash
