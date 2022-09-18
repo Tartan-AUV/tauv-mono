@@ -44,7 +44,8 @@ Use the full-desktop-install since we need Gazebo and other dependencies. Stop a
 To install:
 ```bash
 cd ~ # or wherever you want this repository to live
-git clone --recurse-submodules https://github.com/Tartan-AUV/TAUV-ROS-Packages # clone the code
+git clone --recurse-submodulesgit@github.com:Tartan-AUV/TAUV-ROS-Packages.git # clone the code
+
 cd TAUV-ROS-Packages # move to the code folder
 make deps # run the Makefile, this might take 5 to 10 minutes
 ```
