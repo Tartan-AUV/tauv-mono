@@ -47,7 +47,7 @@ cd ~ # or wherever you want this repository to live
 git clone --recurse-submodules git@github.com:Tartan-AUV/TAUV-ROS-Packages.git # clone the code
 
 cd TAUV-ROS-Packages # move to the code folder
-make deps # run the Makefile, this might take 5 to 10 minutes
+sudo make deps # run the Makefile, this might take 5 to 10 minutes
 ```
 
 If the following sequence of commands runs without problems, continue. If you run into a permissions error along the lines of `make: execvp: Permission denied`, you should:
@@ -75,6 +75,7 @@ source devel/setup.zsh
 catkin build # (This is what "make" calls)
 tauvmake # (If you sourced aliases.sh)
 ```
+If the above `make` or `catkin build` commands fail, try toubleshooting using these answers: https://github.com/catkin/catkin_tools/issues/525
 
 ## The Setup Script
 You need to `source devel/setup.zsh` every time you build and every time you open a terminal. This is annoying. Consider adding:
