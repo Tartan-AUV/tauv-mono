@@ -11,7 +11,7 @@ This is the monorepo for all TAUV ROS packages. Each package contains its own RO
 ## Ubuntu 20.04 Installation
 Since ROS and all the dependencies used here require the Ubuntu 20.04 operating system, you must somehow get it.
 
-If you're on an M1 Mac, look up "UTM M1 Ubuntu 20.04 VM" and follow instructions to install all the required stuff. If you're on another kind of machine, look up "Dual boot {your operating system} and Ubuntu". Make sure that, despite what a tutorial might use, you download and use files (like `.iso` files) for Ubuntu version 20.04.
+If you're on an M1 Mac, look up "VMWare M1 Ubuntu 20.04 Tutorial" and follow instructions to install all the required stuff. If you're on another kind of machine, look up "Dual boot {your operating system} and Ubuntu" or "VMWare {OS} Ubuntu 20.04 Tutorial". Make sure that, despite what a tutorial might use, you download and use files (like `.iso` files) for **Ubuntu version 20.04**.
 
 Return once you are able to access Ubuntu.
 
@@ -31,7 +31,7 @@ Now, set `zsh` to be your default shell instead of `bash` with:
 ```bash
 chsh -s $(which zsh)
 ```
-Log out of the session and log back in. When you open a terminal, it should now be using `zsh`. 
+Restart your computer or VM. When you open a terminal, it should now be using `zsh`. 
 
 ## ROS Installation (Noetic)
 This repository relies on ROS being installed, so follow the instructions from the following installation guide for ROS Noetic. Whenever prompted, follow the instructions for a `zsh` shell (rather than `bash`).
