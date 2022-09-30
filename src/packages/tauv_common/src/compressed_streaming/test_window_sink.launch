@@ -1,0 +1,5 @@
+<launch>
+  <node name="my_node" pkg="compressed_streaming" type="compressed_streaming_node" output="screen"/>
+  <param name="pipeline_config" value="videoconvert ! autovideosink"/>
+  <param name="image_topic" value="/usb_cam/image_raw"/>
+</launch>
