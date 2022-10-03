@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="tauv_vehicle" type="acoustics" name="acoustics" output="screen">
+
+    </node>
+</launch>
