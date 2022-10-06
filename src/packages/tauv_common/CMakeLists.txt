@@ -76,6 +76,7 @@ include(cmake/pylint.cmake)
 # add_subdirectory(src/constructors)
 # add_subdirectory(src/motion)
 
+add_subdirectory(src/controller_cpp)
 add_subdirectory(src/state_estimation_cpp)
 add_subdirectory(src/tauv_alarms)
 add_subdirectory(src/tauv_utils_cpp)
