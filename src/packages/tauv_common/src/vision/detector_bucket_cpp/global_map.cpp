@@ -3,15 +3,22 @@
 
 using namespace tauv_msgs;
 
-int DUMMY_FILL = 1000;
-
 GlobalMap::GlobalMap(ros::NodeHandle& handler)
 {
     featureCount = 0;
+    DUMMY_FILL=0;
     MAP = {};
 
     publisher = handler.advertise<tauv_msgs::BucketList>("/bucket_list", 100); //update to a service
     listener = handler.subscribe("/register_object_detection", 100, &GlobalMap::updateTrackers, this);
+}
+
+GlobalMap::~GlobalMap()
+{
+    for(pair<string,FeatureTracker*> Tracker: MAP)
+    {
+        delete Tracker.second;
+    }
 }
 
 //change to error state return
@@ -70,7 +77,7 @@ void GlobalMap::assignDetections(vector<BucketDetection> detections)
     {
         int detectionIdx = assignment[tracker];
 
-        //tracker had no corresponding detections, only happens if fewer detections than trackers, nothing to worry about
+        //tracker had no corresponding detections
         if(detectionIdx<0){continue;}
 
         pair<FeatureTracker*, int> Tracker = trackerList[tracker];
@@ -101,6 +108,7 @@ void GlobalMap::addTracker(BucketDetection detection)
     {
         FeatureTracker *F = new FeatureTracker(detection);
         MAP.insert({detection.tag, F});
+        DUMMY_FILL = max(DUMMY_FILL, F->getMahalanobisThreshold());
     }
     else
     {

@@ -5,11 +5,6 @@
 
 using namespace std;
 
-/*const size_t dataLen = 3;
-
-typedef Matrix<float, dataLen, dataLen> PoseMatrix;
-typedef */
-
 //field notation according to: http://www.cs.unc.edu/~tracker/media/pdf/SIGGRAPH2001_CoursePack_08.pdf
 //standard kalman filter
 class KalmanFilter
