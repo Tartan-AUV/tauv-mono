@@ -1,0 +1,35 @@
+object_params: {
+  badge: {
+    expected_count: 1
+  }
+}
+
+tracker_params: {
+  default: {
+    mahalanobis_threshold: 10
+  },
+  badge: {
+    mahalanobis_threshold: 5
+  }
+}
+
+kalman_params: {
+  default: {
+    A: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    B: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    H: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    P: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    R: [0.001, 0, 0, 0, 0.001, 0, 0, 0, 0.001],
+    Q: [0.000001, 0, 0, 0, 0.000001, 0, 0, 0, 0.000001]
+  }
+}
+
+matching_weights: {
+  default: {
+    tag_weight: 100000,
+    distance_weight: 20,
+    orientation_weight: 2,
+    recency_weight: 0.5,
+    frequency_weight: 0
+  }
+}

@@ -67,6 +67,7 @@ class Detector_Bucket():
 
 
     def update_daemon_service(self, req):
+        print("here!")
         data_frame = req.objdets
         
         # acquire and update data buffer on daemon

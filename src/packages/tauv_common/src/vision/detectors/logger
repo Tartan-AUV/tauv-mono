@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+
+import rospy
+from tauv_msgs.msg import RegisterObjectDetections, BucketDetection
+from geometry_msgs.msg import Point
+
+class Logger():
+    def __init__(self):
+        rospy.init_node('logger', anonymous = True)
+        rospy.Subscriber("/register_object_detection", RegisterObjectDetections,
+                                                self.callback)
+
+        self.pub = rospy.Publisher("/register_object_detection", RegisterObjectDetections,
+                                                queue_size=10)
+        
+        rospy.Timer(rospy.Duration(1), self.publish1)
+        rospy.Timer(rospy.Duration(2), self.publish2)
+
+    def callback(self, data):
+        print(data)
+
+    def publish1(self, time):
+        obj = RegisterObjectDetections()
+        det1 = BucketDetection()
+        det1.position = Point(1,1,1)
+        det1.tag = "test"
+
+        obj.objdets = [det1]
+        obj.detector_tag = "camera"
+
+        self.pub.publish(obj)
+
+    def publish2(self, time):
+        det2 = BucketDetection()
+        det2.position = Point(2,2,2)
+        det2.tag = "test2"
+
+        obj = RegisterObjectDetections()
+        det1 = BucketDetection()
+        det1.position = Point(1,1,1)
+        det1.tag = "test1"
+
+        obj.objdets = [det1, det2]
+        obj.detector_tag = "camera"
+
+        self.pub.publish(obj)
+        
+
+s = Logger()
+rospy.spin()
