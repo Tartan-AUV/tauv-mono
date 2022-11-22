@@ -27,7 +27,7 @@ from geometry_msgs.msg import Quaternion, Point
 from tauv_msgs.msg import BucketDetection, BucketList, PoseGraphMeasurement,RegisterObjectDetections, RegisterMeasurement
 from scipy.spatial.transform import Rotation as R
 from scipy.linalg import inv, block_diag
-from threading import Thread, Lock
+from threading import Lock
 from scipy.optimize import linear_sum_assignment
 from scipy.spatial import distance
 import typing
@@ -159,12 +159,11 @@ class Detector_Daemon(BucketList):
         self.tracker_id = 0
 
     def reset(self):
-        self.mutex.acquire()
-        self.tracker_list = []
-        self.bucket_list = []
-        self.track_map = {}
-        self.max_map = {}
-        self.mutex.release()
+        with self.mutex:
+            self.tracker_list = []
+            self.bucket_list = []
+            self.track_map = {}
+            self.max_map = {}
 
     def update_detection_buffer(self, data_frame):
         #rospy.loginfo("Updated detection buffer in %s daemon", self.detector_name)
@@ -173,50 +172,54 @@ class Detector_Daemon(BucketList):
         self.new_data = True
 
     # performs assignment to trackers and detections
-    def map_det_to_tracker(self, trackers, dets, tracker_tags, det_tags):
+    def map_det_to_tracker(self, trackers: BucketList, dets: typing.List[BucketDetection], tracker_tags, det_tags):
         trackers_len = len(trackers)
         dets_len = len(dets)
 
-        trackers_tiled = np.tile(trackers, (dets_len, 1))
-        dets_repeated = np.repeat(dets, trackers_len, axis=0)
-        if trackers_len > 0 and dets_len > 0 and \
-            not (np.any(np.isinf(trackers)) | np.any(np.isnan(trackers)) \
-             |  np.any(np.isinf(dets)) | np.any(np.isnan(dets))):
-            adjacency_cost_matrix = np.reshape(np.linalg.norm(trackers_tiled - dets_repeated, axis=1), \
-                                               (trackers_len, dets_len))
-            tracker_matches, det_matches = linear_sum_assignment(adjacency_cost_matrix)
-        else:
-            tracker_matches, det_matches = np.array([]), np.array([])
+        tag_types = set(det_tags)
+        for type in tag_types:
 
-
-        unmatch_tracks, unmatch_dets = [], []
-        whole_trackers = set(list(range(trackers_len)))
-        whole_dets = set(list(range(dets_len)))
-        unmatch_tracks = list(whole_trackers - set(tracker_matches))
-        unmatch_dets = list(whole_dets - set(det_matches))
-
-        matches = []
-        for match in range(len(tracker_matches)):
-            i = tracker_matches[match]
-            j = det_matches[match]
-            if(adjacency_cost_matrix[i, j] < self.mahalanobis_threshold and tracker_tags[i]==det_tags[j]):
-                matches.append(np.array([i, j]))
-            #elif(self.track_map[det_tags[j]]!=self.max_map[det_tags[j]]):
-                #rospy.loginfo(f"cost: {adjacency_cost_matrix[i, j]}")
-                #rospy.loginfo(f"adjacency matrix: {adjacency_cost_matrix}")
+            trackers_tiled = np.tile(trackers, (dets_len, 1))
+            dets_repeated = np.repeat(dets, trackers_len, axis=0)
+            if trackers_len > 0 and dets_len > 0 and \
+                not (np.any(np.isinf(trackers)) | np.any(np.isnan(trackers)) \
+                |  np.any(np.isinf(dets)) | np.any(np.isnan(dets))):
+                adjacency_cost_matrix = np.reshape(np.linalg.norm(trackers_tiled - dets_repeated, axis=1), \
+                                                (trackers_len, dets_len))
+                tracker_matches, det_matches = linear_sum_assignment(adjacency_cost_matrix)
             else:
-                unmatch_tracks.append(i)
-                unmatch_dets.append(j)
+                tracker_matches, det_matches = np.array([]), np.array([])
 
-        if(len(matches)==0):
-            matches = np.empty((0,2),dtype=int)
-        elif len(matches) == 1:
-            matches = np.asmatrix(matches)
-        else:
-            matches = np.stack(matches,axis=0)
+
+            unmatch_tracks, unmatch_dets = [], []
+            whole_trackers = set(list(range(trackers_len)))
+            whole_dets = set(list(range(dets_len)))
+            unmatch_tracks = list(whole_trackers - set(tracker_matches))
+            unmatch_dets = list(whole_dets - set(det_matches))
+
+            matches = []
+            for match in range(len(tracker_matches)):
+                i = tracker_matches[match]
+                j = det_matches[match]
+                if(adjacency_cost_matrix[i, j] < self.mahalanobis_threshold and tracker_tags[i]==det_tags[j]):
+                    matches.append(np.array([i, j]))
+                #elif(self.track_map[det_tags[j]]!=self.max_map[det_tags[j]]):
+                    #rospy.loginfo(f"cost: {adjacency_cost_matrix[i, j]}")
+                    #rospy.loginfo(f"adjacency matrix: {adjacency_cost_matrix}")
+                else:
+                    unmatch_tracks.append(i)
+                    unmatch_dets.append(j)
+
+            if(len(matches)==0):
+                matches = np.empty((0,2),dtype=int)
+            elif len(matches) == 1:
+                matches = np.asmatrix(matches)
+            else:
+                matches = np.stack(matches,axis=0)
 
         #rospy.loginfo(f"matches: {matches.size()} unmatched: {unmatch_dets.size()}")
 
+        # print(matches)
         return matches, np.array(unmatch_dets), np.array(unmatch_tracks)
 
 

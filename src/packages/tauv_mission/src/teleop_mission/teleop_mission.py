@@ -208,6 +208,22 @@ class TeleopMission:
 
         self._motion.disable()
 
+    def _handle_retare(self, args):
+        print('retare')
+
+        self._motion.retare(0, 0, 0)
+
+    def _handle_goto_pid(self, args):
+        print('goto_pid')
+
+        try:
+            self._motion.goto_pid(
+                (args.x, args.y, args.z),
+                args.yaw,
+            )
+        except Exception as e:
+            print(e)
+
     def _handle_start_mission(self, args):
         print('start mission')
 
@@ -266,6 +282,13 @@ class TeleopMission:
         goto_relative.add_argument('--j', type=float)
         goto_relative.set_defaults(func=self._handle_goto_relative)
 
+        goto_pid = subparsers.add_parser('goto_pid')
+        goto_pid.add_argument('x', type=float)
+        goto_pid.add_argument('y', type=float)
+        goto_pid.add_argument('z', type=float)
+        goto_pid.add_argument('yaw', type=float)
+        goto_pid.set_defaults(func=self._handle_goto_pid)
+
         enable_pids = subparsers.add_parser('enable_pids')
         enable_pids.add_argument('x',  type=float)
         enable_pids.add_argument('y',  type=float)
@@ -288,9 +311,8 @@ class TeleopMission:
         disable = subparsers.add_parser('disable')
         disable.set_defaults(func=self._handle_disable)
 
-        start_mission = subparsers.add_parser('start_mission')
-        start_mission.add_argument('delay', type=float)
-        start_mission.set_defaults(func=self._handle_start_mission)
+        retare = subparsers.add_parser('retare')
+        retare.set_defaults(func=self._handle_retare)
 
         return parser
 

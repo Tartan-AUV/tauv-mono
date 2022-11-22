@@ -3,6 +3,7 @@ import numpy as np
 from numpy.polynomial.polynomial import Polynomial
 from math import floor
 from typing import Dict
+import serial
 
 from .maestro import Maestro
 from tauv_util.types import tl
@@ -64,6 +65,8 @@ class Thrusters:
             _killed = kval < 400
         except TypeError:
             rospy.logwarn("read error")
+        except serial.serialutil.SerialException as e:
+            rospy.logwarn(e)
 
         self._killed_pub.publish(Bool(_killed))
         self._ac.set(Alarm.KILL_SWITCH_ACTIVE, value=_killed)

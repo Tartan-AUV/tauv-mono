@@ -103,15 +103,16 @@ class MotionUtils:
         self._hold_yaw_srv.call(SetBoolRequest(False))
 
     def retare(self, x, y, h):
-        print("Retaring nav")
-        req = SetPoseRequest()
-        req.position.x = x
-        req.position.y = y
-        req.yaw = h
-        res = self._setpose_srv(req)
-        print(f"retare: {res}")
-        print("Resetting bucket")
-        self._bucket_reset_srv()
+        # print("Retaring nav")
+        # req = SetPoseRequest()
+        # req.position.x = x
+        # req.position.y = y
+        # req.yaw = h
+        # res = self._setpose_srv(req)
+        # print(f"retare: {res}")
+        # print("Resetting bucket")
+        # self._bucket_reset_srv()
+        pass
 
     def goto_pid(self, pos: typing.Tuple[float],
                    heading: float = None,
@@ -125,6 +126,7 @@ class MotionUtils:
         except PlanningError:
             rospy.logwarn("Trajectory planning failure!")
             return False
+            
         self.set_trajectory(newtraj)
         while self.get_motion_status().value < block.value:
             rospy.sleep(0.1)
