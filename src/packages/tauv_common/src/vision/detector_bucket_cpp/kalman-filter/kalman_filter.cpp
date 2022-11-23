@@ -15,7 +15,6 @@ KalmanFilter::KalmanFilter(string det_tag, Eigen::VectorXd initial_estimate)
     A = getParam("A");
     B = getParam("B");
     H = getParam("H");
-
 }
 
 Eigen::MatrixXd KalmanFilter::getParam(string property)
@@ -56,6 +55,12 @@ void KalmanFilter::updateEstimate(Eigen::VectorXd zk)
 {
     Eigen::VectorXd newEstimate = A * estimate; //independent of state B = 0
     makeUpdates(newEstimate, zk);
+}
+
+void KalmanFilter::reset(Eigen::VectorXd zk)
+{
+    Pk = getParam("Pk");
+    estimate = zk;
 }
 
 Eigen::VectorXd KalmanFilter::getEstimate(){return estimate;}

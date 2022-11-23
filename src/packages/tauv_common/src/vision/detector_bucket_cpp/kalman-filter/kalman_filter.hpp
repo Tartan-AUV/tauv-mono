@@ -16,6 +16,8 @@ class KalmanFilter
         virtual void updateEstimate(Eigen::VectorXd zk); //state independent
         Eigen::VectorXd getEstimate();
         
+        void reset(Eigen::VectorXd zk);
+        
         Eigen::VectorXd estimate;
         Eigen::MatrixXd Pk;
         Eigen::MatrixXd Q;
