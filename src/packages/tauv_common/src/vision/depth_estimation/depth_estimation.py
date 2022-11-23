@@ -1,7 +1,5 @@
-
 import numpy as np 
 from geometry_msgs.msg import Point
-
 
 class DepthEstimator():
   def estimate_relative_depth(depth_image, x, y, w, bbox):
