@@ -1,5 +1,5 @@
 string tag
 geometry_msgs/Point point
 ---
-tauv_msgs/BucketDetection detection
+tauv_msgs/FeatureDetection detection
 bool success

@@ -1,4 +1,4 @@
 string tag
 ---
-tauv_msgs/BucketDetection[] detections
+tauv_msgs/FeatureDetection[] detections
 bool success

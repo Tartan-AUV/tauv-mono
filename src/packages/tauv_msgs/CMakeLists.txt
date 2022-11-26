@@ -10,10 +10,7 @@ add_message_files(
   ControllerCmd.msg
   ControllerDebug.msg
   ControlsTunings.msg
-  BucketDetection.msg
-  BucketList.msg
-  BoundingBoxes.msg
-  BoundingBox.msg
+  FeatureDetection.msg
   FluidDepth.msg
   DynamicsTunings.msg
   GateDetection.msg
@@ -21,7 +18,7 @@ add_message_files(
   SonarPulse.msg
   Servos.msg
   RegisterMeasurement.msg
-  RegisterObjectDetections.msg
+  FeatureDetections.msg
   PoseGraphMeasurement.msg
   ReadableAlarmReport.msg
   Thrust.msg
