@@ -21,7 +21,7 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
 {
     featureCount = 0;
     totalDetections = 0;
-    DUMMY_FILL=100000;
+    DUMMY_FILL=0;
     MAP = {};
 
     listener = handler.subscribe("/register_object_detection", 100, &GlobalMap::updateTrackers, this);
@@ -29,9 +29,6 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
     findService = handler.advertiseService("/global_map/find", &GlobalMap::find, this);
     findClosestService = handler.advertiseService("/global_map/find_closest", &GlobalMap::findClosest, this);
 
-    /*timer =
-        handler.createTimer(ros::Duration(1.0),
-                        &GlobalMap::publishMap, this);*/
 }
 
 GlobalMap::~GlobalMap()
@@ -42,25 +39,24 @@ GlobalMap::~GlobalMap()
     }
 }
 
-vector<BucketDetection> GlobalMap::convertToStruct(vector<tauv_msgs::BucketDetection> &detections)
+vector<FeatureDetection> GlobalMap::convertToStruct(vector<tauv_msgs::FeatureDetection> &detections)
 {
-    vector<BucketDetection> trueDets(detections.size());
+    vector<FeatureDetection> trueDets(detections.size());
     
     for(size_t i=0;i<detections.size();i++)
     {
-        tauv_msgs::BucketDetection detection = detections[i];
-        trueDets[i] = BucketDetection{point_to_vec(detection.position), point_to_vec(detection.orientation), detection.tag};
+        tauv_msgs::FeatureDetection detection = detections[i];
+        trueDets[i] = FeatureDetection{point_to_vec(detection.position), point_to_vec(detection.orientation), detection.tag};
     }
 
     return trueDets;
 }
 
-//change to error state return
-void GlobalMap::updateTrackers(const tauv_msgs::RegisterObjectDetections::ConstPtr& detectionObjects)
+void GlobalMap::updateTrackers(const tauv_msgs::FeatureDetections::ConstPtr& detectionObjects)
 {
     //convert trackers into readable cpp format to save later repeated computation
-    vector<tauv_msgs::BucketDetection> objdets = detectionObjects->objdets;
-    vector<BucketDetection> detections = convertToStruct(objdets);
+    vector<tauv_msgs::FeatureDetection> objdets = detectionObjects->detections;
+    vector<FeatureDetection> detections = convertToStruct(objdets);
 
     size_t len = detections.size();
     
@@ -72,13 +68,12 @@ void GlobalMap::updateTrackers(const tauv_msgs::RegisterObjectDetections::ConstP
 
     mtx.lock();
 
-    //mutex moment
     assignDetections(detections);
 
     mtx.unlock();
 }
 
-vector<pair<FeatureTracker*, int>> GlobalMap::generateSimilarityMatrix(vector<BucketDetection> &detections, vector<vector<double>> &costMatrix, size_t costMatSize)
+vector<pair<FeatureTracker*, int>> GlobalMap::generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t costMatSize)
 {
     //list for detection addition
     vector<pair<FeatureTracker*, int>> trackerList(featureCount);
@@ -103,7 +98,7 @@ vector<pair<FeatureTracker*, int>> GlobalMap::generateSimilarityMatrix(vector<Bu
     return trackerList;
 }
 
-void GlobalMap::assignDetections(vector<BucketDetection> &detections)
+void GlobalMap::assignDetections(vector<FeatureDetection> &detections)
 {
     size_t initFeatureNum = featureCount; //will change during iterations if new trackers added
 
@@ -115,12 +110,6 @@ void GlobalMap::assignDetections(vector<BucketDetection> &detections)
     vector<int> assignment;
     HungarianAlgorithm Matcher;
     Matcher.Solve(costMatrix, assignment);
-
-    // cout<<"ASSIGNMENT: \n";
-    // for(int A : assignment){
-    //     cout<<A<<" ";
-    // }
-    // cout<<"\n";
 
     //if valid match, assign detection to tracker,
     //otherwise, create a new tracker
@@ -160,7 +149,7 @@ void GlobalMap::updateDecay(FeatureTracker *F, int featureIdx)
     }
 }
 
-void GlobalMap::addTracker(BucketDetection &detection)
+void GlobalMap::addTracker(FeatureDetection &detection)
 {
     unordered_map<string,FeatureTracker*>::iterator NEW = MAP.find(detection.tag);
     featureCount+=1;
@@ -183,14 +172,16 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
 
     if(Tracker == MAP.end()){res.success=false; return false;}
 
-    vector<Feature*> detections = (Tracker->second)->getTrackers();
-    vector<tauv_msgs::BucketDetection> returnDetections(detections.size());
+    vector<Feature*> detections = (Tracker->second)->getFeatures();
+    vector<tauv_msgs::FeatureDetection> returnDetections((Tracker->second)->getNumFeatures());
     for(Feature *detection : detections)
     {
-        tauv_msgs::BucketDetection returnDetection{};
-        returnDetection.position = vec_to_point(detection->position);
-        returnDetection.orientation = vec_to_point(detection->orientation);
-        returnDetection.tag = detection->tag;
+        if(detection->State==TrackerState::ZOMBIE){continue;}
+
+        tauv_msgs::FeatureDetection returnDetection{};
+        returnDetection.position = vec_to_point(detection->getPosition());
+        returnDetection.orientation = vec_to_point(detection->getOrientation());
+        returnDetection.tag = req.tag;
 
         returnDetections.push_back(returnDetection);
     }
@@ -208,14 +199,16 @@ bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::
 
     if(Tracker == MAP.end()){res.success=false; return false;}
 
-    vector<Feature*> detections = (Tracker->second)->getTrackers();
+    vector<Feature*> detections = (Tracker->second)->getFeatures();
 
     int minInd = 0;
     double minDist = -1;
     for(size_t i = 0; i<detections.size(); i++)
     {
         Feature *detection = detections[i];
-        double dist = (detection->position - position).norm();
+        if(detection->State==TrackerState::ZOMBIE){continue;}
+
+        double dist = (detection->getPosition() - position).norm();
 
         if(minDist<0 || dist<minDist)
         {
@@ -224,9 +217,9 @@ bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::
         }
     }
 
-    tauv_msgs::BucketDetection returnDetection{};
-    returnDetection.position = vec_to_point(detections[minInd]->position);
-    returnDetection.orientation = vec_to_point(detections[minInd]->orientation);
+    tauv_msgs::FeatureDetection returnDetection{};
+    returnDetection.position = vec_to_point(detections[minInd]->getPosition());
+    returnDetection.orientation = vec_to_point(detections[minInd]->getOrientation());
     returnDetection.tag = req.tag;
 
     res.detection = returnDetection;
@@ -250,18 +243,3 @@ bool GlobalMap::reset(std_srvs::Trigger::Request &req, std_srvs::Trigger::Respon
     res.success = true;
     return true;
 }
-
-/*void GlobalMap::publishMap(const ros::TimerEvent& event)
-{
-    cout<<"FEATURECOUNT: "<<featureCount<<"\n";
-    vector<tauv_msgs::BucketDetection> buckets1 = find("badge").bucket_list;
-    vector<tauv_msgs::BucketDetection> buckets2 = find("notebook").bucket_list;
-    vector<tauv_msgs::BucketDetection> buckets3 = find("phone").bucket_list;
-
-    buckets1.insert(buckets1.end(), buckets2.begin(), buckets2.end());
-    buckets1.insert(buckets1.end(), buckets3.begin(), buckets3.end());
-
-    tauv_msgs::BucketList buckets{};
-    buckets.bucket_list = buckets1;
-    publisher.publish(buckets);
-}*/

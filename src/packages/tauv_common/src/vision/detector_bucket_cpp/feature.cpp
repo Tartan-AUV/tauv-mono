@@ -6,7 +6,7 @@
 
 using namespace std;
 
-FeatureTracker::FeatureTracker(BucketDetection &initial_detection)
+FeatureTracker::FeatureTracker(FeatureDetection &initial_detection)
 {
     FeatureList= {};
     Zombies = {};
@@ -14,9 +14,9 @@ FeatureTracker::FeatureTracker(BucketDetection &initial_detection)
     numDetections = 1;
 
     addFeature(initial_detection);
-    tag = initial_detection.tag; //change ownership to Feature?
+    tag = initial_detection.tag;
 
-    //init mahalnobis distance from params
+    //init params
     mahalanobisThreshold = getParam("mahalanobis_threshold");
     tag_weight = getParam("matching_weights/tag_weight");
     distance_weight = getParam("matching_weights/distance_weight");
@@ -39,8 +39,11 @@ FeatureTracker::~FeatureTracker()
     }
 }
 
-vector<Feature*> FeatureTracker::getTrackers(){return FeatureList;}
+vector<Feature*> FeatureTracker::getFeatures(){return FeatureList;}
 
+size_t FeatureTracker::getNumFeatures(){return FeatureList.size() - Zombies.size();}
+
+//this will delete Zombies if they are taking up more than half of the Feature List array
 void FeatureTracker::makeUpdates()
 {
     needsUpdating = false;
@@ -95,7 +98,7 @@ double FeatureTracker::getParam(string property, double def)
 
 double FeatureTracker::getMaxThreshold(){return mahalanobisThreshold+oversaturation_penalty;}
 
-void FeatureTracker::addFeature(BucketDetection &detection)
+void FeatureTracker::addFeature(FeatureDetection &detection)
 {
     if(Zombies.size()>0)
     {
@@ -120,8 +123,8 @@ void FeatureTracker::deleteFeature(int featureIdx)
 double FeatureTracker::recencyCalc(double recency)
 {
     //return exp(1-(recency/totalDet))/1.718 - 0.582;
-    return 1.582 - exp(recency/numDetections)/1.718;
     //return (1-recency/totalDet);
+    return 1.582 - exp(recency/numDetections)/1.718;
 }
 
 double FeatureTracker::frequencyCalc(double frequency, double totalDet)
@@ -143,13 +146,13 @@ double FeatureTracker::decay(int featureIdx, int totalDetections)
     return totalDetections>MIN_DETECTIONS && decay<DECAY_THRESHOLD;
 }
 
-void FeatureTracker::addDetection(BucketDetection &detection, int featureIdx)
+void FeatureTracker::addDetection(FeatureDetection &detection, int featureIdx)
 {
     numDetections+=1;
     FeatureList[featureIdx]->addDetection(detection);
 }
 
-double FeatureTracker::getSimilarityCost(Feature *F, BucketDetection &det)
+double FeatureTracker::getSimilarityCost(Feature *F, FeatureDetection &det)
 {
     //feature-based similarity costs
     double distance = distance_weight*(F->getDistance(det));
@@ -164,25 +167,25 @@ double FeatureTracker::getSimilarityCost(Feature *F, BucketDetection &det)
 }
 
 //finish similarity cost
-vector<double> FeatureTracker::getSimilarityRow(vector<BucketDetection> &detections, size_t featureIdx)
+vector<double> FeatureTracker::getSimilarityRow(vector<FeatureDetection> &detections, size_t featureIdx)
 {
     Feature *Feat = FeatureList[featureIdx];
 
     vector<double> featureSimMatrix(detections.size());
 
     cout<<"tag: "<<tag<<"\n";
-    cout<<"Position: "<<Feat->position<<"\n";
+    cout<<"Position: "<<Feat->getPosition()<<"\n";
 
     for(size_t i=0; i<detections.size(); i++)
     {
-        BucketDetection det = detections[i];
+        FeatureDetection det = detections[i];
         featureSimMatrix[i] = getSimilarityCost(Feat, det);
     }
 
     return featureSimMatrix;
 }
 
-int FeatureTracker::generateSimilarityMatrix(vector<BucketDetection> &detections, vector<vector<double>> &costMatrix, size_t trackerNum, vector<pair<FeatureTracker*, int>> &trackerList)
+int FeatureTracker::generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t trackerNum, vector<pair<FeatureTracker*, int>> &trackerList)
 {
     //make any needed updates prior to matching
     if(needsUpdating){makeUpdates();}
@@ -207,16 +210,13 @@ bool FeatureTracker::validCost(double cost)
     return cost<(mahalanobisThreshold+(oversaturation_penalty*oversaturated));
 }
 
-Feature::Feature(BucketDetection &initial_detection)
+Feature::Feature(FeatureDetection &initial_detection)
 {
     tag = initial_detection.tag;
     State = ACTIVE;
 
     kPosition = new ConstantKalmanFilter((initial_detection.tag+"/position"), initial_detection.position);
     kOrientation = new ConstantKalmanFilter((initial_detection.tag+"/orientation"), initial_detection.orientation);
-
-    position = kPosition->getEstimate();
-    orientation = kOrientation->getEstimate();
 
     numDetections = 1;
     recency = 1;
@@ -234,7 +234,7 @@ void Feature::reset()
     numDetections = 0;
 }
 
-void Feature::reinit(BucketDetection initial_detection)
+void Feature::reinit(FeatureDetection &initial_detection)
 {
     State = ACTIVE;
 
@@ -244,14 +244,14 @@ void Feature::reinit(BucketDetection initial_detection)
     numDetections = 1;
 }
 
-void Feature::setPosition()
+Eigen::Vector3d Feature::getPosition()
 {
-    position = kPosition->getEstimate();
+    return kPosition->getEstimate();
 }
 
-void Feature::setOrientation()
+Eigen::Vector3d Feature::getOrientation()
 {
-    orientation = kOrientation->getEstimate();
+    return kOrientation->getEstimate();
 }
 
 size_t Feature::getNumDetections(){return numDetections;}
@@ -260,7 +260,7 @@ double Feature::getRecency(){return recency;}
 
 void Feature::incrementRecency(){recency++;}
 
-void Feature::addDetection(BucketDetection& detection)
+void Feature::addDetection(FeatureDetection& detection)
 {
     if(State==ZOMBIE){
         reinit(detection);
@@ -271,23 +271,20 @@ void Feature::addDetection(BucketDetection& detection)
 
     kPosition->updateEstimate(detection.position);
     kOrientation->updateEstimate(detection.orientation);
-
-    setPosition();
-    setOrientation();
 }
 
-double Feature::getDistance(BucketDetection& detection)
+double Feature::getDistance(FeatureDetection& detection)
 {
-    return (position-detection.position).norm();
+    return (getPosition()-detection.position).norm();
 }
 
-double Feature::getRotation(BucketDetection& detection)
+double Feature::getRotation(FeatureDetection& detection)
 {
-    return (orientation-detection.orientation).norm();
+    return (getOrientation()-detection.orientation).norm();
 }
 
 //true if tags are different, false if same
-bool Feature::diffTag(BucketDetection& detection)
+bool Feature::diffTag(FeatureDetection& detection)
 {
     return (detection.tag.compare(tag)!=0 && detection.tag.compare("unknown")!=0);
 }

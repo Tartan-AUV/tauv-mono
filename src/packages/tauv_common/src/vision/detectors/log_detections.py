@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
-from tauv_msgs.msg import Pose, BucketDetection, BucketList, RegisterObjectDetections
+from tauv_msgs.msg import Pose, FeatureDetection, FeatureDetections
 from std_msgs.msg import Header
 import numpy as np
 import cv2
@@ -66,7 +66,7 @@ class LogDetections():
         # initialize subscriber for darknet NN bounding boxes
         rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
 
-        self.detector = rospy.Publisher("register_object_detection", RegisterObjectDetections,
+        self.detector = rospy.Publisher("register_object_detection", FeatureDetections,
                                         queue_size=10)
 
         rospy.Subscriber("gnc/pose", Pose, self.update_position)
@@ -99,11 +99,11 @@ class LogDetections():
                 self.NODE_NAME_FMT, camera_frame_id))
             return
 
-        objects = RegisterObjectDetections()
-        objects.objdets = list()
+        objects = FeatureDetections()
+        objects.detections = list()
 
         for bbox in bboxes.bounding_boxes:
-            objdet = BucketDetection()
+            objdet = FeatureDetection()
             objdet.tag = bbox.Class
 
             # calculate depth of the object in a relative coordinate frame, returned as an (x, y, z)

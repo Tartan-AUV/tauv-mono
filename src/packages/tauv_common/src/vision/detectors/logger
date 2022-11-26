@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 
 import rospy
-from tauv_msgs.msg import RegisterObjectDetections, BucketDetection, BucketList
+from tauv_msgs.msg import FeatureDetections, FeatureDetection
 from tauv_msgs.srv import MapFind, MapFindClosest
 from visualization_msgs.msg import MarkerArray, Marker
 from geometry_msgs.msg import Point
 import numpy as np
 
 def getColor(tag, trans=False):
-    color = [1,0,0,1]
+    color = [0,0,0,0]
+
+    if(tag=="phone"):
+        color = [1,0,0,1]
+
     if(tag=="badge"):
         color = [0,1,0,1]
 
@@ -50,16 +54,16 @@ def makeMarker(id, detection, color, scale = 0.5, shape = Marker.SPHERE, time = 
 class Logger():
     def __init__(self):
         rospy.init_node('logger')
-        rospy.Subscriber("/register_object_detection", RegisterObjectDetections,
+        rospy.Subscriber("/register_object_detection", FeatureDetections,
                                                 self.callback)
 
-        rospy.Subscriber("/global_map/find", BucketList,
+        rospy.Subscriber("/global_map/find", FeatureDetections,
                                         self.visualize)
 
         rospy.wait_for_service("/global_map/find")
         self.find = rospy.ServiceProxy("/global_map/find", MapFind)
 
-        self.pub = rospy.Publisher("/register_object_detection", RegisterObjectDetections,
+        self.pub = rospy.Publisher("/register_object_detection", FeatureDetections,
                                                 queue_size=10)
         self.viz = rospy.Publisher("/visualization_marker_array", MarkerArray, queue_size=100)
         
@@ -118,8 +122,8 @@ class Logger():
             markers.append(makeMarker(self.ind, detection, getColor(detection.tag, True)))
             self.ind+=1
 
-        objDets = RegisterObjectDetections()
-        objDets.objdets = detections
+        objDets = FeatureDetections()
+        objDets.detections = detections
         self.pub.publish(objDets)
 
         markersPub = MarkerArray()
@@ -127,9 +131,9 @@ class Logger():
         self.viz.publish(markersPub)
 
     def publish6(self, time):
-        objDets = RegisterObjectDetections()
+        objDets = FeatureDetections()
         det = self.getObj6()
-        objDets.objdets = [det]
+        objDets.detections = [det]
         self.pub.publish(objDets)
 
         markersPub = MarkerArray()
@@ -138,42 +142,42 @@ class Logger():
         self.viz.publish(markersPub)
 
     def getObj1(self):
-        det1 = BucketDetection()
+        det1 = FeatureDetection()
         det1.position = Point(np.random.normal(loc=1.0, scale=self.var2),np.random.normal(loc=1.0, scale=self.var2),np.random.normal(loc=1.0, scale=self.var2))
         det1.tag = "badge"
 
         return det1
 
     def getObj2(self):
-        det2 = BucketDetection()
+        det2 = FeatureDetection()
         det2.position = Point(np.random.normal(loc=15.5, scale=self.var2),np.random.normal(loc=15.5, scale=self.var2),np.random.normal(loc=15.5, scale=self.var2))
         det2.tag = "badge"
 
         return det2
 
     def getObj3(self):
-        det1 = BucketDetection()
+        det1 = FeatureDetection()
         det1.position = Point(np.random.normal(loc=1.5, scale=self.var1),np.random.normal(loc=1.5, scale=self.var1),np.random.normal(loc=1.5, scale=self.var1))
         det1.tag = "notebook"
 
         return det1
         
     def getObj4(self):
-        det1 = BucketDetection()
+        det1 = FeatureDetection()
         det1.position = Point(np.random.normal(loc=20.5, scale=self.var1),np.random.normal(loc=20.5, scale=self.var1),np.random.normal(loc=5, scale=self.var2))
         det1.tag = "notebook"
 
         return det1
 
     def getObj5(self):
-        det1 = BucketDetection()
+        det1 = FeatureDetection()
         det1.position = Point(np.random.normal(loc=10.5, scale=self.var1),np.random.normal(loc=10.5, scale=self.var1),np.random.normal(loc=5, scale=self.var2))
         det1.tag = "phone"
 
         return det1
 
     def getObj6(self):
-        det1 = BucketDetection()
+        det1 = FeatureDetection()
         det1.position = Point(np.random.normal(loc=30, scale=self.var1),np.random.normal(loc=30, scale=self.var1),np.random.normal(loc=5, scale=self.var1))
         det1.tag = "badge"
 
