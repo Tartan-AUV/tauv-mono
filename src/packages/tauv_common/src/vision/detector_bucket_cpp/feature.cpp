@@ -11,6 +11,7 @@ FeatureTracker::FeatureTracker(BucketDetection &initial_detection)
     FeatureList= {};
     Zombies = {};
     needsUpdating = false;
+    numDetections = 1;
 
     addFeature(initial_detection);
     tag = initial_detection.tag; //change ownership to Feature?
@@ -20,8 +21,10 @@ FeatureTracker::FeatureTracker(BucketDetection &initial_detection)
     tag_weight = getParam("matching_weights/tag_weight");
     distance_weight = getParam("matching_weights/distance_weight");
     orientation_weight = getParam("matching_weights/orientation_weight");
-    recency_weight = getParam("matching_weights/recency_weight");
-    frequency_weight = getParam("matching_weights/frequency_weight");
+    recency_matching_weight = getParam("matching_weights/recency_weight");
+    frequency_matching_weight = getParam("matching_weights/frequency_weight");
+    recency_weight = getParam("recency_weight");
+    frequency_weight = getParam("frequency_weight");
     oversaturation_penalty = getParam("matching_weights/oversaturation_penalty");
     DECAY_THRESHOLD = getParam("DECAY_THRESHOLD", 100);
 
@@ -114,10 +117,11 @@ void FeatureTracker::deleteFeature(int featureIdx)
     needsUpdating = true;
 }
 
-double FeatureTracker::recencyCalc(double recency, double totalDet)
+double FeatureTracker::recencyCalc(double recency)
 {
     //return exp(1-(recency/totalDet))/1.718 - 0.582;
-    return 1.582 - exp(recency/totalDet)/1.718;
+    return 1.582 - exp(recency/numDetections)/1.718;
+    //return (1-recency/totalDet);
 }
 
 double FeatureTracker::frequencyCalc(double frequency, double totalDet)
@@ -130,7 +134,9 @@ double FeatureTracker::decay(int featureIdx, int totalDetections)
     Feature *F = FeatureList[featureIdx];
     F->incrementRecency();
 
-    double decay = (recencyCalc(F->getReceny(), totalDetections)+frequencyCalc(F->getNumDetections(), totalDetections))/2.0;
+    double recDecay = recency_weight*recencyCalc(F->getRecency());
+    double freqDecay = frequency_weight*frequencyCalc(F->getNumDetections(), totalDetections);
+    double decay = (recDecay+freqDecay)/(frequency_weight+recency_weight);
 
     cout<<"DECAY: "<<decay<<"\n";
 
@@ -139,6 +145,7 @@ double FeatureTracker::decay(int featureIdx, int totalDetections)
 
 void FeatureTracker::addDetection(BucketDetection &detection, int featureIdx)
 {
+    numDetections+=1;
     FeatureList[featureIdx]->addDetection(detection);
 }
 
@@ -149,7 +156,11 @@ double FeatureTracker::getSimilarityCost(Feature *F, BucketDetection &det)
     double orientation = orientation_weight*(F->getRotation(det));
     double tagDist = tag_weight*(F->diffTag(det));
 
-    return distance+orientation+tagDist;
+    //tracker-bias similarity costs
+    double freqDist = frequency_matching_weight*(1-(F->getNumDetections()/(numDetections)));
+    double recDist = recency_matching_weight*(F->getRecency()/numDetections);
+
+    return distance+orientation+tagDist+freqDist+recDist;
 }
 
 //finish similarity cost
@@ -192,8 +203,7 @@ int FeatureTracker::generateSimilarityMatrix(vector<BucketDetection> &detections
 bool FeatureTracker::validCost(double cost)
 {
     //increase threshold for tracker creation if too many trackers
-    int oversaturated = predictedFeatureNum!=NO_PREDICTED_NUM && (predictedFeatureNum<int(FeatureList.size()));
-    cout<<"OVERSATURATED: "<<oversaturated<<"\n";
+    int oversaturated = predictedFeatureNum!=NO_PREDICTED_NUM && (predictedFeatureNum<=int(FeatureList.size()));
     return cost<(mahalanobisThreshold+(oversaturation_penalty*oversaturated));
 }
 
@@ -246,7 +256,7 @@ void Feature::setOrientation()
 
 size_t Feature::getNumDetections(){return numDetections;}
 
-double Feature::getReceny(){return recency;}
+double Feature::getRecency(){return recency;}
 
 void Feature::incrementRecency(){recency++;}
 

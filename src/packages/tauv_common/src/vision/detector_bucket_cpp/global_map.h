@@ -52,7 +52,7 @@ class Feature : public BucketDetection
         void addDetection(BucketDetection &detection);
         size_t getNumDetections();
 
-        double getReceny();
+        double getRecency();
         void incrementRecency();
 
         void reset();
@@ -103,20 +103,23 @@ class FeatureTracker
         vector<double> getSimilarityRow(vector<BucketDetection> &detections, size_t featureIdx);
 
         double frequencyCalc(double frequency, double totalDet);
-        double recencyCalc(double recency, double totalDet);
+        double recencyCalc(double recency);
 
         int predictedFeatureNum;
+        int numDetections;
 
         //matching weights
         double mahalanobisThreshold;
+        double recency_weight;
+        double frequency_weight;
         double DECAY_THRESHOLD;
 
-        int tag_weight;
-        int distance_weight;
-        int orientation_weight;
-        int recency_weight;
-        int frequency_weight;
-        int oversaturation_penalty;
+        double tag_weight;
+        double distance_weight;
+        double orientation_weight;
+        double recency_matching_weight;
+        double frequency_matching_weight;
+        double oversaturation_penalty;
         
         string tag;
 

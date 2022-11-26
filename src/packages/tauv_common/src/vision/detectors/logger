@@ -22,7 +22,7 @@ def getColor(tag, trans=False):
 
 def makeMarker(id, detection, color, scale = 0.5, shape = Marker.SPHERE, time = rospy.Duration(1.0)):
     marker = Marker()
-    marker.header.frame_id = "base_link"
+    marker.header.frame_id = "map"
     marker.header.stamp = rospy.Time()
     marker.ns = "my_namespace"
     marker.id = id
@@ -68,13 +68,16 @@ class Logger():
         self.arrInd = [0,1,2,3,4]
 
         self.ind = 10000
-        self.var1 = 1
+
+        #var 2 = 2*(2^2) <= 8 mahalanobis (10)
+        self.var1 = 2
         self.var2 = 1
 
-        rospy.Timer(rospy.Duration(1.0/4.0), self.publish)
-        rospy.Timer(rospy.Duration(5.0), self.visualize)
+        rospy.Timer(rospy.Duration(1.0/10.0), self.publish)
+        rospy.Timer(rospy.Duration(0.5), self.visualize)
         rospy.Timer(rospy.Duration(30), self.publish6)
-        rospy.Timer(rospy.Duration(30.5), self.publish6)
+        rospy.Timer(rospy.Duration(30.1), self.publish6)
+        rospy.Timer(rospy.Duration(30.2), self.publish6)
 
     def callback(self, data):
         print("CALLBACK")
@@ -93,11 +96,11 @@ class Logger():
 
         for ind in range(len(buckets2)):
             det = buckets2[ind]
-            markers.append(makeMarker(ind, det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+            markers.append(makeMarker(ind+len(buckets1), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
 
         for ind in range(len(buckets3)):
             det = buckets3[ind]
-            markers.append(makeMarker(ind, det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+            markers.append(makeMarker(ind+len(buckets1)+len(buckets2), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
 
         OBJ = MarkerArray()
         OBJ.markers = markers
@@ -130,7 +133,7 @@ class Logger():
         self.pub.publish(objDets)
 
         markersPub = MarkerArray()
-        markersPub.markers = [makeMarker(self.ind, det, getColor(det.tag, True), scale=2, shape=Marker.CYLINDER)]
+        markersPub.markers = [makeMarker(self.ind, det, getColor(det.tag, True))]
         self.ind+=1
         self.viz.publish(markersPub)
 
@@ -143,7 +146,7 @@ class Logger():
 
     def getObj2(self):
         det2 = BucketDetection()
-        det2.position = Point(np.random.normal(loc=15.5, scale=self.var1),np.random.normal(loc=15.5, scale=self.var2),np.random.normal(loc=15.5, scale=self.var1))
+        det2.position = Point(np.random.normal(loc=15.5, scale=self.var2),np.random.normal(loc=15.5, scale=self.var2),np.random.normal(loc=15.5, scale=self.var2))
         det2.tag = "badge"
 
         return det2

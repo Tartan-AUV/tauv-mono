@@ -34,6 +34,8 @@ setup_args = generate_distutils_setup(
               'vision',
               'vision.detector_bucket.detector_bucket',
               'vision.detectors.log_detections',
+              'vision.detectors.gateDetector',
+              'vision.detectors.logger',
               'teleop',
               'dynamics',
               'tauv_alarms',

@@ -1,15 +1,21 @@
-object_params: {
-  badge: {
-    expected_count: 1
-  }
-}
-
 tracker_params: {
   default: {
-    mahalanobis_threshold: 10
+    mahalanobis_threshold: 10,
+    DECAY_THRESHOLD: 0.25, #in practice should probably be around .25 but .6 for testing
+    matching_weights: {
+      tag_weight: 100,
+      distance_weight: 1,
+      orientation_weight: 0.2,
+      recency_weight: 0.2,
+      frequency_weight: 0.1,
+      oversaturation_penalty: 100
+    },
+    recency_weight: 0.7,
+    frequency_weight: 0.5,
   },
   badge: {
-    mahalanobis_threshold: 5
+    mahalanobis_threshold: 5,
+    expected_count: 3
   }
 }
 
@@ -21,15 +27,5 @@ kalman_params: {
     P: [1, 0, 0, 0, 1, 0, 0, 0, 1],
     R: [0.001, 0, 0, 0, 0.001, 0, 0, 0, 0.001],
     Q: [0.000001, 0, 0, 0, 0.000001, 0, 0, 0, 0.000001]
-  }
-}
-
-matching_weights: {
-  default: {
-    tag_weight: 100000,
-    distance_weight: 20,
-    orientation_weight: 2,
-    recency_weight: 0.5,
-    frequency_weight: 0
   }
 }

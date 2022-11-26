@@ -12,8 +12,11 @@ add_message_files(
   ControlsTunings.msg
   BucketDetection.msg
   BucketList.msg
+  BoundingBoxes.msg
+  BoundingBox.msg
   FluidDepth.msg
   DynamicsTunings.msg
+  GateDetection.msg
   Message.msg
   SonarPulse.msg
   Servos.msg
@@ -32,6 +35,8 @@ add_message_files(
 
 add_service_files(
   FILES
+  MapFind.srv
+  MapFindClosest.srv
   SyncAlarms.srv
   TuneDynamics.srv
   TuneControls.srv

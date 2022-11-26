@@ -21,7 +21,7 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
 {
     featureCount = 0;
     totalDetections = 0;
-    DUMMY_FILL=0;
+    DUMMY_FILL=100000;
     MAP = {};
 
     listener = handler.subscribe("/register_object_detection", 100, &GlobalMap::updateTrackers, this);
@@ -29,9 +29,9 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
     findService = handler.advertiseService("/global_map/find", &GlobalMap::find, this);
     findClosestService = handler.advertiseService("/global_map/find_closest", &GlobalMap::findClosest, this);
 
-    timer =
+    /*timer =
         handler.createTimer(ros::Duration(1.0),
-                        &GlobalMap::publishMap, this);
+                        &GlobalMap::publishMap, this);*/
 }
 
 GlobalMap::~GlobalMap()
@@ -225,12 +225,12 @@ bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::
     }
 
     tauv_msgs::BucketDetection returnDetection{};
-    returnDetection.position = vec_to_point(detections[i]->position);
-    returnDetection.orientation = vec_to_point(detections[i]->orientation);
-    returnDetection.tag = tag;
+    returnDetection.position = vec_to_point(detections[minInd]->position);
+    returnDetection.orientation = vec_to_point(detections[minInd]->orientation);
+    returnDetection.tag = req.tag;
 
-    req.detection = returnDetection;
-    req.success = true;
+    res.detection = returnDetection;
+    res.success = true;
 
     return true;
 }
