@@ -96,6 +96,8 @@ class Logger():
         markers = []
         for ind in range(len(buckets1)):
             det = buckets1[ind]
+            print("DET")
+            print(det)
             markers.append(makeMarker(ind, det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
 
         for ind in range(len(buckets2)):
@@ -108,6 +110,7 @@ class Logger():
 
         OBJ = MarkerArray()
         OBJ.markers = markers
+
         self.viz.publish(OBJ)
 
     def publish(self, time):

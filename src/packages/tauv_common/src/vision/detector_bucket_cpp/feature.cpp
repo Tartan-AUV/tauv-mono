@@ -141,7 +141,7 @@ double FeatureTracker::decay(int featureIdx, int totalDetections)
     double freqDecay = frequency_weight*frequencyCalc(F->getNumDetections(), totalDetections);
     double decay = (recDecay+freqDecay)/(frequency_weight+recency_weight);
 
-    cout<<"DECAY: "<<decay<<"\n";
+    //cout<<"DECAY: "<<decay<<"\n";
 
     return totalDetections>MIN_DETECTIONS && decay<DECAY_THRESHOLD;
 }

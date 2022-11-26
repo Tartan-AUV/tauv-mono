@@ -174,6 +174,8 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
 
     vector<Feature*> detections = (Tracker->second)->getFeatures();
     vector<tauv_msgs::FeatureDetection> returnDetections((Tracker->second)->getNumFeatures());
+
+    size_t count=0;
     for(Feature *detection : detections)
     {
         if(detection->State==TrackerState::ZOMBIE){continue;}
@@ -183,7 +185,8 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
         returnDetection.orientation = vec_to_point(detection->getOrientation());
         returnDetection.tag = req.tag;
 
-        returnDetections.push_back(returnDetection);
+        returnDetections[count] = returnDetection;
+        count++;
     }
 
     res.detections = returnDetections;
