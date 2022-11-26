@@ -8,6 +8,15 @@ Eigen::Vector3d point_to_vec(geometry_msgs::Point point)
     return vec;
 }
 
+geometry_msgs::Point vec_to_point(Eigen::Vector3d vec)
+{
+    geometry_msgs::Point point{};
+    point.x = vec[0];
+    point.y = vec[1];
+    point.z = vec[2];
+    return point;
+}
+
 GlobalMap::GlobalMap(ros::NodeHandle& handler)
 {
     featureCount = 0;
@@ -15,10 +24,14 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
     DUMMY_FILL=0;
     MAP = {};
 
-    publisher = handler.advertise<tauv_msgs::BucketList>("/bucket_list", 100); //update to a service
     listener = handler.subscribe("/register_object_detection", 100, &GlobalMap::updateTrackers, this);
+    resetService = handler.advertiseService("/global_map/reset", &GlobalMap::reset, this);
+    findService = handler.advertiseService("/global_map/find", &GlobalMap::find, this);
+    findClosestService = handler.advertiseService("/global_map/find_closest", &GlobalMap::findClosest, this);
 
-    
+    timer =
+        handler.createTimer(ros::Duration(1.0),
+                        &GlobalMap::publishMap, this);
 }
 
 GlobalMap::~GlobalMap()
@@ -73,8 +86,6 @@ vector<pair<FeatureTracker*, int>> GlobalMap::generateSimilarityMatrix(vector<Bu
     size_t featureNum = 0;
     for(pair<string,FeatureTracker*> Tracker: MAP)
     {
-        //delete any retired trackers prior to matching
-        Tracker.second->makeUpdates();
         featureNum = Tracker.second->generateSimilarityMatrix(detections, costMatrix, featureNum, trackerList);
     }
 
@@ -94,38 +105,22 @@ vector<pair<FeatureTracker*, int>> GlobalMap::generateSimilarityMatrix(vector<Bu
 
 void GlobalMap::assignDetections(vector<BucketDetection> &detections)
 {
+    size_t initFeatureNum = featureCount; //will change during iterations if new trackers added
+
     size_t costMatSize = max(featureCount,detections.size());
     vector<vector<double>> costMatrix(costMatSize);
-    //vector<pair<FeatureTracker*, int>> trackerList = generateSimilarityMatrix(detections, costMatrix, costMatSize);
-
-    //list for detection addition
-    vector<pair<FeatureTracker*, int>> trackerList(featureCount);
-
-    cout<<"count: "<<featureCount<<"\n";
-
-    size_t initFeatureNum = 0;
-    for(pair<string,FeatureTracker*> Tracker: MAP)
-    {
-        //delete any retired trackers prior to matching
-        Tracker.second->makeUpdates();
-        initFeatureNum = Tracker.second->generateSimilarityMatrix(detections, costMatrix, initFeatureNum, trackerList);
-    }
-
-    //fill with dummy trackers, only happens when new object detected
-    for(size_t dummies = initFeatureNum; dummies<costMatSize ; dummies++)
-    {
-        vector<double> DUMMY(detections.size());
-        costMatrix[dummies] = DUMMY;
-        for(size_t j=0; j<detections.size(); j++)
-        {
-            costMatrix[dummies][j] = DUMMY_FILL;
-        }
-    }
+    vector<pair<FeatureTracker*, int>> trackerList = generateSimilarityMatrix(detections, costMatrix, costMatSize);
 
     //find best assignment
     vector<int> assignment;
     HungarianAlgorithm Matcher;
     Matcher.Solve(costMatrix, assignment);
+
+    // cout<<"ASSIGNMENT: \n";
+    // for(int A : assignment){
+    //     cout<<A<<" ";
+    // }
+    // cout<<"\n";
 
     //if valid match, assign detection to tracker,
     //otherwise, create a new tracker
@@ -174,10 +169,99 @@ void GlobalMap::addTracker(BucketDetection &detection)
     {
         FeatureTracker *F = new FeatureTracker(detection);
         MAP.insert({detection.tag, F});
-        DUMMY_FILL = max(DUMMY_FILL, F->getMahalanobisThreshold());
+        DUMMY_FILL = max(DUMMY_FILL, F->getMaxThreshold());
     }
     else
     {
         (NEW->second)->addFeature(detection);
     }
 }
+
+bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Response &res)
+{
+    unordered_map<string,FeatureTracker*>::iterator Tracker = MAP.find(req.tag);
+
+    if(Tracker == MAP.end()){res.success=false; return false;}
+
+    vector<Feature*> detections = (Tracker->second)->getTrackers();
+    vector<tauv_msgs::BucketDetection> returnDetections(detections.size());
+    for(Feature *detection : detections)
+    {
+        tauv_msgs::BucketDetection returnDetection{};
+        returnDetection.position = vec_to_point(detection->position);
+        returnDetection.orientation = vec_to_point(detection->orientation);
+        returnDetection.tag = detection->tag;
+
+        returnDetections.push_back(returnDetection);
+    }
+
+    res.detections = returnDetections;
+    res.success = true;
+
+    return true;
+}
+
+bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::MapFindClosest::Response &res)
+{
+    unordered_map<string,FeatureTracker*>::iterator Tracker = MAP.find(req.tag);
+    Eigen::Vector3d position = point_to_vec(req.point);
+
+    if(Tracker == MAP.end()){res.success=false; return false;}
+
+    vector<Feature*> detections = (Tracker->second)->getTrackers();
+
+    int minInd = 0;
+    double minDist = -1;
+    for(size_t i = 0; i<detections.size(); i++)
+    {
+        Feature *detection = detections[i];
+        double dist = (detection->position - position).norm();
+
+        if(minDist<0 || dist<minDist)
+        {
+            minInd = i;
+            minDist = dist;
+        }
+    }
+
+    tauv_msgs::BucketDetection returnDetection{};
+    returnDetection.position = vec_to_point(detections[i]->position);
+    returnDetection.orientation = vec_to_point(detections[i]->orientation);
+    returnDetection.tag = tag;
+
+    req.detection = returnDetection;
+    req.success = true;
+
+    return true;
+}
+
+bool GlobalMap::reset(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
+{
+    for(pair<string,FeatureTracker*> Tracker: MAP)
+    {
+        delete Tracker.second;
+    }
+
+    featureCount = 0;
+    totalDetections = 0;
+    DUMMY_FILL=0;
+    MAP = {};
+
+    res.success = true;
+    return true;
+}
+
+/*void GlobalMap::publishMap(const ros::TimerEvent& event)
+{
+    cout<<"FEATURECOUNT: "<<featureCount<<"\n";
+    vector<tauv_msgs::BucketDetection> buckets1 = find("badge").bucket_list;
+    vector<tauv_msgs::BucketDetection> buckets2 = find("notebook").bucket_list;
+    vector<tauv_msgs::BucketDetection> buckets3 = find("phone").bucket_list;
+
+    buckets1.insert(buckets1.end(), buckets2.begin(), buckets2.end());
+    buckets1.insert(buckets1.end(), buckets3.begin(), buckets3.end());
+
+    tauv_msgs::BucketList buckets{};
+    buckets.bucket_list = buckets1;
+    publisher.publish(buckets);
+}*/

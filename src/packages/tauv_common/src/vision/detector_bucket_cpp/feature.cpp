@@ -1,12 +1,16 @@
 #include "global_map.h"
 #include <cmath>
 
+#define NO_PREDICTED_NUM -1
+#define MIN_DETECTIONS 5
+
 using namespace std;
 
 FeatureTracker::FeatureTracker(BucketDetection &initial_detection)
 {
     FeatureList= {};
     Zombies = {};
+    needsUpdating = false;
 
     addFeature(initial_detection);
     tag = initial_detection.tag; //change ownership to Feature?
@@ -19,9 +23,9 @@ FeatureTracker::FeatureTracker(BucketDetection &initial_detection)
     recency_weight = getParam("matching_weights/recency_weight");
     frequency_weight = getParam("matching_weights/frequency_weight");
     oversaturation_penalty = getParam("matching_weights/oversaturation_penalty");
-    DECAY_THRESHOLD = getParam("DECAY_THRESHOLD");
+    DECAY_THRESHOLD = getParam("DECAY_THRESHOLD", 100);
 
-    predictedFeatureNum = max(size_t(getParam("feature_count")), size_t(1));
+    predictedFeatureNum = getParam("expected_count", NO_PREDICTED_NUM);
 }
 
 FeatureTracker::~FeatureTracker()
@@ -32,12 +36,14 @@ FeatureTracker::~FeatureTracker()
     }
 }
 
+vector<Feature*> FeatureTracker::getTrackers(){return FeatureList;}
+
 void FeatureTracker::makeUpdates()
 {
+    needsUpdating = false;
+
     //122 moment
     if(Zombies.size()==0 || Zombies.size()<FeatureList.size()/2){return;}
-
-    cout<<"UPDATING\n";
 
     size_t del = Zombies.top();
     Zombies.pop();
@@ -68,7 +74,7 @@ void FeatureTracker::makeUpdates()
 }
 
 
-double FeatureTracker::getParam(string property)
+double FeatureTracker::getParam(string property, double def)
 {
     double val;
 
@@ -77,14 +83,14 @@ double FeatureTracker::getParam(string property)
         //try default
         if(!ros::param::get("/tracker_params/default/"+property, val))
         {
-            return 0;
+            return def;
         }
     }
 
     return val;
 }
 
-double FeatureTracker::getMahalanobisThreshold(){return mahalanobisThreshold;}
+double FeatureTracker::getMaxThreshold(){return mahalanobisThreshold+oversaturation_penalty;}
 
 void FeatureTracker::addFeature(BucketDetection &detection)
 {
@@ -103,9 +109,9 @@ void FeatureTracker::addFeature(BucketDetection &detection)
 
 void FeatureTracker::deleteFeature(int featureIdx)
 {
-    cout<<"DELETING!!!\n";
     FeatureList[featureIdx]->reset();
     Zombies.push(featureIdx);
+    needsUpdating = true;
 }
 
 double FeatureTracker::recencyCalc(double recency, double totalDet)
@@ -126,9 +132,9 @@ double FeatureTracker::decay(int featureIdx, int totalDetections)
 
     double decay = (recencyCalc(F->getReceny(), totalDetections)+frequencyCalc(F->getNumDetections(), totalDetections))/2.0;
 
-    cout<<"decay: "<<decay<<"\n";
+    cout<<"DECAY: "<<decay<<"\n";
 
-    return totalDetections>2 && decay<DECAY_THRESHOLD;
+    return totalDetections>MIN_DETECTIONS && decay<DECAY_THRESHOLD;
 }
 
 void FeatureTracker::addDetection(BucketDetection &detection, int featureIdx)
@@ -154,7 +160,7 @@ vector<double> FeatureTracker::getSimilarityRow(vector<BucketDetection> &detecti
     vector<double> featureSimMatrix(detections.size());
 
     cout<<"tag: "<<tag<<"\n";
-    cout<<"Position: "<<Feat->getPosition()<<"\n";
+    cout<<"Position: "<<Feat->position<<"\n";
 
     for(size_t i=0; i<detections.size(); i++)
     {
@@ -167,6 +173,9 @@ vector<double> FeatureTracker::getSimilarityRow(vector<BucketDetection> &detecti
 
 int FeatureTracker::generateSimilarityMatrix(vector<BucketDetection> &detections, vector<vector<double>> &costMatrix, size_t trackerNum, vector<pair<FeatureTracker*, int>> &trackerList)
 {
+    //make any needed updates prior to matching
+    if(needsUpdating){makeUpdates();}
+
     size_t featureNum = trackerNum;
     for(size_t featureIdx = 0; featureIdx<FeatureList.size(); featureIdx++)
     {
@@ -183,7 +192,8 @@ int FeatureTracker::generateSimilarityMatrix(vector<BucketDetection> &detections
 bool FeatureTracker::validCost(double cost)
 {
     //increase threshold for tracker creation if too many trackers
-    int oversaturated = (predictedFeatureNum<FeatureList.size());
+    int oversaturated = predictedFeatureNum!=NO_PREDICTED_NUM && (predictedFeatureNum<int(FeatureList.size()));
+    cout<<"OVERSATURATED: "<<oversaturated<<"\n";
     return cost<(mahalanobisThreshold+(oversaturation_penalty*oversaturated));
 }
 
@@ -194,6 +204,9 @@ Feature::Feature(BucketDetection &initial_detection)
 
     kPosition = new ConstantKalmanFilter((initial_detection.tag+"/position"), initial_detection.position);
     kOrientation = new ConstantKalmanFilter((initial_detection.tag+"/orientation"), initial_detection.orientation);
+
+    position = kPosition->getEstimate();
+    orientation = kOrientation->getEstimate();
 
     numDetections = 1;
     recency = 1;
@@ -221,16 +234,14 @@ void Feature::reinit(BucketDetection initial_detection)
     numDetections = 1;
 }
 
-Eigen::Vector3d Feature::getPosition()
+void Feature::setPosition()
 {
-    Eigen::Vector3d pose(kPosition->getEstimate());
-    return pose;
+    position = kPosition->getEstimate();
 }
 
-Eigen::Vector3d Feature::getOrientation()
+void Feature::setOrientation()
 {
-    Eigen::Vector3d orientation(kOrientation->getEstimate());
-    return orientation;
+    orientation = kOrientation->getEstimate();
 }
 
 size_t Feature::getNumDetections(){return numDetections;}
@@ -250,16 +261,19 @@ void Feature::addDetection(BucketDetection& detection)
 
     kPosition->updateEstimate(detection.position);
     kOrientation->updateEstimate(detection.orientation);
+
+    setPosition();
+    setOrientation();
 }
 
 double Feature::getDistance(BucketDetection& detection)
 {
-    return (getPosition()-detection.position).norm();
+    return (position-detection.position).norm();
 }
 
 double Feature::getRotation(BucketDetection& detection)
 {
-    return (getOrientation()-detection.orientation).norm();
+    return (orientation-detection.orientation).norm();
 }
 
 //true if tags are different, false if same
