@@ -6,7 +6,7 @@ from std_msgs.msg import Header
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
-from darknet_ros_msgs.msg import BoundingBoxes, BoundingBox
+#from darknet_ros_msgs.msg import BoundingBoxes, BoundingBox
 from sensor_msgs.msg import Image, CameraInfo
 from vision.depth_estimation.depth_estimation import DepthEstimator
 from geometry_msgs.msg import Point, PointStamped, Point
@@ -29,6 +29,8 @@ class LogDetections():
         self.NODE_NAME_FMT = "[{}]".format(self.NODE_NAME)
         self.SAMPLE_RATE = 60 # hz
 
+        rospy.init_node(self.NODE_NAME, anonymous = True)
+
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
@@ -50,29 +52,28 @@ class LogDetections():
             self.bottom_camera_frame_id: False
         }
 
-        self.bounding_boxes = BoundingBoxes()
+        #self.bounding_boxes = BoundingBoxes()
         self.cv_bridge = CvBridge()
 
-        rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
+        #rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
         
         # initialize subscribers for front camera depthmaps and camera info
-        rospy.Subscriber("/zedm_A/zed_node_A/depth/depth_registered", Image, self.depth_callback)
+        rospy.Subscriber("/zedm_A/zed_node_A/depth/depth_registered", Image, self.front_depth_callback)
         rospy.Subscriber("/zedm_A/zed_node_A/left/camera_info", CameraInfo, self.camera_info_callback)
 
         # initialize subscribers for downward camera depthmaps and camera info
-        rospy.Subscriber("/zedm_B/zed_node_B/depth/depth_registered", Image, self.depth_callback)
-        rospy.Subscriber("/zedm_B/zed_node_B/left/camera_info", CameraInfo, self.camera_info_callback)
+        #rospy.Subscriber("/zedm_B/zed_node_B/depth/depth_registered", Image, self.depth_callback)
+        #rospy.Subscriber("/zedm_B/zed_node_B/left/camera_info", CameraInfo, self.camera_info_callback)
 
         # initialize subscriber for darknet NN bounding boxes
-        rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
+        #rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
 
         self.detector = rospy.Publisher("register_object_detection", FeatureDetections,
                                         queue_size=10)
 
-        rospy.Subscriber("gnc/pose", Pose, self.update_position)
+        #rospy.Subscriber("gnc/pose", Pose, self.update_position)
 
     def start(self):
-        rospy.init_node(self.NODE_NAME, anonymous = True)
         rospy.spin()
 
     # camera subscriber callbacks

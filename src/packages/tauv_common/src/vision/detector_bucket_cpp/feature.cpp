@@ -31,15 +31,7 @@ FeatureTracker::FeatureTracker(FeatureDetection &initial_detection)
     predictedFeatureNum = getParam("expected_count", NO_PREDICTED_NUM);
 }
 
-FeatureTracker::~FeatureTracker()
-{
-    for(Feature *F:FeatureList)
-    {
-        delete F;
-    }
-}
-
-vector<Feature*> FeatureTracker::getFeatures(){return FeatureList;}
+vector<shared_ptr<Feature>> FeatureTracker::getFeatures(){return FeatureList;}
 
 size_t FeatureTracker::getNumFeatures(){return FeatureList.size() - Zombies.size();}
 
@@ -64,7 +56,7 @@ void FeatureTracker::makeUpdates()
         }
 
         else{
-            delete FeatureList[del];
+            //delete FeatureList[del];
 
             if(Zombies.size()==0){
                 del=FeatureList.size();
@@ -108,8 +100,7 @@ void FeatureTracker::addFeature(FeatureDetection &detection)
         FeatureList[featureIdx]->reinit(detection);
         return;
     }
-    
-    Feature *NEW = new Feature(detection);
+    shared_ptr<Feature> NEW (new Feature(detection));
     FeatureList.push_back(NEW);
 }
 
@@ -134,7 +125,7 @@ double FeatureTracker::frequencyCalc(double frequency, double totalDet)
 
 double FeatureTracker::decay(int featureIdx, int totalDetections)
 {
-    Feature *F = FeatureList[featureIdx];
+    shared_ptr<Feature> F= FeatureList[featureIdx];
     F->incrementRecency();
 
     double recDecay = recency_weight*recencyCalc(F->getRecency());
@@ -152,7 +143,7 @@ void FeatureTracker::addDetection(FeatureDetection &detection, int featureIdx)
     FeatureList[featureIdx]->addDetection(detection);
 }
 
-double FeatureTracker::getSimilarityCost(Feature *F, FeatureDetection &det)
+double FeatureTracker::getSimilarityCost(shared_ptr<Feature> F, FeatureDetection &det)
 {
     //feature-based similarity costs
     double distance = distance_weight*(F->getDistance(det));
@@ -169,7 +160,7 @@ double FeatureTracker::getSimilarityCost(Feature *F, FeatureDetection &det)
 //finish similarity cost
 vector<double> FeatureTracker::getSimilarityRow(vector<FeatureDetection> &detections, size_t featureIdx)
 {
-    Feature *Feat = FeatureList[featureIdx];
+    shared_ptr<Feature> Feat = FeatureList[featureIdx];
 
     vector<double> featureSimMatrix(detections.size());
 
@@ -185,7 +176,7 @@ vector<double> FeatureTracker::getSimilarityRow(vector<FeatureDetection> &detect
     return featureSimMatrix;
 }
 
-int FeatureTracker::generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t trackerNum, vector<pair<FeatureTracker*, int>> &trackerList)
+int FeatureTracker::generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t trackerNum, vector<pair<shared_ptr<FeatureTracker>, int>> &trackerList)
 {
     //make any needed updates prior to matching
     if(needsUpdating){makeUpdates();}
@@ -196,7 +187,7 @@ int FeatureTracker::generateSimilarityMatrix(vector<FeatureDetection> &detection
         if(FeatureList[featureIdx]->State==ZOMBIE){continue;}
 
         costMatrix[featureNum] = getSimilarityRow(detections, featureIdx);
-        trackerList[featureNum] = make_pair(this, featureIdx);
+        trackerList[featureNum] = make_pair(shared_from_this(), featureIdx);
         featureNum++;
     }
 
@@ -210,22 +201,15 @@ bool FeatureTracker::validCost(double cost)
     return cost<(mahalanobisThreshold+(oversaturation_penalty*oversaturated));
 }
 
-Feature::Feature(FeatureDetection &initial_detection)
+Feature::Feature(FeatureDetection &initial_detection) :
+    kPosition (new ConstantKalmanFilter((initial_detection.tag+"/position"), initial_detection.position)),
+    kOrientation (new ConstantKalmanFilter((initial_detection.tag+"/orientation"), initial_detection.orientation))
 {
     tag = initial_detection.tag;
     State = ACTIVE;
 
-    kPosition = new ConstantKalmanFilter((initial_detection.tag+"/position"), initial_detection.position);
-    kOrientation = new ConstantKalmanFilter((initial_detection.tag+"/orientation"), initial_detection.orientation);
-
     numDetections = 1;
     recency = 1;
-}
-
-Feature::~Feature()
-{
-    delete kPosition;
-    delete kOrientation;
 }
 
 void Feature::reset()

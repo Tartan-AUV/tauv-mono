@@ -11,6 +11,7 @@
 #include <iostream>
 #include <mutex>
 #include <queue>
+#include <memory>
 #include "kalman-filter/kalman_filter.hpp"
 
 /**
@@ -57,7 +58,6 @@ class Feature
 {
     public:
         Feature(FeatureDetection &initial_detection);
-        ~Feature();
 
         //convenience functions, coordinates need retrieval from Kalman filter
         Eigen::Vector3d getPosition();
@@ -88,8 +88,8 @@ class Feature
         * more computationally efficient to separate position and orientation predictions
         * for the matrix inversion required in Kalman filtering
         **/
-        ConstantKalmanFilter *kPosition;
-        ConstantKalmanFilter *kOrientation;
+        unique_ptr<ConstantKalmanFilter> kPosition;
+        unique_ptr<ConstantKalmanFilter> kOrientation;
 
         string tag;
         size_t numDetections;
@@ -108,11 +108,10 @@ class Feature
  * This class serves as the interface between the GlobalMap and Features, which are focused only on filtering any
  * detections they are given.
 **/
-class FeatureTracker
+class FeatureTracker : public enable_shared_from_this<FeatureTracker>
 {
     public:
         FeatureTracker(FeatureDetection &initial_detection);
-        ~FeatureTracker();
 
         //for interfacing with Features
         void addDetection(FeatureDetection &detection, int featureIdx);
@@ -130,15 +129,15 @@ class FeatureTracker
 
         //matching information for Global Map
         bool validCost(double cost);
-        int generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t trackerNum, vector<pair<FeatureTracker*, int>> &trackerList);
+        int generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t trackerNum, vector<pair<shared_ptr<FeatureTracker>, int>> &trackerList);
         double getMaxThreshold();
 
-        vector<Feature*> getFeatures();
+        vector<shared_ptr<Feature>> getFeatures();
         size_t getNumFeatures();
 
     private:
         double getParam(string property, double def=0);
-        double getSimilarityCost(Feature *F, FeatureDetection &det);
+        double getSimilarityCost(shared_ptr<Feature> F, FeatureDetection &det);
         vector<double> getSimilarityRow(vector<FeatureDetection> &detections, size_t featureIdx);
 
         double frequencyCalc(double frequency, double totalDet);
@@ -163,7 +162,7 @@ class FeatureTracker
         
         string tag;
 
-        vector<Feature*> FeatureList;
+        vector<shared_ptr<Feature>> FeatureList;
         priority_queue<size_t, vector<size_t>, std::greater<size_t>> Zombies;
 
         //new zombies in queue!!!
@@ -181,7 +180,6 @@ class GlobalMap
 {
     public:
         GlobalMap(ros::NodeHandle& handler);
-        ~GlobalMap();
 
         void updateTrackers(const tauv_msgs::FeatureDetections::ConstPtr& detections);
         void addTracker(FeatureDetection &detection);
@@ -195,10 +193,10 @@ class GlobalMap
     private:
         void assignDetections(vector<FeatureDetection> &detections);
         vector<FeatureDetection> convertToStruct(vector<tauv_msgs::FeatureDetection> &detections);
-        vector<pair<FeatureTracker*, int>> generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t costMatSize);
+        vector<pair<shared_ptr<FeatureTracker>, int>> generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t costMatSize);
 
-        unordered_map<string, FeatureTracker*> MAP;
-        void updateDecay(FeatureTracker *F, int featureIdx);
+        unordered_map<string, shared_ptr<FeatureTracker>> MAP;
+        void updateDecay(shared_ptr<FeatureTracker> F, int featureIdx);
 
         ros::Subscriber listener;
         ros::ServiceServer resetService;

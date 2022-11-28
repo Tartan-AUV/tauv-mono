@@ -31,14 +31,6 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
 
 }
 
-GlobalMap::~GlobalMap()
-{
-    for(pair<string,FeatureTracker*> Tracker: MAP)
-    {
-        delete Tracker.second;
-    }
-}
-
 vector<FeatureDetection> GlobalMap::convertToStruct(vector<tauv_msgs::FeatureDetection> &detections)
 {
     vector<FeatureDetection> trueDets(detections.size());
@@ -73,13 +65,13 @@ void GlobalMap::updateTrackers(const tauv_msgs::FeatureDetections::ConstPtr& det
     mtx.unlock();
 }
 
-vector<pair<FeatureTracker*, int>> GlobalMap::generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t costMatSize)
+vector<pair<shared_ptr<FeatureTracker>, int>> GlobalMap::generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t costMatSize)
 {
     //list for detection addition
-    vector<pair<FeatureTracker*, int>> trackerList(featureCount);
+    vector<pair<shared_ptr<FeatureTracker>, int>> trackerList(featureCount);
 
     size_t featureNum = 0;
-    for(pair<string,FeatureTracker*> Tracker: MAP)
+    for(pair<string,shared_ptr<FeatureTracker>> Tracker: MAP)
     {
         featureNum = Tracker.second->generateSimilarityMatrix(detections, costMatrix, featureNum, trackerList);
     }
@@ -104,7 +96,7 @@ void GlobalMap::assignDetections(vector<FeatureDetection> &detections)
 
     size_t costMatSize = max(featureCount,detections.size());
     vector<vector<double>> costMatrix(costMatSize);
-    vector<pair<FeatureTracker*, int>> trackerList = generateSimilarityMatrix(detections, costMatrix, costMatSize);
+    vector<pair<shared_ptr<FeatureTracker>, int>> trackerList = generateSimilarityMatrix(detections, costMatrix, costMatSize);
 
     //find best assignment
     vector<int> assignment;
@@ -116,7 +108,7 @@ void GlobalMap::assignDetections(vector<FeatureDetection> &detections)
     for(size_t tracker=0; tracker<initFeatureNum;tracker++)
     {
         int detectionIdx = assignment[tracker];
-        pair<FeatureTracker*, int> Tracker = trackerList[tracker];
+        pair<shared_ptr<FeatureTracker>, int> Tracker = trackerList[tracker];
 
         //tracker had no corresponding detections
         if(detectionIdx<0){updateDecay(Tracker.first, Tracker.second); continue;}
@@ -140,7 +132,7 @@ void GlobalMap::assignDetections(vector<FeatureDetection> &detections)
     }
 }
 
-void GlobalMap::updateDecay(FeatureTracker *F, int featureIdx)
+void GlobalMap::updateDecay(shared_ptr<FeatureTracker> F, int featureIdx)
 {
     if(F->decay(featureIdx, totalDetections))
     {
@@ -151,12 +143,12 @@ void GlobalMap::updateDecay(FeatureTracker *F, int featureIdx)
 
 void GlobalMap::addTracker(FeatureDetection &detection)
 {
-    unordered_map<string,FeatureTracker*>::iterator NEW = MAP.find(detection.tag);
+    unordered_map<string,shared_ptr<FeatureTracker>>::iterator NEW = MAP.find(detection.tag);
     featureCount+=1;
 
     if(NEW == MAP.end())
     {
-        FeatureTracker *F = new FeatureTracker(detection);
+        shared_ptr<FeatureTracker> F (new FeatureTracker(detection));
         MAP.insert({detection.tag, F});
         DUMMY_FILL = max(DUMMY_FILL, F->getMaxThreshold());
     }
@@ -168,15 +160,15 @@ void GlobalMap::addTracker(FeatureDetection &detection)
 
 bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Response &res)
 {
-    unordered_map<string,FeatureTracker*>::iterator Tracker = MAP.find(req.tag);
+    unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
 
     if(Tracker == MAP.end()){res.success=false; return false;}
 
-    vector<Feature*> detections = (Tracker->second)->getFeatures();
+    vector<shared_ptr<Feature>> detections = (Tracker->second)->getFeatures();
     vector<tauv_msgs::FeatureDetection> returnDetections((Tracker->second)->getNumFeatures());
 
     size_t count=0;
-    for(Feature *detection : detections)
+    for(shared_ptr<Feature> detection : detections)
     {
         if(detection->State==TrackerState::ZOMBIE){continue;}
 
@@ -197,18 +189,18 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
 
 bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::MapFindClosest::Response &res)
 {
-    unordered_map<string,FeatureTracker*>::iterator Tracker = MAP.find(req.tag);
+    unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
     Eigen::Vector3d position = point_to_vec(req.point);
 
     if(Tracker == MAP.end()){res.success=false; return false;}
 
-    vector<Feature*> detections = (Tracker->second)->getFeatures();
+    vector<shared_ptr<Feature>> detections = (Tracker->second)->getFeatures();
 
     int minInd = 0;
     double minDist = -1;
     for(size_t i = 0; i<detections.size(); i++)
     {
-        Feature *detection = detections[i];
+        shared_ptr<Feature> detection = detections[i];
         if(detection->State==TrackerState::ZOMBIE){continue;}
 
         double dist = (detection->getPosition() - position).norm();
@@ -233,11 +225,6 @@ bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::
 
 bool GlobalMap::reset(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res)
 {
-    for(pair<string,FeatureTracker*> Tracker: MAP)
-    {
-        delete Tracker.second;
-    }
-
     featureCount = 0;
     totalDetections = 0;
     DUMMY_FILL=0;

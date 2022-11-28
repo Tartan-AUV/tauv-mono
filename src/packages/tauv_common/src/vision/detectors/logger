@@ -84,8 +84,9 @@ class Logger():
         rospy.Timer(rospy.Duration(30.2), self.publish6)
 
     def callback(self, data):
-        print("CALLBACK")
-        print(data)
+        pass
+        #print("CALLBACK")
+        #print(data)
 
     def visualize(self, time):
         #buckets = bucketList.bucket_list
@@ -96,8 +97,6 @@ class Logger():
         markers = []
         for ind in range(len(buckets1)):
             det = buckets1[ind]
-            print("DET")
-            print(det)
             markers.append(makeMarker(ind, det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
 
         for ind in range(len(buckets2)):
@@ -110,6 +109,8 @@ class Logger():
 
         OBJ = MarkerArray()
         OBJ.markers = markers
+
+        print(markers)
 
         self.viz.publish(OBJ)
 
