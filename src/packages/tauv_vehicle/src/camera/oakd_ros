@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
+
 import rospy
 import depthai
 import cv2 as cv
-from std_msgs import Image
+from sensor_msgs.msg import Image, CameraInfo
+import numpy as np
+from cv_bridge import CvBridge, CvBridgeError
 
-NODENAME = "oakd_publisher"
+NODENAME = "oakd_ros"
 QUEUE_SIZE = 100
 # node to create oakd ros nodes from oakd api
 # publishes depth map and color image
@@ -11,7 +15,7 @@ QUEUE_SIZE = 100
 class OAKDNode:
     def __init__(self):
 
-        rospy.init(NODENAME, anonymous = True)
+        rospy.init_node(NODENAME, anonymous = True)
 
         self.pipeline = depthai.Pipeline()
 
@@ -52,35 +56,42 @@ class OAKDNode:
         self.stereo.depth.link(self.xout_depth.input)
         self.cam_rgb.video.link(self.xout_color.input)
 
-        self.depth = rospy.Publisher("/oakd/oakd_front/depth_map", Image, queue_size=10)
-        self.color = rospy.Publisher("/oakd/oakd_front/color_image", Image, queue_size=10)
-        self.camera_info = rospy.Service("/oakd/oakd_front/camera_info", )
+        self.depthPub = rospy.Publisher("/oakd/oakd_front/depth_map", Image, queue_size=10)
+        self.colorPub = rospy.Publisher("/oakd/oakd_front/color_image", Image, queue_size=10)
+        self.cameraInfoPub = rospy.Publisher("/oakd/oakd_front/camera_info", CameraInfo, queue_size=10)
 
+        self.device = depthai.Device(self.pipeline)
+        self.calibData = self.device.readCalibration()
+        self.camera_info = CameraInfo()
+        self.camera_info.K = np.array(self.calibData.getCameraIntrinsics(depthai.CameraBoardSocket.RGB))
 
-        with depthai.Device(self.pipeline) as device:
-            device.startPipeline(self.pipeline)
+        self.bridge = CvBridge()
 
-            # Create a receive queue for each stream
-            qList = [device.getOutputQueue(stream, QUEUE_SIZE, blocking=False) for stream in streams]
+        self.spin()
 
-            while True:
-            # Output queues will be used to get the grayscale frames from the outputs defined above
-            qRgb = device.getOutputQueue(name="rgb", maxSize=4, blocking=False)
+    def spin(self):
+        qRgb = self.device.getOutputQueue(name="rgb", maxSize=QUEUE_SIZE, blocking=False)
+        qDepth = self.device.getOutputQueue(name="depth", maxSize=QUEUE_SIZE, blocking=False)
 
+        while True:
+            rgb = qRgb.tryGet()
+            depth = qDepth.tryGet()
+            self.cameraInfoPub.publish(self.camera_info)
 
-            while True:
-                # Instead of get (blocking), we use tryGet (non-blocking) which will return the available data or None otherwise
-                inLeft = qLeft.tryGet()
-                inRight = qRight.tryGet()
+            if rgb is not None:
+                try:
+                    self.colorPub.publish(self.bridge.cv2_to_imgmsg(rgb.getCvFrame(), "rgb8"))
+                except CvBridgeError as e:
+                    rospy.loginfo("OAKD frame error")
 
-                if inLeft is not None:
-                    nLeft.getCvFrame()
-
-                if inRight is not None:
-                    cv.imshow("right", inRight.getCvFrame())
-
-
-# frame id of header oakd_front
+            if depth is not None:
+                try:
+                    self.depthPub.publish(self.bridge.cv2_to_imgmsg(depth.getCvFrame(), "passthrough"))
+                except CvBridgeError as e:
+                    rospy.loginfo("OAKD frame error")
 
 def main():
     OAKDNode()
+    rospy.spin()
+
+main()
