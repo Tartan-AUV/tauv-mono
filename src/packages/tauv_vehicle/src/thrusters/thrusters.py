@@ -59,14 +59,7 @@ class Thrusters:
         rospy.spin()
 
     def _update(self, timer_event):
-        _killed = True
-        try:
-            kval = self._maestro.getPosition(self._kill_channel)
-            _killed = kval < 400
-        except TypeError:
-            rospy.logwarn("read error")
-        except serial.serialutil.SerialException as e:
-            rospy.logwarn(e)
+        _killed = False
 
         self._killed_pub.publish(Bool(_killed))
         self._ac.set(Alarm.KILL_SWITCH_ACTIVE, value=_killed)
@@ -165,7 +158,6 @@ class Thrusters:
         self._negative_thrust_coefficients: np.array = np.array(rospy.get_param('~negative_thrust_coefficients'))
         self._thrust_inversions: [float] = rospy.get_param('~thrust_inversions')
         self._tam: np.array = np.linalg.pinv(np.array(rospy.get_param('~tam')))
-        self._kill_channel : int = rospy.get_param('~kill_channel')
 
 def main():
     rospy.init_node('thrusters')
