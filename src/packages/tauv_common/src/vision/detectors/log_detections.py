@@ -120,7 +120,7 @@ class LogDetections():
         for bbox in bboxes.bounding_boxes:
             objdet = BucketDetection()
             objdet.tag = bbox.Class
-
+            
             # calculate depth of the object in a relative coordinate frame, returned as an (x, y, z)
             # s.t. x is the
             relative_pos = DepthEstimator.estimate_absolute_depth(self.front_depth_image,
