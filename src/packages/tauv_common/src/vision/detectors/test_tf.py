@@ -30,8 +30,8 @@ def test_camera_transform():
         theta += dt
 
         world_to_vehicle_transform = geometry_msgs.msg.TransformStamped()
-        world_to_vehicle_transform.header.frame_id = "world"
-        world_to_vehicle_transform.child_frame_id = "vehicle"
+        world_to_vehicle_transform.header.frame_id = "world_ned"
+        world_to_vehicle_transform.child_frame_id = "vehicle_ned"
 
         world_to_vehicle_transform.transform.translation.x = x
         world_to_vehicle_transform.transform.translation.y = y

@@ -1,1 +1,1 @@
-from .detectors import log_detections
+from .detectors import transform_detections
