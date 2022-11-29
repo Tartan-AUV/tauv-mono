@@ -24,7 +24,7 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
     DUMMY_FILL=0;
     MAP = {};
 
-    listener = handler.subscribe("/register_object_detection", 100, &GlobalMap::updateTrackers, this);
+    listener = handler.subscribe("/global_map/transform_detections", 100, &GlobalMap::updateTrackers, this);
     resetService = handler.advertiseService("/global_map/reset", &GlobalMap::reset, this);
     findService = handler.advertiseService("/global_map/find", &GlobalMap::find, this);
     findClosestService = handler.advertiseService("/global_map/find_closest", &GlobalMap::findClosest, this);
