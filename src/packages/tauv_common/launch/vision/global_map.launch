@@ -12,7 +12,7 @@
         launch-prefix="$(eval 'gdb -ex \'break main\' -ex run --args' if arg('debug') == 'gdb' else 'valgrind --leak-check=full --track-origins=yes' if arg('debug') == 'valgrind' else 'valgrind --tool=callgrind --callgrind-out-file=/home/theo/catkin_ws/callgrind-out' if arg('debug') == 'callgrind' else '')"
     >
     </node>
-    <node pkg="tauv_common" type="log_detections" name="log_detections" output ="screen" />
+    <node pkg="tauv_common" type="transform_detections" name="transform_detections" output ="screen" />
     <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch" />
 <!--     </group>-->
 </launch>

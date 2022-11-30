@@ -42,17 +42,14 @@ class TransformDetections():
             self.bottom_camera_frame_id: False
         }
 
-        self.bounding_boxes = BoundingBoxes()
         self.cv_bridge = CvBridge()
 
-        rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
+        self.bounding_boxes = rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
         
         # initialize subscribers for front camera depthmaps and camera info
         rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.front_depth_callback)
+        self.camera_info = rospy.wait_for_message("/oakd/oakd_front/camera_info", CameraInfo)
 
-        # initialize subscribers for downward camera depthmaps and camera info
-        #rospy.Subscriber("/zedm_B/zed_node_B/depth/depth_registered", Image, self.depth_callback)
-        #rospy.Subscriber("/zedm_B/zed_node_B/left/camera_info", CameraInfo, self.camera_info_callback)
 
         # initialize subscriber for darknet NN bounding boxes
         rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)

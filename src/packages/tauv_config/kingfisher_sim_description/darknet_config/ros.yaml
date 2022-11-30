@@ -1,7 +1,7 @@
 subscribers:
 
   camera_reading:
-    topic: /zedm_A/zed_node_A/left/image_rect_color
+    topic: /oakd/oakd_front/color_image
     queue_size: 1
 
 actions:
