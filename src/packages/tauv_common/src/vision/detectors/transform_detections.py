@@ -18,9 +18,9 @@ from std_srvs.srv import Trigger
 import tf2_ros
 import tf2_geometry_msgs
 
-class LogDetections():
+class TransformDetections():
     def __init__(self):
-        self.NODE_NAME = "detection_logger"
+        self.NODE_NAME = "transform_detections"
         self.NODE_NAME_FMT = "[{}]".format(self.NODE_NAME)
         self.SAMPLE_RATE = 60 # hz
 
@@ -30,6 +30,7 @@ class LogDetections():
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
         self.front_camera_frame_id = "oakd_front"
+        self.bottom_camera_frame_id = "oakd_bottom"
 
         self.camera_data_by_frame_id = {
             self.front_camera_frame_id: None,
@@ -41,13 +42,13 @@ class LogDetections():
             self.bottom_camera_frame_id: False
         }
 
+        self.bounding_boxes = BoundingBoxes()
         self.cv_bridge = CvBridge()
 
-        self.bounding_boxes = rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
+        rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
         
         # initialize subscribers for front camera depthmaps and camera info
         rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.front_depth_callback)
-        self.camera_info = rospy.wait_for_message("/oakd/oakd_front/camera_info", CameraInfo)
 
         # initialize subscribers for downward camera depthmaps and camera info
         #rospy.Subscriber("/zedm_B/zed_node_B/depth/depth_registered", Image, self.depth_callback)
@@ -56,32 +57,27 @@ class LogDetections():
         # initialize subscriber for darknet NN bounding boxes
         rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
 
-        self.detector = rospy.Publisher("/global_map/transform_detections", FeatureDetections,
+        self.detector = rospy.Publisher("/global_map/transformed_detections", FeatureDetections,
                                         queue_size=10)
 
     def start(self):
         rospy.spin()
 
     def front_depth_callback(self, msg):
+        # sets the current depth of the given camera
         self.camera_data_by_frame_id[msg.header.frame_id] = \
             self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
         self.camera_flags_by_frame_id[msg.header.frame_id] = True
-
-    # flag for invalid object detection position estimates
-    def valid_pos(self, objdet):
-        return (objdet.position.z >= 0) and \
-               (not np.isnan(objdet.position.x) and \
-                not np.isnan(objdet.position.y) and \
-                not np.isnan(objdet.position.z))
 
     def bbox_callback(self, bboxes):
         camera_frame_id = bboxes.header.frame_id
 
         if not self.camera_flags_by_frame_id[camera_frame_id]:
-            rospy.logerr("{} Waiting for depth for camera {}".format(
+            rospy.logerr("{} Waiting for depth for camera `{}`".format(
                 self.NODE_NAME_FMT, camera_frame_id))
             return
 
+        # list of all detections in current frame
         objects = FeatureDetections()
         objects.detections = list()
 
@@ -90,7 +86,7 @@ class LogDetections():
             objdet.tag = bbox.Class
 
             # calculate depth of the object in a relative coordinate frame, returned as an (x, y, z)
-            # s.t. x is the
+            # in NED frame
             relative_pos = DepthEstimator.estimate_absolute_depth(self.front_depth_image,
                                                                   bbox,
                                                                   self.camera_info)
@@ -115,17 +111,11 @@ class LogDetections():
                 relative_pos_wrapped, sensor_to_world_tf
             )
 
-            if self.valid_pos(objdet):
-                objdet.position = transformed_pos.point
-                objects.objdets.append(objdet)
-
-        objects.detector_tag = bboxes.header.frame_id
+            objdet.position = transformed_pos.point
+            objects.objdets.append(objdet)
 
         self.detector.publish(objects)
-        
-def main():
-    s = LogDetections()
-    s.start()
 
 if __name__=='__main__':
-    main()
+    s = TransformDetections()
+    s.start()

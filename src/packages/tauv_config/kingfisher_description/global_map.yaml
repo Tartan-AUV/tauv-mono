@@ -1,7 +1,7 @@
 tracker_params: {
   default: {
     mahalanobis_threshold: 10,
-    DECAY_THRESHOLD: 0.25, #in practice should probably be around .25 but .6 for testing
+    DECAY_THRESHOLD: 0.25, #in practice should probably be around .25 but ~.6 for testing
     matching_weights: {
       tag_weight: 100,
       distance_weight: 1,
@@ -15,7 +15,11 @@ tracker_params: {
   },
   badge: {
     mahalanobis_threshold: 5,
-    expected_count: 2
+    expected_count: 1
+  },
+  phone: {
+    mahalanobis_threshold: 5,
+    expected_count: 1
   }
 }
 

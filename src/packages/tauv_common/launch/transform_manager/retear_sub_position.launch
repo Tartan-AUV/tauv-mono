@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Start the retear node -->
+    <node pkg="tauv_common" type="retear_sub_position" name="retear_sub_position"/>
+
+    <!-- Retear the sub position initially to be 0 offset -->
+    <node pkg="rosservice" type="rosservice" name="retear_sub_position" output="log",
+        args='call --wait /retear_sub_position geometry_msgs/Pose
+              "{position: {x:0.0,y:0.0,z:0.0}, orientation: {x:0.0,y:0.0,z:0.0,w:1.0}}'/>
+</launch>

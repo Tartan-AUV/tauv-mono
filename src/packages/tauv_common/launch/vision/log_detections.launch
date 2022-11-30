@@ -1,7 +1,0 @@
-<launch>
-   <arg name="model_name" default="kingfisher"/>
-    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
-
-    <node pkg="tauv_common" type="log_detections" name="log_detections" output ="screen" />
-    <node pkg="tauv_common" type="bucket_to_tf" name="bucket_to_tf" output ="screen" />
-</launch>
