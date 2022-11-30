@@ -16,7 +16,7 @@ import rospy
 import math
 import numpy as np
 from geometry_msgs.msg import PoseArray, Pose, PoseStamped, Twist
-from tauv_msgs.srv import GetTraj, GetTrajResponse
+from tauv_msgs.srv import GetTrajectory, GetTrajectoryRequest, GetTrajectoryResponse
 from std_srvs.srv import SetBool, SetBoolRequest, Trigger
 from tauv_util.transforms import twist_body_to_world
 from nav_msgs.msg import Path, Odometry as OdometryMsg
@@ -39,20 +39,15 @@ class MotionUtils:
         self.pose = None    # pose
         self.twist = None   # world frame velocities
 
-        self._traj_service = rospy.Service('/gnc/get_traj', GetTraj, self._handle_get_traj)
+        self._traj_service = rospy.Service('/gnc/trajectory/get_trajectory', GetTrajectory, self._handle_get_traj)
 
-        self._arm_srv = rospy.ServiceProxy('/thrusters/arm', SetBool)
-        self._hold_z_srv = rospy.ServiceProxy('/controller/set_hold_z', SetBool)
-        self._hold_xy_srv = rospy.ServiceProxy('/controller/set_hold_xy', SetBool)
-        self._hold_yaw_srv = rospy.ServiceProxy('/controller/set_hold_yaw', SetBool)
-        self._setpose_srv = rospy.ServiceProxy('/gnc/set_pose', SetPose)
-        self._bucket_reset_srv = rospy.ServiceProxy('/bucket/reset', Trigger)
+        self._arm_srv = rospy.ServiceProxy('/vehicle/thrusters/arm', SetBool)
 
         self._path_pub = rospy.Publisher('/gnc/path', Path, queue_size=10)
         self._target_pub = rospy.Publisher("/gnc/traj_target", TrajPoint, queue_size=10)
         self._target_pose_stamped_pub = rospy.Publisher("/gnc/traj_target_pose_stamped", PoseStamped, queue_size=10)
 
-        self._odom_sub = rospy.Subscriber('/gnc/odom', OdometryMsg, self._handle_odom)
+        self._odom_sub = rospy.Subscriber('/gnc/state_estimation/odom', OdometryMsg, self._handle_odom)
         while not self.initialized:
             rospy.sleep(0.1)
 
@@ -85,34 +80,6 @@ class MotionUtils:
             rospy.logwarn_throttle('[Motion Utils] Cannot arm/disarm: Arm server not responding. (This could be due '
                                    'to running in simulation)')
 
-    def enable(self):
-        self.pose = None    # pose
-        self.twist = None   # world frame velocities
-        self.traj = None
-        rospy.wait_for_message("/gnc/odom", rospy.AnyMsg)
-
-        self.arm(True)
-        self._hold_xy_srv.call(SetBoolRequest(True))
-        self._hold_z_srv.call(SetBoolRequest(True))
-        self._hold_yaw_srv.call(SetBoolRequest(True))
-
-    def disable(self):
-        self.arm(False)
-        self._hold_xy_srv.call(SetBoolRequest(False))
-        self._hold_z_srv.call(SetBoolRequest(False))
-        self._hold_yaw_srv.call(SetBoolRequest(False))
-
-    def retare(self, x, y, h):
-        print("Retaring nav")
-        req = SetPoseRequest()
-        req.position.x = x
-        req.position.y = y
-        req.yaw = h
-        res = self._setpose_srv(req)
-        print(f"retare: {res}")
-        print("Resetting bucket")
-        self._bucket_reset_srv()
-
     def goto_pid(self, pos: typing.Tuple[float],
                    heading: float = None,
                    threshold_lin=0.1, threshold_ang=0.1,
@@ -125,6 +92,7 @@ class MotionUtils:
         except PlanningError:
             rospy.logwarn("Trajectory planning failure!")
             return False
+            
         self.set_trajectory(newtraj)
         while self.get_motion_status().value < block.value:
             rospy.sleep(0.1)
@@ -132,7 +100,7 @@ class MotionUtils:
 
     def goto(self, pos: typing.Tuple[float],
                    heading: float = None, 
-                   v=.4, a=.4, j=.4,
+                   v=.1, a=.1, j=.4,
                    threshold_lin=0.5, threshold_ang=0.5,
                    block: TrajectoryStatus = TrajectoryStatus.FINISHED):
         start_pose, start_twist = self.get_target()
@@ -148,7 +116,7 @@ class MotionUtils:
 
     def goto_relative(self, pos: typing.Tuple[float],
                       heading: float = 0,
-                      v=.4, a=.4, j=.4,
+                      v=.1, a=.1, j=.4,
                       block: TrajectoryStatus = TrajectoryStatus.FINISHED):
         start_pose, start_twist = self.get_target()
 
@@ -179,13 +147,13 @@ class MotionUtils:
             # Return current position? or none?
             return self.pose, self.twist
         else:
-            req = GetTraj._request_class()
+            req = GetTrajectoryRequest()
             req.curr_time = rospy.Time.now()
             req.len = 1
             req.curr_pose = self.pose
             req.curr_twist = self.twist
             req.dt = .1 # i guess
-            res: GetTrajResponse = self.traj.get_points(req)
+            res: GetTrajectoryResponse = self.traj.get_points(req)
             return res.poses[0], res.twists[0]
 
     def _pub_target(self, timer_event):
@@ -208,7 +176,7 @@ class MotionUtils:
             self._path_pub.publish(path)
 
     def _handle_get_traj(self, req):
-        response = GetTrajResponse()
+        response = GetTrajectoryResponse()
 
         if self.traj is None:
             response.success = False

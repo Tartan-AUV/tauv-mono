@@ -21,9 +21,10 @@ PI = 3.14159265
 
 LANE_WIDTH_Y = 7 * FT
 LANE_WIDTH_X = 9 * FT
+
+START_X = -6 * FT + 17 * IN + 28 * IN
+START_Y = 9 * LANE_WIDTH_Y
 # START_X = -0.5 * LANE_WIDTH_X + 0.5 * M
-START_X = -6 * FT + 17 * IN + 2.5 * FT
-START_Y = 1 * LANE_WIDTH_Y
 
 class MissionManager:
     def __init__(self) -> None:
@@ -46,7 +47,7 @@ class MissionManager:
         self.ac.clear(Alarm.MISSION_MANAGER_NOT_INITIALIZED, "Initialized!")
 
     def retare(self, srv):
-        self.mu.retare(START_X, START_Y, 0)
+        # self.mu.retare_goto(START_X, START_Y, 0)
         return Trigger._response_class(True, "success")
 
     def run_mission(self, srv: RunBasicMission._request_class, name: str):

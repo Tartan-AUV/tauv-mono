@@ -10,7 +10,7 @@
 #include <tauv_alarms/alarms.h>
 #include <tauv_alarms/alarm_client.h>
 #include <tauv_msgs/FluidDepth.h>
-#include <tauv_msgs/Pose.h>
+#include <tauv_msgs/NavigationState.h>
 #include <tauv_msgs/TeledyneDvlData.h>
 #include <tauv_msgs/XsensImuData.h>
 #include <tf/transform_broadcaster.h>
@@ -45,7 +45,7 @@ class StateEstimator {
     ros::Subscriber dvl_sub;
     ros::Subscriber depth_sub;
 
-    ros::Publisher pose_pub;
+    ros::Publisher navigation_state_pub;
     ros::Publisher odom_pub;
 
     ros::ServiceServer set_pose_srv;
@@ -81,7 +81,7 @@ class StateEstimator {
 
     bool handle_set_pose(tauv_msgs::SetPose::Request &req, tauv_msgs::SetPose::Response &res);
 
-    void publish_pose(
+    void publish_navigation_state(
         ros::Time time,
         const Eigen::Vector3d &position,
         const Eigen::Vector3d &velocity,

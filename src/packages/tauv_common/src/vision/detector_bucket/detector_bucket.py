@@ -77,18 +77,16 @@ class Detector_Bucket():
             #rospy.loginfo(f"data = {data_frame}")
 
             daemon = self.daemon_dict[daemon_name]
-            daemon.mutex.acquire()
-            daemon.update_detection_buffer(data_frame)
-            daemon.mutex.release()
+            with daemon.mutex:
+                daemon.update_detection_buffer(data_frame)
 
             return True
         return False
 
     def spin_daemon(self, daemon):
-        daemon.mutex.acquire()
-        if(daemon.new_data):
-            daemon.spin()
-        daemon.mutex.release()
+        with daemon.mutex:
+            if(daemon.new_data):
+                daemon.spin()
 
     def publish(self, daemon_name = "camera"):
         daemon = self.daemon_dict[daemon_name]

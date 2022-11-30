@@ -4,8 +4,5 @@
 
     <node pkg="tauv_vehicle" type="xsens_imu_sync" name="xsens_imu_sync" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/xsens_imu_sync.yaml" />
-        <remap from="imu_sync" to="/xsens_imu/sync" />
-        <remap from="imu_data" to="/xsens_imu/data" />
-        <remap from="imu_raw_data" to="/xsens_imu/raw_data" />
     </node>
 </launch>

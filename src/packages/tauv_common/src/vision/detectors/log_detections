@@ -146,6 +146,10 @@ class LogDetections():
         sub_pos = self.cur_position
         front = bboxes.image_header.frame_id==self.front_camera #is front camera?
 
+        # TODO: handle non-front
+        if not front:
+            return
+
         if((front and (not self.front_image_ready)) or ((not front) and (not self.bottom_image_ready))):
             return
 
@@ -161,6 +165,10 @@ class LogDetections():
 
             if objdet.tag == "badge" and bbox.probability < 0.3:
                 continue
+
+            # TODO: handle multiple tags
+            if objdet.tag not in ["badge"]:
+                return
 
             if(len(objects.objdets) > 2):
                 continue

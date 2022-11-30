@@ -17,7 +17,7 @@ class Arduino:
 
         self._dt: float = 0.10
 
-        self._depth_pub: rospy.Publisher = rospy.Publisher('depth', DepthMsg, queue_size=10)
+        self._depth_pub: rospy.Publisher = rospy.Publisher('/vehicle/arduino/depth', DepthMsg, queue_size=10)
 
         self._serial = None
 
@@ -58,7 +58,7 @@ class Arduino:
         # rospy.loginfo(serial_data)
 
         if serial_data_split[0] == "D":
-            if serial_data_split[1].lower() != "nan":
+            if serial_data_split[1].lower() != "nan" and -1 < float(serial_data_split[1]) < 10:
                 depth_msg = DepthMsg()
                 depth_msg.header.stamp = timestamp
                 depth_msg.header.frame_id = 'depth_sensor_link'

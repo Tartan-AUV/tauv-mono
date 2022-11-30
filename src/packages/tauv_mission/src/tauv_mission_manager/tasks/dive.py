@@ -10,7 +10,7 @@ class Dive(Task):
 
     def run(self, depth):
         if (self.cancelled): return
-        self.mu.goto_relative((0.5, 0, depth))
+        self.mu.goto_relative((0.5, 0, depth), )
         self.status(f"Dive done :)")
             
     def cancel(self):

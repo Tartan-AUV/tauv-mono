@@ -1,6 +1,6 @@
 from importlib.abc import Finder
 from motion.trajectories.trajectories import TrajectoryStatus
-from packages.tauv_mission.src.tauv_mission_manager.mission_manager import IN
+# from packages.tauv_mission.src.tauv_mission_manager.mission_manager import IN
 import rospy
 from tauv_mission_manager.mission_utils import Task, TaskParams
 from vision.detectors.finder import Finder
@@ -12,6 +12,7 @@ from math import sin, cos
 
 FT = 0.3048
 IN = FT / 12
+
 
 class VizServoXY(Task):
     APROACHING = 0
@@ -37,7 +38,7 @@ class VizServoXY(Task):
 
     def run(self, tag, nominal_pos):
         if (self.cancelled): return
-        self.state = VizServo.APROACHING
+        self.state = VizServoXY.APROACHING
         
         self.status(f"Looking for a {tag}")
         hunting = True
@@ -68,18 +69,18 @@ class VizServoXY(Task):
             vec_to_obj_xy = np.array([best_pos.x, best_pos.y]) - my_pos[0:2]
             vec_to_obj_xy_len = np.linalg.norm(vec_to_obj_xy)
 
-            if self.state == VizServo.APROACHING:
+            if self.state == VizServoXY.APROACHING:
                 if vec_to_obj_xy_len > 1:
                     self.mu.goto(tl(best_pos[0], best_pos[1], 0.5), heading=self.drop_heading, block=TrajectoryStatus.EXECUTING)
                 else:
                     self.mu.goto(tl(best_pos[0], best_pos[1], 0.5), heading=self.drop_heading)
-                    self.state = VizServo.SERVOING
+                    self.state = VizServoXY.SERVOING
                     self.status("Switching to servoing!")
                     self.current_height = my_pos[2]
                 rospy.sleep(0.1)
 
 
-            elif self.state == VizServo.SERVOING:
+            elif self.state == VizServoXY.SERVOING:
                 tgt_height = best_pos.z - self.drop_height
 
                 dt = 0.05
@@ -92,7 +93,7 @@ class VizServoXY(Task):
                     self.mu.goto_pid(best_pos[0] + self.offset_x, best_pos[1] + self.offset_y, 1)
 
             if self.dropped == 2:
-                self.state = VizServo.DONE
+                self.state = VizServoXY.DONE
                 self.status("Done dropping!")
                 return
 

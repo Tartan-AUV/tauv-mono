@@ -4,7 +4,7 @@
 # This file is generated whenever tauv_common is built using catkin build.
 # See alarms/CMakeLists.txt for configuring the autogen build step
 # 
-# Generated on Sun Jul 31 18:20:27 2022
+# Generated on Tue Nov  8 01:06:09 2022
 
 from .alarm_util import AlarmMeta, AlarmType, FailureLevel
 
@@ -130,7 +130,7 @@ class Alarm(metaclass=AlarmMeta):
         name="MPC_PLANNER_NOT_INITIALIZED",
         id=13,
         failure_level=FailureLevel.PREDIVE_FAILURE,
-        default_set=True,
+        default_set=False,
         description="MPC Planner is not initialized yet",
         author="Theo Chemel",
     )
