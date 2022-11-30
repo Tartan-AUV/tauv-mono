@@ -54,7 +54,7 @@ def makeMarker(id, detection, color, scale = 0.5, shape = Marker.SPHERE, time = 
 class Logger():
     def __init__(self):
         rospy.init_node('logger')
-        rospy.Subscriber("/register_object_detection", FeatureDetections,
+        rospy.Subscriber("/global_map/transform_detections", FeatureDetections,
                                                 self.publish)
 
         rospy.Subscriber("/global_map/find", FeatureDetections,

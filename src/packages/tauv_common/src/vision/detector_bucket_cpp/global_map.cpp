@@ -162,7 +162,7 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
 {
     unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
 
-    if(Tracker == MAP.end()){res.success=false; return false;}
+    if(Tracker == MAP.end()){res.success=false; return true;}
 
     vector<shared_ptr<Feature>> detections = (Tracker->second)->getFeatures();
     vector<tauv_msgs::FeatureDetection> returnDetections((Tracker->second)->getNumFeatures());
