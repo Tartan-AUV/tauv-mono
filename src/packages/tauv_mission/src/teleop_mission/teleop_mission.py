@@ -88,7 +88,7 @@ class TeleopMission:
                 ki=args.yaw[1],
                 kd=args.yaw[2],
                 tau=args.yaw[3],
-                limits=args.yaw[4:6]
+                limits=[args.yaw[4], args.yaw[5]]
             )
             pid_tunings.append(p)
 
@@ -175,7 +175,7 @@ class TeleopMission:
             t.added_mass = args.added_mass
 
         req: TuneDynamicsRequest = TuneDynamicsRequest()
-        req.tunings = t
+        req.tuning = t
         self._tune_dynamics_srv.call(req)
 
     def _handle_goto(self, args):
