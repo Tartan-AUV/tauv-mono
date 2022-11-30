@@ -6,7 +6,7 @@ from std_msgs.msg import Header
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
-#from darknet_ros_msgs.msg import BoundingBoxes, BoundingBox
+from darknet_ros_msgs.msg import BoundingBoxes, BoundingBox
 from sensor_msgs.msg import Image, CameraInfo
 from vision.depth_estimation.depth_estimation import DepthEstimator
 from geometry_msgs.msg import Point, PointStamped, Point
@@ -17,11 +17,6 @@ from scipy.spatial.transform import Rotation
 from std_srvs.srv import Trigger
 import tf2_ros
 import tf2_geometry_msgs
-
-FT = 0.3048
-IN = FT / 12
-
-FORCE_DEPTH_BOTTOM = 4 * FT + 3 * IN
 
 class LogDetections():
     def __init__(self):
@@ -34,13 +29,7 @@ class LogDetections():
         self.tf_buffer = tf2_ros.Buffer()
         self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
-        self.front_camera_frame_id = "zedm_A_left_camera_optical_frame"
-        self.bottom_camera_frame_id = "zedm_B_left_camera_optical_frame"
-        
-        self.camera_info_by_frame_id = {
-            self.front_camera_frame_id: None,
-            self.bottom_camera_frame_id: None
-        }
+        self.front_camera_frame_id = "oakd_front"
 
         self.camera_data_by_frame_id = {
             self.front_camera_frame_id: None,
@@ -52,33 +41,26 @@ class LogDetections():
             self.bottom_camera_frame_id: False
         }
 
-        #self.bounding_boxes = BoundingBoxes()
         self.cv_bridge = CvBridge()
 
-        #rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
+        self.bounding_boxes = rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
         
         # initialize subscribers for front camera depthmaps and camera info
-        rospy.Subscriber("/zedm_A/zed_node_A/depth/depth_registered", Image, self.front_depth_callback)
-        rospy.Subscriber("/zedm_A/zed_node_A/left/camera_info", CameraInfo, self.camera_info_callback)
+        rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.front_depth_callback)
+        self.camera_info = rospy.wait_for_message("/oakd/oakd_front/camera_info", CameraInfo)
 
         # initialize subscribers for downward camera depthmaps and camera info
         #rospy.Subscriber("/zedm_B/zed_node_B/depth/depth_registered", Image, self.depth_callback)
         #rospy.Subscriber("/zedm_B/zed_node_B/left/camera_info", CameraInfo, self.camera_info_callback)
 
         # initialize subscriber for darknet NN bounding boxes
-        #rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
+        rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
 
-        self.detector = rospy.Publisher("register_object_detection", FeatureDetections,
+        self.detector = rospy.Publisher("/global_map/transform_detections", FeatureDetections,
                                         queue_size=10)
-
-        #rospy.Subscriber("gnc/pose", Pose, self.update_position)
 
     def start(self):
         rospy.spin()
-
-    # camera subscriber callbacks
-    def camera_info_callback(self, msg):
-        self.camera_info_by_frame_id[msg.header.frame_id] = msg
 
     def front_depth_callback(self, msg):
         self.camera_data_by_frame_id[msg.header.frame_id] = \
@@ -111,7 +93,7 @@ class LogDetections():
             # s.t. x is the
             relative_pos = DepthEstimator.estimate_absolute_depth(self.front_depth_image,
                                                                   bbox,
-                                                                  self.camera_info_by_frame_id[camera_frame_id])
+                                                                  self.camera_info)
 
             if relative_pos == np.nan: # invalid depth estimate
                 continue
@@ -119,7 +101,7 @@ class LogDetections():
             relative_pos_wrapped = PointStamped()
             relative_pos_wrapped.header = bboxes.header
             relative_pos_wrapped.point = Point(
-                relative_pos[0], relative_pos[1], relative_pos[2]) # relative position
+                relative_pos[2], relative_pos[0], relative_pos[1]) # relative position
 
             # transform point from sensor coordinate frame to world coordinate frame
             sensor_to_world_tf = self.tf_buffer.lookup_transform(

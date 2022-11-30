@@ -33,10 +33,10 @@ class OAKDNode:
         self.xout_color.setStreamName("rgb")
         self.xout_depth.setStreamName("depth")
 
-        self.left.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_400_P)
+        self.left.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_720_P)
         self.left.setBoardSocket(depthai.CameraBoardSocket.LEFT)
 
-        self.right.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_400_P)
+        self.right.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_720_P)
         self.right.setBoardSocket(depthai.CameraBoardSocket.RIGHT)
 
         self.cam_rgb.setBoardSocket(depthai.CameraBoardSocket.RGB)
@@ -56,14 +56,18 @@ class OAKDNode:
         self.stereo.depth.link(self.xout_depth.input)
         self.cam_rgb.video.link(self.xout_color.input)
 
-        self.depthPub = rospy.Publisher("/oakd/oakd_front/depth_map", Image, queue_size=10)
-        self.colorPub = rospy.Publisher("/oakd/oakd_front/color_image", Image, queue_size=10)
-        self.cameraInfoPub = rospy.Publisher("/oakd/oakd_front/camera_info", CameraInfo, queue_size=10)
+        self.depthPub = rospy.Publisher("/oakd/oakd_front/depth_map", Image, queue_size=QUEUE_SIZE)
+        self.colorPub = rospy.Publisher("/oakd/oakd_front/color_image", Image, queue_size=QUEUE_SIZE)
+        #TODO: change to service
+        self.cameraInfoPub = rospy.Publisher("/oakd/oakd_front/camera_info", CameraInfo, queue_size=QUEUE_SIZE)
 
         self.device = depthai.Device(self.pipeline)
+        
         self.calibData = self.device.readCalibration()
         self.camera_info = CameraInfo()
-        self.camera_info.K = np.array(self.calibData.getCameraIntrinsics(depthai.CameraBoardSocket.RGB))
+        self.camera_info.K = np.ndarray.flatten(np.array(self.calibData.getCameraIntrinsics(depthai.CameraBoardSocket.RGB)))
+        self.camera_info.distortion_model = "rational_polynomial"
+        self.camera_info.D = np.array(self.calibData.getDistortionCoefficients(depthai.CameraBoardSocket.RGB))
 
         self.bridge = CvBridge()
 
@@ -80,18 +84,19 @@ class OAKDNode:
 
             if rgb is not None:
                 try:
-                    self.colorPub.publish(self.bridge.cv2_to_imgmsg(rgb.getCvFrame(), "rgb8"))
+                    img = self.bridge.cv2_to_imgmsg(rgb.getCvFrame(), "rgb8")
+                    img.header.frame_id = "oakd_front"
+                    self.colorPub.publish(img)
                 except CvBridgeError as e:
                     rospy.loginfo("OAKD frame error")
 
             if depth is not None:
                 try:
-                    self.depthPub.publish(self.bridge.cv2_to_imgmsg(depth.getCvFrame(), "passthrough"))
+                    img = self.bridge.cv2_to_imgmsg(depth.getCvFrame(), "passthrough")
+                    img.header.frame_id = "oakd_front"
+                    self.depthPub.publish(img)
                 except CvBridgeError as e:
                     rospy.loginfo("OAKD frame error")
 
-def main():
-    OAKDNode()
-    rospy.spin()
-
-main()
+OAKDNode()
+rospy.spin()

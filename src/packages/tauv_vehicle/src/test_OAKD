@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+
+import rospy
+from sensor_msgs.msg import Image, CameraInfo
+import cv2 as cv
+from cv_bridge import CvBridge
+
+class Test:
+    def __init__(self):
+        rospy.init_node("test_OAKD")
+
+        self.camera_info = rospy.wait_for_message("/oakd/oakd_front/camera_info", CameraInfo)
+
+        print(self.camera_info)
+
+        rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.viz)
+        rospy.Subscriber("/oakd/oakd_front/color_image", Image, self.viz)
+
+
+    def viz(self, data):
+        bridge = CvBridge()
+        cv_image = bridge.imgmsg_to_cv2(data, desired_encoding='passthrough')
+
+        cv.imshow("img",cv_image)
+        cv.waitKey(1)
+        #print(cv_image)
+
+
+    
+Test()
+rospy.spin()

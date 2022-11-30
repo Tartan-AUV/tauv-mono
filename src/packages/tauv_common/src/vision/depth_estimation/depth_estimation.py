@@ -1,9 +1,11 @@
 import numpy as np 
 from geometry_msgs.msg import Point
 
+WIDTH_TO_RUN = 20
+
 class DepthEstimator():
-  def estimate_relative_depth(depth_image, x, y, w, bbox):
-      box = depth_image[max(bbox.ymin, y - w) : min(bbox.ymax, y + w+1), max(bbox.xmin, x - w) : min(bbox.xmax, x + w + 1)]
+  def estimate_relative_depth(depth_image, x, y, bbox):
+      box = depth_image[max(bbox.ymin, y - WIDTH_TO_RUN) : min(bbox.ymax, y + WIDTH_TO_RUN+1), max(bbox.xmin, x - WIDTH_TO_RUN) : min(bbox.xmax, x + WIDTH_TO_RUN + 1)]
       return np.nanmean(box)
 
   def estimate_absolute_depth(depth_image, bbox, depth_camera_info, known_z=None):
@@ -12,11 +14,9 @@ class DepthEstimator():
     fy = depth_camera_info.K[4]
     cy = depth_camera_info.K[5]
 
-    width_to_run = 20
-
     center_x = (bbox.xmin + bbox.xmax) // 2
     center_y = (bbox.ymin + bbox.ymax) // 2
-    cur_depth = DepthEstimator.estimate_relative_depth(depth_image, center_x, center_y, width_to_run, bbox)
+    cur_depth = DepthEstimator.estimate_relative_depth(depth_image, center_x, center_y, bbox)
 
     if (cur_depth != np.nan):
       cur_x = ((center_x - cx) * cur_depth) / (fx)
