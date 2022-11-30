@@ -4,6 +4,5 @@
 
     <node pkg="tauv_vehicle" type="battery" name="battery" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/battery.yaml" />
-        <remap from="battery" to="/battery" />
     </node>
 </launch>

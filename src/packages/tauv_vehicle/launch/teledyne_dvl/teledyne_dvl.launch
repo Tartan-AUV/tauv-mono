@@ -4,7 +4,5 @@
 
   <node pkg="tauv_vehicle" type="teledyne_dvl" name="teledyne_dvl" output="log">
     <rosparam command="load" file="$(arg config_pkg)/dvl.yaml" />
-    <remap from="dvl_data" to="/teledyne_dvl/data" />
-    <remap from="imu_sync" to="/xsens_imu/sync" />
   </node>
 </launch>

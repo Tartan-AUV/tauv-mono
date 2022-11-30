@@ -4,6 +4,5 @@
 
     <node pkg="tauv_vehicle" type="arduino" name="arduino" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/arduino.yaml" />
-        <remap from="depth" to="/arduino/depth" />
     </node>
 </launch>

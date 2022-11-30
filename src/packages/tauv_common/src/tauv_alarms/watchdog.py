@@ -16,7 +16,7 @@ class Watchdog:
 
         self.cam_frontsub = rospy.Subscriber("/zedm_A/zed_node_A/left/camera_info", rospy.AnyMsg, lambda m: self.kick(m, Alarm.CAMERA_NO_VIDEO_FRONT, 1.0))
         self.cam_bottomsub = rospy.Subscriber("/zedm_B/zed_node_B/left/camera_info", rospy.AnyMsg, lambda m: self.kick(m, Alarm.CAMERA_NO_VIDEO_BOTTOM, 1.0))
-        self.gncsub = rospy.Subscriber("/gnc/pose", rospy.AnyMsg, lambda m: self.kick(m, Alarm.GNC_NO_POSE, 1.0))
+        self.gncsub = rospy.Subscriber("/gnc/state_estimation/navigation_state", rospy.AnyMsg, lambda m: self.kick(m, Alarm.GNC_NO_POSE, 1.0))
         self.bucket_sub = rospy.Subscriber("/bucket_list", rospy.AnyMsg, lambda m: self.kick(m, Alarm.BUCKET_LIST_NOT_PUBLISHING, 5.0))
         self.darknet_sub = rospy.Subscriber("darknet_ros/check_for_objects/status", rospy.AnyMsg, lambda m: self.kick(m, Alarm.DARKNET_NOT_PUBLISHING, 1.0))
 

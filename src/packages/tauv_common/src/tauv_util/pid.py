@@ -1,4 +1,5 @@
 import time
+from math import pi
 import warnings
 
 
@@ -12,6 +13,12 @@ def _clamp(value, limits):
         return lower
     return value
 
+def pi_clip(angle):
+    if angle > pi:
+        return angle - 2 * pi
+    if angle < -pi:
+        return angle + 2 * pi
+    return angle
 
 try:
     # Get monotonic time to ensure that time deltas are always positive

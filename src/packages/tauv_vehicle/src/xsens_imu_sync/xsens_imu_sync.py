@@ -15,9 +15,9 @@ class ImuSync:
     def __init__(self):
         self._ac: AlarmClient = AlarmClient()
 
-        self._sync_pub = rospy.Publisher('imu_sync', ImuSyncMsg, queue_size=10)
-        self._data_pub = rospy.Publisher('imu_data', ImuDataMsg, queue_size=10)
-        self._raw_data_sub = rospy.Subscriber('imu_raw_data', ImuDataMsg, self._handle_imu_data)
+        self._sync_pub = rospy.Publisher('/vehicle/xsens_imu/sync', ImuSyncMsg, queue_size=10)
+        self._data_pub = rospy.Publisher('/vehicle/xsens_imu/data', ImuDataMsg, queue_size=10)
+        self._raw_data_sub = rospy.Subscriber('/vehicle/xsens_imu/raw_data', ImuDataMsg, self._handle_imu_data)
 
         self._x = np.array([0, 0])
 
