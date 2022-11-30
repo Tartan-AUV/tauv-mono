@@ -17,9 +17,10 @@
   <!-- =======================  -->
   <!--  Launch Vehicle / Cams   -->
   <!-- =======================  -->
+  <include file="$(find tauv_common)/launch/retear_sub_position.launch"/>
   <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch"/>
-  <include file="$(find tauv_vehicle)/launch/zed/zedm_multi.launch"/>
   <include file="$(find tauv_vehicle)/launch/$(arg model_name)_vehicle.launch"/>
+  <include file="$(find tauv_vehicle)/launch/static_tfs.launch"/>
 
   <!-- =======================  -->
   <!-- Launch abstract systems  -->
@@ -38,7 +39,7 @@
   </include>
 
   <!-- Start the vision system: -->
-  <include file="$(find tauv_common)/launch/vision/log_detections.launch"/>
+  <node pkg="tauv_common" type="transform_detections" name="transform_detections" output="log"/>
   <!-- Launch mission system -->
   <!-- <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
 </launch>
