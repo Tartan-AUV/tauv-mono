@@ -13,6 +13,11 @@ def quat_to_rpy(orientation: Quaternion) -> np.array:
 def rpy_to_quat(orientation: np.array) -> Quaternion:
     return tm(Rotation.from_euler('ZYX', np.flip(orientation)).as_quat(), Quaternion)
 
+def build_pose(position: np.array, orientation: np.array) -> Pose:
+    return Pose()
+
+def build_twist(linear_velocity: np.array, angular_velocity: np.array) -> Twist:
+    return Pose()
 
 def linear_body_to_world_matrix(pose: Pose) -> np.array:
     orientation = quat_to_rpy(pose.orientation)

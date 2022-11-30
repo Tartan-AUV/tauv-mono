@@ -1,7 +1,9 @@
 <launch>
-    <include file="$(find tauv_vehicle)/launch/xsens_imu/xsens_imu.launch" />
-    <include file="$(find tauv_vehicle)/launch/xsens_imu_sync/xsens_imu_sync.launch" />
-    <include file="$(find tauv_vehicle)/launch/teledyne_dvl/teledyne_dvl.launch"/>
-    <include file="$(find tauv_vehicle)/launch/thrusters/thrusters.launch" />
-    <include file="$(find tauv_vehicle)/launch/arduino/arduino.launch" />
+    <group ns="vehicle">
+        <include file="$(find tauv_vehicle)/launch/xsens_imu/xsens_imu.launch" />
+        <include file="$(find tauv_vehicle)/launch/xsens_imu_sync/xsens_imu_sync.launch" />
+        <include file="$(find tauv_vehicle)/launch/teledyne_dvl/teledyne_dvl.launch"/>
+        <include file="$(find tauv_vehicle)/launch/thrusters/thrusters.launch" />
+        <include file="$(find tauv_vehicle)/launch/arduino/arduino.launch" />
+    </group>
 </launch>

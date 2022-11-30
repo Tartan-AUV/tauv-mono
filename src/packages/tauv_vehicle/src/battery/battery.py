@@ -13,7 +13,7 @@ class Battery:
 
         self._bus: SMBus = SMBus(self._bus_index)
 
-        self._battery_pub: rospy.Publisher = rospy.Publisher('battery', BatteryMsg, queue_size=10)
+        self._battery_pub: rospy.Publisher = rospy.Publisher('/vehicle/battery', BatteryMsg, queue_size=10)
 
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)

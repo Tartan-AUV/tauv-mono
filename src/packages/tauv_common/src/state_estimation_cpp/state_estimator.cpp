@@ -7,7 +7,7 @@
 #include <numeric>
 #include <ros/ros.h>
 #include <tauv_msgs/FluidDepth.h>
-#include <tauv_msgs/Pose.h>
+#include <tauv_msgs/NavigationState.h>
 #include <tauv_msgs/TeledyneDvlData.h>
 #include <tauv_msgs/XsensImuData.h>
 #include <tf/transform_broadcaster.h>
@@ -36,14 +36,14 @@ StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
   this->delayed_queue.reserve(DELAYED_QUEUE_SIZE);
   this->realtime_queue.reserve(REALTIME_QUEUE_SIZE);
 
-  this->imu_sub = n.subscribe("imu", TOPIC_QUEUE_SIZE, &StateEstimator::handle_imu, this);
-  this->dvl_sub = n.subscribe("dvl", TOPIC_QUEUE_SIZE, &StateEstimator::handle_dvl, this);
-  this->depth_sub = n.subscribe("depth", TOPIC_QUEUE_SIZE, &StateEstimator::handle_depth, this);
+  this->imu_sub = n.subscribe("/vehicle/xsens_imu/data", TOPIC_QUEUE_SIZE, &StateEstimator::handle_imu, this);
+  this->dvl_sub = n.subscribe("/vehicle/teledyne_dvl/data", TOPIC_QUEUE_SIZE, &StateEstimator::handle_dvl, this);
+  this->depth_sub = n.subscribe("/vehicle/arduino/depth", TOPIC_QUEUE_SIZE, &StateEstimator::handle_depth, this);
 
-  this->pose_pub = n.advertise<tauv_msgs::Pose>("pose", TOPIC_QUEUE_SIZE);
-  this->odom_pub = n.advertise<nav_msgs::Odometry>("odom", TOPIC_QUEUE_SIZE);
+  this->navigation_state_pub = n.advertise<tauv_msgs::NavigationState>("/gnc/state_estimation/navigation_state", TOPIC_QUEUE_SIZE);
+  this->odom_pub = n.advertise<nav_msgs::Odometry>("/gnc/state_estimation/odom", TOPIC_QUEUE_SIZE);
 
-  this->set_pose_srv = n.advertiseService("set_pose", &StateEstimator::handle_set_pose, this);
+  this->set_pose_srv = n.advertiseService("/gnc/state_estimation/set_pose", &StateEstimator::handle_set_pose, this);
 
   this->timer = n.createTimer(this->dt, &StateEstimator::update, this);
 
@@ -152,7 +152,7 @@ void StateEstimator::update(const ros::TimerEvent& e)
   Eigen::Vector3d position, velocity, acceleration, orientation, angular_velocity;
   this->ekf.get_state_fields(current_time.toSec(), position, velocity, acceleration, orientation, angular_velocity);
 
-  this->publish_pose(current_time, position, velocity, acceleration, orientation, angular_velocity);
+  this->publish_navigation_state(current_time, position, velocity, acceleration, orientation, angular_velocity);
   this->publish_odom(current_time, position, velocity, orientation, angular_velocity);
   this->publish_tf(current_time, position, orientation);
 }
@@ -277,7 +277,7 @@ bool StateEstimator::handle_set_pose(
     return true;
 }
 
-void StateEstimator::publish_pose(
+void StateEstimator::publish_navigation_state(
   ros::Time time,
   const Eigen::Vector3d &position,
   const Eigen::Vector3d &velocity,
@@ -285,7 +285,7 @@ void StateEstimator::publish_pose(
   const Eigen::Vector3d &orientation,
   const Eigen::Vector3d &angular_velocity)
 {
-  tauv_msgs::Pose msg;
+  tauv_msgs::NavigationState msg;
   msg.header.stamp = time;
   msg.position.x = position.x();
   msg.position.y = position.y();
@@ -302,7 +302,7 @@ void StateEstimator::publish_pose(
   msg.angular_velocity.x = angular_velocity.x();
   msg.angular_velocity.y = angular_velocity.y();
   msg.angular_velocity.z = angular_velocity.z();
-  this->pose_pub.publish(msg);
+  this->navigation_state_pub.publish(msg);
 }
 
 void StateEstimator::publish_odom(

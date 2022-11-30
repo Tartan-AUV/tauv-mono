@@ -31,20 +31,18 @@ class Thrusters:
         rospy.loginfo('initialized maestro')
 
         self._is_armed: bool = False
-        self._arm_service: rospy.Service = rospy.Service('arm', SetBool, self._handle_arm)
+        self._arm_service: rospy.Service = rospy.Service('/vehicle/thrusters/arm', SetBool, self._handle_arm)
 
-        self._servos_sub: rospy.Subscriber = rospy.Subscriber('servos', ServosMsg, self._handle_servos)
-        self._battery_sub: rospy.Subscriber = rospy.Subscriber('battery', BatteryMsg, self._handle_battery)
-        self._wrench_sub: rospy.Subscriber = rospy.Subscriber('wrench', Wrench, self._handle_wrench)
+        self._servos_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/servos', ServosMsg, self._handle_servos)
+        self._battery_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/battery', BatteryMsg, self._handle_battery)
+        self._wrench_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/thrusters/wrench', Wrench, self._handle_wrench)
 
         self._battery_voltage: float = self._default_battery_voltage
         self._wrench: Wrench = Wrench()
         self._wrench_update_time: rospy.Time = rospy.Time.now()
 
-        self._killed_pub : rospy.Publisher = rospy.Publisher('killed', Bool, queue_size=1)
+        self._active_pub : rospy.Publisher = rospy.Publisher('/vehicle/thrusters/active', Bool, queue_size=10)
 
-        self._active_pub : rospy.Publisher = rospy.Publisher('active', Bool, queue_size=10)
-    
     def _try_init(self):
         try:
             self._maestro = Maestro(ttyStr=self._maestro_port)
@@ -59,21 +57,10 @@ class Thrusters:
         rospy.spin()
 
     def _update(self, timer_event):
-        _killed = True
-        try:
-            kval = self._maestro.getPosition(self._kill_channel)
-            _killed = kval < 400
-        except TypeError:
-            rospy.logwarn("read error")
-        except serial.serialutil.SerialException as e:
-            rospy.logwarn(e)
-
-        self._killed_pub.publish(Bool(_killed))
-        self._ac.set(Alarm.KILL_SWITCH_ACTIVE, value=_killed)
         self._ac.set(Alarm.SUB_DISARMED, value=not self._is_armed)
 
         if (rospy.Time.now() - self._wrench_update_time).to_sec() > self._timeout \
-                or not self._is_armed or _killed:
+                or not self._is_armed:
             self._wrench = Wrench()
             self._wrench_update_time = rospy.Time.now()
             self._active_pub.publish(False)

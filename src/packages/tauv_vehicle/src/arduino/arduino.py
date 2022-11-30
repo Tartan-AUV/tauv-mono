@@ -17,7 +17,7 @@ class Arduino:
 
         self._dt: float = 0.10
 
-        self._depth_pub: rospy.Publisher = rospy.Publisher('depth', DepthMsg, queue_size=10)
+        self._depth_pub: rospy.Publisher = rospy.Publisher('/vehicle/arduino/depth', DepthMsg, queue_size=10)
 
         self._serial = None
 

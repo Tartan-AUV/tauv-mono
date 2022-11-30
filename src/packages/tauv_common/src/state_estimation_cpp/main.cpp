@@ -5,7 +5,7 @@
 int main(int argc, char *argv[])
 {
   ros::init(argc, argv, "state_estimation");
-  ros::NodeHandle n("state_estimation_cpp");
+  ros::NodeHandle n("state_estimation");
 
   ROS_INFO("Launched!");
 

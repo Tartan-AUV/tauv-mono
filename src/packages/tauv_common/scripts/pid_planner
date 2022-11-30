@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+from planners.pid_planner import pid_planner
+
+
+if __name__ == "__main__":
+    pid_planner.main()
