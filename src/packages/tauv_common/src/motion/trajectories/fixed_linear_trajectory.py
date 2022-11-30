@@ -1,7 +1,7 @@
 import rospy
 from motion.trajectories.trajectories import TrajectoryStatus, Trajectory
 
-from tauv_msgs.srv import GetTrajResponse, GetTrajRequest
+from tauv_msgs.srv import GetTrajectoryRequest, GetTrajectoryResponse
 from geometry_msgs.msg import Pose, Vector3, Quaternion, Point, Twist, PoseStamped
 from nav_msgs.msg import Path
 from scipy.spatial.transform import Rotation
@@ -159,9 +159,9 @@ class LinearTrajectory(Trajectory):
         self.status = TrajectoryStatus.PENDING
 
     def get_points(self, request):
-        assert(isinstance(request, GetTrajRequest))
+        assert(isinstance(request, GetTrajectoryRequest))
 
-        res = GetTrajResponse()
+        res = GetTrajectoryResponse()
 
         poses = []
         twists = []
@@ -218,7 +218,7 @@ class LinearTrajectory(Trajectory):
         return self.status
 
     def as_path(self, dt=0.1):
-        request = GetTrajRequest()
+        request = GetTrajectoryRequest()
         request.curr_pose = Pose()
         request.curr_twist = Twist()
         request.len = int(ceil(self.duration().to_sec()/dt))

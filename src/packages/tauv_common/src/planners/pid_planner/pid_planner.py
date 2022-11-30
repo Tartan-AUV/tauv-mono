@@ -56,8 +56,8 @@ class PIDPlanner:
         current_orientation = tl(self._navigation_state.orientation)
         current_yaw = tl(self._navigation_state.orientation)[2]
 
-        position_error = target_position - current_position
-        yaw_error = target_yaw - current_yaw
+        position_error = current_position - target_position
+        yaw_error = current_yaw - target_yaw
 
         world_position_effort = np.zeros(3)
         for i in range(3):
@@ -86,8 +86,8 @@ class PIDPlanner:
 
 
     def _get_target(self) -> (Optional[Pose], Optional[Twist]):
-        pose = build_pose(self._navigation_state.position, self._navigation_state.orientation)
-        body_twist = build_twist(self._navigation_state.linear_velocity, self._navigation_state.angular_velocity)
+        pose = build_pose(tl(self._navigation_state.position), tl(self._navigation_state.orientation))
+        body_twist = build_twist(tl(self._navigation_state.velocity), tl(self._navigation_state.angular_velocity))
 
         req = GetTrajectoryRequest()
         req.curr_pose = pose
@@ -95,7 +95,7 @@ class PIDPlanner:
         req.len = 1
         req.dt = 0
         req.header.stamp = rospy.Time.now()
-        req.header_frame_id = 'odom_ned'
+        req.header.frame_id = 'odom_ned'
         req.curr_time = rospy.Time.now()
 
         try:

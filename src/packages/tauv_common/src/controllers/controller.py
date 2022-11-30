@@ -60,8 +60,8 @@ class Controller:
             tl(self._navigation_state.angular_velocity),
         ))
 
-        roll_error = self._navigation_state.orientation[0]
-        pitch_error = self._navigation_state.orientation[1]
+        roll_error = tl(self._navigation_state.orientation)[0]
+        pitch_error = tl(self._navigation_state.orientation)[1]
 
         roll_effort = self._pids[0](roll_error)
         pitch_effort = self._pids[1](pitch_error)
@@ -90,12 +90,12 @@ class Controller:
         self._wrench_pub.publish(wrench)
 
         controller_debug: ControllerDebug = ControllerDebug()
-        controller_debug.roll = self._navigation_state.orientation[0]
+        controller_debug.roll = tl(self._navigation_state.orientation)[0]
         controller_debug.error_roll = roll_error
         controller_debug.integral_roll = self._pids[0]._integral
         controller_debug.derivative_roll = self._pids[0]._derivative
         controller_debug.effort_roll = roll_effort
-        controller_debug.pitch = self._navigation_state.orientation[1]
+        controller_debug.pitch = tl(self._navigation_state.orientation)[1]
         controller_debug.error_pitch = pitch_error
         controller_debug.integral_pitch = self._pids[1]._integral
         controller_debug.derivative_pitch = self._pids[1]._derivative

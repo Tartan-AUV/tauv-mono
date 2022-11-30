@@ -42,11 +42,11 @@ class TeleopPlanner:
 
         self._joy_cmd: Optional[ControllerCommand] = None
         self._joy_cmd_timestamp: Optional[rospy.Time] = None
-        self._joy_cmd_timeout: float = 0.1
+        self._joy_cmd_timeout: float = 1.0
 
         self._planner_cmd: Optional[ControllerCommand] = None
         self._planner_cmd_timestamp: Optional[rospy.Time] = None
-        self._planner_cmd_timeout: float = 0.5
+        self._planner_cmd_timeout: float = 1.0
 
         self._joy_sub: rospy.Subscriber = rospy.Subscriber('/joy', Joy, self._handle_joy)
         self._planner_cmd_sub: rospy.Subscriber = rospy.Subscriber('/gnc/controller/planner_command', ControllerCommand, self._handle_planner_cmd)
