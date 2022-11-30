@@ -1,7 +1,7 @@
 subscribers:
 
   camera_reading:
-    topic: /cameras/merged
+    topic: /oakd/oakd_front/color_image
     queue_size: 1
 
 actions:

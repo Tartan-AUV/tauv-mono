@@ -7,17 +7,18 @@ add_message_files(
   FILES
   AlarmReport.msg
   AlarmWithMessage.msg
-  ControllerCommand.msg
+  ControllerCmd.msg
   ControllerDebug.msg
-  BucketDetection.msg
-  BucketList.msg
+  ControlsTunings.msg
+  FeatureDetection.msg
   FluidDepth.msg
-  DynamicsTuning.msg
+  DynamicsTunings.msg
+  GateDetection.msg
   Message.msg
   SonarPulse.msg
   Servos.msg
   RegisterMeasurement.msg
-  RegisterObjectDetections.msg
+  FeatureDetections.msg
   PoseGraphMeasurement.msg
   ReadableAlarmReport.msg
   Thrust.msg
@@ -26,17 +27,17 @@ add_message_files(
   XsensImuSync.msg
   XsensImuData.msg
   TeledyneDvlData.msg
-  NavigationState.msg
-  PIDTuning.msg
+  Pose.msg
 )
 
 add_service_files(
   FILES
+  MapFind.srv
+  MapFindClosest.srv
   SyncAlarms.srv
   TuneDynamics.srv
-  TuneController.srv
-  TunePIDPlanner.srv
-  GetTrajectory.srv
+  TuneControls.srv
+  GetTraj.srv
   SetTargetPose.srv
   SetPose.srv
   RunBasicMission.srv

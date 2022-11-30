@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from vsision.detectors.log_detections import log_detections
+from vision.detectors import log_detections
 
 if __name__ == "__main__":
     log_detections.main()

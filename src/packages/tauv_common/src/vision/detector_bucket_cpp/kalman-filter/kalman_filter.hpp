@@ -3,10 +3,14 @@
 #include <vector>
 #include <string>
 
+/**
+ * General linear Kalman Filter implementation created for filtering positions of static objects in 
+ * the mapping system but no backwards tie to system exists so can be generalized.
+ * All notation and formulas found in: http://www.cs.unc.edu/~tracker/media/pdf/SIGGRAPH2001_CoursePack_08.pdf
+**/
+
 using namespace std;
 
-//field notation according to: http://www.cs.unc.edu/~tracker/media/pdf/SIGGRAPH2001_CoursePack_08.pdf
-//standard kalman filter
 class KalmanFilter
 {
     public:
@@ -34,7 +38,10 @@ class KalmanFilter
         void makeUpdates(Eigen::VectorXd newEstimate, Eigen::VectorXd zk);
 };
 
-//Kalman filter based on constant-direct-measurement assumption of position
+/**
+ * Kalman filter based on constant-direct-measurement assumption of position.
+ * Used in mapping static objects.
+**/
 class ConstantKalmanFilter : public KalmanFilter
 {
     public:
