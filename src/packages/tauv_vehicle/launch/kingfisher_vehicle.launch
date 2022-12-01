@@ -5,5 +5,6 @@
         <include file="$(find tauv_vehicle)/launch/teledyne_dvl/teledyne_dvl.launch"/>
         <include file="$(find tauv_vehicle)/launch/thrusters/thrusters.launch" />
         <include file="$(find tauv_vehicle)/launch/arduino/arduino.launch" />
+        <include file="$(find tauv_vehicle)/launch/cameras/oakd_ros.launch" />
     </group>
 </launch>

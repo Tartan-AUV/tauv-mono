@@ -26,7 +26,7 @@ def getColor(tag, trans=False):
 
 def makeMarker(id, detection, color, scale = 0.5, shape = Marker.SPHERE, time = rospy.Duration(1.0)):
     marker = Marker()
-    marker.header.frame_id = "map"
+    marker.header.frame_id = "odom_ned"
     marker.header.stamp = rospy.Time()
     marker.ns = "my_namespace"
     marker.id = id

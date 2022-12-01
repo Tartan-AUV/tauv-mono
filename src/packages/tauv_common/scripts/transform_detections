@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from vision.detectors import transform_detections
+
+if __name__ == "__main__":
+    transform_detections.main()

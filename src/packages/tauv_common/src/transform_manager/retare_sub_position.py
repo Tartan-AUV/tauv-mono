@@ -2,19 +2,19 @@
 
 import rospy
 import tf2_ros
-import geometry_msgs.msg
+from geometry_msgs.msg import Pose, TransformStamped
 
-class RetearSubPosition():
+class RetareSubPosition():
     def __init__(self):
-        self._NODE_NAME = "retear_sub_position"
+        self._NODE_NAME = "retare_sub_position"
         self._NODE_NAME_FMT = "[{}]".format(self._NODE_NAME)
 
         self._WORLD_FRAME_ID = "world_ned"
         self._ODOM_FRAME_ID = "odom_ned"
     
-    def handle_retear(self, msg):
+    def handle_retare(self, msg):
         br = tf2_ros.TransformBroadcaster()
-        t = geometry_msgs.msg.TransformStamped()
+        t = TransformStamped()
 
         t.header.stamp = rospy.Time.now()
         t.header.frame_id = self._WORLD_FRAME_ID
@@ -31,17 +31,17 @@ class RetearSubPosition():
 
         try:
             br.sendTransform(t)
-            return True; # return success code
+            return True # return success code
         except Exception as e:
             rospy.logerr("{} Could not send {} -> {} tf transform. Got execption:\n{}"
                 .format(self._NODE_NAME_FMT, self._WORLD_FRAME_ID, self._ODOM_FRAME_ID, e))
-            return False; # return success code
+            return False # return success code
 
     def start(self):
         rospy.init_node(self._NODE_NAME)
-        s = rospy.Service(self._NODE_NAME, RetearSubPosition, self.handle_retear)
+        s = rospy.Service(self._NODE_NAME, Pose, self.handle_retare)
         rospy.spin()
 
-if __name__ == "__main__":
-    r = RetearSubPosition()
+def main():
+    r = RetareSubPosition()
     r.start()

@@ -6,7 +6,7 @@ WIDTH_TO_RUN = 20
 class DepthEstimator():
   def estimate_relative_depth(depth_image, x, y, bbox):
       box = depth_image[max(bbox.ymin, y - WIDTH_TO_RUN) : min(bbox.ymax, y + WIDTH_TO_RUN+1), max(bbox.xmin, x - WIDTH_TO_RUN) : min(bbox.xmax, x + WIDTH_TO_RUN + 1)]
-      return np.nanmean(box)
+      return np.nanmean(box) / 1000
 
   def estimate_absolute_depth(depth_image, bbox, depth_camera_info, known_z=None):
     fx = depth_camera_info.K[0]

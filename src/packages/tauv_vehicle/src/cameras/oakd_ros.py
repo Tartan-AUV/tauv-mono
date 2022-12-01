@@ -98,5 +98,6 @@ class OAKDNode:
                 except CvBridgeError as e:
                     rospy.loginfo("OAKD frame error")
 
-OAKDNode()
-rospy.spin()
+def main():
+    OAKDNode()
+    rospy.spin()

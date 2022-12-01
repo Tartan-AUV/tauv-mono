@@ -15,8 +15,7 @@ from tauv_util import transforms
 from tauv_util import types
 from scipy.spatial.transform import Rotation
 from std_srvs.srv import Trigger
-import tf2_ros
-import tf2_geometry_msgs
+import tf
 
 class TransformDetections():
     def __init__(self):
@@ -26,8 +25,7 @@ class TransformDetections():
 
         rospy.init_node(self.NODE_NAME, anonymous = True)
 
-        self.tf_buffer = tf2_ros.Buffer()
-        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
+        self.tf_listener = tf.TransformListener()
 
         self.front_camera_frame_id = "oakd_front"
         self.bottom_camera_frame_id = "oakd_bottom"
@@ -54,7 +52,7 @@ class TransformDetections():
         # initialize subscriber for darknet NN bounding boxes
         rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
 
-        self.detector = rospy.Publisher("/global_map/transformed_detections", FeatureDetections,
+        self.detector = rospy.Publisher("/global_map/transform_detections", FeatureDetections,
                                         queue_size=10)
 
     def start(self):
@@ -67,7 +65,8 @@ class TransformDetections():
         self.camera_flags_by_frame_id[msg.header.frame_id] = True
 
     def bbox_callback(self, bboxes):
-        camera_frame_id = bboxes.header.frame_id
+        # camera_frame_id = bboxes.header.frame_id
+        camera_frame_id = self.front_camera_frame_id
 
         if not self.camera_flags_by_frame_id[camera_frame_id]:
             rospy.logerr("{} Waiting for depth for camera `{}`".format(
@@ -84,7 +83,7 @@ class TransformDetections():
 
             # calculate depth of the object in a relative coordinate frame, returned as an (x, y, z)
             # in NED frame
-            relative_pos = DepthEstimator.estimate_absolute_depth(self.front_depth_image,
+            relative_pos = DepthEstimator.estimate_absolute_depth(self.camera_data_by_frame_id[camera_frame_id],
                                                                   bbox,
                                                                   self.camera_info)
 
@@ -93,26 +92,28 @@ class TransformDetections():
             
             relative_pos_wrapped = PointStamped()
             relative_pos_wrapped.header = bboxes.header
+            relative_pos_wrapped.header.frame_id = camera_frame_id
+            relative_pos_wrapped.header.stamp = rospy.Time(0)
             relative_pos_wrapped.point = Point(
                 relative_pos[2], relative_pos[0], relative_pos[1]) # relative position
 
             # transform point from sensor coordinate frame to world coordinate frame
-            sensor_to_world_tf = self.tf_buffer.lookup_transform(
-                "world_ned",
-                bboxes.header.frame_id,
-                bboxes.header.stamp,
-                rospy.Duration(1.0, 0.0) # 1 second timeout if the transform cannot be found
-            )
-            
-            transformed_pos = tf2_geometry_msgs.do_transform_point(
-                relative_pos_wrapped, sensor_to_world_tf
+            # sensor_to_world_tf = self.tf_listener.lookupTransform(
+            #     "odom_ned",
+            #     camera_frame_id,
+            # )
+
+
+
+            transformed_pos = self.tf_listener.transformPoint(
+                "odom_ned", relative_pos_wrapped
             )
 
             objdet.position = transformed_pos.point
-            objects.objdets.append(objdet)
+            objects.detections.append(objdet)
 
         self.detector.publish(objects)
 
-if __name__=='__main__':
+def main():
     s = TransformDetections()
     s.start()
