@@ -7,6 +7,8 @@
   <!-- Name of the robot model  -->
   <arg name="model_name" default="kingfisher"/>
 
+  <arg name="teleop" default="false"/>
+
   <!-- =======================  -->
   <!--       Load Configs       -->
   <!-- =======================  -->
@@ -36,10 +38,11 @@
   <!-- Start the GNC system: -->
   <include file="$(find tauv_common)/launch/gnc/gnc.launch">
     <arg name="model_name" value="$(arg model_name)"/>
+    <arg name="teleop" value="$(arg teleop)" />
   </include>
 
   <!-- Start the vision system: -->
-  <node pkg="tauv_common" type="transform_detections" name="transform_detections" output="log"/>
+    <node pkg="tauv_common" type="transform_detections" name="transform_detections" output="log"/>
   <!-- Launch mission system -->
   <!-- <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
 </launch>
