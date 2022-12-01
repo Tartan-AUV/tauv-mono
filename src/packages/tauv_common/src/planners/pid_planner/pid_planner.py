@@ -120,7 +120,7 @@ class PIDPlanner:
                 Kp=self._kp[i],
                 Ki=self._ki[i],
                 Kd=self._kd[i],
-                output_limits=self._limits[i],
+                output_limits=(self._limits[i, 0], self._limits[i, 1]),
                 error_map=pi_clip if i == 3 else lambda x: x,
                 proportional_on_measurement=False,
                 sample_time=self._dt,
@@ -132,11 +132,11 @@ class PIDPlanner:
 
     def _load_config(self):
         self._frequency = rospy.get_param('~frequency')
-        self._kp = np.array(rospy.get_param('~kp'))
-        self._ki = np.array(rospy.get_param('~ki'))
-        self._kd = np.array(rospy.get_param('~kd'))
-        self._tau = np.array(rospy.get_param('~tau'))
-        self._limits = np.array(rospy.get_param('~limits'))
+        self._kp = np.array(rospy.get_param('~kp'), dtype=np.float64)
+        self._ki = np.array(rospy.get_param('~ki'), dtype=np.float64)
+        self._kd = np.array(rospy.get_param('~kd'), dtype=np.float64)
+        self._tau = np.array(rospy.get_param('~tau'), dtype=np.float64)
+        self._limits = np.array(rospy.get_param('~limits'), dtype=np.float64)
 
     def _handle_navigation_state(self, msg: NavigationState):
         self._navigation_state = msg
@@ -154,7 +154,9 @@ class PIDPlanner:
             self._ki[field] = tuning.ki
             self._kd[field] = tuning.kd
             self._tau[field] = tuning.tau
-            self._limits[field] = np.array(tuning.limits)
+            self._limits[field, 0] = tuning.limits[0]
+            self._limits[field, 1] = tuning.limits[1]
+
         self._build_pids()
         return TunePIDPlannerResponse(True)
 

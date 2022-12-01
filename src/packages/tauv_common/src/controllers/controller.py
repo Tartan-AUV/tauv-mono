@@ -160,11 +160,11 @@ class Controller:
             if field is None:
                 return TuneControllerResponse(False)
 
-            self._kp[field] = tuning.kp
-            self._ki[field] = tuning.ki
-            self._kd[field] = tuning.kd
-            self._tau[field] = tuning.tau
-            self._limits[field] = np.array(tuning.limits)
+            self._kp[field] = float(tuning.kp)
+            self._ki[field] = float(tuning.ki)
+            self._kd[field] = float(tuning.kd)
+            self._tau[field] = float(tuning.tau)
+            self._limits[field] = np.array(tuning.limits, dtype=np.float64)
         self._build_pids()
         return TuneControllerResponse(True)
 
