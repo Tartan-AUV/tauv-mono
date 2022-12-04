@@ -2,12 +2,13 @@
 
 import rospy
 from tauv_msgs.msg import Pose, FeatureDetection, FeatureDetections
+from tauv_msgs.srv import CameraInfo as CameraInfoSrv
 from std_msgs.msg import Header
 import numpy as np
 import cv2
 from cv_bridge import CvBridge
 from darknet_ros_msgs.msg import BoundingBoxes, BoundingBox
-from sensor_msgs.msg import Image, CameraInfo
+from sensor_msgs.msg import Image
 from vision.depth_estimation.depth_estimation import DepthEstimator
 from geometry_msgs.msg import Point, PointStamped, Point
 import math
@@ -16,6 +17,7 @@ from tauv_util import types
 from scipy.spatial.transform import Rotation
 from std_srvs.srv import Trigger
 import tf
+
 
 class TransformDetections():
     def __init__(self):
@@ -42,14 +44,21 @@ class TransformDetections():
 
         self.cv_bridge = CvBridge()
 
-        self.bounding_boxes = rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
+        rospy.wait_for_service('/oakd/camera_info')
+        self.camera_info = rospy.ServiceProxy('/oakd/camera_info', CameraInfoSrv)
+        self.front_camera_info = None
+        try:
+            self.front_camera_info = self.camera_info("oakd_front")
+        except rospy.ServiceException as exc:
+            rospy.logerr("Camera info failed")
         
         # initialize subscribers for front camera depthmaps and camera info
         rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.front_depth_callback)
-        self.camera_info = rospy.wait_for_message("/oakd/oakd_front/camera_info", CameraInfo)
+        self.camera_info = rospy.wait_for_message("/oakd/oakd_front/camera_info", CameraInfoSrv)
 
 
         # initialize subscriber for darknet NN bounding boxes
+        self.bounding_boxes = rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
         rospy.Subscriber("/darknet_ros/bounding_boxes", BoundingBoxes, self.bbox_callback)
 
         self.detector = rospy.Publisher("/global_map/transform_detections", FeatureDetections,
@@ -65,8 +74,8 @@ class TransformDetections():
         self.camera_flags_by_frame_id[msg.header.frame_id] = True
 
     def bbox_callback(self, bboxes):
-        # camera_frame_id = bboxes.header.frame_id
-        camera_frame_id = self.front_camera_frame_id
+        camera_frame_id = bboxes.header.frame_id
+        #camera_frame_id = self.front_camera_frame_id
 
         if not self.camera_flags_by_frame_id[camera_frame_id]:
             rospy.logerr("{} Waiting for depth for camera `{}`".format(
@@ -85,7 +94,7 @@ class TransformDetections():
             # in NED frame
             relative_pos = DepthEstimator.estimate_absolute_depth(self.camera_data_by_frame_id[camera_frame_id],
                                                                   bbox,
-                                                                  self.camera_info)
+                                                                  self.front_camera_info)
 
             if relative_pos == np.nan: # invalid depth estimate
                 continue
@@ -102,8 +111,6 @@ class TransformDetections():
             #     "odom_ned",
             #     camera_frame_id,
             # )
-
-
 
             transformed_pos = self.tf_listener.transformPoint(
                 "odom_ned", relative_pos_wrapped

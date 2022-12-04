@@ -5,6 +5,7 @@
 #include <std_srvs/Trigger.h>
 #include <tauv_msgs/MapFind.h>
 #include <tauv_msgs/MapFindClosest.h>
+#include <tauv_msgs/MapFindOne.h>
 #include <unordered_map>
 #include <string>
 #include <utility>
@@ -123,6 +124,7 @@ class FeatureTracker : public enable_shared_from_this<FeatureTracker>
         * Global Map commands updates to Feature List only prior to assignment and matching.
         **/
         void deleteFeature(int featureIdx);
+        double getDecay(shared_ptr<Feature> F, int totalDetections);
         double decay(int featureIdx, int totalDetections);
         //for deleting Features when there are too many Zombies
         void makeUpdates();
@@ -186,9 +188,10 @@ class GlobalMap
 
         //service callback functions
         bool find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Response &res);
+        //arbitrarily returns the most recent/highest count object with a certain tag
+        bool findOne(tauv_msgs::MapFindOne::Request &req, tauv_msgs::MapFindOne::Response &res);
         bool findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::MapFindClosest::Response &res);
-        bool reset(std_srvs::Trigger::Request &req, 
-                                std_srvs::Trigger::Response &res);
+        bool reset(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
 
     private:
         void assignDetections(vector<FeatureDetection> &detections);
@@ -201,6 +204,7 @@ class GlobalMap
         ros::Subscriber listener;
         ros::ServiceServer resetService;
         ros::ServiceServer findService;
+        ros::ServiceServer findOneService;
         ros::ServiceServer findClosestService;
         mutex mtx;
 

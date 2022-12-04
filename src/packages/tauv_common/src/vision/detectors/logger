@@ -4,8 +4,11 @@ import rospy
 from tauv_msgs.msg import FeatureDetections, FeatureDetection
 from tauv_msgs.srv import MapFind, MapFindClosest
 from visualization_msgs.msg import MarkerArray, Marker
+from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
 import numpy as np
+import cv2
+from cv_bridge import CvBridge, CvBridgeError
 
 def getColor(tag, trans=False):
     color = [0,0,0,0]
@@ -63,11 +66,28 @@ class Logger():
         rospy.wait_for_service("/global_map/find")
         self.find = rospy.ServiceProxy("/global_map/find", MapFind)
 
+        self.bridge = CvBridge()
+
         self.viz = rospy.Publisher("/visualization_marker_array", MarkerArray, queue_size=100)
-        
+
+        rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.depth)
+        rospy.Subscriber("/oakd/oakd_front/color_image", Image, self.color)
+
         rospy.Timer(rospy.Duration(0.5), self.visualize)
 
         self.ind = 10000
+
+    def color(self, data):
+        print("COLOR")
+        cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='bgr8')
+        print(data.header)
+        print(cv_image)
+
+    def depth(self, data):
+        print("BW")
+        cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='mono16')
+        print(data.header)
+        print(cv_image)
 
     def visualize(self, time):
         #buckets = bucketList.bucket_list
