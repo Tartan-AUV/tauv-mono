@@ -91,49 +91,39 @@ class TransformDetections():
         
 
     def transform_matched_frames(self, frame_id, seq):
-        print("transformed!!")
-        # new list of all transformed detections in current frame
-        objects = FeatureDetections()
-        objects.detections = list()
-
         bboxes = self.frames_by_frame_id[frame_id][seq]['bboxes']
         depth = self.frames_by_frame_id[frame_id][seq]['depth']
         time = self.frames_by_frame_id[frame_id][seq]['time']
+
+        # new list of all transformed detections in current frame
+        objects = FeatureDetections()
+        objects.detections = list()
+        objects.header = Header()
+        objects.header.frame_id = frame_id
+        objects.header.stamp = time
+        objects.header.seq = seq
 
         for bbox in bboxes:
             objdet = FeatureDetection()
             objdet.tag = bbox.Class
 
-            # calculate depth of the object in a relative coordinate frame, returned as an (x, y, z)
-            # in NED frame
+            # calculate depth of the object in a relative coordinate frame, returned as an (x, y, z) in NED frame
             relative_pos = DepthEstimator.estimate_absolute_depth(depth,
                                                                   bbox,
                                                                   self.front_camera_info)
 
             if relative_pos == np.nan: # invalid depth estimate
                 continue
-            
-            # relative_pos_wrapped = PointStamped()
-            # relative_pos_wrapped.header = Header()
-            # relative_pos_wrapped.header.frame_id = frame_id
-            # relative_pos_wrapped.header.stamp = time
-            # relative_pos_wrapped.header.seq = seq
-            # relative_pos_wrapped.point = Point(
-            #     relative_pos[2], relative_pos[0], relative_pos[1]) # relative position
 
             # transform point from sensor coordinate frame to world coordinate frame
-            sensor_to_world_tf = self.tf_listener.lookupTransform(
+            (trans, rot) = self.tf_listener.lookupTransform(
                 "odom_ned",
                 frame_id,
                 time
-            #    rospy.Duration(1.0, 0.0) # 1 second timeout if the transform cannot be found
             )
 
-            #transformed_pos = self.tf_listener.transformPoint(
-            #    "odom_ned", relative_pos_wrapped
-            #)
-
-            objdet.position = sensor_to_world_tf * relative_pos
+            trans = [relative_pos[0], relative_pos[1], relative_pos[2], 1]
+            objdet.position = np.matmul(self.tf_listener.fromTranslationRotation(trans,rot), trans)
             objects.detections.append(objdet)
 
         #delete used frame from dict
