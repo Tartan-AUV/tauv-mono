@@ -70,8 +70,8 @@ class Logger():
 
         self.viz = rospy.Publisher("/visualization_marker_array", MarkerArray, queue_size=100)
 
-        rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.depth)
-        rospy.Subscriber("/oakd/oakd_front/color_image", Image, self.color)
+        #rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.depth)
+        #rospy.Subscriber("/oakd/oakd_front/color_image", Image, self.color)
 
         rospy.Timer(rospy.Duration(0.5), self.visualize)
 
