@@ -2,7 +2,7 @@
 
 import rospy
 from tauv_msgs.msg import Pose, FeatureDetection, FeatureDetections
-from tauv_msgs.srv import CameraInfo as CameraInfoSrv
+from tauv_msgs.srv import GetCameraInfo
 from std_msgs.msg import Header
 import numpy as np
 import cv2
@@ -10,7 +10,7 @@ from cv_bridge import CvBridge
 from darknet_ros_msgs.msg import BoundingBoxes, BoundingBox
 from sensor_msgs.msg import Image
 from vision.depth_estimation.depth_estimation import DepthEstimator
-from geometry_msgs.msg import Point, PointStamped, Point
+from geometry_msgs.msg import Point, PointStamped, Point, Vector3
 import math
 from tauv_util import transforms
 from tauv_util import types
@@ -38,16 +38,16 @@ class TransformDetections():
         self.cv_bridge = CvBridge()
 
         rospy.wait_for_service('/oakd/camera_info')
-        self.camera_info = rospy.ServiceProxy('/oakd/camera_info', CameraInfoSrv)
+        self.camera_info = rospy.ServiceProxy('/oakd/camera_info', GetCameraInfo)
         self.front_camera_info = None
         try:
-            self.front_camera_info = self.camera_info("oakd_front")
+            resp = self.camera_info("oakd_front")
+            self.front_camera_info = resp.camera_info
         except rospy.ServiceException as exc:
             rospy.logerr("Camera info failed")
         
         # initialize subscribers for front camera depthmaps and camera info
         rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.add_depth_frame)
-        self.camera_info = rospy.wait_for_message("/oakd/oakd_front/camera_info", CameraInfoSrv)
 
         # initialize subscriber for darknet NN bounding boxes
         self.bounding_boxes = rospy.wait_for_message("/darknet_ros/bounding_boxes", BoundingBoxes)
@@ -66,10 +66,10 @@ class TransformDetections():
         frame_id = frame.header.frame_id
 
         # adds current camera data to dictionary
-        self.frames_by_frame_id[frame_id][seq]['depth'] = \
-            self.cv_bridge.imgmsg_to_cv2(frame, desired_encoding='mono16')
+        if not seq in self.frames_by_frame_id[frame_id]:
+            self.frames_by_frame_id[frame_id][seq] = {}
 
-        # adds frame time to dictionary
+        self.frames_by_frame_id[frame_id][seq]['depth'] = self.cv_bridge.imgmsg_to_cv2(frame, desired_encoding='mono16')
         self.frames_by_frame_id[frame_id][seq]['time'] = frame.header.stamp
 
         #check if dictionary frame seq has correspnding bboxes entry
@@ -82,8 +82,10 @@ class TransformDetections():
         frame_id = frame.image_header.frame_id
 
         #adds bbox data to dictionary
-        self.frames_by_frame_id[frame_id][seq]['bboxes'] = \
-            frame.bounding_boxes
+        if not seq in self.frames_by_frame_id[frame_id]:
+            self.frames_by_frame_id[frame_id][seq] = {}
+
+        self.frames_by_frame_id[frame_id][seq]['bboxes'] = frame.bounding_boxes
 
         #check if dictionary frame seq has correspnding bboxes entry
         if('depth' in self.frames_by_frame_id[frame_id][seq]):
@@ -123,7 +125,8 @@ class TransformDetections():
             )
 
             trans = [relative_pos[0], relative_pos[1], relative_pos[2], 1]
-            objdet.position = np.matmul(self.tf_listener.fromTranslationRotation(trans,rot), trans)
+            trans_position = np.matmul(self.tf_listener.fromTranslationRotation(trans,rot), trans)
+            objdet.position = Vector3(trans_position[0], trans_position[1], trans_position[2])
             objects.detections.append(objdet)
 
         #delete used frame from dict

@@ -3,8 +3,8 @@
 import rospy
 import depthai
 import cv2 as cv
-from sensor_msgs.msg import Image
-from tauv_msgs.srv import CameraInfo
+from sensor_msgs.msg import Image, CameraInfo
+from tauv_msgs.srv import GetCameraInfo, GetCameraInfoResponse
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 
@@ -60,10 +60,6 @@ class OAKDNode:
         self.front_stereo.depth.link(self.front_xout_depth.input)
         self.front_cam_rgb.video.link(self.front_xout_color.input)
 
-        self.front_depthPub = rospy.Publisher("/oakd/oakd_front/depth_map", Image, queue_size=QUEUE_SIZE)
-        self.front_colorPub = rospy.Publisher("/oakd/oakd_front/color_image", Image, queue_size=QUEUE_SIZE)
-        self.cameraInfoService = rospy.Service("/oakd/camera_info", CameraInfo, self.camera_info_service)
-
         self.front_device = depthai.Device(self.pipeline)
         
         self.front_calibData = self.front_device.readCalibration()
@@ -75,13 +71,22 @@ class OAKDNode:
         self.bridge = CvBridge()
 
         #estimate of ros system time offset compared to depthai clock
-        self.time_offset = rospy.Time.now() - depthai.Clock.now() 
+        depthai_time = depthai.Clock.now()
+        self.time_offset = rospy.Time.now() - rospy.Time.from_sec(depthai_time.total_seconds())
+        print(self.time_offset)
+
+        self.front_depthPub = rospy.Publisher("/oakd/oakd_front/depth_map", Image, queue_size=QUEUE_SIZE)
+        self.front_colorPub = rospy.Publisher("/oakd/oakd_front/color_image", Image, queue_size=QUEUE_SIZE)
+        self.cameraInfoService = rospy.Service("/oakd/camera_info", GetCameraInfo, self.camera_info_service)
 
         self.spin()
 
     def camera_info_service(self, req):
         if(req.camera_name=="oakd_front"):
-            return self.front_camera_info
+            resp = GetCameraInfoResponse()
+            resp.camera_info = self.front_camera_info
+            return resp
+
         return None
 
     def spin(self):
@@ -99,7 +104,7 @@ class OAKDNode:
                     img = self.bridge.cv2_to_imgmsg(rgb.getCvFrame(), encoding='bgr8')
                     img.header.frame_id = "oakd_front"
                     img.header.seq = rgb.getSequenceNum()
-                    img.header.stamp = self.time_offset + img.getTimestamp()
+                    img.header.stamp = self.time_offset + rospy.Time.from_sec(rgb.getTimestamp().total_seconds())
                     self.front_colorPub.publish(img)
                 except CvBridgeError as e:
                     rospy.loginfo("OAKD frame error")
@@ -109,7 +114,7 @@ class OAKDNode:
                     img = self.bridge.cv2_to_imgmsg(depth.getCvFrame(), encoding='mono16')
                     img.header.frame_id = "oakd_front"
                     img.header.seq = depth.getSequenceNum()
-                    img.header.stamp = self.time_offset + img.getTimestamp()
+                    img.header.stamp = self.time_offset + rospy.Time.from_sec(depth.getTimestamp().total_seconds())
                     self.front_depthPub.publish(img)
                 except CvBridgeError as e:
                     rospy.loginfo("OAKD frame error")

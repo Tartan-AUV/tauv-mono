@@ -35,7 +35,7 @@ add_service_files(
   MapFind.srv
   MapFindOne.srv
   MapFindClosest.srv
-  CameraInfo.srv
+  GetCameraInfo.srv
   SyncAlarms.srv
   TuneDynamics.srv
   TuneController.srv
