@@ -33,7 +33,9 @@ add_message_files(
 add_service_files(
   FILES
   MapFind.srv
+  MapFindOne.srv
   MapFindClosest.srv
+  CameraInfo.srv
   SyncAlarms.srv
   TuneDynamics.srv
   TuneController.srv

@@ -27,6 +27,7 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
     listener = handler.subscribe("/global_map/transform_detections", 100, &GlobalMap::updateTrackers, this);
     resetService = handler.advertiseService("/global_map/reset", &GlobalMap::reset, this);
     findService = handler.advertiseService("/global_map/find", &GlobalMap::find, this);
+    findOneService = handler.advertiseService("/global_map/find_one", &GlobalMap::findOne, this);
     findClosestService = handler.advertiseService("/global_map/find_closest", &GlobalMap::findClosest, this);
 
 }
@@ -162,7 +163,7 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
 {
     unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
 
-    if(Tracker == MAP.end()){res.success=false; return true;}
+    if(Tracker == MAP.end()){res.success=false; res.detections = {}; return true;}
 
     vector<shared_ptr<Feature>> detections = (Tracker->second)->getFeatures();
     vector<tauv_msgs::FeatureDetection> returnDetections((Tracker->second)->getNumFeatures());
@@ -187,12 +188,47 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
     return true;
 }
 
+bool GlobalMap::findOne(tauv_msgs::MapFindOne::Request &req, tauv_msgs::MapFindOne::Response &res)
+{
+    unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
+
+    if(Tracker == MAP.end()){res.success=false; res.detection = {}; return false;}
+
+    vector<shared_ptr<Feature>> detections = (Tracker->second)->getFeatures();
+
+    int minInd = 0;
+    double maxDecay = -1;
+    for(size_t i = 0; i<detections.size(); i++)
+    {
+        shared_ptr<Feature> detection = detections[i];
+        if(detection->State==TrackerState::ZOMBIE){continue;}
+
+        double decay = (Tracker->second)->getDecay(detection, totalDetections);
+
+        if(decay>maxDecay)
+        {
+            minInd = i;
+            maxDecay = decay;
+        }
+    }
+
+    tauv_msgs::FeatureDetection returnDetection{};
+    returnDetection.position = vec_to_point(detections[minInd]->getPosition());
+    returnDetection.orientation = vec_to_point(detections[minInd]->getOrientation());
+    returnDetection.tag = req.tag;
+
+    res.detection = returnDetection;
+    res.success = true;
+
+    return true;
+}
+
 bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::MapFindClosest::Response &res)
 {
     unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
     Eigen::Vector3d position = point_to_vec(req.point);
 
-    if(Tracker == MAP.end()){res.success=false; return false;}
+    if(Tracker == MAP.end()){res.success=false; res.detection = {}; return false;}
 
     vector<shared_ptr<Feature>> detections = (Tracker->second)->getFeatures();
 

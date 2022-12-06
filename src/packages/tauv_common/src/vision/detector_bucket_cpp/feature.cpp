@@ -123,14 +123,21 @@ double FeatureTracker::frequencyCalc(double frequency, double totalDet)
     return log(frequency)/log(totalDet);
 }
 
-double FeatureTracker::decay(int featureIdx, int totalDetections)
+double FeatureTracker::getDecay(shared_ptr<Feature> F, int totalDetections)
 {
-    shared_ptr<Feature> F= FeatureList[featureIdx];
-    F->incrementRecency();
-
     double recDecay = recency_weight*recencyCalc(F->getRecency());
     double freqDecay = frequency_weight*frequencyCalc(F->getNumDetections(), totalDetections);
     double decay = (recDecay+freqDecay)/(frequency_weight+recency_weight);
+
+    return decay;
+}
+
+double FeatureTracker::decay(int featureIdx, int totalDetections)
+{
+    shared_ptr<Feature> F = FeatureList[featureIdx];
+    F->incrementRecency();
+
+    double decay = getDecay(F, totalDetections);
 
     //cout<<"DECAY: "<<decay<<"\n";
 
@@ -164,8 +171,8 @@ vector<double> FeatureTracker::getSimilarityRow(vector<FeatureDetection> &detect
 
     vector<double> featureSimMatrix(detections.size());
 
-    cout<<"tag: "<<tag<<"\n";
-    cout<<"Position: "<<Feat->getPosition()<<"\n";
+    //cout<<"tag: "<<tag<<"\n";
+    //cout<<"Position: "<<Feat->getPosition()<<"\n";
 
     for(size_t i=0; i<detections.size(); i++)
     {
