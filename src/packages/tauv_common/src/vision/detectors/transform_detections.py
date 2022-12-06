@@ -72,7 +72,7 @@ class TransformDetections():
         self.frames_by_frame_id[frame_id][seq]['depth'] = self.cv_bridge.imgmsg_to_cv2(frame, desired_encoding='mono16')
         self.frames_by_frame_id[frame_id][seq]['time'] = frame.header.stamp
 
-        #check if dictionary frame seq has correspnding bboxes entry
+        # check if dictionary frame seq has correspnding bboxes entry
         if('bboxes' in self.frames_by_frame_id[frame_id][seq]):
             self.transform_matched_frames(frame_id,seq)
 
@@ -81,13 +81,13 @@ class TransformDetections():
         seq = frame.image_header.seq
         frame_id = frame.image_header.frame_id
 
-        #adds bbox data to dictionary
+        # adds bbox data to dictionary
         if not seq in self.frames_by_frame_id[frame_id]:
             self.frames_by_frame_id[frame_id][seq] = {}
 
         self.frames_by_frame_id[frame_id][seq]['bboxes'] = frame.bounding_boxes
 
-        #check if dictionary frame seq has correspnding bboxes entry
+        # check if dictionary frame seq has correspnding bboxes entry
         if('depth' in self.frames_by_frame_id[frame_id][seq]):
             self.transform_matched_frames(frame_id,seq)
         
@@ -118,15 +118,29 @@ class TransformDetections():
                 continue
 
             # transform point from sensor coordinate frame to world coordinate frame
-            (trans, rot) = self.tf_listener.lookupTransform(
+            # (sensor_trans, sensor_rot) = self.tf_listener.lookupTransform(
+            #     "odom_ned",
+            #     frame_id,
+            #     time
+            # )
+
+            # wrapped relative position
+            relative_trans = PointStamped()
+            relative_trans.header.stamp = time
+            relative_trans.header.frame_id = frame_id
+
+            relative_trans.point.x = relative_pos[0]
+            relative_trans.point.y = relative_pos[1]
+            relative_trans.point.z = relative_pos[2]
+
+            global_point = self.tf_listener.transformPoint(
                 "odom_ned",
-                frame_id,
-                time
+                relative_trans
             )
 
-            trans = [relative_pos[0], relative_pos[1], relative_pos[2], 1]
-            trans_position = np.matmul(self.tf_listener.fromTranslationRotation(trans,rot), trans)
-            objdet.position = Vector3(trans_position[0], trans_position[1], trans_position[2])
+            # trans = [relative_pos[0], relative_pos[1], relative_pos[2], 1]
+            # trans_position = np.matmul(self.tf_listener.fromTranslationRotation(trans,rot), trans)
+            objdet.position = Vector3(global_point.point.x, global_point.point.y, global_point.point.z)
             objects.detections.append(objdet)
 
         #delete used frame from dict
