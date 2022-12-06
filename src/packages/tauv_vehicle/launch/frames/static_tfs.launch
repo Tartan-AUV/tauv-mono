@@ -1,5 +1,29 @@
 <launch>    
     <!-- Publish the vehicle -> oakd_front transform -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_front_static_publisher"
-        args="0 0 0 0 0 0 1 vehicle_ned oakd_front" />
+        args="0.49652961051505 0 0 0 0 0 vehicle_ned oakd_front" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_1_publisher"
+          args="0.535124665415234 0.217685799140885 0 0 -1.5707963267949 -2.35619449019234 vehicle_ned thruster_1_ned" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_2_publisher"
+          args="0.535124665415234 -0.217685799140885 0 0 1.5707963267949 -2.35619449019234 vehicle_ned thruster_2_ned" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_3_publisher"
+          args="-0.35605466541527 0.217685799140885 0 0 1.5707963267949 -0.78539816339746 vehicle_ned thruster_3_ned" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_4_publisher"
+          args="-0.35605466541527 -0.217685799140885 0 0 -1.5707963267949 -0.78539816339746 vehicle_ned thruster_3_ned" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_5_publisher"
+          args="0.328294999999976 0.217782999999904 -0.00116959162911105 3.14159265358979 0 3.14159265358979 vehicle_ned thruster_4_ned" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_6_publisher"
+          args="0.328319999999978 -0.21778299999987 -0.00525177662225174 0 0 3.14159265358979 vehicle_ned thruster_5_ned" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_7_publisher"
+          args="0.149225000000016 0.217782999999911 -0.00116959162911101 3.14159265358979 0 3.14159265358979 vehicle_ned thruster_6_ned" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_8_publisher"
+          args="-0.149225000000041 -0.217782999999873 -0.00527677662225163 0 0 3.14159265358979 vehicle_ned thruster_7_ned" />
 </launch>

@@ -4,13 +4,13 @@ from numpy.polynomial.polynomial import Polynomial
 from math import floor
 from typing import Dict
 import serial
+from scipy.spatial.transform import Rotation
 
 from .maestro import Maestro
 from tauv_util.types import tl
-from geometry_msgs.msg import Vector3
+from geometry_msgs.msg import Vector3, Wrench, WrenchStamped
 from tauv_msgs.msg import Battery as BatteryMsg, Servos as ServosMsg
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
-from geometry_msgs.msg import Wrench
 from std_msgs.msg import Bool
 
 from tauv_alarms import Alarm, AlarmClient
@@ -35,7 +35,8 @@ class Thrusters:
 
         self._servos_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/servos', ServosMsg, self._handle_servos)
         self._battery_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/battery', BatteryMsg, self._handle_battery)
-        self._wrench_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/thrusters/wrench', Wrench, self._handle_wrench)
+        self._wrench_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/thrusters/wrench', WrenchStamped, self._handle_wrench)
+        self._thrust_pub: rospy.Publisher = rospy.Publisher('/vehicle/thrusters/thrust', WrenchStamped, queue_size=10)
 
         self._battery_voltage: float = self._default_battery_voltage
         self._wrench: Wrench = Wrench()
@@ -59,7 +60,9 @@ class Thrusters:
     def _update(self, timer_event):
         self._ac.set(Alarm.SUB_DISARMED, value=not self._is_armed)
 
-        if (rospy.Time.now() - self._wrench_update_time).to_sec() > self._timeout \
+        current_time = rospy.Time.now()
+
+        if (current_time - self._wrench_update_time).to_sec() > self._timeout \
                 or not self._is_armed:
             self._wrench = Wrench()
             self._wrench_update_time = rospy.Time.now()
@@ -74,6 +77,15 @@ class Thrusters:
         for (thruster, thrust) in enumerate(thrusts):
             self._set_thrust(thruster, thrust)
 
+        for (thruster, thrust) in enumerate(thrusts):
+            thrust_msg = WrenchStamped()
+            thrust_msg.header.frame_id = f'thruster_{thruster}_ned'
+            thrust_msg.header.stamp = current_time
+            thrust_msg.wrench.force = Vector3(thrust, 0, 0)
+            thrust_msg.wrench.torque = Vector3(0, 0, 0)
+
+            self._thrust_pub.publish(thrust_msg)
+
         self._ac.clear(Alarm.THRUSTERS_NOT_INITIALIZED)
 
     def _handle_arm(self, req: SetBoolRequest):
@@ -84,9 +96,9 @@ class Thrusters:
     def _handle_battery(self, msg: BatteryMsg):
         self._battery_voltage = msg.voltage
 
-    def _handle_wrench(self, msg: Wrench):
-        self._wrench = msg
-        self._wrench_update_time = rospy.Time.now()
+    def _handle_wrench(self, msg: WrenchStamped):
+        self._wrench = msg.wrench
+        self._wrench_update_time = msg.header.stamp
 
     def _handle_servos(self, msg: ServosMsg):
         for i in range(len(self._servo_channels)):
@@ -151,7 +163,27 @@ class Thrusters:
         self._positive_thrust_coefficients: np.array = np.array(rospy.get_param('~positive_thrust_coefficients'))
         self._negative_thrust_coefficients: np.array = np.array(rospy.get_param('~negative_thrust_coefficients'))
         self._thrust_inversions: [float] = rospy.get_param('~thrust_inversions')
-        self._tam: np.array = np.linalg.pinv(np.array(rospy.get_param('~tam')))
+        self._thruster_matrix: np.array = np.array(rospy.get_param('~thrusters'))
+
+        inv_tam = np.zeros((8, 6))
+
+        for i in range(8):
+            R = Rotation.from_euler('ZYX', self._thruster_matrix[i, 3:6])
+            H = np.zeros((4, 4))
+            H[0:3, 0:3] = R.as_matrix()
+            H[0:3, 3] = self._thruster_matrix[i, 0:3]
+            H[3, 3] = 1
+            print(H)
+            force = H @ np.array([1, 0, 0, 1])
+            print(force)
+            inv_tam[i, 0:3] = force[0:3]
+            torque = np.cross(self._thruster_matrix[i, 0:3], force[0:3])
+            print(torque)
+            inv_tam[i, 3:6] = torque
+
+        self._tam: np.array = np.linalg.pinv(np.transpose(inv_tam))
+        print(self._tam)
+        # self._tam: np.array = np.linalg.pinv(np.array(rospy.get_param('~tam')))
         self._kill_channel : int = rospy.get_param('~kill_channel')
 
 def main():
