@@ -30,6 +30,7 @@ setup_args = generate_distutils_setup(
               'planners.teleop_planner',
               'planners.mpc_planner',
               'planners.pid_planner',
+              'dynamics_tuner',
               'state_estimation',
               'depth_estimation',
               'vision',
@@ -58,7 +59,8 @@ setup_args = generate_distutils_setup(
              'scripts/retare_sub_position',
              'scripts/watchdogs',
              'scripts/transform_detections',
-             'scripts/bucket_to_tf'],
+             'scripts/bucket_to_tf',
+             'scripts/dynamics_tuner'],
 
 )
 setup(**setup_args)

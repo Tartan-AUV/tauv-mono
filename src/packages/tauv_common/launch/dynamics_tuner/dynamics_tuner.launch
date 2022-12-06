@@ -1,0 +1,7 @@
+<launch>
+    <group ns="gnc">
+        <node pkg="tauv_common" type="dynamics_tuner" name="dynamics_tuner" output="screen">
+
+        </node>
+    </group>
+</launch>
