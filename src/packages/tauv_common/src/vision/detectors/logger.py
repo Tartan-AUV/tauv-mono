@@ -124,5 +124,6 @@ class Logger():
         markersPub.markers = markers
         self.viz.publish(markersPub)
 
-s = Logger()
-rospy.spin()
+def main():
+    s = Logger()
+    rospy.spin()

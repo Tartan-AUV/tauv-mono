@@ -10,7 +10,7 @@ from tauv_util.types import tl
 from geometry_msgs.msg import Vector3
 from tauv_msgs.msg import Battery as BatteryMsg, Servos as ServosMsg
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
-from geometry_msgs.msg import Wrench
+from geometry_msgs.msg import Wrench, WrenchStamped
 from std_msgs.msg import Bool
 
 from tauv_alarms import Alarm, AlarmClient
@@ -35,7 +35,7 @@ class Thrusters:
 
         self._servos_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/servos', ServosMsg, self._handle_servos)
         self._battery_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/battery', BatteryMsg, self._handle_battery)
-        self._wrench_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/thrusters/wrench', Wrench, self._handle_wrench)
+        self._wrench_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/thrusters/wrench', WrenchStamped, self._handle_wrench)
 
         self._battery_voltage: float = self._default_battery_voltage
         self._wrench: Wrench = Wrench()
@@ -84,8 +84,8 @@ class Thrusters:
     def _handle_battery(self, msg: BatteryMsg):
         self._battery_voltage = msg.voltage
 
-    def _handle_wrench(self, msg: Wrench):
-        self._wrench = msg
+    def _handle_wrench(self, msg: WrenchStamped):
+        self._wrench = msg.wrench
         self._wrench_update_time = rospy.Time.now()
 
     def _handle_servos(self, msg: ServosMsg):

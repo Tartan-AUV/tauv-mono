@@ -14,7 +14,7 @@ dynamics:
   mass: 30.0
 
   # m^3
-  volume: 31.0
+  volume: 31.2
 
   # kg / m^3
   water_density: 1.0

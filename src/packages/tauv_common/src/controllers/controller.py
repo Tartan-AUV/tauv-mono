@@ -3,7 +3,7 @@ import numpy as np
 from typing import Optional
 
 from dynamics.dynamics import Dynamics
-from geometry_msgs.msg import Twist, Wrench, Vector3, Quaternion
+from geometry_msgs.msg import Twist, Wrench, WrenchStamped, Vector3, Quaternion
 from tauv_msgs.msg import ControllerCommand, NavigationState, ControllerDebug
 from tauv_msgs.srv import TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TuneController, TuneControllerRequest, TuneControllerResponse
 from tauv_util.types import tl, tm
@@ -37,7 +37,7 @@ class Controller:
         self._navigation_state_sub: rospy.Subscriber = rospy.Subscriber('/gnc/state_estimation/navigation_state', NavigationState, self._handle_navigation_state)
         self._controller_command_sub: rospy.Subscriber = rospy.Subscriber('/gnc/controller/controller_command', ControllerCommand, self._handle_controller_command)
         self._controller_debug_pub = rospy.Publisher('/gnc/controller/controller_debug', ControllerDebug, queue_size=10)
-        self._wrench_pub: rospy.Publisher = rospy.Publisher('/vehicle/thrusters/wrench', Wrench, queue_size=10)
+        self._wrench_pub: rospy.Publisher = rospy.Publisher('/vehicle/thrusters/wrench', WrenchStamped, queue_size=10)
         self._tune_dynamics_srv: rospy.Service = rospy.Service('/gnc/controller/tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
         self._tune_controller_srv: rospy.Service = rospy.Service('/gnc/controller/tune_controller', TuneController, self._handle_tune_controller)
 
@@ -84,9 +84,11 @@ class Controller:
         #     # tau = self._dyn.compute_tau(eta, v, vd)
         # tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
-        wrench: Wrench = Wrench()
-        wrench.force = Vector3(tau[0], tau[1], tau[2])
-        wrench.torque = Vector3(tau[3], tau[4], tau[5])
+        wrench: WrenchStamped = WrenchStamped()
+        wrench.header.frame_id = 'vehicle_ned'
+        wrench.header.stamp = rospy.Time.now()
+        wrench.wrench.force = Vector3(tau[0], tau[1], tau[2])
+        wrench.wrench.torque = Vector3(tau[3], tau[4], tau[5])
         self._wrench_pub.publish(wrench)
 
         controller_debug: ControllerDebug = ControllerDebug()
