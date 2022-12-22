@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+   <xacro:macro name="t200_thruster"
+      params="namespace
+              thruster_id
+              *origin">
+      <joint name="${namespace}/thruster_${thruster_id}_joint" type="continuous">
+         <xacro:insert_block name="origin"/>
+         <axis xyz="1 0 0"/>
+         <parent link="${namespace}/base_link"/>
+         <child link="${namespace}/thruster_${thruster_id}"/>
+      </joint>
+
+      <link name="${namespace}/thruster_${thruster_id}">
+         <inertial>
+            <mass value="0.001"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia
+                    ixx="0"
+                    ixy="0"
+                    ixz="0"
+                    iyy="0"
+                    iyz="0"
+                    izz="0"
+            />
+         </inertial>
+         <visual>
+            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
+            <geometry>
+               <cylinder length="${0.000001}" radius="${0.000001}" />
+            </geometry>
+         </visual>
+         <collision>
+            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
+            <geometry>
+               <cylinder length="${0.000001}" radius="${0.000001}" />
+            </geometry>
+         </collision>
+      </link>
+
+      <gazebo>
+         <plugin name="${namespace}_thruster_${thruster_id}" filename="libtauv_thruster_plugin.so">
+            <linkName>${namespace}/thruster_${thruster_id}</linkName>
+            <jointName>${namespace}/thruster_{$thruster_id}_joint</jointName>
+            <thrusterID>${thruster_id}</thrusterID>
+         </plugin>
+      </gazebo>
+
+      <gazebo reference="${namespace}/thruster_${thruster_id}">
+         <selfCollide>false</selfCollide>
+      </gazebo>
+   </xacro:macro>
+</robot>

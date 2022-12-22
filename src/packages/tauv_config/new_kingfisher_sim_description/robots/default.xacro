@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <robot name="kingfisher_sim" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/thruster_plugin.xacro"/>
+
     <link name="kingfisher/base_link">
         <inertial>
             <mass value="30"/>
@@ -75,6 +77,10 @@
             </link>
         </plugin>
     </gazebo>
+
+    <xacro:t200_thruster namespace="kingfisher" thruster_id="0">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:t200_thruster>
 
     <xacro:property name="k1l" value="-0.389021"/>
     <xacro:property name="k2l" value="0.118184"/>
