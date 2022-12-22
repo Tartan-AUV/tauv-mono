@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<robot name="kingfisher_sim" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <link name="kingfisher/base_link">
+        <inertial>
+            <mass value="30"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia
+                    ixx="0.5"
+                    ixy="0.5"
+                    ixz="0.5"
+                    iyy="0.3"
+                    iyz="0.3"
+                    izz="0.5"
+            />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="$(find new_kingfisher_sim_description)/meshes/kingfisher.dae" scale="1 1 1" />
+            </geometry>
+        </visual>
+
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="1 1 1"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <gazebo reference="kingfisher/base_link">
+        <selfCollide>false</selfCollide>
+    </gazebo>
+
+    <gazebo>
+        <plugin name="uuv_plugin" filename="libuuv_underwater_object_ros_plugin.so">
+            <fluid_density>1028.0</fluid_density>
+            <flow_velocity_topic>hydrodynamics/current_velocity</flow_velocity_topic>
+            <debug>true</debug>
+
+            <link name="kingfisher/base_link">
+                <neutrally_buoyant>0</neutrally_buoyant>
+
+                <volume>0.03</volume>
+
+                <box>
+                    <width>1</width>
+                    <length>1</length>
+                    <height>1</height>
+                </box>
+
+                <center_of_buoyancy>0 0 0</center_of_buoyancy>
+
+                <hydrodynamic_model>
+                    <type>fossen</type>
+
+                    <added_mass>
+                        10.7727 0 0 0 0 0
+                        0 10.7727 0 0 0 0
+                        0 0 49.7679 0 0 0
+                        0 0 0 1.0092 0 0
+                        0 0 0 0 1.0092 0
+                        0  0  0  0  0  1.0092
+                    </added_mass>
+
+                    <linear_damping>
+                        -9.5909 -9.5909 -42.5798 -13.3040 -13.2181 -13.3040
+                    </linear_damping>
+
+                    <quadratic_damping>
+                        -5.1386 -5.1386 -26.1105 0 0 0
+                    </quadratic_damping>
+                </hydrodynamic_model>
+            </link>
+        </plugin>
+    </gazebo>
+
+    <xacro:property name="k1l" value="-0.389021"/>
+    <xacro:property name="k2l" value="0.118184"/>
+    <xacro:property name="p1l" value="0.001259"/>
+    <xacro:property name="p2l" value="0.002050"/>
+    <xacro:property name="k3l" value="0.000000"/>
+
+    <xacro:property name="k1r" value="-0.378206"/>
+    <xacro:property name="k2r" value="0.104833"/>
+    <xacro:property name="p1r" value="0.000458"/>
+    <xacro:property name="p2r" value="0.002447"/>
+    <xacro:property name="k3r" value="0.000000"/>
+
+    <xacro:property name="hfov" value="1.3844"/>
+
+    <xacro:macro name="no_visual">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
+            <geometry>
+                <cylinder length="${0.000001}" radius="${0.000001}" />
+            </geometry>
+        </visual>
+    </xacro:macro>
+
+    <xacro:macro name="no_collision">
+        <collision>
+            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
+            <geometry>
+                <cylinder length="${0.000001}" radius="${0.000001}" />
+            </geometry>
+        </collision>
+    </xacro:macro>
+
+   <link name="kingfisher/front_camera_left_link">
+      <inertial>
+          <mass value="0.01" />
+          <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+      </inertial>
+       <xacro:no_visual/>
+       <xacro:no_collision/>
+   </link>
+
+    <link name="kingfisher/front_camera_right_link">
+        <inertial>
+            <mass value="0.01" />
+            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+        </inertial>
+        <xacro:no_visual/>
+        <xacro:no_collision/>
+    </link>
+
+    <joint name="kingfisher/front_camera_left_joint" type="revolute">
+        <origin xyz="0.5 -0.1 0" rpy="0 0 0"/>
+        <parent link="kingfisher/base_link"/>
+        <child link="kingfisher/front_camera_left_link"/>
+        <limit upper="0" lower="0" effort="0" velocity="0"/>
+        <axis xyz="1 0 0"/>
+    </joint>
+
+    <joint name="kingfisher/front_camera_right_joint" type="revolute">
+        <origin xyz="0.5 0.1 0" rpy="0 0 0"/>
+        <parent link="kingfisher/base_link"/>
+        <child link="kingfisher/front_camera_right_link"/>
+        <limit upper="0" lower="0" effort="0" velocity="0"/>
+        <axis xyz="1 0 0"/>
+    </joint>
+
+    <gazebo reference="kingfisher/front_camera_left_link">
+        <sensor name="camera" type="camera">
+            <camera>
+                <horizontal_fov>${hfov}</horizontal_fov>
+                <image>
+                    <width>1280</width>
+                    <height>720</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.05</near>
+                    <far>5000</far>
+                </clip>
+                <distortion>
+                    <k1>${k1l}</k1>
+                    <k2>${k2l}</k2>
+                    <k3>${k3l}</k3>
+                    <p1>${p1l}</p1>
+                    <p2>${p2l}</p2>
+                    <center>0.5 0.5</center>
+                </distortion>
+            </camera>
+
+            <plugin name="front_left_controller" filename="libgazebo_ros_camera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>30.0</updateRate>
+                <cameraName>kingfisher/front_camera_left</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>kingfisher/front_camera_left_link</frameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>${k1l}</distortionK1>
+                <distortionK2>${k2l}</distortionK2>
+                <distortionK3>${k3l}</distortionK3>
+                <distortionT1>${p1l}</distortionT1>
+                <distortionT2>${p2l}</distortionT2>
+            </plugin>
+            <always_on>1</always_on>
+            <update_rate>30</update_rate>
+            <visualize>true</visualize>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="kingfisher/front_camera_right_link">
+        <sensor name="camera" type="camera">
+            <camera>
+                <horizontal_fov>${hfov}</horizontal_fov>
+                <image>
+                    <width>1280</width>
+                    <height>720</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.05</near>
+                    <far>5000</far>
+                </clip>
+                <distortion>
+                    <k1>${k1l}</k1>
+                    <k2>${k2l}</k2>
+                    <k3>${k3l}</k3>
+                    <p1>${p1l}</p1>
+                    <p2>${p2l}</p2>
+                    <center>0.5 0.5</center>
+                </distortion>
+            </camera>
+
+            <plugin name="front_right_controller" filename="libgazebo_ros_camera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>30.0</updateRate>
+                <cameraName>kingfisher/front_camera_right</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>kingfisher/front_camera_right_link</frameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>${k1l}</distortionK1>
+                <distortionK2>${k2l}</distortionK2>
+                <distortionK3>${k3l}</distortionK3>
+                <distortionT1>${p1l}</distortionT1>
+                <distortionT2>${p2l}</distortionT2>
+            </plugin>
+            <always_on>1</always_on>
+            <update_rate>30</update_rate>
+            <visualize>true</visualize>
+        </sensor>
+    </gazebo>
+</robot>

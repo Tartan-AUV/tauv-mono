@@ -5,13 +5,13 @@
     <!-- Name of the robot model  -->
     <arg name="model_name" default="kingfisher_sim"/>
     <!-- path to config package  -->
-    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+    <arg name="config_pkg" default="$(eval find ('new_kingfisher_sim_description'))"/>
 
-    <include file="$(find tauv_common)/launch/alarms/alarms.launch" />
+<!--    <include file="$(find tauv_common)/launch/alarms/alarms.launch" />-->
 
-    <include file="$(find tauv_sim)/launch/imu_dvl_transformer/imu_dvl_transformer.launch" />
+<!--    <include file="$(find tauv_sim)/launch/imu_dvl_transformer/imu_dvl_transformer.launch" />-->
 
-    <include file="$(find uuv_gazebo_worlds)/launch/umd.launch" />
+    <include file="$(find tauv_sim_worlds)/launch/umd.launch" />
 
     <include file="$(arg config_pkg)/launch/upload.launch">
         <arg name="x" value="5" />
@@ -23,9 +23,9 @@
 <!--        <arg name="config_pkg" value="$(arg config_pkg)" />-->
 <!--    </include>-->
 
-    <include file="$(find tauv_sim)/launch/kingfisher_vehicle.launch" />
+<!--    <include file="$(find tauv_sim)/launch/kingfisher_vehicle.launch" />-->
 
-    <node pkg="joy" type="joy_node" name="joy_node" output="screen">
-        <param name="autorepeat_rate" value="20" />
-    </node>
+<!--    <node pkg="joy" type="joy_node" name="joy_node" output="screen">-->
+<!--        <param name="autorepeat_rate" value="20" />-->
+<!--    </node>-->
 </launch>
