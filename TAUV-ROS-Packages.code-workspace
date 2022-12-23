@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"clangd.arguments": [
+			"--compile-commands-dir=./build",
+			"--completion-style=detailed",
+			"--clang-tidy",
+			"--clang-tidy-checks=-*,modernize*",
+			"--header-insertion=never"
+		],
+	}
+}
