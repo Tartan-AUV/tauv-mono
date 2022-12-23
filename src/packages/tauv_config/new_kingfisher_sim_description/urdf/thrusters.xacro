@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!--front right-->
+    <xacro:t200_thruster namespace="kingfisher" thruster_id="0">
+        <origin xyz="0.43852 -0.22093 0" rpy="1.5707963267949 0 0.785398163397449"/>
+    </xacro:t200_thruster>
+
+    <!--front left-->
+    <xacro:t200_thruster namespace="kingfisher" thruster_id="1">
+        <origin xyz="0.43852 0.22093 0" rpy="1.5707963267949 0 -0.785398163397459"/>
+    </xacro:t200_thruster>
+
+    <!--back right-->
+    <xacro:t200_thruster namespace="kingfisher" thruster_id="2">
+        <origin xyz="-0.43852 -0.22093 0" rpy="-1.5707963267949 0 2.35619449019234"/>
+    </xacro:t200_thruster>
+
+    <!--back left-->
+    <xacro:t200_thruster namespace="kingfisher" thruster_id="3">
+        <origin xyz="-0.43852 0.22093 0" rpy="1.57079632679489 0 -2.35619449019233"/>
+    </xacro:t200_thruster>
+
+    <!--front right vertical-->
+    <xacro:t200_thruster namespace="kingfisher" thruster_id="4">
+        <origin xyz="0.23876 -0.213083 0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
+    </xacro:t200_thruster>
+
+    <!--front left vertical-->
+    <xacro:t200_thruster namespace="kingfisher" thruster_id="5">
+        <origin xyz="0.23876 0.21308 0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
+    </xacro:t200_thruster>
+
+    <!--back right vertical-->
+    <xacro:t200_thruster namespace="kingfisher" thruster_id="6">
+        <origin xyz="-0.23876 -0.213083 0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
+    </xacro:t200_thruster>
+
+    <!--back left vertical-->
+    <xacro:t200_thruster namespace="kingfisher" thruster_id="7">
+        <origin xyz="-0.23876 0.21308 0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
+    </xacro:t200_thruster>
+</robot>

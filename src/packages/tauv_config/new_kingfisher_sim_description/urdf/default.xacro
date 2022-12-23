@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<robot name="kingfisher_sim" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/utils.xacro"/>
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/thruster_plugin.xacro"/>
+
+    <link name="kingfisher/base_link">
+        <inertial>
+            <mass value="30"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <inertia
+                    ixx="0.5"
+                    ixy="0.5"
+                    ixz="0.5"
+                    iyy="0.3"
+                    iyz="0.3"
+                    izz="0.5"
+            />
+        </inertial>
+
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="$(find new_kingfisher_sim_description)/meshes/kingfisher.dae" scale="1 1 1" />
+            </geometry>
+        </visual>
+
+        <collision>
+            <origin xyz="-0.01 0 -0.08" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.986 0.538 0.366"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <gazebo reference="kingfisher/base_link">
+        <selfCollide>false</selfCollide>
+    </gazebo>
+
+    <gazebo>
+        <plugin name="uuv_plugin" filename="libuuv_underwater_object_ros_plugin.so">
+            <fluid_density>1028.0</fluid_density>
+            <flow_velocity_topic>hydrodynamics/current_velocity</flow_velocity_topic>
+            <debug>true</debug>
+
+            <link name="kingfisher/base_link">
+                <neutrally_buoyant>0</neutrally_buoyant>
+
+                <volume>0.03</volume>
+
+                <box>
+                    <length>0.986</length>
+                    <width>0.538</width>
+                    <height>0.366</height>
+                </box>
+
+                <center_of_buoyancy>0 0 0</center_of_buoyancy>
+
+                <hydrodynamic_model>
+                    <type>fossen</type>
+
+                    <added_mass>
+                        10.7727 0 0 0 0 0
+                        0 10.7727 0 0 0 0
+                        0 0 49.7679 0 0 0
+                        0 0 0 1.0092 0 0
+                        0 0 0 0 1.0092 0
+                        0  0  0  0  0  1.0092
+                    </added_mass>
+
+                    <linear_damping>
+                        -9.5909 -9.5909 -42.5798 -13.3040 -13.2181 -13.3040
+                    </linear_damping>
+
+                    <quadratic_damping>
+                        -5.1386 -5.1386 -26.1105 0 0 0
+                    </quadratic_damping>
+                </hydrodynamic_model>
+            </link>
+        </plugin>
+    </gazebo>
+
+    <xacro:include filename="$(find new_kingfisher_sim_description)/urdf/thrusters.xacro" />
+    <xacro:include filename="$(find new_kingfisher_sim_description)/urdf/cameras.xacro" />
+</robot>

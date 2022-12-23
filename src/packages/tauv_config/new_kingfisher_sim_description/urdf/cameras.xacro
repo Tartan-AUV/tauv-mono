@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<<<<<<< HEAD:src/packages/tauv_config/new_kingfisher_sim_description/robots/default.xacro
 <robot name="kingfisher_sim" xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/thruster_plugin.xacro"/>
     <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/dvl_plugin.xacro"/>
@@ -86,6 +87,9 @@
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </xacro:teledyne_dvl>
 
+=======
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+>>>>>>> 5421fadb86b0f0fee065cbf4d3307875a5917961:src/packages/tauv_config/new_kingfisher_sim_description/urdf/cameras.xacro
     <xacro:property name="k1l" value="-0.389021"/>
     <xacro:property name="k2l" value="0.118184"/>
     <xacro:property name="p1l" value="0.001259"/>
@@ -100,38 +104,14 @@
 
     <xacro:property name="hfov" value="1.3844"/>
 
-    <xacro:macro name="no_visual">
-        <visual>
-            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
-            <geometry>
-                <cylinder length="${0.000001}" radius="${0.000001}" />
-            </geometry>
-        </visual>
-    </xacro:macro>
-
-    <xacro:macro name="no_collision">
-        <collision>
-            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
-            <geometry>
-                <cylinder length="${0.000001}" radius="${0.000001}" />
-            </geometry>
-        </collision>
-    </xacro:macro>
-
-   <link name="kingfisher/front_camera_left_link">
-      <inertial>
-          <mass value="0.01" />
-          <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-      </inertial>
-       <xacro:no_visual/>
-       <xacro:no_collision/>
-   </link>
+    <link name="kingfisher/front_camera_left_link">
+        <xacro:no_inertial/>
+        <xacro:no_visual/>
+        <xacro:no_collision/>
+    </link>
 
     <link name="kingfisher/front_camera_right_link">
-        <inertial>
-            <mass value="0.01" />
-            <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-        </inertial>
+        <xacro:no_inertial/>
         <xacro:no_visual/>
         <xacro:no_collision/>
     </link>

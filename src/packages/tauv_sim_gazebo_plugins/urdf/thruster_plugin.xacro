@@ -12,30 +12,9 @@
       </joint>
 
       <link name="${namespace}/thruster_${thruster_id}">
-         <inertial>
-            <mass value="0.001"/>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <inertia
-                    ixx="0"
-                    ixy="0"
-                    ixz="0"
-                    iyy="0"
-                    iyz="0"
-                    izz="0"
-            />
-         </inertial>
-         <visual>
-            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
-            <geometry>
-               <cylinder length="${0.000001}" radius="${0.000001}" />
-            </geometry>
-         </visual>
-         <collision>
-            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
-            <geometry>
-               <cylinder length="${0.000001}" radius="${0.000001}" />
-            </geometry>
-         </collision>
+         <xacro:no_inertial/>
+         <xacro:no_visual/>
+         <xacro:no_collision/>
       </link>
 
       <gazebo>
