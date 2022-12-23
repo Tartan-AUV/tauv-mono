@@ -4,13 +4,16 @@ project(tauv_sim_gazebo_plugins)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(catkin REQUIRED COMPONENTS gazebo_dev)
+find_package(catkin REQUIRED COMPONENTS gazebo_dev std_msgs roscpp)
 
 catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
     tauv_thruster_plugin
+  CATKIN_DEPENDS
+    std_msgs
+    roscpp
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${catkin_INCLUDE_DIRS})
