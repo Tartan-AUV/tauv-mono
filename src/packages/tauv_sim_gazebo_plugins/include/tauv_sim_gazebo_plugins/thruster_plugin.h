@@ -30,9 +30,12 @@ class ThrusterPlugin : public ModelPlugin
   ros::Subscriber subTargetThrust;
   ros::Publisher pubThrust;
 
-  float targetThrust;
+  double tau;
+  double targetThrust;
+  double thrust;
+  double lastUpdateTime;
 
-  common::Time updatePeriod;
-  common::Time lastUpdateTime;
+  common::Time publishPeriod;
+  common::Time lastPublishTime;
 };
 }

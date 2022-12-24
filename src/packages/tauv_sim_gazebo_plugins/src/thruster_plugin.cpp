@@ -32,6 +32,12 @@ void ThrusterPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
   GZ_ASSERT(sdf->HasElement("thrusterID"), "SDF missing thrusterID.");
   this->thrusterID = sdf->Get<int>("thrusterID");
 
+  GZ_ASSERT(sdf->HasElement("timeConstant"), "SDF missing timeConstant.");
+  this->tau = sdf->Get<double>("timeConstant");
+
+  GZ_ASSERT(sdf->HasElement("publishRate"), "SDF missing publishRate.");
+  this->publishPeriod = 1.0 / (double)sdf->Get<int>("publishRate");
+
   std::string targetThrustTopic = "/kingfisher/thrusters/" + std::to_string(this->thrusterID) + "/target_thrust";
   std::string thrustTopic = "/kingfisher/thrusters/" + std::to_string(this->thrusterID) + "/thrust";
 
@@ -52,8 +58,24 @@ void ThrusterPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
 
 void ThrusterPlugin::OnUpdate(const common::UpdateInfo& info)
 {
-  ignition::math::Vector3d force(this->targetThrust, 0, 0);
+  double dt = info.simTime.Double() - this->lastUpdateTime;
+
+  double alpha = std::exp(-dt / this->tau);
+
+  this->thrust = alpha * this->thrust + (1.0 - alpha) * this->targetThrust;
+
+  this->lastUpdateTime = info.simTime.Double();
+
+  ignition::math::Vector3d force(this->thrust, 0, 0);
   this->link->AddRelativeForce(force);
+
+  if (info.simTime - this->lastPublishTime >= this->publishPeriod) {
+    std_msgs::Float64 thrustMsg;
+    thrustMsg.data = this->thrust;
+    this->pubThrust.publish(thrustMsg);
+
+    this->lastPublishTime = info.simTime;
+  }
 }
 
 void ThrusterPlugin::HandleTargetThrust(const std_msgs::Float64::ConstPtr& msg)
