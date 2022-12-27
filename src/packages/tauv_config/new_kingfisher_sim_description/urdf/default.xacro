@@ -5,6 +5,8 @@
     <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/teledyne_dvl_plugin.xacro"/>
     <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/xsens_imu_plugin.xacro"/>
     
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/navigation_state_plugin.xacro"/>
+
     <link name="kingfisher/base_link">
         <inertial>
             <mass value="30"/>

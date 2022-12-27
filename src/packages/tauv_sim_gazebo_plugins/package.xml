@@ -15,5 +15,6 @@
     <depend>gazebo_dev</depend>
     <depend>roscpp</depend>
     <depend>std_msgs</depend>
+    <depend>tauv_msgs</depend>
 </package>
 
