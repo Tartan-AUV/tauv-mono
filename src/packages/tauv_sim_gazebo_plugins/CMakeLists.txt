@@ -4,16 +4,25 @@ project(tauv_sim_gazebo_plugins)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(catkin REQUIRED COMPONENTS gazebo_dev std_msgs roscpp)
+find_package(
+  catkin
+  REQUIRED COMPONENTS
+  gazebo_dev
+  roscpp
+  std_msgs
+  tauv_msgs
+)
 
 catkin_package(
   INCLUDE_DIRS
     include
   LIBRARIES
     tauv_thruster_plugin
+    tauv_navigation_state_plugin
   CATKIN_DEPENDS
-    std_msgs
     roscpp
+    std_msgs
+    tauv_msgs
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${catkin_INCLUDE_DIRS})
@@ -24,7 +33,11 @@ add_library(tauv_thruster_plugin SHARED src/thruster_plugin.cpp)
 target_link_libraries(tauv_thruster_plugin ${catkin_LIBRARIES})
 add_dependencies(tauv_thruster_plugin ${catkin_EXPORTED_TARGETS})
 
-install(TARGETS tauv_thruster_plugin
+add_library(tauv_navigation_state_plugin SHARED src/navigation_state_plugin.cpp)
+target_link_libraries(tauv_navigation_state_plugin ${catkin_LIBRARIES})
+add_dependencies(tauv_navigation_state_plugin ${catkin_EXPORTED_TARGETS})
+
+install(TARGETS tauv_thruster_plugin tauv_navigation_state_plugin
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

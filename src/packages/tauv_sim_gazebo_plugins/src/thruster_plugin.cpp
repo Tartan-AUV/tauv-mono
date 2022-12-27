@@ -21,16 +21,11 @@ void ThrusterPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
     return;
   }
 
-  this->rosNode.reset(new ros::NodeHandle("thruster_0_plugin"));
-
   this->model = model;
 
   GZ_ASSERT(sdf->HasElement("linkName"), "SDF missing linkName.");
   std::string linkName = sdf->Get<std::string>("linkName");
   this->link = this->model->GetLink(linkName);
-
-  GZ_ASSERT(sdf->HasElement("thrusterID"), "SDF missing thrusterID.");
-  this->thrusterID = sdf->Get<int>("thrusterID");
 
   GZ_ASSERT(sdf->HasElement("timeConstant"), "SDF missing timeConstant.");
   this->tau = sdf->Get<double>("timeConstant");
@@ -38,8 +33,16 @@ void ThrusterPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
   GZ_ASSERT(sdf->HasElement("publishRate"), "SDF missing publishRate.");
   this->publishPeriod = 1.0 / (double)sdf->Get<int>("publishRate");
 
-  std::string targetThrustTopic = "/kingfisher/thrusters/" + std::to_string(this->thrusterID) + "/target_thrust";
-  std::string thrustTopic = "/kingfisher/thrusters/" + std::to_string(this->thrusterID) + "/thrust";
+  GZ_ASSERT(sdf->HasElement("nodeName"), "SDF missing nodeName.");
+  std::string nodeName = sdf->Get<std::string>("nodeName");
+
+  GZ_ASSERT(sdf->HasElement("targetThrustTopic"), "SDF missing targetThrustTopic.");
+  std::string targetThrustTopic = sdf->Get<std::string>("targetThrustTopic");
+
+  GZ_ASSERT(sdf->HasElement("thrustTopic"), "SDF missing thrustTopic.");
+  std::string thrustTopic = sdf->Get<std::string>("thrustTopic");
+
+  this->rosNode.reset(new ros::NodeHandle(nodeName));
 
   this->subTargetThrust = this->rosNode->subscribe<std_msgs::Float64>(
     targetThrustTopic,

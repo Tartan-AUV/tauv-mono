@@ -20,10 +20,11 @@
       <gazebo>
          <plugin name="${namespace}_thruster_${thruster_id}" filename="libtauv_thruster_plugin.so">
             <linkName>${namespace}/thruster_${thruster_id}</linkName>
-            <jointName>${namespace}/thruster_{$thruster_id}_joint</jointName>
-            <thrusterID>${thruster_id}</thrusterID>
             <timeConstant>0.1</timeConstant>
             <publishRate>50</publishRate>
+            <nodeName>${namespace}_thruster_${thruster_id}_plugin</nodeName>
+            <targetThrustTopic>/${namespace}/thrusters/${thruster_id}/target_thrust</targetThrustTopic>
+            <thrustTopic>/${namespace}/thrusters/${thruster_id}/thrust</thrustTopic>
          </plugin>
       </gazebo>
 
