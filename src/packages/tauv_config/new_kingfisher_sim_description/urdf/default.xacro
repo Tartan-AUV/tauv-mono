@@ -2,7 +2,9 @@
 <robot name="kingfisher_sim" xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/utils.xacro"/>
     <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/thruster_plugin.xacro"/>
-
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/teledyne_dvl_plugin.xacro"/>
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/xsens_imu_plugin.xacro"/>
+    
     <link name="kingfisher/base_link">
         <inertial>
             <mass value="30"/>
@@ -81,4 +83,5 @@
 
     <xacro:include filename="$(find new_kingfisher_sim_description)/urdf/thrusters.xacro" />
     <xacro:include filename="$(find new_kingfisher_sim_description)/urdf/cameras.xacro" />
+    <xacro:include filename="$(find new_kingfisher_sim_description)/urdf/sensors.xacro" />
 </robot>

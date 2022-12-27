@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-   <xacro:macro name="teledyne_dvl"
+   <xacro:macro name="xsens_imu"
       params="namespace
               *origin">
-      <joint name="${namespace}/teledyne_dvl_joint" type="continuous">
+      <joint name="${namespace}/xsens_imu_joint" type="continuous">
          <xacro:insert_block name="origin"/>
          <axis xyz="1 0 0"/>
          <parent link="${namespace}/base_link"/>
-         <child link="${namespace}/teledyne_dvl"/>
+         <child link="${namespace}/xsens_imu"/>
       </joint>
 
-      <link name="${namespace}/teledyne_dvl">
+      <link name="${namespace}/xsens_imu">
          <inertial>
             <mass value="0.001"/>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <origin xyz="0 0 0" rpy="$0 0 0"/>
             <inertia
                     ixx="0"
                     ixy="0"
@@ -24,13 +24,13 @@
             />
          </inertial>
          <visual>
-            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
                <cylinder length="${0.000001}" radius="${0.000001}" />
             </geometry>
          </visual>
          <collision>
-            <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
                <cylinder length="${0.000001}" radius="${0.000001}" />
             </geometry>
@@ -38,13 +38,13 @@
       </link>
 
       <gazebo>
-         <plugin name="${namespace}_teledyne_dvl" filename="libtauv_dvl_plugin.so">
-            <linkName>${namespace}/teledyne_dvl</linkName>
-            <jointName>${namespace}/teledyne_dvl_joint</jointName>
+         <plugin name="${namespace}_xsens_imu" filename="libtauv_xsens_imu_plugin.so">
+            <linkName>${namespace}/xsens_imu</linkName>
+            <jointName>${namespace}/xsens_imu_joint</jointName>
          </plugin>
       </gazebo>
 
-      <gazebo reference="${namespace}/teledyne_dvl">
+      <gazebo reference="${namespace}/xsens_imu">
          <selfCollide>false</selfCollide>
       </gazebo>
    </xacro:macro>

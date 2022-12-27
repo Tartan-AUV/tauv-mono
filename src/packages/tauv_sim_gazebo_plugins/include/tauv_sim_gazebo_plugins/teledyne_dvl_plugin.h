@@ -8,7 +8,7 @@
 
 namespace gazebo
 {
-class DvlPlugin : public ModelPlugin
+class TeledyneDvlPlugin : public ModelPlugin
 {
   public:
   void Load(physics::ModelPtr model, sdf::ElementPtr sdf);
@@ -20,5 +20,6 @@ class DvlPlugin : public ModelPlugin
   event::ConnectionPtr updateConnection;
   std::unique_ptr<ros::NodeHandle> rosNode;
   ros::Publisher rosPub;
+  ignition::math::Quaterniond angleOffset;
 };
 }

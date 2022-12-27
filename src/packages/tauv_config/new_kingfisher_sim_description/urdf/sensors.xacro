@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:teledyne_dvl namespace="kingfisher">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:teledyne_dvl>
+    
+    <xacro:xsens_imu namespace="kingfisher">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:xsens_imu>
+
+</robot>
