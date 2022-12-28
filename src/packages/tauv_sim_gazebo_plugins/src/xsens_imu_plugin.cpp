@@ -13,10 +13,11 @@
 GZ_REGISTER_MODEL_PLUGIN(gazebo::XsensImuPlugin)
 
 namespace gazebo {
+//returns NED
 geometry_msgs::Vector3 FromIgnitionVector3(ignition::math::Vector3<double> vec) {
   geometry_msgs::Vector3 res;
-  res.x = vec.X();
-  res.y = vec.Y();
+  res.x = -vec.X();
+  res.y = -vec.Y();
   res.z = vec.Z();
   return res;
 }
@@ -53,20 +54,20 @@ void XsensImuPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
   
   // Offset for the initial angle of the IMU linkage: 
   // this may not always be the desired behavior, maybe add a param for it?
- // this->angleOffset = this->link->RelativePose().Rot();
+  //anyway, this first rotates the IMU relative to the robot, and offsets the readings to
+  //account for the robot start angle (assuming the IMU considers this to be 0)
+  this->angleOffset = this->model->WorldPose().Rot() * this->link->RelativePose().Rot();
 }
 
 void XsensImuPlugin::OnUpdate(const common::UpdateInfo &info)
 {
   tauv_msgs::XsensImuData msg;
   ignition::math::Quaternion rot = this->model->RelativePose().Rot();
-  ignition::math::Vector3 freeAccel = this->model->RelativeLinearAccel(); 
-  msg.orientation = FromIgnitionVector3(rot.Euler());
-  msg.free_acceleration = FromIgnitionVector3(freeAccel);
-  msg.rate_of_turn = FromIgnitionVector3(this->model->RelativeAngularVel());
-  msg.linear_acceleration = FromIgnitionVector3(AddGravity(freeAccel, rot));
-  //TODO make sure these are the right units and it's the right frame
-  //std::cout << this->angleOffset.Euler() << std::endl;
+  ignition::math::Vector3 freeAccel = this->model->RelativeLinearAccel();
+  msg.orientation = FromIgnitionVector3((this->angleOffset.Inverse()*rot).Euler());
+  msg.free_acceleration = FromIgnitionVector3(this->angleOffset.Inverse()*freeAccel);
+  msg.rate_of_turn = FromIgnitionVector3(this->angleOffset.Inverse()*this->model->RelativeAngularVel());
+  msg.linear_acceleration = FromIgnitionVector3(this->angleOffset.Inverse()*AddGravity(freeAccel, rot));
   this->rosPub.publish(msg);
 }
 }

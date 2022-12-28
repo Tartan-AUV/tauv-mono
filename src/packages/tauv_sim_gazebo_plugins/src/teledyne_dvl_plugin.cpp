@@ -23,7 +23,7 @@ void TeledyneDvlPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
   this->updateConnection = event::Events::ConnectWorldUpdateBegin(
     boost::bind(&TeledyneDvlPlugin::OnUpdate, this, _1));
   
-  this->angleOffset = this->model->RelativePose().Rot();
+  this->angleOffset = this->link->RelativePose().Rot();
 
   if(!ros::isInitialized()) {
     throw "Attempted to create TeledyneDvlPlugin without initializing ROS";
@@ -34,13 +34,13 @@ void TeledyneDvlPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
 
 void TeledyneDvlPlugin::OnUpdate(const common::UpdateInfo &info)
 {
-  ignition::math::Vector3 velocity = this->angleOffset.RotateVectorReverse(this->model->RelativeLinearVel());
+  ignition::math::Vector3 velocity = this->angleOffset * this->model->RelativeLinearVel();
   tauv_msgs::TeledyneDvlData msg;
   geometry_msgs::Vector3 vec;
-  vec.x = velocity.X();
-  vec.y = velocity.Y();
+  //convert to our NED
+  vec.x = -velocity.X();
+  vec.y = -velocity.Y();
   vec.z = velocity.Z();
-  //TODO make sure these are the right units and it's the right frame
   msg.velocity = vec;
   this->rosPub.publish(msg);
 }

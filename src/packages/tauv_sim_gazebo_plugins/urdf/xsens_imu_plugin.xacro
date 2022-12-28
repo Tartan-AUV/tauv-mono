@@ -1,51 +1,30 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-   <xacro:macro name="xsens_imu"
-      params="namespace
-              *origin">
-      <joint name="${namespace}/xsens_imu_joint" type="continuous">
-         <xacro:insert_block name="origin"/>
-         <axis xyz="1 0 0"/>
-         <parent link="${namespace}/base_link"/>
-         <child link="${namespace}/xsens_imu"/>
-      </joint>
+    <xacro:macro name="xsens_imu"
+        params="namespace *origin">
+        <joint name="${namespace}/xsens_imu_joint" type="revolute">
+            <xacro:insert_block name="origin"/>
+            <parent link="${namespace}/base_link"/>
+            <child link="${namespace}/xsens_imu"/>
+            <limit upper="0" lower="0" effort="0" velocity="0"/>
+            <axis xyz="1 0 0"/>
+        </joint>
 
-      <link name="${namespace}/xsens_imu">
-         <inertial>
-            <mass value="0.001"/>
-            <origin xyz="0 0 0" rpy="$0 0 0"/>
-            <inertia
-                    ixx="0"
-                    ixy="0"
-                    ixz="0"
-                    iyy="0"
-                    iyz="0"
-                    izz="0"
-            />
-         </inertial>
-         <visual>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-               <cylinder length="${0.000001}" radius="${0.000001}" />
-            </geometry>
-         </visual>
-         <collision>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-               <cylinder length="${0.000001}" radius="${0.000001}" />
-            </geometry>
-         </collision>
-      </link>
+        <link name="${namespace}/xsens_imu">
+            <xacro:no_inertial/>
+            <xacro:no_visual/>
+            <xacro:no_collision/>
+        </link>
 
-      <gazebo>
-         <plugin name="${namespace}_xsens_imu" filename="libtauv_xsens_imu_plugin.so">
-            <linkName>${namespace}/xsens_imu</linkName>
-            <jointName>${namespace}/xsens_imu_joint</jointName>
-         </plugin>
-      </gazebo>
+        <gazebo>
+            <plugin name="${namespace}_xsens_imu" filename="libtauv_xsens_imu_plugin.so">
+                <linkName>${namespace}/xsens_imu</linkName>
+                <nodeName>${namespace}_xsens_imu_plugin</nodeName>
+            </plugin>
+        </gazebo>
 
-      <gazebo reference="${namespace}/xsens_imu">
-         <selfCollide>false</selfCollide>
-      </gazebo>
-   </xacro:macro>
+        <gazebo reference="${namespace}/xsens_imu">
+            <selfCollide>false</selfCollide>
+        </gazebo>
+    </xacro:macro>
 </robot>
