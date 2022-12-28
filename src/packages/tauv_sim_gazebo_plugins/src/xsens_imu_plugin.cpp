@@ -48,17 +48,25 @@ void XsensImuPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
   // this may not always be the desired behavior, maybe add a param for it?
   //anyway, this first rotates the IMU relative to the robot, and offsets the readings to
   //account for the robot start angle (assuming the IMU considers this to be 0)
-  this->angleOffset = this->model->WorldPose().Rot() * this->link->RelativePose().Rot();
+  // this->angleOffset = this->model->WorldPose().Rot() * this->link->RelativePose().Rot();
+
+  //this is for the offset that doesn't zero the IMU on start
+  this->angleOffset = this->link->RelativePose().Rot();
 }
 
 void XsensImuPlugin::OnUpdate(const common::UpdateInfo &info)
 {
   tauv_msgs::XsensImuData msg;
   ignition::math::Quaternion rot = this->model->RelativePose().Rot();
+  ignition::math::Matrix3d angVelToEulerRate(
+    1, sin(rot.Roll()) * tan(rot.Pitch()), cos(rot.Roll()) * tan(rot.Pitch()),
+    0, cos(rot.Roll()), -sin(rot.Roll()),
+    0, sin(rot.Roll()) / cos(rot.Pitch()), cos(rot.Roll()) / cos(rot.Pitch())
+  );
   ignition::math::Vector3 freeAccel = this->model->RelativeLinearAccel();
   msg.orientation = FromIgnitionVector3((this->angleOffset.Inverse()*rot).Euler());
   msg.free_acceleration = FromIgnitionVector3(this->angleOffset.Inverse()*freeAccel);
-  msg.rate_of_turn = FromIgnitionVector3(this->angleOffset.Inverse()*this->model->RelativeAngularVel());
+  msg.rate_of_turn = FromIgnitionVector3(angVelToEulerRate * (this->angleOffset.Inverse()*this->model->RelativeAngularVel()));
   msg.linear_acceleration = FromIgnitionVector3(this->angleOffset.Inverse()*AddGravity(freeAccel, rot));
   this->rosPub.publish(msg);
 }
