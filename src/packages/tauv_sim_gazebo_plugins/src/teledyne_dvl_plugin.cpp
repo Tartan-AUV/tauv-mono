@@ -29,7 +29,7 @@ void TeledyneDvlPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
     throw "Attempted to create TeledyneDvlPlugin without initializing ROS";
   }
   this->rosNode.reset(new ros::NodeHandle("sim_teledyne_dvl_publisher"));
-  this->rosPub = this->rosNode->advertise<tauv_msgs::TeledyneDvlData>("/vehicle/teledyne_dvl/data",10);
+  this->rosPub = this->rosNode->advertise<tauv_msgs::TeledyneDvlData>("/kingfisher/teledyne_dvl/data",10);
 }
 
 void TeledyneDvlPlugin::OnUpdate(const common::UpdateInfo &info)

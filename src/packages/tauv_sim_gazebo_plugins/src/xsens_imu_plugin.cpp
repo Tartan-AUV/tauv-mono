@@ -42,7 +42,7 @@ void XsensImuPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
     throw "Attempted to create XsensImuPlugin without initializing ROS";
   }
   this->rosNode.reset(new ros::NodeHandle("sim_xsens_imu_publisher"));
-  this->rosPub = this->rosNode->advertise<tauv_msgs::XsensImuData>("/vehicle/xsens_imu/data",10);
+  this->rosPub = this->rosNode->advertise<tauv_msgs::XsensImuData>("/kingfisher/xsens_imu/data",10);
   
   // Offset for the initial angle of the IMU linkage: 
   // this may not always be the desired behavior, maybe add a param for it?
