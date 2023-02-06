@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:property name="k1l" value="-0.389021"/>
+    <xacro:property name="k2l" value="0.118184"/>
+    <xacro:property name="p1l" value="0.001259"/>
+    <xacro:property name="p2l" value="0.002050"/>
+    <xacro:property name="k3l" value="0.000000"/>
+
+    <xacro:property name="k1r" value="-0.378206"/>
+    <xacro:property name="k2r" value="0.104833"/>
+    <xacro:property name="p1r" value="0.000458"/>
+    <xacro:property name="p2r" value="0.002447"/>
+    <xacro:property name="k3r" value="0.000000"/>
+
+    <xacro:property name="hfov" value="1.3844"/>
+
+    <link name="${ns}/front_camera_left_link">
+        <xacro:no_inertial/>
+        <xacro:no_visual/>
+        <xacro:no_collision/>
+    </link>
+
+    <link name="${ns}/front_camera_right_link">
+        <xacro:no_inertial/>
+        <xacro:no_visual/>
+        <xacro:no_collision/>
+    </link>
+
+    <joint name="${ns}/front_camera_left_joint" type="revolute">
+        <origin xyz="0.5 -0.1 0" rpy="0 0 0"/>
+        <parent link="${ns}/base_link"/>
+        <child link="${ns}/front_camera_left_link"/>
+        <limit upper="0" lower="0" effort="0" velocity="0"/>
+        <axis xyz="1 0 0"/>
+    </joint>
+
+    <joint name="${ns}/front_camera_right_joint" type="revolute">
+        <origin xyz="0.5 0.1 0" rpy="0 0 0"/>
+        <parent link="${ns}/base_link"/>
+        <child link="${ns}/front_camera_right_link"/>
+        <limit upper="0" lower="0" effort="0" velocity="0"/>
+        <axis xyz="1 0 0"/>
+    </joint>
+
+    <gazebo reference="${ns}/front_camera_left_link">
+        <sensor name="camera" type="camera">
+            <camera>
+                <horizontal_fov>${hfov}</horizontal_fov>
+                <image>
+                    <width>1280</width>
+                    <height>720</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.05</near>
+                    <far>5000</far>
+                </clip>
+                <distortion>
+                    <k1>${k1l}</k1>
+                    <k2>${k2l}</k2>
+                    <k3>${k3l}</k3>
+                    <p1>${p1l}</p1>
+                    <p2>${p2l}</p2>
+                    <center>0.5 0.5</center>
+                </distortion>
+            </camera>
+
+            <plugin name="${ns}_front_camera_left_controller" filename="libgazebo_ros_camera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>30.0</updateRate>
+                <cameraName>vehicle/front_camera_left</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>${ns}/front_camera_left_link</frameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>${k1l}</distortionK1>
+                <distortionK2>${k2l}</distortionK2>
+                <distortionK3>${k3l}</distortionK3>
+                <distortionT1>${p1l}</distortionT1>
+                <distortionT2>${p2l}</distortionT2>
+            </plugin>
+            <always_on>1</always_on>
+            <update_rate>30</update_rate>
+            <visualize>true</visualize>
+        </sensor>
+    </gazebo>
+
+    <gazebo reference="${ns}/front_camera_right_link">
+        <sensor name="camera" type="camera">
+            <camera>
+                <horizontal_fov>${hfov}</horizontal_fov>
+                <image>
+                    <width>1280</width>
+                    <height>720</height>
+                    <format>R8G8B8</format>
+                </image>
+                <clip>
+                    <near>0.05</near>
+                    <far>5000</far>
+                </clip>
+                <distortion>
+                    <k1>${k1l}</k1>
+                    <k2>${k2l}</k2>
+                    <k3>${k3l}</k3>
+                    <p1>${p1l}</p1>
+                    <p2>${p2l}</p2>
+                    <center>0.5 0.5</center>
+                </distortion>
+            </camera>
+
+            <plugin name="${ns}_front_camera_right_controller" filename="libgazebo_ros_camera.so">
+                <alwaysOn>true</alwaysOn>
+                <updateRate>30.0</updateRate>
+                <cameraName>vehicle/front_camera_right</cameraName>
+                <imageTopicName>image_raw</imageTopicName>
+                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                <frameName>${ns}/front_camera_right_link</frameName>
+                <hackBaseline>0.07</hackBaseline>
+                <distortionK1>${k1l}</distortionK1>
+                <distortionK2>${k2l}</distortionK2>
+                <distortionK3>${k3l}</distortionK3>
+                <distortionT1>${p1l}</distortionT1>
+                <distortionT2>${p2l}</distortionT2>
+            </plugin>
+            <always_on>1</always_on>
+            <update_rate>30</update_rate>
+            <visualize>true</visualize>
+        </sensor>
+    </gazebo>
+</robot>

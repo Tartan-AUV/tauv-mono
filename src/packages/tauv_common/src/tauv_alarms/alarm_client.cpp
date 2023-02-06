@@ -15,8 +15,8 @@ namespace tauv_alarms {
 
     this->active_alarms = std::set<tauv_alarms::AlarmType> { tauv_alarms::AlarmType::UNKNOWN_ALARMS };
 
-    this->report_sub = n.subscribe("/alarms/report", 100, &AlarmClient::handle_report, this);
-    this->sync_srv = n.serviceClient<tauv_msgs::SyncAlarms>("/alarms/sync");
+    this->report_sub = n.subscribe("alarms/report", 100, &AlarmClient::handle_report, this);
+    this->sync_srv = n.serviceClient<tauv_msgs::SyncAlarms>("alarms/sync");
   }
 
   void AlarmClient::set(tauv_alarms::AlarmType type, const std::string &msg, bool value)

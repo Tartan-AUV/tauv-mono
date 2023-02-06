@@ -11,41 +11,38 @@
 
     <arg name="teleop" default="false" />
 
-    <group ns="gnc">
-        <node pkg="tauv_common" type="controller" name="controller" output="screen">
-            <rosparam command="load" file="$(arg config_pkg)/controller.yaml" />
-        </node>
+    <node pkg="tauv_common" type="controller" name="controller" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/controller.yaml" />
+    </node>
 
+    <node
+        pkg="tauv_common"
+        type="state_estimation_cpp"
+        name="state_estimation"
+        output="screen"
+        launch-prefix="$(eval 'gdb -ex \'break main\' -ex run --args' if arg('debug') == 'gdb' else 'valgrind --leak-check=full --track-origins=yes' if arg('debug') == 'valgrind' else 'valgrind --tool=callgrind --callgrind-out-file=/home/theo/catkin_ws/callgrind-out' if arg('debug') == 'callgrind' else '')"
+    >
+        <rosparam command="load" file="$(arg config_pkg)/state_estimation_cpp.yaml" />
+    </node>
+
+    <node
+       pkg="tauv_common"
+       type="pid_planner"
+       name="pid_planner"
+       output="screen"
+    >
+        <rosparam command="load" file="$(arg config_pkg)/pid_planner.yaml" />
+        <remap if="$(arg teleop)" from="/gnc/controller/controller_command" to="/gnc/controller/planner_command" />
+    </node>
+
+    <group if="$(arg teleop)">
         <node
             pkg="tauv_common"
-            type="state_estimation_cpp"
-            name="state_estimation"
+            type="teleop_planner"
+            name="teleop_planner"
             output="screen"
-            launch-prefix="$(eval 'gdb -ex \'break main\' -ex run --args' if arg('debug') == 'gdb' else 'valgrind --leak-check=full --track-origins=yes' if arg('debug') == 'valgrind' else 'valgrind --tool=callgrind --callgrind-out-file=/home/theo/catkin_ws/callgrind-out' if arg('debug') == 'callgrind' else '')"
         >
-            <rosparam command="load" file="$(arg config_pkg)/state_estimation_cpp.yaml" />
+            <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />
         </node>
-
-        <node
-           pkg="tauv_common"
-           type="pid_planner"
-           name="pid_planner"
-           output="screen"
-        >
-            <rosparam command="load" file="$(arg config_pkg)/pid_planner.yaml" />
-            <remap if="$(arg teleop)" from="/gnc/controller/controller_command" to="/gnc/controller/planner_command" />
-        </node>
-
-        <group if="$(arg teleop)">
-            <node
-                pkg="tauv_common"
-                type="teleop_planner"
-                name="teleop_planner"
-                output="screen"
-            >
-                <rosparam command="load" file="$(arg config_pkg)/teleop_planner.yaml" />
-            </node>
-        </group>
-
     </group>
 </launch>

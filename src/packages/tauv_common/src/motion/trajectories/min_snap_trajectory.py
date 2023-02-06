@@ -1,7 +1,7 @@
 import rospy
 from .trajectories import TrajectoryStatus, Trajectory
 
-from tauv_msgs.srv import GetTrajResponse, GetTrajRequest
+from tauv_msgs.srv import GetTrajectoryResponse, GetTrajectoryRequest
 from geometry_msgs.msg import Pose, Vector3, Quaternion, Point, Twist, PoseStamped
 from nav_msgs.msg import Path
 from scipy.spatial.transform import Rotation
@@ -185,9 +185,9 @@ class MinSnapTrajectory(Trajectory):
         return T
 
     def get_points(self, request):
-        assert(isinstance(request, GetTrajRequest))
+        assert(isinstance(request, GetTrajectoryRequest))
 
-        res = GetTrajResponse()
+        res = GetTrajectoryResponse()
 
         poses = []
         twists = []
@@ -261,7 +261,7 @@ class MinSnapTrajectory(Trajectory):
         return self.status
 
     def as_path(self, dt=0.1):
-        request = GetTrajRequest()
+        request = GetTrajectoryRequest()
         request.curr_pose = self.start_pose
         request.curr_twist = self.start_twist
         request.len = int(ceil(self.T/dt))

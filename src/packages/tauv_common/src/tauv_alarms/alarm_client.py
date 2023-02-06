@@ -19,9 +19,9 @@ class AlarmClient:
         self._lock = Lock()
 
         # connect to server if we're not in monitor mode.
-        rospy.Subscriber('/alarms/report', AlarmReport, self._update_report)
-        self.pub = rospy.Publisher('/alarms/post', AlarmReport, queue_size=10)
-        self.sync = rospy.ServiceProxy('/alarms/sync', SyncAlarms)
+        rospy.Subscriber('alarms/report', AlarmReport, self._update_report)
+        self.pub = rospy.Publisher('alarms/post', AlarmReport, queue_size=10)
+        self.sync = rospy.ServiceProxy('alarms/sync', SyncAlarms)
 
         if not monitor:
             # wait for first report from the server

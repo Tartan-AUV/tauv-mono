@@ -15,7 +15,7 @@
 import rospy
 import math
 import numpy as np
-from geometry_msgs.msg import PoseArray, Pose, PoseStamped, Twist
+from geometry_msgs.msg import PoseArray, Pose, PoseStamped, Twist, Quaternion, Vector3
 from tauv_msgs.srv import GetTrajectory, GetTrajectoryRequest, GetTrajectoryResponse
 from std_srvs.srv import SetBool, SetBoolRequest, Trigger
 from tauv_util.transforms import twist_body_to_world
@@ -36,18 +36,18 @@ class MotionUtils:
         self.initialized = False
         self.traj = None
 
-        self.pose = None    # pose
-        self.twist = None   # world frame velocities
+        self.pose = None
+        self.twist = None
 
-        self._traj_service = rospy.Service('/gnc/trajectory/get_trajectory', GetTrajectory, self._handle_get_traj)
+        self._traj_service = rospy.Service('gnc/get_trajectory', GetTrajectory, self._handle_get_traj)
 
-        self._arm_srv = rospy.ServiceProxy('/vehicle/thrusters/arm', SetBool)
+        self._arm_srv = rospy.ServiceProxy('thrusters/arm', SetBool)
 
-        self._path_pub = rospy.Publisher('/gnc/path', Path, queue_size=10)
-        self._target_pub = rospy.Publisher("/gnc/traj_target", TrajPoint, queue_size=10)
-        self._target_pose_stamped_pub = rospy.Publisher("/gnc/traj_target_pose_stamped", PoseStamped, queue_size=10)
+        self._path_pub = rospy.Publisher('gnc/path', Path, queue_size=10)
+        self._target_pub = rospy.Publisher("gnc/traj_target", TrajPoint, queue_size=10)
+        self._target_pose_stamped_pub = rospy.Publisher("gnc/traj_target_pose_stamped", PoseStamped, queue_size=10)
 
-        self._odom_sub = rospy.Subscriber('/gnc/state_estimation/odom', OdometryMsg, self._handle_odom)
+        self._odom_sub = rospy.Subscriber('gnc/odom', OdometryMsg, self._handle_odom)
         while not self.initialized:
             rospy.sleep(0.1)
 

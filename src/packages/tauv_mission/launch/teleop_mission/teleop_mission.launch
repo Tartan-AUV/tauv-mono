@@ -1,5 +1,9 @@
 <launch>
-    <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
+    <arg name="model_name" default="kingfisher_sim"/>
+    <arg name="namespace" default="kf"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
-    <node pkg="tauv_mission" type="teleop_mission" name="teleop_mission" output="screen" />
+    <group ns="$(arg namespace)">
+        <node pkg="tauv_mission" type="teleop_mission" name="teleop_mission" output="screen" />
+    </group>
 </launch>

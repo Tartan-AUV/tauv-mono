@@ -1,7 +1,8 @@
 Header header
 
-geometry_msgs/Vector3 position          # position (xyz)
-geometry_msgs/Vector3 velocity          # body velocity
-geometry_msgs/Vector3 acceleration      # body acceleration
-geometry_msgs/Vector3 orientation       # orientation (rpy)
-geometry_msgs/Vector3 angular_velocity  # angular velocity (xyz) - NOT SET
+geometry_msgs/Vector3 position
+geometry_msgs/Vector3 linear_velocity      # body
+geometry_msgs/Vector3 linear_acceleration  # body
+geometry_msgs/Vector3 orientation          # (r, p, y)
+geometry_msgs/Vector3 euler_velocity       # (dr/dt, dp/dt, dy/dt)
+geometry_msgs/Vector3 euler_acceleration   # (d2r/dt2, d2p/dt2, d2y/dt2)

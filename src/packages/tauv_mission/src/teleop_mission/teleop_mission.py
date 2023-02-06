@@ -3,11 +3,16 @@ import argparse
 import numpy as np
 from typing import Optional
 
-from tauv_msgs.msg import PIDTuning, DynamicsTuning
-from tauv_msgs.srv import TuneController, TuneControllerRequest, TuneControllerResponse, TunePIDPlanner, TunePIDPlannerRequest, TunePIDPlannerResponse, TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse
+from tauv_msgs.msg import PIDTuning, DynamicsTuning, DynamicsParameterConfigUpdate
+from tauv_msgs.srv import \
+    TuneController, TuneControllerRequest, TuneControllerResponse,\
+    TunePIDPlanner, TunePIDPlannerRequest, TunePIDPlannerResponse,\
+    TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse,\
+    UpdateDynamicsParameterConfigs, UpdateDynamicsParameterConfigsRequest, UpdateDynamicsParameterConfigsResponse
 from geometry_msgs.msg import Pose, Twist, Vector3
 from std_srvs.srv import SetBool
 from motion.motion_utils import MotionUtils
+from motion.trajectories import TrajectoryStatus
 
 
 class ArgumentParserError(Exception): pass
@@ -28,10 +33,13 @@ class TeleopMission:
         self._pose: Optional[Pose] = None
         self._twist: Optional[Twist] = None
 
-        self._tune_controller_srv: rospy.ServiceProxy = rospy.ServiceProxy('/gnc/controller/tune_controller', TuneController)
-        self._tune_pid_planner_srv: rospy.ServiceProxy = rospy.ServiceProxy('/gnc/pid_planner/tune_pid_planner', TunePIDPlanner)
-        self._tune_dynamics_srv: rospy.ServiceProxy = rospy.ServiceProxy('/gnc/controller/tune_dynamics', TuneDynamics)
-        self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('/vehicle/thrusters/arm', SetBool)
+        self._tune_controller_srv: rospy.ServiceProxy = rospy.ServiceProxy('gnc/tune_controller', TuneController)
+        self._tune_pid_planner_srv: rospy.ServiceProxy = rospy.ServiceProxy('gnc/tune_pid_planner', TunePIDPlanner)
+        self._tune_dynamics_srv: rospy.ServiceProxy = rospy.ServiceProxy('gnc/tune_dynamics', TuneDynamics)
+        self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('vehicle/thrusters/arm', SetBool)
+        self._update_dynamics_parameter_configs_srv: rospy.ServiceProxy = rospy.ServiceProxy(
+            'gnc/update_dynamics_parameter_configs', UpdateDynamicsParameterConfigs
+        )
 
     def start(self):
         while True:
@@ -189,7 +197,8 @@ class TeleopMission:
                 args.yaw,
                 v=v,
                 a=a,
-                j=j
+                j=j,
+                block=TrajectoryStatus.EXECUTING
             )
         except Exception as e:
             print(e)
@@ -219,6 +228,37 @@ class TeleopMission:
         print('disarm')
 
         self._arm_srv.call(False)
+
+    def _handle_config_param_est(self, args):
+        req = UpdateDynamicsParameterConfigsRequest()
+        update = DynamicsParameterConfigUpdate()
+        update.name = args.name
+
+        if args.initial_value is not None:
+            update.update_initial_value = True
+            update.initial_value = args.initial_value
+
+        if args.fixed is not None:
+            update.update_fixed = True
+            update.fixed = args.fixed == "true"
+
+        if args.initial_covariance is not None:
+            update.update_initial_covariance = True
+            update.initial_covariance = args.initial_covariance
+
+        if args.process_covariance is not None:
+            update.update_process_covariance = True
+            update.process_covariance = args.process_covariance
+
+        if args.limits is not None:
+            update.update_limits = True
+            update.limits = args.limits
+
+        update.reset = args.reset
+
+        req.updates = [update]
+
+        self._update_dynamics_parameter_configs_srv.call(req)
 
     def _build_parser(self) -> argparse.ArgumentParser:
         parser = ThrowingArgumentParser(prog="teleop_mission")
@@ -270,6 +310,16 @@ class TeleopMission:
 
         arm = subparsers.add_parser('disarm')
         arm.set_defaults(func=self._handle_disarm)
+
+        config_param_est = subparsers.add_parser('config_param_est')
+        config_param_est.add_argument('name', type=str)
+        config_param_est.add_argument('--initial_value', type=float)
+        config_param_est.add_argument('--fixed', type=str, choices=('true', 'false'))
+        config_param_est.add_argument('--initial_covariance', type=float)
+        config_param_est.add_argument('--process_covariance', type=float)
+        config_param_est.add_argument('--limits', type=float, nargs=2)
+        config_param_est.add_argument('--reset', default=False, action='store_true')
+        config_param_est.set_defaults(func=self._handle_config_param_est)
 
         return parser
 

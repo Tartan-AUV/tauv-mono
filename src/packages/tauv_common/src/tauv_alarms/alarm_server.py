@@ -19,9 +19,9 @@ class AlarmServer:
             if at.default_set:
                 self._active.add(at)
 
-        self.pub = rospy.Publisher('/alarms/report', AlarmReport, queue_size=10)
-        self.pub_readable = rospy.Publisher('/alarms/readable', ReadableAlarmReport, queue_size=10)
-        rospy.Service('/alarms/sync', SyncAlarms, self.handle_request)
+        self.pub = rospy.Publisher('alarms/report', AlarmReport, queue_size=10)
+        self.pub_readable = rospy.Publisher('alarms/readable', ReadableAlarmReport, queue_size=10)
+        rospy.Service('alarms/sync', SyncAlarms, self.handle_request)
         rospy.Timer(rospy.Duration(0.1), self.pub_report)
         rospy.Timer(rospy.Duration(0.5), self.print_readable)
 

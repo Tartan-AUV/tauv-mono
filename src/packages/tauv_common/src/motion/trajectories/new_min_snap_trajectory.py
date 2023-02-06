@@ -7,7 +7,7 @@ from typing import List, Optional
 from geometry_msgs.msg import Pose, PoseStamped, Twist, Quaternion, Vector3
 from nav_msgs.msg import Path
 
-from tauv_msgs.srv import GetTrajRequest, GetTrajResponse
+from tauv_msgs.srv import GetTrajectoryRequest, GetTrajectoryResponse
 from tauv_util.types import tl, tm
 from tauv_util.transforms import quat_to_rpy, rpy_to_quat, twist_world_to_body, twist_body_to_world
 
@@ -180,9 +180,9 @@ class NewMinSnapTrajectory(Trajectory):
 
         return sum(durations)
 
-    def get_points(self, req: GetTrajRequest):
+    def get_points(self, req: GetTrajectoryRequest):
         if self.status == TrajectoryStatus.PENDING:
-            res: GetTrajResponse = GetTrajResponse()
+            res: GetTrajectoryResponse = GetTrajectoryResponse()
             res.poses = []
             res.twists = []
             res.auto_twists = False
@@ -306,7 +306,7 @@ class NewMinSnapTrajectory(Trajectory):
 
                     twists[i] = world_twist
 
-        res: GetTrajResponse = GetTrajResponse()
+        res: GetTrajectoryResponse = GetTrajectoryResponse()
         res.poses = poses
         res.twists = twists
         res.auto_twists = False
@@ -332,7 +332,7 @@ class NewMinSnapTrajectory(Trajectory):
         if self.status == TrajectoryStatus.PENDING:
             return Path()
 
-        req: GetTrajRequest = GetTrajRequest()
+        req: GetTrajectoryRequest = GetTrajectoryRequest()
         req.header.stamp = rospy.Time.now()
         req.header.frame_id = 'odom'
 
@@ -342,7 +342,7 @@ class NewMinSnapTrajectory(Trajectory):
         req.len = floor(self._duration.to_sec() / dt)
         req.dt = dt
 
-        res: GetTrajResponse = self.get_points(req)
+        res: GetTrajectoryResponse = self.get_points(req)
 
         path: Path = Path()
         path.header.frame_id = 'odom'
