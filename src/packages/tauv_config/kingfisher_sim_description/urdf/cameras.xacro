@@ -1,129 +1,153 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
-    <xacro:property name="k1l" value="-0.389021"/>
-    <xacro:property name="k2l" value="0.118184"/>
-    <xacro:property name="p1l" value="0.001259"/>
-    <xacro:property name="p2l" value="0.002050"/>
-    <xacro:property name="k3l" value="0.000000"/>
+<!--    Needs sudo apt-get install ros-noetic-gazebo-ros-pkgs ros-noetic-gazebo-ros-control-->
 
-    <xacro:property name="k1r" value="-0.378206"/>
-    <xacro:property name="k2r" value="0.104833"/>
-    <xacro:property name="p1r" value="0.000458"/>
-    <xacro:property name="p2r" value="0.002447"/>
-    <xacro:property name="k3r" value="0.000000"/>
+    <xacro:property name="oakd_color_k1" value="-0.389021"/>
+    <xacro:property name="oakd_color_k2" value="0.118184"/>
+    <xacro:property name="oakd_color_k3" value="0.000000"/>
+    <xacro:property name="oakd_color_p1" value="0.001259"/>
+    <xacro:property name="oakd_color_p2" value="0.002050"/>
+    <xacro:property name="oakd_color_hfov" value="1.20428"/>
+    <xacro:property name="oakd_color_width" value="2016"/>
+    <xacro:property name="oakd_color_height" value="1520"/>
 
-    <xacro:property name="hfov" value="1.3844"/>
+    <xacro:property name="oakd_stereo_k1" value="-0.389021"/>
+    <xacro:property name="oakd_stereo_k2" value="0.118184"/>
+    <xacro:property name="oakd_stereo_k3" value="0.000000"/>
+    <xacro:property name="oakd_stereo_p1" value="0.001259"/>
+    <xacro:property name="oakd_stereo_p2" value="0.002050"/>
+    <xacro:property name="oakd_stereo_hfov" value="1.25664"/>
+    <xacro:property name="oakd_stereo_width" value="1280"/>
+    <xacro:property name="oakd_stereo_height" value="800"/>
+    <xacro:property name="oakd_stereo_baseline" value="0.07"/>
 
-    <link name="${ns}/front_camera_left_link">
+    <link name="${ns}/front_oakd_link">
         <xacro:no_inertial/>
         <xacro:no_visual/>
         <xacro:no_collision/>
     </link>
 
-    <link name="${ns}/front_camera_right_link">
-        <xacro:no_inertial/>
-        <xacro:no_visual/>
-        <xacro:no_collision/>
-    </link>
-
-    <joint name="${ns}/front_camera_left_joint" type="revolute">
-        <origin xyz="0.5 -0.1 0" rpy="0 0 0"/>
+    <joint name="${ns}/front_oakd_joint" type="revolute">
+        <origin xyz="0.5 0 0" rpy="0 0 0"/>
         <parent link="${ns}/base_link"/>
-        <child link="${ns}/front_camera_left_link"/>
+        <child link="${ns}/front_oakd_link"/>
         <limit upper="0" lower="0" effort="0" velocity="0"/>
         <axis xyz="1 0 0"/>
     </joint>
 
-    <joint name="${ns}/front_camera_right_joint" type="revolute">
-        <origin xyz="0.5 0.1 0" rpy="0 0 0"/>
-        <parent link="${ns}/base_link"/>
-        <child link="${ns}/front_camera_right_link"/>
-        <limit upper="0" lower="0" effort="0" velocity="0"/>
-        <axis xyz="1 0 0"/>
-    </joint>
-
-    <gazebo reference="${ns}/front_camera_left_link">
-        <sensor name="camera" type="camera">
-            <camera>
-                <horizontal_fov>${hfov}</horizontal_fov>
+    <gazebo reference="${ns}/front_oakd_link">
+        <sensor type="multicamera" name="front_oakd_stereo">
+            <camera name="front_oakd_left">
+                <pose>0 ${-oakd_stereo_baseline / 2} 0 0 0 0</pose>
+                <horizontal_fov>${oakd_stereo_hfov}</horizontal_fov>
                 <image>
-                    <width>1280</width>
-                    <height>720</height>
-                    <format>R8G8B8</format>
+                    <width>${oakd_stereo_width}</width>
+                    <height>${oakd_stereo_height}</height>
+                    <format>L8</format>
                 </image>
                 <clip>
-                    <near>0.05</near>
-                    <far>5000</far>
+                  <near>0.02</near>
+                  <far>300</far>
                 </clip>
+                <noise>
+                  <type>gaussian</type>
+                  <mean>0.0</mean>
+                  <stddev>0.007</stddev>
+                </noise>
                 <distortion>
-                    <k1>${k1l}</k1>
-                    <k2>${k2l}</k2>
-                    <k3>${k3l}</k3>
-                    <p1>${p1l}</p1>
-                    <p2>${p2l}</p2>
+                    <k1>${oakd_stereo_k1}</k1>
+                    <k2>${oakd_stereo_k2}</k2>
+                    <k3>${oakd_stereo_k3}</k3>
+                    <p1>${oakd_stereo_p1}</p1>
+                    <p2>${oakd_stereo_p2}</p2>
                     <center>0.5 0.5</center>
                 </distortion>
             </camera>
 
-            <plugin name="${ns}_front_camera_left_controller" filename="libgazebo_ros_camera.so">
+            <camera name="front_oakd_right">
+                <pose>0 ${-oakd_stereo_baseline / 2} 0 0 0 0</pose>
+                <horizontal_fov>${oakd_stereo_hfov}</horizontal_fov>
+                <image>
+                    <width>${oakd_stereo_width}</width>
+                    <height>${oakd_stereo_height}</height>
+                    <format>L8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>300</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+                <distortion>
+                    <k1>${oakd_stereo_k1}</k1>
+                    <k2>${oakd_stereo_k2}</k2>
+                    <k3>${oakd_stereo_k3}</k3>
+                    <p1>${oakd_stereo_p1}</p1>
+                    <p2>${oakd_stereo_p2}</p2>
+                    <center>0.5 0.5</center>
+                </distortion>
+            </camera>
+
+            <plugin name="front_oakd_controller" filename="libgazebo_ros_multicamera.so">
                 <alwaysOn>true</alwaysOn>
                 <updateRate>30.0</updateRate>
-                <cameraName>vehicle/front_camera_left</cameraName>
+                <cameraName>vehicle/oakd_front/stereo</cameraName>
                 <imageTopicName>image_raw</imageTopicName>
                 <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-                <frameName>${ns}/front_camera_left_link</frameName>
-                <hackBaseline>0.07</hackBaseline>
-                <distortionK1>${k1l}</distortionK1>
-                <distortionK2>${k2l}</distortionK2>
-                <distortionK3>${k3l}</distortionK3>
-                <distortionT1>${p1l}</distortionT1>
-                <distortionT2>${p2l}</distortionT2>
+                <frameName>oakd_front</frameName>
+                <hackBaseline>${oakd_stereo_baseline}</hackBaseline>
+                <distortionK1>${oakd_stereo_k1}</distortionK1>
+                <distortionK2>${oakd_stereo_k2}</distortionK2>
+                <distortionK3>${oakd_stereo_k3}</distortionK3>
+                <distortionT1>${oakd_stereo_p1}</distortionT1>
+                <distortionT2>${oakd_stereo_p2}</distortionT2>
             </plugin>
-            <always_on>1</always_on>
-            <update_rate>30</update_rate>
-            <visualize>true</visualize>
         </sensor>
-    </gazebo>
 
-    <gazebo reference="${ns}/front_camera_right_link">
-        <sensor name="camera" type="camera">
-            <camera>
-                <horizontal_fov>${hfov}</horizontal_fov>
+        <sensor type="camera" name="front_oakd_color">
+            <camera name="front_oakd_color">
+                <horizontal_fov>${oakd_color_hfov}</horizontal_fov>
                 <image>
-                    <width>1280</width>
-                    <height>720</height>
+                    <width>${oakd_color_width}</width>
+                    <height>${oakd_color_height}</height>
                     <format>R8G8B8</format>
                 </image>
                 <clip>
-                    <near>0.05</near>
-                    <far>5000</far>
+                    <near>0.02</near>
+                    <far>300</far>
                 </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
                 <distortion>
-                    <k1>${k1l}</k1>
-                    <k2>${k2l}</k2>
-                    <k3>${k3l}</k3>
-                    <p1>${p1l}</p1>
-                    <p2>${p2l}</p2>
+                    <k1>${oakd_color_k1}</k1>
+                    <k2>${oakd_color_k2}</k2>
+                    <k3>${oakd_color_k3}</k3>
+                    <p1>${oakd_color_p1}</p1>
+                    <p2>${oakd_color_p2}</p2>
                     <center>0.5 0.5</center>
                 </distortion>
             </camera>
 
-            <plugin name="${ns}_front_camera_right_controller" filename="libgazebo_ros_camera.so">
+            <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
                 <alwaysOn>true</alwaysOn>
                 <updateRate>30.0</updateRate>
-                <cameraName>vehicle/front_camera_right</cameraName>
+                <cameraName>vehicle/oakd_front/color</cameraName>
                 <imageTopicName>image_raw</imageTopicName>
                 <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-                <frameName>${ns}/front_camera_right_link</frameName>
-                <hackBaseline>0.07</hackBaseline>
-                <distortionK1>${k1l}</distortionK1>
-                <distortionK2>${k2l}</distortionK2>
-                <distortionK3>${k3l}</distortionK3>
-                <distortionT1>${p1l}</distortionT1>
-                <distortionT2>${p2l}</distortionT2>
+                <frameName>oakd_front</frameName>
+                <distortionK1>${oakd_color_k1}</distortionK1>
+                <distortionK2>${oakd_color_k2}</distortionK2>
+                <distortionK3>${oakd_color_k3}</distortionK3>
+                <distortionT1>${oakd_color_p1}</distortionT1>
+                <distortionT2>${oakd_color_p2}</distortionT2>
             </plugin>
-            <always_on>1</always_on>
-            <update_rate>30</update_rate>
+
             <visualize>true</visualize>
         </sensor>
     </gazebo>
