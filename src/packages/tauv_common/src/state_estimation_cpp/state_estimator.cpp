@@ -27,6 +27,7 @@ StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
   this->load_config();
 
   this->is_initialized = false;
+  this->last_angular_velocity = Eigen::Vector3d::Zero();
 
   this->ekf = Ekf();
   this->ekf.set_dvl_offset(this->dvl_offset);
@@ -36,14 +37,14 @@ StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
   this->delayed_queue.reserve(DELAYED_QUEUE_SIZE);
   this->realtime_queue.reserve(REALTIME_QUEUE_SIZE);
 
-  this->imu_sub = n.subscribe("/vehicle/xsens_imu/data", TOPIC_QUEUE_SIZE, &StateEstimator::handle_imu, this);
-  this->dvl_sub = n.subscribe("/vehicle/teledyne_dvl/data", TOPIC_QUEUE_SIZE, &StateEstimator::handle_dvl, this);
-  this->depth_sub = n.subscribe("/vehicle/arduino/depth", TOPIC_QUEUE_SIZE, &StateEstimator::handle_depth, this);
+  this->imu_sub = n.subscribe("vehicle/xsens_imu/data", TOPIC_QUEUE_SIZE, &StateEstimator::handle_imu, this);
+  this->dvl_sub = n.subscribe("vehicle/teledyne_dvl/data", TOPIC_QUEUE_SIZE, &StateEstimator::handle_dvl, this);
+  this->depth_sub = n.subscribe("vehicle/arduino/depth", TOPIC_QUEUE_SIZE, &StateEstimator::handle_depth, this);
 
-  this->navigation_state_pub = n.advertise<tauv_msgs::NavigationState>("/gnc/state_estimation/navigation_state", TOPIC_QUEUE_SIZE);
-  this->odom_pub = n.advertise<nav_msgs::Odometry>("/gnc/state_estimation/odom", TOPIC_QUEUE_SIZE);
+  this->navigation_state_pub = n.advertise<tauv_msgs::NavigationState>("gnc/state_estimation/navigation_state", TOPIC_QUEUE_SIZE);
+  this->odom_pub = n.advertise<nav_msgs::Odometry>("gnc/state_estimation/odom", TOPIC_QUEUE_SIZE);
 
-  this->set_pose_srv = n.advertiseService("/gnc/state_estimation/set_pose", &StateEstimator::handle_set_pose, this);
+  this->set_pose_srv = n.advertiseService("gnc/state_estimation/set_pose", &StateEstimator::handle_set_pose, this);
 
   this->timer = n.createTimer(this->dt, &StateEstimator::update, this);
 
@@ -147,12 +148,16 @@ void StateEstimator::update(const ros::TimerEvent& e)
     this->apply_msg(msg);
   }
 
-  this->last_evaluation_time = current_time;
 
   Eigen::Vector3d position, velocity, acceleration, orientation, angular_velocity;
   this->ekf.get_state_fields(current_time.toSec(), position, velocity, acceleration, orientation, angular_velocity);
 
-  this->publish_navigation_state(current_time, position, velocity, acceleration, orientation, angular_velocity);
+  Eigen::Vector3d angular_acceleration = (angular_velocity - this->last_angular_velocity) / (current_time - this->last_evaluation_time).toSec();
+
+  this->last_evaluation_time = current_time;
+  this->last_angular_velocity = angular_velocity;
+
+  this->publish_navigation_state(current_time, position, velocity, acceleration, orientation, angular_velocity, angular_acceleration);
   this->publish_odom(current_time, position, velocity, orientation, angular_velocity);
   this->publish_tf(current_time, position, orientation);
 }
@@ -283,25 +288,29 @@ void StateEstimator::publish_navigation_state(
   const Eigen::Vector3d &velocity,
   const Eigen::Vector3d &acceleration,
   const Eigen::Vector3d &orientation,
-  const Eigen::Vector3d &angular_velocity)
+  const Eigen::Vector3d &angular_velocity,
+  const Eigen::Vector3d &angular_acceleration)
 {
   tauv_msgs::NavigationState msg;
   msg.header.stamp = time;
   msg.position.x = position.x();
   msg.position.y = position.y();
   msg.position.z = position.z();
-  msg.velocity.x = velocity.x();
-  msg.velocity.y = velocity.y();
-  msg.velocity.z = velocity.z();
-  msg.acceleration.x = acceleration.x();
-  msg.acceleration.y = acceleration.y();
-  msg.acceleration.z = acceleration.z();
+  msg.linear_velocity.x = velocity.x();
+  msg.linear_velocity.y = velocity.y();
+  msg.linear_velocity.z = velocity.z();
+  msg.linear_acceleration.x = acceleration.x();
+  msg.linear_acceleration.y = acceleration.y();
+  msg.linear_acceleration.z = acceleration.z();
   msg.orientation.x = orientation.x();
   msg.orientation.y = orientation.y();
   msg.orientation.z = orientation.z();
-  msg.angular_velocity.x = angular_velocity.x();
-  msg.angular_velocity.y = angular_velocity.y();
-  msg.angular_velocity.z = angular_velocity.z();
+  msg.euler_velocity.x = angular_velocity.x();
+  msg.euler_velocity.y = angular_velocity.y();
+  msg.euler_velocity.z = angular_velocity.z();
+  msg.euler_acceleration.x = angular_acceleration.x();
+  msg.euler_acceleration.y = angular_acceleration.y();
+  msg.euler_acceleration.z = angular_acceleration.z();
   this->navigation_state_pub.publish(msg);
 }
 

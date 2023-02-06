@@ -48,10 +48,10 @@ class TeleopPlanner:
         self._planner_cmd_timestamp: Optional[rospy.Time] = None
         self._planner_cmd_timeout: float = 1.0
 
-        self._joy_sub: rospy.Subscriber = rospy.Subscriber('/joy', Joy, self._handle_joy)
-        self._planner_cmd_sub: rospy.Subscriber = rospy.Subscriber('/gnc/controller/planner_command', ControllerCommand, self._handle_planner_cmd)
-        self._cmd_pub: rospy.Publisher = rospy.Publisher('/gnc/controller/controller_command', ControllerCommand, queue_size=10)
-        self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('/vehicle/thrusters/arm', SetBool)
+        self._joy_sub: rospy.Subscriber = rospy.Subscriber('joy', Joy, self._handle_joy)
+        self._planner_cmd_sub: rospy.Subscriber = rospy.Subscriber('gnc/controller/planner_command', ControllerCommand, self._handle_planner_cmd)
+        self._cmd_pub: rospy.Publisher = rospy.Publisher('gnc/controller/controller_command', ControllerCommand, queue_size=10)
+        self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('vehicle/thrusters/arm', SetBool)
 
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)

@@ -8,6 +8,7 @@ from tauv_msgs.msg import ControllerCommand, NavigationState, ControllerDebug
 from tauv_msgs.srv import TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TuneController, TuneControllerRequest, TuneControllerResponse
 from tauv_util.types import tl, tm
 from tauv_util.pid import PID, pi_clip
+from tauv_util.transforms import euler_velocity_to_axis_velocity
 
 from tauv_alarms import Alarm, AlarmClient
 
@@ -34,12 +35,12 @@ class Controller:
             Ma=self._Ma,
         )
 
-        self._navigation_state_sub: rospy.Subscriber = rospy.Subscriber('/gnc/state_estimation/navigation_state', NavigationState, self._handle_navigation_state)
-        self._controller_command_sub: rospy.Subscriber = rospy.Subscriber('/gnc/controller/controller_command', ControllerCommand, self._handle_controller_command)
-        self._controller_debug_pub = rospy.Publisher('/gnc/controller/controller_debug', ControllerDebug, queue_size=10)
-        self._wrench_pub: rospy.Publisher = rospy.Publisher('/vehicle/thrusters/wrench', WrenchStamped, queue_size=10)
-        self._tune_dynamics_srv: rospy.Service = rospy.Service('/gnc/controller/tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
-        self._tune_controller_srv: rospy.Service = rospy.Service('/gnc/controller/tune_controller', TuneController, self._handle_tune_controller)
+        self._navigation_state_sub: rospy.Subscriber = rospy.Subscriber('gnc/navigation_state', NavigationState, self._handle_navigation_state)
+        self._controller_command_sub: rospy.Subscriber = rospy.Subscriber('gnc/controller_command', ControllerCommand, self._handle_controller_command)
+        self._controller_debug_pub = rospy.Publisher('gnc/controller_debug', ControllerDebug, queue_size=10)
+        self._wrench_pub: rospy.Publisher = rospy.Publisher('gnc/target_wrench', WrenchStamped, queue_size=10)
+        self._tune_dynamics_srv: rospy.Service = rospy.Service('gnc/tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
+        self._tune_controller_srv: rospy.Service = rospy.Service('gnc/tune_controller', TuneController, self._handle_tune_controller)
 
         self._build_pids()
 
@@ -55,9 +56,13 @@ class Controller:
             tl(self._navigation_state.position),
             tl(self._navigation_state.orientation)
         ))
+
+        euler_velocity = tl(self._navigation_state.euler_velocity)
+        orientation = tl(self._navigation_state.orientation)
+        axis_velocity = euler_velocity_to_axis_velocity(orientation, euler_velocity)
         v = np.concatenate((
-            tl(self._navigation_state.velocity),
-            tl(self._navigation_state.angular_velocity),
+            tl(self._navigation_state.linear_velocity),
+            axis_velocity
         ))
 
         roll_error = tl(self._navigation_state.orientation)[0]
@@ -84,6 +89,7 @@ class Controller:
         #     # tau = self._dyn.compute_tau(eta, v, vd)
         # tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
+        # Need to LPF the wrench here with a certain time constant
         wrench: WrenchStamped = WrenchStamped()
         wrench.header.frame_id = 'vehicle_ned'
         wrench.header.stamp = rospy.Time.now()
@@ -207,6 +213,7 @@ class Controller:
         self._D = np.array(rospy.get_param('~dynamics/linear_damping'))
         self._D2 = np.array(rospy.get_param('~dynamics/quadratic_damping'))
         self._Ma = np.array(rospy.get_param('~dynamics/added_mass'))
+
 
 
 def main():

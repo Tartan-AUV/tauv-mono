@@ -4,7 +4,7 @@ from enum import Enum
 from motion.trajectories.trajectories import TrajectoryStatus
 from nav_msgs.msg import Path
 from collections import Iterable
-from tauv_msgs.srv import GetTraj
+from tauv_msgs.srv import GetTrajectory
 import typing
 import numpy as np
 from geometry_msgs.msg import Pose, Twist, Vector3, Quaternion, PoseStamped
@@ -24,8 +24,8 @@ class HoldPos(object):
 
         self.status = TrajectoryStatus.PENDING
 
-    def get_points(self, request: GetTraj._request_class) -> GetTraj._response_class:
-        res = GetTraj._response_class()
+    def get_points(self, request: GetTrajectory._request_class) -> GetTrajectory._response_class:
+        res = GetTrajectory._response_class()
         res.auto_twists = False
         res.poses = [self.pose] * request.len
         res.twists = [Twist()] * request.len

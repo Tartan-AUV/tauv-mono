@@ -24,3 +24,10 @@ def tm(l, t):
     if t == Quaternion:
         return Quaternion(l[0], l[1], l[2], l[3])
     raise ValueError("Unsupported type for tm! Add it in tauv_util/types.py")
+
+def vector_to_numpy(v: Vector3) -> np.array:
+    return np.array([v.x, v.y, v.z])
+
+def numpy_to_vector(a: np.array) -> Vector3:
+    assert(a.shape == (3,))
+    return Vector3(a[0], a[1], a[2])

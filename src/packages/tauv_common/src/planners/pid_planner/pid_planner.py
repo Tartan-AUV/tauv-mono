@@ -22,15 +22,18 @@ class PIDPlanner:
         self._ac = AlarmClient()
         self._load_config()
 
-        self._get_traj_service: rospy.ServiceProxy = rospy.ServiceProxy('/gnc/trajectory/get_trajectory', GetTrajectory)
-        self._navigation_state_sub: rospy.Subscriber = rospy.Subscriber('/gnc/state_estimation/navigation_state', NavigationState, self._handle_navigation_state)
-        self._controller_command_pub: rospy.Publisher = rospy.Publisher('/gnc/controller/controller_command', ControllerCommand, queue_size=10)
-        self._tune_pid_planner_service: rospy.Service = rospy.Service('/gnc/pid_planner/tune_pid_planner', TunePIDPlanner, self._handle_tune_pid_planner)
+        self._get_traj_service: rospy.ServiceProxy = rospy.ServiceProxy('gnc/get_trajectory', GetTrajectory)
+        self._navigation_state_sub: rospy.Subscriber = rospy.Subscriber('gnc/navigation_state', NavigationState, self._handle_navigation_state)
+        self._controller_command_pub: rospy.Publisher = rospy.Publisher('gnc/controller_command', ControllerCommand, queue_size=10)
+        self._tune_pid_planner_service: rospy.Service = rospy.Service('gnc/tune_pid_planner', TunePIDPlanner, self._handle_tune_pid_planner)
 
         self._dt: float = 1.0 / self._frequency
         self._navigation_state: Optional[NavigationState] = None
 
         self._build_pids()
+
+        self._body_position_effort = np.zeros(3)
+        self._yaw_effort = 0
 
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
@@ -56,18 +59,31 @@ class PIDPlanner:
         current_orientation = tl(self._navigation_state.orientation)
         current_yaw = tl(self._navigation_state.orientation)[2]
 
+        pose = build_pose(tl(self._navigation_state.position), tl(self._navigation_state.orientation))
+        body_twist = build_twist(tl(self._navigation_state.linear_velocity), tl(self._navigation_state.euler_velocity))
+        world_twist = twist_body_to_world(pose, body_twist)
+
+        position_acceleration = target_world_velocity - tl(world_twist.linear)
+        yaw_acceleration = target_yaw_velocity - world_twist.angular.z
+
         position_error = current_position - target_position
         yaw_error = current_yaw - target_yaw
 
         world_position_effort = np.zeros(3)
         for i in range(3):
-            world_position_effort[i] = self._pids[i](position_error[i])
+            world_position_effort[i] = self._pids[i](position_error[i]) + position_acceleration[i]
 
-        yaw_effort = self._pids[3](yaw_error)
+        yaw_effort = self._pids[3](yaw_error) + yaw_acceleration
 
         R = Rotation.from_euler('ZYX', np.flip(current_orientation)).inv()
 
         body_position_effort = R.apply(world_position_effort)
+
+        body_position_effort = self._tau[0:3] * self._body_position_effort + (1 - self._tau[0:3]) * body_position_effort
+        yaw_effort = self._tau[3] * self._yaw_effort + (1 - self._tau[3]) * yaw_effort
+
+        self._body_position_effort = body_position_effort
+        self._yaw_effort = yaw_effort
 
         controller_command = ControllerCommand()
         controller_command.a_x = body_position_effort[0]
@@ -87,7 +103,7 @@ class PIDPlanner:
 
     def _get_target(self) -> (Optional[Pose], Optional[Twist]):
         pose = build_pose(tl(self._navigation_state.position), tl(self._navigation_state.orientation))
-        body_twist = build_twist(tl(self._navigation_state.velocity), tl(self._navigation_state.angular_velocity))
+        body_twist = build_twist(tl(self._navigation_state.linear_velocity), tl(self._navigation_state.euler_velocity))
 
         req = GetTrajectoryRequest()
         req.curr_pose = pose

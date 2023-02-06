@@ -3,7 +3,7 @@ import numpy as np
 
 from geometry_msgs.msg import Pose, PoseStamped, Twist, Vector3, Quaternion
 from nav_msgs.msg import Path
-from tauv_msgs.srv import GetTrajRequest, GetTrajResponse
+from tauv_msgs.srv import GetTrajectoryRequest, GetTrajectoryResponse
 from tauv_util.types import tl, tm
 from tauv_util.transforms import linear_distance, yaw_distance, quat_to_rpy, rpy_to_quat, twist_world_to_body, twist_body_to_world
 
@@ -78,9 +78,9 @@ class LinearTrajectory(Trajectory):
         yaw_duration = self._yaw_traj.time[0]
         self._segment_duration = rospy.Duration.from_sec(max(linear_duration, yaw_duration))
 
-    def get_points(self, req: GetTrajRequest) -> GetTrajResponse:
+    def get_points(self, req: GetTrajectoryRequest) -> GetTrajectoryResponse:
         if self._status != TrajectoryStatus.EXECUTING:
-            res: GetTrajResponse = GetTrajResponse()
+            res: GetTrajectoryResponse = GetTrajectoryResponse()
             res.success = False
             return res
 
@@ -138,7 +138,7 @@ class LinearTrajectory(Trajectory):
             poses[i] = pose
             twists[i] = twist
 
-        res: GetTrajResponse = GetTrajResponse()
+        res: GetTrajectoryResponse = GetTrajectoryResponse()
         res.poses = poses
         res.twists = twists
         res.auto_twists = False

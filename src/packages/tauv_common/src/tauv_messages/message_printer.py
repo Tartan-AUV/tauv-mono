@@ -24,7 +24,7 @@ es = {
 class MessagePrinter:
 
     def __init__(self) -> None:
-        self.sub = rospy.Subscriber("/messages", Message, self.handle_message)
+        self.sub = rospy.Subscriber("messages", Message, self.handle_message)
 
     def handle_message(self, msg: Message):
         s = msg.severity

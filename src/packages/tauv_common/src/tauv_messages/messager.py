@@ -11,7 +11,7 @@ class Messager:
     # color: ANSI 256 color code: https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html#256-colors
     def __init__(self, name, color=15) -> None:
         self._code = color
-        self._pub = rospy.Publisher('/messages', Message, queue_size=10)
+        self._pub = rospy.Publisher('messages', Message, queue_size=10)
         self._name = name
 
     def log(self, message, severity=SEV_INFO):

@@ -12,6 +12,8 @@ add_message_files(
   FeatureDetection.msg
   FluidDepth.msg
   DynamicsTuning.msg
+  DynamicsParametersEstimate.msg
+  DynamicsParameterConfigUpdate.msg
   GateDetection.msg
   Message.msg
   SonarPulse.msg
@@ -44,6 +46,7 @@ add_service_files(
   SetTargetPose.srv
   SetPose.srv
   RunBasicMission.srv
+  UpdateDynamicsParameterConfigs.srv
 )
 
 

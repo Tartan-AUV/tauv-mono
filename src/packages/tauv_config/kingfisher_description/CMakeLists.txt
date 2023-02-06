@@ -4,5 +4,3 @@ project(kingfisher_description)
 find_package(catkin REQUIRED)
 
 catkin_package()
-
-include_directories()

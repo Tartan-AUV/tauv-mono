@@ -1,0 +1,12 @@
+<launch>
+    <arg name="config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
+
+    <node
+            pkg="tauv_common"
+            type="dynamics_parameter_estimator"
+            name="dynamics_parameter_estimator"
+            output="screen"
+    >
+        <rosparam command="load" file="$(arg config_pkg)/yaml/dynamics_parameter_estimator.yaml" />
+    </node>
+</launch>

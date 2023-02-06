@@ -57,6 +57,7 @@ class StateEstimator {
     bool is_initialized;
 
     ros::Time last_evaluation_time;
+    Eigen::Vector3d last_angular_velocity;
 
     boost::circular_buffer<Checkpoint> checkpoints;
 
@@ -87,7 +88,8 @@ class StateEstimator {
         const Eigen::Vector3d &velocity,
         const Eigen::Vector3d &acceleration,
         const Eigen::Vector3d &orientation,
-        const Eigen::Vector3d &angular_velocity);
+        const Eigen::Vector3d &angular_velocity,
+        const Eigen::Vector3d &angular_acceleration);
     void publish_odom(
         ros::Time time,
         const Eigen::Vector3d &position,
