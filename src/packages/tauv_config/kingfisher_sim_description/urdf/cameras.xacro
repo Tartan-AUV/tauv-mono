@@ -38,12 +38,12 @@
     <gazebo reference="${ns}/front_oakd_link">
         <sensor type="multicamera" name="front_oakd_stereo">
             <camera name="front_oakd_left">
-                <pose>0 ${-oakd_stereo_baseline / 2} 0 0 0 0</pose>
+                <pose>0 ${oakd_stereo_baseline / 2} 0 0 0 0</pose>
                 <horizontal_fov>${oakd_stereo_hfov}</horizontal_fov>
                 <image>
                     <width>${oakd_stereo_width}</width>
                     <height>${oakd_stereo_height}</height>
-                    <format>L8</format>
+                    <format>R8G8B8</format>
                 </image>
                 <clip>
                   <near>0.02</near>
@@ -70,7 +70,7 @@
                 <image>
                     <width>${oakd_stereo_width}</width>
                     <height>${oakd_stereo_height}</height>
-                    <format>L8</format>
+                    <format>R8G8B8</format>
                 </image>
                 <clip>
                     <near>0.02</near>
@@ -91,9 +91,9 @@
                 </distortion>
             </camera>
 
-            <plugin name="front_oakd_controller" filename="libgazebo_ros_multicamera.so">
+            <plugin name="front_oakd_stereo_controller" filename="libgazebo_ros_multicamera.so">
                 <alwaysOn>true</alwaysOn>
-                <updateRate>30.0</updateRate>
+                <updateRate>10.0</updateRate>
                 <cameraName>vehicle/oakd_front/stereo</cameraName>
                 <imageTopicName>image_raw</imageTopicName>
                 <cameraInfoTopicName>camera_info</cameraInfoTopicName>
@@ -134,9 +134,9 @@
                 </distortion>
             </camera>
 
-            <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+            <plugin name="front_oakd_color_controller" filename="libgazebo_ros_camera.so">
                 <alwaysOn>true</alwaysOn>
-                <updateRate>30.0</updateRate>
+                <updateRate>10.0</updateRate>
                 <cameraName>vehicle/oakd_front/color</cameraName>
                 <imageTopicName>image_raw</imageTopicName>
                 <cameraInfoTopicName>camera_info</cameraInfoTopicName>
