@@ -19,6 +19,8 @@
             <arg name="namespace" value="$(arg namespace)" />
         </include>
 
+        <include file="$(find tauv_sim)/launch/vehicles/kingfisher_vehicle.launch" />
+
         <include file="$(arg config_pkg)/launch/transforms.launch" />
 
         <node pkg="tauv_common" type="thruster_manager" name="thruster_manager" output="screen">

@@ -1,5 +1,0 @@
-<launch>
-    <include file="$(find tauv_sim)/launch/teledyne_dvl_sim/teledyne_dvl_sim.launch" />
-    <include file="$(find tauv_sim)/launch/thrusters_sim/thrusters_sim.launch" />
-    <include file="$(find tauv_sim)/launch/xsens_imu_sim/xsens_imu_sim.launch" />
-</launch>

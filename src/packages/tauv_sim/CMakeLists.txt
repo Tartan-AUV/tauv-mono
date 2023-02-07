@@ -3,39 +3,17 @@ project(tauv_sim)
 
 add_compile_options(-Wall -Werror -std=c++14)
 
-find_package(catkin REQUIRED COMPONENTS
-    std_msgs
-    message_generation
-    sensor_msgs
-    geometry_msgs
-    message_filters
-    tf
-    std_srvs
-    tauv_msgs
-  )
+find_package(catkin)
 
 catkin_python_setup()
 
-catkin_package(CATKIN_DEPENDS
-    message_runtime
-    std_msgs
-    std_srvs
-    roscpp
-    rospy
-    sensor_msgs
-    geometry_msgs
-    tf
-    tauv_config
-    message_filters
-  )
+catkin_package()
 
 include_directories(
-        src
-        include
-        ${catkin_INCLUDE_DIRS}
+  src
+  ${catkin_INCLUDE_DIRS}
 )
 
-install(DIRECTORY launch config include
+install(DIRECTORY launch
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
         PATTERN "*~" EXCLUDE)

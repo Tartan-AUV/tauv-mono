@@ -1,9 +1,0 @@
-<launch>
-    <arg name="model_name" default="kingfisher"/>
-    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_sim_description'))"/>
-
-    <node pkg="tauv_sim" type="teledyne_dvl_sim" name="teledyne_dvl_sim" output="screen">
-        <remap from="sim_dvl" to="/kingfisher/dvl_twist" />
-        <remap from="dvl" to="/teledyne_dvl/data" />
-    </node>
-</launch>
