@@ -58,7 +58,17 @@
 
         <include>
             <uri>model://gate</uri>
-            <pose>5 6 -0.1 0 0 0</pose>
+            <pose>8 8 -0.1 0 0 3.14</pose>
+        </include>
+
+        <include>
+            <uri>model://torpedo_target_gman</uri>
+            <pose>15 5 -2 0 0 -2</pose>
+        </include>
+
+        <include>
+            <uri>model://torpedo_target_bootlegger</uri>
+            <pose>15 5.2 -2.2 0 0 -2.1</pose>
         </include>
 
         <plugin name="sc_interface" filename="libuuv_sc_ros_interface_plugin.so"/>
