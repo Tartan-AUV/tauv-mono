@@ -47,7 +47,6 @@ catkin_package(CATKIN_DEPENDS
     geometry_msgs
     vision_msgs
     tf
-    tauv_config
     message_filters
   )
 
