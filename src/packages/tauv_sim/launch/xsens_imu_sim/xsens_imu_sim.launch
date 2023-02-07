@@ -1,9 +1,0 @@
-<launch>
-    <arg name="model_name" default="kingfisher"/>
-    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_sim_description'))"/>
-
-    <node pkg="tauv_sim" type="xsens_imu_sim" name="xsens_imu_sim" output="screen">
-        <remap from="sim_imu" to="/kingfisher/imu" />
-        <remap from="imu" to="/xsens_imu/data" />
-    </node>
-</launch>

@@ -1,7 +1,0 @@
-#!/usr/bin/env python3
-from imu_dvl_transformer import imu_dvl_transformer
-
-if __name__ == "__main__":
-    imu_dvl_transformer.main()
-
-

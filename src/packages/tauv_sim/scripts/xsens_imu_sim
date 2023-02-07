@@ -1,5 +1,0 @@
-#!/usr/bin/env python3
-from xsens_imu_sim import xsens_imu_sim
-
-if __name__ == "__main__":
-    xsens_imu_sim.main()
