@@ -71,6 +71,21 @@
             <pose>15 5.2 -2.2 0 0 -2.1</pose>
         </include>
 
+        <include>
+            <uri>model://buoy_badge</uri>
+            <pose>4 -3 -2.2 0 0 0.1</pose>
+        </include>
+
+        <include>
+            <uri>model://buoy_gun</uri>
+            <pose>4 -3.2 -2.1 0 0 0.2</pose>
+        </include>
+
+        <include>
+            <uri>model://octagon</uri>
+            <pose>8 -8 -0.1 0 0 0</pose>
+        </include>
+
         <plugin name="sc_interface" filename="libuuv_sc_ros_interface_plugin.so"/>
 
         <gui fullscreen="0">
