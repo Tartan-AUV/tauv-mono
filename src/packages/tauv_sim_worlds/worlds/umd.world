@@ -113,6 +113,16 @@
             <pose>8 -8 -3 0 0 0</pose>
         </include>
 
+        <include>
+            <uri>model://marker_bin</uri>
+            <pose>12 3 -2.8 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://marker_bin_lid</uri>
+            <pose>12.2 3 -2.4 0 0 0</pose>
+        </include>
+
         <plugin name="sc_interface" filename="libuuv_sc_ros_interface_plugin.so"/>
 
         <gui fullscreen="0">
