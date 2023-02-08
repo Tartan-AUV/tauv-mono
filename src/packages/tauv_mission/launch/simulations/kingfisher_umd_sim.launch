@@ -37,7 +37,7 @@
 
         <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">
             <arg name="model_name" value="$(arg model_name)" />
-            <arg name="yolo_weights_path" value="~/weights" />
+            <arg name="yolo_weights_path" value="/home/theo/weights" />
         </include>
     </group>
 </launch>
