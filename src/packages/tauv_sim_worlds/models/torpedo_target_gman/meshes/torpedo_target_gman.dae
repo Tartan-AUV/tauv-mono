@@ -5,8 +5,8 @@
       <author>Blender User</author>
       <authoring_tool>Blender 3.0.0 commit date:2021-12-02, commit time:18:35, hash:f1cca3055776</authoring_tool>
     </contributor>
-    <created>2023-02-06T23:59:57</created>
-    <modified>2023-02-06T23:59:57</modified>
+    <created>2023-02-07T23:04:48</created>
+    <modified>2023-02-07T23:04:48</modified>
     <unit name="meter" meter="1"/>
     <up_axis>Z_UP</up_axis>
   </asset>
@@ -96,7 +96,7 @@
   <library_visual_scenes>
     <visual_scene id="Scene" name="Scene">
       <node id="gman" name="gman" type="NODE">
-        <matrix sid="transform">-2.91094e-8 0 0.1504065 0 0 0.7810088 0 0.3048 -0.6659456 0 -6.57448e-9 0.6096 0 0 0 1</matrix>
+        <matrix sid="transform">-2.91094e-8 0 0.1504065 0 0 0.7810088 0 0 -0.6659456 0 -6.57448e-9 0.6096 0 0 0 1</matrix>
         <instance_geometry url="#Cube_002-mesh" name="gman">
           <bind_material>
             <technique_common>
