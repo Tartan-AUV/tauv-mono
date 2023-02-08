@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ros/ros.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <boost/scoped_ptr.hpp>
 
 #include <gazebo/gazebo.hh>
@@ -28,6 +29,8 @@ class NavigationStatePlugin : public ModelPlugin
 
   ros::Publisher pubNavState;
   ros::Publisher pubOdom;
+
+  tf2_ros::TransformBroadcaster odomVehicleTfBroadcaster;
 
   common::Time publishPeriod;
   common::Time lastPublishTime;

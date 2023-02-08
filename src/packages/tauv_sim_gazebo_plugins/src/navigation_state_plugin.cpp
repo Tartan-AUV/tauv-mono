@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <boost/scoped_ptr.hpp>
 
 #include <gazebo/gazebo.hh>
@@ -11,6 +12,7 @@
 
 #include <tauv_msgs/NavigationState.h>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/TransformStamped.h>
 
 #include <tauv_sim_gazebo_plugins/navigation_state_plugin.h>
 
@@ -133,8 +135,10 @@ void NavigationStatePlugin::OnUpdate(const common::UpdateInfo& info)
 
   this->pubNavState.publish(navStateMsg);
 
+  ros::Time current_time = ros::Time::now();
+
   nav_msgs::Odometry odomMsg;
-  odomMsg.header.stamp = ros::Time::now();
+  odomMsg.header.stamp = current_time;
   odomMsg.header.frame_id = "odom";
   odomMsg.child_frame_id = "vehicle";
   odomMsg.pose.pose.position.x = navStateMsg.position.x;
@@ -149,6 +153,19 @@ void NavigationStatePlugin::OnUpdate(const common::UpdateInfo& info)
   odomMsg.twist.twist.angular.x = angVel.Y();
   odomMsg.twist.twist.angular.x = angVel.Z();
   this->pubOdom.publish(odomMsg);
+
+  geometry_msgs::TransformStamped odomVehicleTf;
+  odomVehicleTf.header.stamp = current_time;
+  odomVehicleTf.header.frame_id = "odom";
+  odomVehicleTf.child_frame_id = "vehicle";
+  odomVehicleTf.transform.translation.x = navStateMsg.position.x;
+  odomVehicleTf.transform.translation.y = navStateMsg.position.y;
+  odomVehicleTf.transform.translation.z = navStateMsg.position.z;
+  odomVehicleTf.transform.rotation.x = rot.X();
+  odomVehicleTf.transform.rotation.y = rot.Y();
+  odomVehicleTf.transform.rotation.z = rot.Z();
+  odomVehicleTf.transform.rotation.w = rot.W();
+  this->odomVehicleTfBroadcaster.sendTransform(odomVehicleTf);
 
   this->lastPublishTime = info.simTime;
   this->lastEulerVel = eulerVel;
