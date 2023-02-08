@@ -58,7 +58,69 @@
 
         <include>
             <uri>model://gate</uri>
-            <pose>5 6 -0.1 0 0 0</pose>
+            <pose>8 8 -0.1 0 0 3.14</pose>
+        </include>
+
+        <include>
+            <uri>model://torpedo_target_gman</uri>
+            <pose>15 5 -2 0 0 -2</pose>
+        </include>
+
+        <include>
+            <uri>model://torpedo_target_bootlegger</uri>
+            <pose>14.5 6 -2.2 0 0 -2.1</pose>
+        </include>
+
+        <include>
+            <uri>model://buoy_badge</uri>
+            <pose>4 -3 -2.2 0 0 0.1</pose>
+        </include>
+
+        <include>
+            <uri>model://buoy_gun</uri>
+            <pose>3.5 -4 -2.1 0 0 0.2</pose>
+        </include>
+
+        <include>
+            <uri>model://path_marker</uri>
+            <pose>5 1 -3 0 0 1</pose>
+            <name>path_marker_1</name>
+        </include>
+
+        <include>
+            <uri>model://path_marker</uri>
+            <pose>5 4 -3 0 0 1</pose>
+            <name>path_marker_2</name>
+        </include>
+
+        <include>
+            <uri>model://octagon</uri>
+            <pose>8 -8 -0.1 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://cash_table</uri>
+            <pose>9 -8 -3 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://smash_table</uri>
+            <pose>7 -8 -3 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://cash_smash_bin</uri>
+            <pose>8 -8 -3 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://marker_bin</uri>
+            <pose>12 3 -2.8 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://marker_bin_lid</uri>
+            <pose>12.2 3 -2.4 0 0 0</pose>
         </include>
 
         <plugin name="sc_interface" filename="libuuv_sc_ros_interface_plugin.so"/>
