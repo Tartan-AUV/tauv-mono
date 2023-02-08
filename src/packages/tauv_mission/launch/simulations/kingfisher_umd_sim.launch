@@ -6,6 +6,8 @@
     <arg name="namespace" default="kf"/>
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
+    <arg name="launch_vision" default="false" />
+
     <include file="$(find tauv_sim_worlds)/launch/umd.launch" />
 
     <group ns="$(arg namespace)">
@@ -35,9 +37,11 @@
             <rosparam command="load" file="$(arg config_pkg)/yaml/pid_planner.yaml" />
         </node>
 
-        <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">
-            <arg name="model_name" value="$(arg model_name)" />
-            <arg name="yolo_weights_path" value="/home/theo/weights" />
-        </include>
+        <group if="$(arg launch_vision)">
+            <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">
+                <arg name="model_name" value="$(arg model_name)" />
+                <arg name="yolo_weights_path" value="/home/theo/weights" />
+            </include>
+        </group>
     </group>
 </launch>
