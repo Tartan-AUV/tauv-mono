@@ -34,5 +34,10 @@
         <node pkg="tauv_common" type="pid_planner" name="pid_planner" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/yaml/pid_planner.yaml" />
         </node>
+
+        <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">
+            <arg name="model_name" value="$(arg model_name)" />
+            <arg name="yolo_weights_path" value="~/weights" />
+        </include>
     </group>
 </launch>
