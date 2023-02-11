@@ -89,7 +89,11 @@ class PIDPlanner:
         controller_command.a_x = body_position_effort[0]
         controller_command.a_y = body_position_effort[1]
         controller_command.a_z = body_position_effort[2]
+        controller_command.a_roll = 0
+        controller_command.a_pitch = 0
         controller_command.a_yaw = yaw_effort
+        controller_command.use_a_roll = False
+        controller_command.use_a_pitch = False
         self._controller_command_pub.publish(controller_command)
 
         # Translate position effort into body frame
