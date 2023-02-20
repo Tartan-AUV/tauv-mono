@@ -82,19 +82,20 @@ class PIDPlanner:
             world_position_effort[i] = self._pids[i](position_error[i]) + position_acceleration[i]
         
         world_angular_effort = np.zeros(3)
-        num_axis = 3 if self._use_roll_pitch else 1
-        for i in range(num_axis):
-            world_angular_effort[i] = self._pids[i+3](orientation_error[i]) + angular_acceleration[i]
+        if self._use_roll_pitch:
+            for i in range(3):
+                world_angular_effort[i] = self._pids[i+3](orientation_error[i]) + angular_acceleration[i]
         
         yaw_effort = self._pids[3](yaw_error) + yaw_acceleration
 
         R = Rotation.from_euler('ZYX', np.flip(current_orientation)).inv()
 
         body_position_effort = R.apply(world_position_effort)
-        body_angular_effort = world_angular_effort # TODO: apply correct transformation
+        body_angular_effort = world_angular_effort # TODO: replace this with correct transformation to body frame
 
         body_position_effort = self._tau[0:3] * self._body_position_effort + (1 - self._tau[0:3]) * body_position_effort
-        body_angular_effort = self._tau[3:(3 + num_axis)] * self._body_angular_effort + (1 - self._tau[3:(3+num_axis)]) * body_angular_effort
+        if self._use_roll_pitch:
+            body_angular_effort = self._tau[3:6] * self._body_angular_effort + (1 - self._tau[3:6]) * body_angular_effort
         yaw_effort = self._tau[3] * self._yaw_effort + (1 - self._tau[3]) * yaw_effort
 
         self._body_position_effort = body_position_effort
