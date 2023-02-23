@@ -1,6 +1,6 @@
 <launch>
-    <arg name="show_front_disparity" default="true" />
-    <arg name="show_front_color" default="true" />
+    <arg name="show_front_disparity" default="false" />
+    <arg name="show_front_color" default="false" />
 
     <node
             ns="vehicle/oakd_front/stereo"

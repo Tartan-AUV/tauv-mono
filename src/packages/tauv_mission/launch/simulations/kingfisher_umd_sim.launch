@@ -11,7 +11,7 @@
     <include file="$(find tauv_sim_worlds)/launch/umd.launch" />
 
     <group ns="$(arg namespace)">
-        <param name="tf_prefix" value="$(arg namespace)" />
+        <param name="tf_namespace" value="$(arg namespace)" />
 
         <include file="$(find tauv_common)/launch/alarms/alarms.launch" />
 

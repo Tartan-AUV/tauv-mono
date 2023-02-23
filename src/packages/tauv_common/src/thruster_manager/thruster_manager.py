@@ -63,8 +63,8 @@ class ThrusterManager:
         tam: np.array = np.zeros((6, self._num_thrusters))
 
         for (i, thruster_id) in enumerate(self._thruster_ids):
-            base_frame = 'vehicle'
-            thruster_frame = f'vehicle/thruster_{thruster_id}'
+            base_frame = f'{self._tf_namespace}/vehicle'
+            thruster_frame = f'{self._tf_namespace}/vehicle/thruster_{thruster_id}'
             current_time = rospy.Time.now()
             try:
                 transform = self._tf_buffer.lookup_transform(
@@ -98,6 +98,7 @@ class ThrusterManager:
         print('inv_tam:', self._inv_tam)
 
     def _load_config(self):
+        self._tf_namespace = rospy.get_param('tf_namespace')
         self._frequency = rospy.get_param('~frequency')
         self._thruster_ids = np.array(rospy.get_param('~thruster_ids'))
 
