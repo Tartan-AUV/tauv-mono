@@ -75,8 +75,8 @@ class Controller:
             self._controller_command.a_x,
             self._controller_command.a_y,
             self._controller_command.a_z,
-            roll_effort,
-            pitch_effort,
+            self._controller_command.a_roll if self._controller_command.use_a_roll else roll_effort,
+            self._controller_command.a_pitch if self._controller_command.use_a_pitch else pitch_effort,
             self._controller_command.a_yaw,
         ])
 

@@ -19,6 +19,8 @@ from scipy.spatial.transform import Rotation
 class PIDPlanner:
 
     def __init__(self):
+        self._use_roll_pitch = True
+
         self._ac = AlarmClient()
         self._load_config()
 
@@ -33,6 +35,7 @@ class PIDPlanner:
         self._build_pids()
 
         self._body_position_effort = np.zeros(3)
+        self._body_angular_effort = np.zeros(3)
         self._yaw_effort = 0
 
     def start(self):
@@ -49,47 +52,65 @@ class PIDPlanner:
             return
 
         target_position = tl(target_pose.position)
+        target_orientation = quat_to_rpy(target_pose.orientation)
         target_yaw = quat_to_rpy(target_pose.orientation)[2]
 
         # TODO: consider velocity feed-forward
         target_world_velocity = tl(target_world_twist.linear)
+        target_world_angular_velocity = tl(target_world_twist.angular)
         target_yaw_velocity = tl(target_world_twist.angular)[2]
 
         current_position = tl(self._navigation_state.position)
         current_orientation = tl(self._navigation_state.orientation)
         current_yaw = tl(self._navigation_state.orientation)[2]
 
+
         pose = build_pose(tl(self._navigation_state.position), tl(self._navigation_state.orientation))
         body_twist = build_twist(tl(self._navigation_state.linear_velocity), tl(self._navigation_state.euler_velocity))
         world_twist = twist_body_to_world(pose, body_twist)
 
         position_acceleration = target_world_velocity - tl(world_twist.linear)
+        angular_acceleration = target_world_angular_velocity - tl(world_twist.angular)
         yaw_acceleration = target_yaw_velocity - world_twist.angular.z
 
         position_error = current_position - target_position
+        orientation_error = current_orientation - target_orientation
         yaw_error = current_yaw - target_yaw
 
         world_position_effort = np.zeros(3)
         for i in range(3):
             world_position_effort[i] = self._pids[i](position_error[i]) + position_acceleration[i]
-
+        
+        world_angular_effort = np.zeros(3)
+        if self._use_roll_pitch:
+            for i in range(3):
+                world_angular_effort[i] = self._pids[i+3](orientation_error[i]) + angular_acceleration[i]
+        
         yaw_effort = self._pids[3](yaw_error) + yaw_acceleration
 
         R = Rotation.from_euler('ZYX', np.flip(current_orientation)).inv()
 
         body_position_effort = R.apply(world_position_effort)
+        body_angular_effort = world_angular_effort # TODO: replace this with correct transformation to body frame
 
         body_position_effort = self._tau[0:3] * self._body_position_effort + (1 - self._tau[0:3]) * body_position_effort
+        if self._use_roll_pitch:
+            body_angular_effort = self._tau[3:6] * self._body_angular_effort + (1 - self._tau[3:6]) * body_angular_effort
         yaw_effort = self._tau[3] * self._yaw_effort + (1 - self._tau[3]) * yaw_effort
 
         self._body_position_effort = body_position_effort
+        self._body_angular_effort = body_angular_effort
         self._yaw_effort = yaw_effort
 
         controller_command = ControllerCommand()
         controller_command.a_x = body_position_effort[0]
         controller_command.a_y = body_position_effort[1]
         controller_command.a_z = body_position_effort[2]
+        controller_command.a_roll = body_angular_effort[0] if self._use_roll_pitch else 0
+        controller_command.a_pitch = body_angular_effort[1] if self._use_roll_pitch else 0
         controller_command.a_yaw = yaw_effort
+        controller_command.use_a_roll = self._use_roll_pitch
+        controller_command.use_a_pitch = self._use_roll_pitch
         self._controller_command_pub.publish(controller_command)
 
         # Translate position effort into body frame
@@ -129,9 +150,11 @@ class PIDPlanner:
 
     def _build_pids(self):
         pids = []
+        
+        num_pids = 6 if self._use_roll_pitch else 4
 
         # x, y, z
-        for i in range(4):
+        for i in range(num_pids):
             pid = PID(
                 Kp=self._kp[i],
                 Ki=self._ki[i],
