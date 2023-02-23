@@ -57,7 +57,7 @@ sudo make deps # run the Makefile, this might take 5 to 10 minutes
 To use darknet in sim, you will need to [build it from source](https://github.com/leggedrobotics/darknet_ros).
 ```bash
 # <path to catkin_ws/src>
-git clone --recursive git@github.com:leggedrobotics/darknet_ros.git
+git clone --recurse-submodules git@github.com:leggedrobotics/darknet_ros.git
 catkin build darknet_ros -DCMAKE_BUILD_TYPE=Release
 ```
 
