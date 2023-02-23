@@ -7,6 +7,7 @@
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
     <arg name="launch_vision" default="true" />
+    <arg name="teleop" default="false" />
 
     <include file="$(find tauv_sim_worlds)/launch/umd.launch" />
 
@@ -37,7 +38,28 @@
 
         <node pkg="tauv_common" type="pid_planner" name="pid_planner" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/yaml/pid_planner.yaml" />
+            <remap if="$(arg teleop)" from="gnc/controller_command" to="gnc/planner_command" />
         </node>
+
+        <group if="$(arg teleop)">
+            <node
+                    pkg="tauv_common"
+                    type="teleop_planner"
+                    name="teleop_planner"
+                    output="screen"
+            >
+                <rosparam command="load" file="$(arg config_pkg)/yaml/teleop_planner.yaml" />
+            </node>
+
+            <node
+                pkg="joy"
+                type="joy_node"
+                name="joy_node"
+                output="screen"
+            >
+                <rosparam param="autorepeat_rate">20</rosparam>
+            </node>
+        </group>
 
         <group if="$(arg launch_vision)">
             <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">

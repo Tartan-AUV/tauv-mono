@@ -19,7 +19,7 @@ from scipy.spatial.transform import Rotation
 class PIDPlanner:
 
     def __init__(self):
-        self._use_roll_pitch = True
+        self._use_roll_pitch = False
 
         self._ac = AlarmClient()
         self._load_config()
@@ -106,11 +106,13 @@ class PIDPlanner:
         controller_command.a_x = body_position_effort[0]
         controller_command.a_y = body_position_effort[1]
         controller_command.a_z = body_position_effort[2]
-        controller_command.a_roll = body_angular_effort[0] if self._use_roll_pitch else 0
-        controller_command.a_pitch = body_angular_effort[1] if self._use_roll_pitch else 0
         controller_command.a_yaw = yaw_effort
-        controller_command.use_a_roll = self._use_roll_pitch
-        controller_command.use_a_pitch = self._use_roll_pitch
+        if self._use_roll_pitch:
+            controller_command.a_roll = body_angular_effort[0]
+            controller_command.a_pitch = body_angular_effort[1]
+        else:
+            controller_command.use_setpoint_roll = True
+            controller_command.use_setpoint_pitch = True
         self._controller_command_pub.publish(controller_command)
 
         # Translate position effort into body frame
