@@ -6,12 +6,12 @@
     <arg name="namespace" default="kf"/>
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
-    <arg name="launch_vision" default="false" />
+    <arg name="launch_vision" default="true" />
 
     <include file="$(find tauv_sim_worlds)/launch/umd.launch" />
 
     <group ns="$(arg namespace)">
-        <rosparam param="tf_prefix" subst_value="true">$(arg namespace)</rosparam>
+        <param name="tf_namespace" value="$(arg namespace)" />
 
         <include file="$(find tauv_common)/launch/alarms/alarms.launch" />
 
@@ -23,7 +23,9 @@
 
         <include file="$(find tauv_sim)/launch/vehicles/kingfisher_vehicle.launch" />
 
-        <include file="$(arg config_pkg)/launch/transforms.launch" />
+        <include file="$(arg config_pkg)/launch/transforms.launch">
+            <arg name="namespace" value="$(arg namespace)" />
+        </include>
 
         <node pkg="tauv_common" type="thruster_manager" name="thruster_manager" output="screen">
             <rosparam command="load" file="$(arg config_pkg)/yaml/thruster_manager.yaml" />

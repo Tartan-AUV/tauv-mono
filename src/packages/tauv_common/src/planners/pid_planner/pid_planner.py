@@ -111,7 +111,7 @@ class PIDPlanner:
         req.len = 1
         req.dt = 0
         req.header.stamp = rospy.Time.now()
-        req.header.frame_id = 'odom_ned'
+        req.header.frame_id = f'{self._tf_namespace}/vehicle'
         req.curr_time = rospy.Time.now()
 
         try:
@@ -148,6 +148,7 @@ class PIDPlanner:
 
     def _load_config(self):
         self._frequency = rospy.get_param('~frequency')
+        self._tf_namespace = rospy.get_param('tf_namespace')
         self._kp = np.array(rospy.get_param('~kp'), dtype=np.float64)
         self._ki = np.array(rospy.get_param('~ki'), dtype=np.float64)
         self._kd = np.array(rospy.get_param('~kd'), dtype=np.float64)
