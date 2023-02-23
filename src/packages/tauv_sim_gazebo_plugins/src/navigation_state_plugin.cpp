@@ -45,6 +45,9 @@ void NavigationStatePlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
   GZ_ASSERT(sdf->HasElement("odomTopic"), "SDF missing odomTopic.");
   std::string odomTopic = sdf->Get<std::string>("odomTopic");
 
+  GZ_ASSERT(sdf->HasElement("tfNamespace"), "SDF missing tfNamespace.");
+  this->tfNamespace = sdf->Get<std::string>("tfNamespace");
+
   this->rosNode.reset(new ros::NodeHandle(nodeName));
 
   this->pubNavState = this->rosNode->advertise<tauv_msgs::NavigationState>(
@@ -139,8 +142,8 @@ void NavigationStatePlugin::OnUpdate(const common::UpdateInfo& info)
 
   nav_msgs::Odometry odomMsg;
   odomMsg.header.stamp = current_time;
-  odomMsg.header.frame_id = "odom";
-  odomMsg.child_frame_id = "vehicle";
+  odomMsg.header.frame_id = this->tfNamespace + "/odom";
+  odomMsg.child_frame_id = this->tfNamespace + "/vehicle";
   odomMsg.pose.pose.position.x = navStateMsg.position.x;
   odomMsg.pose.pose.position.y = navStateMsg.position.y;
   odomMsg.pose.pose.position.z = navStateMsg.position.z;
@@ -156,8 +159,8 @@ void NavigationStatePlugin::OnUpdate(const common::UpdateInfo& info)
 
   geometry_msgs::TransformStamped odomVehicleTf;
   odomVehicleTf.header.stamp = current_time;
-  odomVehicleTf.header.frame_id = "odom";
-  odomVehicleTf.child_frame_id = "vehicle";
+  odomVehicleTf.header.frame_id = this->tfNamespace + "/odom";
+  odomVehicleTf.child_frame_id = this->tfNamespace + "/vehicle";
   odomVehicleTf.transform.translation.x = navStateMsg.position.x;
   odomVehicleTf.transform.translation.y = navStateMsg.position.y;
   odomVehicleTf.transform.translation.z = navStateMsg.position.z;

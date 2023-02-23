@@ -35,5 +35,7 @@ class NavigationStatePlugin : public ModelPlugin
   common::Time publishPeriod;
   common::Time lastPublishTime;
   ignition::math::Vector3d lastEulerVel;
+
+  std::string tfNamespace;
 };
 }

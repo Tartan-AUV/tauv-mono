@@ -91,7 +91,7 @@ class Controller:
 
         # Need to LPF the wrench here with a certain time constant
         wrench: WrenchStamped = WrenchStamped()
-        wrench.header.frame_id = 'vehicle_ned'
+        wrench.header.frame_id = f'{self._tf_namespace}/vehicle'
         wrench.header.stamp = rospy.Time.now()
         wrench.wrench.force = Vector3(tau[0], tau[1], tau[2])
         wrench.wrench.torque = Vector3(tau[3], tau[4], tau[5])
@@ -195,6 +195,7 @@ class Controller:
         self._pids = pids
 
     def _load_config(self):
+        self._tf_namespace = rospy.get_param('tf_namespace')
         self._frequency = rospy.get_param('~frequency')
         self._kp = np.array(rospy.get_param('~kp'))
         self._ki = np.array(rospy.get_param('~ki'))
