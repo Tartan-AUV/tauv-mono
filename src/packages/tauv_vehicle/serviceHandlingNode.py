@@ -19,7 +19,8 @@ class sensorValue_server:
     def __init__(self):
         rospy.init_node('sensor_value', anonymous=False)
         self.srv = rospy.Service('give_sensor_value', currValue, self.sensorCallback)
-        self.response = getSensorValue() # the pyserial bit
+        #self.response = getSensorValue() # the pyserial bit
+        self.response = 3; # test value
     
     def sensorCallback(self, request):
         resp = replyResponse()
