@@ -63,7 +63,7 @@ class ThrusterManager:
         tam: np.array = np.zeros((6, self._num_thrusters))
 
         for (i, thruster_id) in enumerate(self._thruster_ids):
-            base_frame = 'vehicle/base_link_ned'
+            base_frame = 'vehicle'
             thruster_frame = f'vehicle/thruster_{thruster_id}'
             current_time = rospy.Time.now()
             try:
