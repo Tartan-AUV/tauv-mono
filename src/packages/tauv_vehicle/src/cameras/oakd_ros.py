@@ -4,6 +4,7 @@ import rospy
 import depthai
 import cv2 as cv
 from sensor_msgs.msg import Image, CameraInfo
+from std_msgs.msg import Duration
 from tauv_msgs.srv import GetCameraInfo, GetCameraInfoResponse
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
@@ -70,10 +71,10 @@ class OAKDNode:
 
         self.bridge = CvBridge()
 
-        #estimate of ros system time offset compared to depthai clock
+        # Get initial time offset
         depthai_time = depthai.Clock.now()
         self.time_offset = rospy.Time.now() - rospy.Time.from_sec(depthai_time.total_seconds())
-        print(self.time_offset)
+        print("Time offset is: ", self.time_offset)
 
         self.front_depthPub = rospy.Publisher("/oakd/oakd_front/depth_map", Image, queue_size=QUEUE_SIZE)
         self.front_colorPub = rospy.Publisher("/oakd/oakd_front/color_image", Image, queue_size=QUEUE_SIZE)
@@ -89,18 +90,22 @@ class OAKDNode:
 
         return None
 
+
     def spin(self):
         qRgb = self.front_device.getOutputQueue(name="rgb", maxSize=QUEUE_SIZE, blocking=False)
         qDepth = self.front_device.getOutputQueue(name="depth", maxSize=QUEUE_SIZE, blocking=False)
 
+
         while True:
+            depthai_time = depthai.Clock.now()
+            ros_time = rospy.Time.now()
+            self.time_offset = ros_time - rospy.Time.from_sec(depthai_time.total_seconds())
+
             rgb = qRgb.tryGet()
             depth = qDepth.tryGet()
-
             if rgb is not None:
                 try:
                     time_diff = rgb.getTimestamp()
-
                     img = self.bridge.cv2_to_imgmsg(rgb.getCvFrame(), encoding='bgr8')
                     img.header.frame_id = "oakd_front"
                     img.header.seq = rgb.getSequenceNum()
