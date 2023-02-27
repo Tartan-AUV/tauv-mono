@@ -1,9 +1,21 @@
 <launch>
     <arg name="show_front_disparity" default="false" />
     <arg name="show_front_color" default="false" />
+    <arg name="show_bottom_disparity" default="false" />
+    <arg name="show_bottom_color" default="true" />
 
     <node
             ns="vehicle/oakd_front/stereo"
+            pkg="stereo_image_proc"
+            type="stereo_image_proc"
+            name="stereo"
+            output="screen"
+    >
+        <rosparam param="approximate_sync">true</rosparam>
+    </node>
+
+    <node
+            ns="vehicle/oakd_bottom/stereo"
             pkg="stereo_image_proc"
             type="stereo_image_proc"
             name="stereo"
@@ -27,6 +39,24 @@
               name="front_color_view"
         >
             <remap from="image" to="vehicle/oakd_front/color/image_raw"/>
+        </node>
+    </group>
+
+    <group if="$(arg show_bottom_disparity)">
+        <node pkg="image_view"
+              type="disparity_view"
+              name="bottom_disparity_view"
+        >
+            <remap from="image" to="vehicle/oakd_bottom/stereo/disparity"/>
+        </node>
+    </group>
+
+    <group if="$(arg show_bottom_color)">
+        <node pkg="image_view"
+              type="image_view"
+              name="bottom_color_view"
+        >
+            <remap from="image" to="vehicle/oakd_bottom/color/image_raw"/>
         </node>
     </group>
 </launch>
