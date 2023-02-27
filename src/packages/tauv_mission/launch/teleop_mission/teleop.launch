@@ -1,0 +1,25 @@
+<launch>
+    <arg name="model_name" default="kingfisher_sim"/>
+    <arg name="namespace" default="kf"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+    <group ns="$(arg namespace)">
+        <node
+            pkg="tauv_common"
+            type="teleop_planner"
+            name="teleop_planner"
+            output="screen"
+        >
+            <rosparam command="load" file="$(arg config_pkg)/yaml/teleop_planner.yaml" />
+        </node>
+
+        <node
+            pkg="joy"
+            type="joy_node"
+            name="joy_node"
+            output="screen"
+        >
+            <rosparam param="autorepeat_rate">20</rosparam>
+        </node>
+    </group>
+</launch>

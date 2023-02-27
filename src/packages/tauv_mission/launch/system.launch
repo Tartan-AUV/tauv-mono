@@ -8,7 +8,7 @@
   <arg name="model_name" default="kingfisher"/>
   <arg name="namespace" default="kf"/>
 
-  <arg name="teleop" default="false"/>
+  <arg name="teleop" default="true"/>
 
   <!-- =======================  -->
   <!--       Load Configs       -->

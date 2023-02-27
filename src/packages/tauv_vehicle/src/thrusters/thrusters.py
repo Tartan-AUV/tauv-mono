@@ -74,7 +74,6 @@ class Thrusters:
         self._maestro.clearErrors()
 
         for (thruster, thrust) in enumerate(self._target_thrusts):
-            print(thruster, thrust)
             self._set_thrust(thruster, thrust)
 
         for (servo, position) in enumerate(self._target_positions):
