@@ -30,6 +30,8 @@ add_message_files(
   TeledyneDvlData.msg
   NavigationState.msg
   PIDTuning.msg
+  PIDDebug.msg
+  PIDDebugSet.msg
 )
 
 add_service_files(
