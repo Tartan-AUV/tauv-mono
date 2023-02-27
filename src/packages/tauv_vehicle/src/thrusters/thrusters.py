@@ -90,11 +90,13 @@ class Thrusters:
         self._battery_voltage = msg.voltage
 
     def _handle_target_thrust(self, msg: Float64, thruster_id: int):
-        self._target_thrusts[thruster_id] = msg.data
-        self._thrust_update_time = rospy.Time.now()
+        if self._is_armed:
+            self._target_thrusts[thruster_id] = msg.data
+            self._thrust_update_time = rospy.Time.now()
 
     def _handle_target_position(self, msg: Float64, servo_id: int):
-        self._target_positions[servo_id] = msg.data
+        if self._is_armed:
+            self._target_positions[servo_id] = msg.data
 
     def _set_thrust(self, thruster: int, thrust: float):
         pwm_speed = self._get_pwm_speed(thruster, thrust)

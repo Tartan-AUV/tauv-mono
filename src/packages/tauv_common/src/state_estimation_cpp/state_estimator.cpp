@@ -41,8 +41,8 @@ StateEstimator::StateEstimator(ros::NodeHandle& n, ros::NodeHandle &pn) : n(n), 
   this->dvl_sub = n.subscribe("vehicle/teledyne_dvl/data", TOPIC_QUEUE_SIZE, &StateEstimator::handle_dvl, this);
   this->depth_sub = n.subscribe("vehicle/arduino/depth", TOPIC_QUEUE_SIZE, &StateEstimator::handle_depth, this);
 
-  this->navigation_state_pub = n.advertise<tauv_msgs::NavigationState>("gnc/state_estimation/navigation_state", TOPIC_QUEUE_SIZE);
-  this->odom_pub = n.advertise<nav_msgs::Odometry>("gnc/state_estimation/odom", TOPIC_QUEUE_SIZE);
+  this->navigation_state_pub = n.advertise<tauv_msgs::NavigationState>("gnc/navigation_state", TOPIC_QUEUE_SIZE);
+  this->odom_pub = n.advertise<nav_msgs::Odometry>("gnc/odom", TOPIC_QUEUE_SIZE);
 
   this->set_pose_srv = n.advertiseService("gnc/state_estimation/set_pose", &StateEstimator::handle_set_pose, this);
 

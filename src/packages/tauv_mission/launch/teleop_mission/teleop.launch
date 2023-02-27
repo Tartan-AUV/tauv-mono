@@ -5,15 +5,6 @@
 
     <group ns="$(arg namespace)">
         <node
-            pkg="tauv_common"
-            type="teleop_planner"
-            name="teleop_planner"
-            output="screen"
-        >
-            <rosparam command="load" file="$(arg config_pkg)/yaml/teleop_planner.yaml" />
-        </node>
-
-        <node
             pkg="joy"
             type="joy_node"
             name="joy_node"
