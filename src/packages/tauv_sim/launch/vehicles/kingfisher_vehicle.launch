@@ -2,7 +2,7 @@
     <arg name="show_front_disparity" default="false" />
     <arg name="show_front_color" default="false" />
     <arg name="show_bottom_disparity" default="false" />
-    <arg name="show_bottom_color" default="true" />
+    <arg name="show_bottom_color" default="false" />
 
     <node
             ns="vehicle/oakd_front/stereo"
