@@ -46,6 +46,9 @@ class PIDPlanner:
         if self._navigation_state is None:
             return
 
+        # TODO: Update this to check if the trajectory target wants to include roll and pitch
+        # Or, always have the pid planner run the roll and pitch controls now? What do we lose
+
         target_pose, target_world_twist = self._get_target()
 
         if target_pose is None or target_world_twist is None:
@@ -63,7 +66,6 @@ class PIDPlanner:
         current_position = tl(self._navigation_state.position)
         current_orientation = tl(self._navigation_state.orientation)
         current_yaw = tl(self._navigation_state.orientation)[2]
-
 
         pose = build_pose(tl(self._navigation_state.position), tl(self._navigation_state.orientation))
         body_twist = build_twist(tl(self._navigation_state.linear_velocity), tl(self._navigation_state.euler_velocity))
@@ -152,17 +154,15 @@ class PIDPlanner:
 
     def _build_pids(self):
         pids = []
-        
-        num_pids = 6 if self._use_roll_pitch else 4
 
-        # x, y, z
-        for i in range(num_pids):
+        # x, y, z, roll, pitch, yaw
+        for i in range(6):
             pid = PID(
                 Kp=self._kp[i],
                 Ki=self._ki[i],
                 Kd=self._kd[i],
                 output_limits=(self._limits[i, 0], self._limits[i, 1]),
-                error_map=pi_clip if i == 3 else lambda x: x,
+                error_map=pi_clip if 3 <= i <= 5 else lambda x: x, # pi_clip for roll, pitch, yaw
                 proportional_on_measurement=False,
                 sample_time=self._dt,
                 d_alpha=self._dt / self._tau[i] if self._tau[i] > 0 else 1
@@ -184,7 +184,7 @@ class PIDPlanner:
         self._navigation_state = msg
 
     def _handle_tune_pid_planner(self, req: TunePIDPlannerRequest) -> TunePIDPlannerResponse:
-        fields = {"x": 0, "y": 1, "z": 2, "yaw": 3}
+        fields = {"x": 0, "y": 1, "z": 2, "roll": 3, "pitch": 4, "yaw": 5}
 
         for tuning in req.tunings:
             field = fields.get(tuning.axis)
