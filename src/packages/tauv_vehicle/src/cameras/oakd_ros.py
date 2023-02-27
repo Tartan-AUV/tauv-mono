@@ -60,7 +60,13 @@ class OAKDNode:
         self.front_stereo.depth.link(self.front_xout_depth.input)
         self.front_cam_rgb.video.link(self.front_xout_color.input)
 
-        self.front_device = depthai.Device(self.pipeline)
+        self.front_device = None
+        while self.front_device is None:
+            try:
+                self.front_device = depthai.Device(self.pipeline)
+            except Exception as e:
+                print(e)
+                rospy.sleep(1.0)
         
         self.front_calibData = self.front_device.readCalibration()
         self.front_camera_info = CameraInfo()
@@ -75,9 +81,9 @@ class OAKDNode:
         self.time_offset = rospy.Time.now() - rospy.Time.from_sec(depthai_time.total_seconds())
         print(self.time_offset)
 
-        self.front_depthPub = rospy.Publisher("/oakd/oakd_front/depth_map", Image, queue_size=QUEUE_SIZE)
-        self.front_colorPub = rospy.Publisher("/oakd/oakd_front/color_image", Image, queue_size=QUEUE_SIZE)
-        self.cameraInfoService = rospy.Service("/oakd/camera_info", GetCameraInfo, self.camera_info_service)
+        self.front_depthPub = rospy.Publisher("vehicle/oakd_front/depth_map", Image, queue_size=QUEUE_SIZE)
+        self.front_colorPub = rospy.Publisher("vehicle/oakd_front/color_image", Image, queue_size=QUEUE_SIZE)
+        self.cameraInfoService = rospy.Service("vehicle/oakd_front/camera_info", GetCameraInfo, self.camera_info_service)
 
         self.spin()
 

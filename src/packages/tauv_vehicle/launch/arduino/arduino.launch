@@ -3,6 +3,6 @@
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
     <node pkg="tauv_vehicle" type="arduino" name="arduino" output="screen">
-        <rosparam command="load" file="$(arg config_pkg)/arduino.yaml" />
+        <rosparam command="load" file="$(arg config_pkg)/yaml/arduino.yaml" />
     </node>
 </launch>
