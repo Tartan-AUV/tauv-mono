@@ -31,7 +31,7 @@ add_message_files(
   NavigationState.msg
   PIDTuning.msg
   PIDDebug.msg
-  PIDDebugSet.msg
+  PIDPlannerDebug.msg
 )
 
 add_service_files(

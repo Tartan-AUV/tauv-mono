@@ -119,16 +119,27 @@ class Controller:
         self._wrench_pub.publish(wrench)
 
         controller_debug: ControllerDebug = ControllerDebug()
-        controller_debug.roll = orientation[0]
-        controller_debug.error_roll = roll_error
-        controller_debug.integral_roll = self._pids[1]._integral
-        controller_debug.derivative_roll = self._pids[1]._derivative
-        controller_debug.effort_roll = roll_effort
-        controller_debug.pitch = orientation[1]
-        controller_debug.error_pitch = pitch_error
-        controller_debug.integral_pitch = self._pids[2]._integral
-        controller_debug.derivative_pitch = self._pids[2]._derivative
-        controller_debug.effort_pitch = pitch_effort
+        controller_debug.z.value = position[2]
+        controller_debug.z.error = z_error
+        controller_debug.z.setpoint = cmd.setpoint_z
+        controller_debug.z.proportional = self._pids[0]._proportional
+        controller_debug.z.integral = self._pids[0]._integral
+        controller_debug.z.derivative = self._pids[0]._derivative
+        controller_debug.z.effort = z_effort
+        controller_debug.roll.value = orientation[0]
+        controller_debug.roll.error = roll_error
+        controller_debug.roll.setpoint = cmd.setpoint_roll
+        controller_debug.roll.proportional = self._pids[1]._proportional
+        controller_debug.roll.integral = self._pids[1]._integral
+        controller_debug.roll.derivative = self._pids[1]._derivative
+        controller_debug.roll.effort = roll_effort
+        controller_debug.pitch.value = orientation[1]
+        controller_debug.pitch.setpoint = cmd.setpoint_pitch
+        controller_debug.pitch.error = pitch_error
+        controller_debug.pitch.proportional = self._pids[2]._proportional
+        controller_debug.pitch.integral = self._pids[2]._integral
+        controller_debug.pitch.derivative = self._pids[2]._derivative
+        controller_debug.pitch.effort = pitch_effort
         self._controller_debug_pub.publish(controller_debug)
 
         self._ac.clear(Alarm.CONTROLLER_NOT_INITIALIZED)
