@@ -11,9 +11,9 @@ parameters:
    limits: [0, 1.0e10]
  v:
    initial_value: 0.03
-   fixed: true
+   fixed: false
    initial_covariance: 1.0e-12
-   process_covariance: 1.0e-14
+   process_covariance: 1.0e-15
    limits: [0, 1.0e10]
  gx:
    initial_value: 0
@@ -37,23 +37,23 @@ parameters:
    initial_value: 0
    fixed: false
    initial_covariance: 1.0e-12
-   process_covariance: 1.0e-8
+   process_covariance: 1.0e-9
    limits: [-1.0e10, 1.0e10]
  by:
    initial_value: 0
    fixed: false
    initial_covariance: 1.0e-12
-   process_covariance: 1.0e-8
+   process_covariance: 1.0e-9
    limits: [-1.0e10, 1.0e10]
  bz:
    initial_value: 0
    fixed: false
    initial_covariance: 1.0e-12
-   process_covariance: 1.0e-8
+   process_covariance: 1.0e-9
    limits: [-1.0e10, 1.0e10]
  Ixx:
    initial_value: 1
-   fixed: false
+   fixed: true
    initial_covariance: 1.0e-12
    process_covariance: 1.0e-6
    limits: [0, 1.0e10]
@@ -71,7 +71,7 @@ parameters:
    limits: [0, 1.0e10]
  Iyy:
    initial_value: 1
-   fixed: false
+   fixed: true
    initial_covariance: 1.0e-12
    process_covariance: 1.0e-6
    limits: [0, 1.0e10]
