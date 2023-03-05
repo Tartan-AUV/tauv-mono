@@ -43,17 +43,22 @@ Use the full-desktop-install since we need Gazebo and other dependencies. Stop a
 ## Repository Installation
 To install:
 ```bash
-cd ~ # or wherever you want this repository to live
-git clone --recurse-submodules git@github.com:Tartan-AUV/TAUV-ROS-Packages.git # clone the code
-
-cd TAUV-ROS-Packages # move to the code folder
+cd <~ or wherever you want your workspace to live>
+mkdir catkin_ws
+cd catkin_ws
+mkdir src
+cd src
+git clone --recurse-submodules git@github.com:Tartan-AUV/TAUV-ROS-Packages.git
+cd TAUV-ROS-Packages
 sudo make deps # run the Makefile, this might take 5 to 10 minutes
 ```
 
-If the following sequence of commands runs without problems, continue. If you run into a permissions error along the lines of `make: execvp: Permission denied`, you should:
-
+## Darknet installation
+To use darknet in sim, you will need to [build it from source](https://github.com/leggedrobotics/darknet_ros).
 ```bash
-sudo chmod 755 -R /path/to/TAUV-ROS-Packages/ # use chmod to allow Makefiles and .sh files to be executed
+# <path to catkin_ws/src>
+git clone --recurse-submodules git@github.com:leggedrobotics/darknet_ros.git
+catkin build darknet_ros -DCMAKE_BUILD_TYPE=Release
 ```
 
 ## Editing the `~/.zshrc`
@@ -65,22 +70,17 @@ echo "source /opt/ros/noetic/setup.zsh" >> ~/.zshrc
 ## Building Your ROS Project
 When you make changes like adding new message types or add new dependencies to a CMake file, etc. you must rebuild the package with:
 ```bash
-cd /path/to/TAUV-ROS-Packages/
-make
+cd <path to catkin_ws>
+catkin build
 source devel/setup.zsh
 ```
     
-### Other Ways to Build
-```bash
-catkin build # (This is what "make" calls)
-tauvmake # (If you sourced aliases.sh)
-```
-If the above `make` or `catkin build` commands fail, try toubleshooting using these answers: https://github.com/catkin/catkin_tools/issues/525
+If the above `catkin build` command fails, try toubleshooting using these answers: https://github.com/catkin/catkin_tools/issues/525
 
-## The Setup Script
+## The Setup Script - THIS NEEDS TO BE FIXED
 You need to `source devel/setup.zsh` every time you build and every time you open a terminal. This is annoying. Consider adding:
 ```bash
-source /path/to/TAUV-ROS-Packages/aliases.sh
+source <path to TAUV-ROS-Packages/aliases.sh>
 tauvsh
 ```
 to your `~/.zshrc`. This will automatically source it. The `aliases.sh` file exposes three nice commands you can run from anywhere (not just the base of the repo:

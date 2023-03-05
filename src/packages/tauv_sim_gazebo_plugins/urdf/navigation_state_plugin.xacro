@@ -23,6 +23,7 @@
                 <nodeName>${namespace}_navigation_state_plugin</nodeName>
                 <navigationStateTopic>/${namespace}/gnc/navigation_state</navigationStateTopic>
                 <odomTopic>/${namespace}/gnc/odom</odomTopic>
+                <tfNamespace>${namespace}</tfNamespace>
             </plugin>
         </gazebo>
 

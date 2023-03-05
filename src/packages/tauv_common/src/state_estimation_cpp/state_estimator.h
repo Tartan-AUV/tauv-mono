@@ -21,7 +21,7 @@
 
 class StateEstimator {
   public:
-    StateEstimator(ros::NodeHandle& n);
+    StateEstimator(ros::NodeHandle& n, ros::NodeHandle &pn);
 
     void update(const ros::TimerEvent& e);
 
@@ -37,6 +37,7 @@ class StateEstimator {
 
   private:
     ros::NodeHandle& n;
+    ros::NodeHandle& pn;
     ros::Timer timer;
 
     tauv_alarms::AlarmClient alarm_client;

@@ -3,7 +3,7 @@ import numpy as np
 from typing import Optional
 
 from dynamics.dynamics import Dynamics
-from geometry_msgs.msg import Twist, Wrench, WrenchStamped, Vector3, Quaternion
+from geometry_msgs.msg import WrenchStamped, Vector3
 from tauv_msgs.msg import ControllerCommand, NavigationState, ControllerDebug
 from tauv_msgs.srv import TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse, TuneController, TuneControllerRequest, TuneControllerResponse
 from tauv_util.types import tl, tm
@@ -52,35 +52,56 @@ class Controller:
         if self._navigation_state is None or self._controller_command is None:
             return
 
+        state = self._navigation_state
+        cmd = self._controller_command
+
+        position = tl(state.position)
+        orientation = tl(state.orientation)
+        euler_velocity = tl(state.euler_velocity)
+        linear_velocity = tl(state.linear_velocity)
+
         eta = np.concatenate((
-            tl(self._navigation_state.position),
-            tl(self._navigation_state.orientation)
+            position,
+            orientation
         ))
 
-        euler_velocity = tl(self._navigation_state.euler_velocity)
-        orientation = tl(self._navigation_state.orientation)
         axis_velocity = euler_velocity_to_axis_velocity(orientation, euler_velocity)
         v = np.concatenate((
-            tl(self._navigation_state.linear_velocity),
+            linear_velocity,
             axis_velocity
         ))
 
-        roll_error = tl(self._navigation_state.orientation)[0]
-        pitch_error = tl(self._navigation_state.orientation)[1]
+        z_error = position[2] - cmd.setpoint_z
+        roll_error = orientation[0] - cmd.setpoint_roll
+        pitch_error = orientation[1] - cmd.setpoint_pitch
 
-        roll_effort = self._pids[0](roll_error)
-        pitch_effort = self._pids[1](pitch_error)
+        z_effort = self._pids[0](z_error)
+        roll_effort = self._pids[1](roll_error)
+        pitch_effort = self._pids[2](pitch_error)
 
         vd = np.array([
-            self._controller_command.a_x,
-            self._controller_command.a_y,
-            self._controller_command.a_z,
-            roll_effort,
-            pitch_effort,
-            self._controller_command.a_yaw,
+            cmd.a_x,
+            cmd.a_y,
+            cmd.a_z if not cmd.use_setpoint_z else z_effort,
+            cmd.a_roll if not cmd.use_setpoint_roll else roll_effort,
+            cmd.a_pitch if not cmd.use_setpoint_pitch else pitch_effort,
+            cmd.a_yaw
         ])
 
         tau = self._dyn.compute_tau(eta, v, vd)
+
+        if cmd.use_f_x:
+            tau[0] = cmd.f_x
+        if cmd.use_f_y:
+            tau[1] = cmd.f_y
+        if cmd.use_f_z:
+            tau[2] = cmd.f_z
+        if cmd.use_f_roll:
+            tau[3] = cmd.f_roll
+        if cmd.use_f_pitch:
+            tau[4] = cmd.f_pitch
+        if cmd.use_f_yaw:
+            tau[5] = cmd.f_yaw
 
         # TODO: Fix max wrench clamping
         # while not np.allclose(np.minimum(np.abs(tau), self._max_wrench), np.abs(tau)):
@@ -91,23 +112,34 @@ class Controller:
 
         # Need to LPF the wrench here with a certain time constant
         wrench: WrenchStamped = WrenchStamped()
-        wrench.header.frame_id = 'vehicle_ned'
+        wrench.header.frame_id = f'{self._tf_namespace}/vehicle'
         wrench.header.stamp = rospy.Time.now()
         wrench.wrench.force = Vector3(tau[0], tau[1], tau[2])
         wrench.wrench.torque = Vector3(tau[3], tau[4], tau[5])
         self._wrench_pub.publish(wrench)
 
         controller_debug: ControllerDebug = ControllerDebug()
-        controller_debug.roll = tl(self._navigation_state.orientation)[0]
-        controller_debug.error_roll = roll_error
-        controller_debug.integral_roll = self._pids[0]._integral
-        controller_debug.derivative_roll = self._pids[0]._derivative
-        controller_debug.effort_roll = roll_effort
-        controller_debug.pitch = tl(self._navigation_state.orientation)[1]
-        controller_debug.error_pitch = pitch_error
-        controller_debug.integral_pitch = self._pids[1]._integral
-        controller_debug.derivative_pitch = self._pids[1]._derivative
-        controller_debug.effort_pitch = pitch_effort
+        controller_debug.z.value = position[2]
+        controller_debug.z.error = z_error
+        controller_debug.z.setpoint = cmd.setpoint_z
+        controller_debug.z.proportional = self._pids[0]._proportional
+        controller_debug.z.integral = self._pids[0]._integral
+        controller_debug.z.derivative = self._pids[0]._derivative
+        controller_debug.z.effort = z_effort
+        controller_debug.roll.value = orientation[0]
+        controller_debug.roll.error = roll_error
+        controller_debug.roll.setpoint = cmd.setpoint_roll
+        controller_debug.roll.proportional = self._pids[1]._proportional
+        controller_debug.roll.integral = self._pids[1]._integral
+        controller_debug.roll.derivative = self._pids[1]._derivative
+        controller_debug.roll.effort = roll_effort
+        controller_debug.pitch.value = orientation[1]
+        controller_debug.pitch.setpoint = cmd.setpoint_pitch
+        controller_debug.pitch.error = pitch_error
+        controller_debug.pitch.proportional = self._pids[2]._proportional
+        controller_debug.pitch.integral = self._pids[2]._integral
+        controller_debug.pitch.derivative = self._pids[2]._derivative
+        controller_debug.pitch.effort = pitch_effort
         self._controller_debug_pub.publish(controller_debug)
 
         self._ac.clear(Alarm.CONTROLLER_NOT_INITIALIZED)
@@ -160,7 +192,7 @@ class Controller:
         return TuneDynamicsResponse(True)
 
     def _handle_tune_controller(self, req: TuneControllerRequest) -> TuneControllerResponse:
-        fields = {"roll": 0, "pitch": 1}
+        fields = {"z": 0, "roll": 1, "pitch": 2}
 
         for tuning in req.tunings:
             field = fields.get(tuning.axis)
@@ -179,7 +211,8 @@ class Controller:
     def _build_pids(self):
         pids = []
 
-        for i in range(2):
+        # z, roll, pitch
+        for i in range(3):
             pid = PID(
                 Kp=self._kp[i],
                 Ki=self._ki[i],
@@ -195,6 +228,7 @@ class Controller:
         self._pids = pids
 
     def _load_config(self):
+        self._tf_namespace = rospy.get_param('tf_namespace')
         self._frequency = rospy.get_param('~frequency')
         self._kp = np.array(rospy.get_param('~kp'))
         self._ki = np.array(rospy.get_param('~ki'))

@@ -22,7 +22,7 @@ class Parms(dict):
                 self[key] = Parms(self[key])
 
     @staticmethod
-    def fromfile(self, path):
+    def fromfile(path):
         """Constructs a Parms object from a YAML file.
         @param path: relative or absolute path to the files
         """

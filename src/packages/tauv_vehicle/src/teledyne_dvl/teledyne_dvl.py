@@ -11,8 +11,8 @@ class TeledyneDVL:
     def __init__(self):
         self._ac = AlarmClient()
 
-        self._data_pub: rospy.Publisher = rospy.Publisher('/vehicle/teledyne_dvl/data', DvlDataMsg, queue_size=10)
-        self._sync_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/xsens_imu/sync', ImuSyncMsg, self._handle_sync)
+        self._data_pub: rospy.Publisher = rospy.Publisher('vehicle/teledyne_dvl/data', DvlDataMsg, queue_size=10)
+        self._sync_sub: rospy.Subscriber = rospy.Subscriber('vehicle/xsens_imu/sync', ImuSyncMsg, self._handle_sync)
 
         self._sync_timestamps: List[rospy.Time] = []
 

@@ -1,11 +1,5 @@
-float64 roll
-float64 error_roll
-float64 integral_roll
-float64 derivative_roll
-float64 effort_roll
+time stamp
 
-float64 pitch
-float64 error_pitch
-float64 integral_pitch
-float64 derivative_pitch
-float64 effort_pitch
+PIDDebug z
+PIDDebug roll
+PIDDebug pitch

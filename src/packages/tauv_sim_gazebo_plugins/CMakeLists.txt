@@ -10,7 +10,10 @@ find_package(
   gazebo_dev
   roscpp
   std_msgs
+  geometry_msgs
   tauv_msgs
+  tf2
+  tf2_ros
 )
 
 catkin_package(
@@ -22,7 +25,10 @@ catkin_package(
   CATKIN_DEPENDS
     roscpp
     std_msgs
+    geometry_msgs
     tauv_msgs
+    tf2
+    tf2_ros
 )
 
 include_directories(${PROJECT_SOURCE_DIR}/include ${catkin_INCLUDE_DIRS})

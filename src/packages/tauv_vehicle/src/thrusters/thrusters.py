@@ -2,13 +2,11 @@ import rospy
 import numpy as np
 from numpy.polynomial.polynomial import Polynomial
 from math import floor
-from typing import Dict
-import serial
 
 from .maestro import Maestro
 from tauv_util.types import tl
-from geometry_msgs.msg import Vector3
 from tauv_msgs.msg import Battery as BatteryMsg, Servos as ServosMsg
+from std_msgs.msg import Float64
 from std_srvs.srv import SetBool, SetBoolRequest, SetBoolResponse
 from geometry_msgs.msg import Wrench, WrenchStamped
 from std_msgs.msg import Bool
@@ -31,17 +29,25 @@ class Thrusters:
         rospy.loginfo('initialized maestro')
 
         self._is_armed: bool = False
-        self._arm_service: rospy.Service = rospy.Service('/vehicle/thrusters/arm', SetBool, self._handle_arm)
+        self._arm_service: rospy.Service = rospy.Service('vehicle/thrusters/arm', SetBool, self._handle_arm)
 
-        self._servos_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/servos', ServosMsg, self._handle_servos)
-        self._battery_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/battery', BatteryMsg, self._handle_battery)
-        self._wrench_sub: rospy.Subscriber = rospy.Subscriber('/vehicle/thrusters/wrench', WrenchStamped, self._handle_wrench)
+        self._target_thrust_subs = []
+        for thruster_id in range(len(self._thruster_channels)):
+            target_thrust_sub = rospy.Subscriber(f'vehicle/thrusters/{thruster_id}/target_thrust', Float64, self._handle_target_thrust, callback_args=thruster_id)
+            self._target_thrust_subs.append(target_thrust_sub)
+
+        self._target_position_subs = []
+        for servo_id in range(len(self._servo_channels)):
+            target_position_sub = rospy.Subscriber(f'vehicle/servos/{servo_id}/target_position', Float64, self._handle_target_position, callback_args=servo_id)
+            self._target_position_subs.append(target_position_sub)
+
+        self._battery_sub: rospy.Subscriber = rospy.Subscriber('vehicle/battery', BatteryMsg, self._handle_battery)
+        self._active_pub: rospy.Publisher = rospy.Publisher('vehicle/thrusters/active', Bool, queue_size=10)
 
         self._battery_voltage: float = self._default_battery_voltage
-        self._wrench: Wrench = Wrench()
-        self._wrench_update_time: rospy.Time = rospy.Time.now()
-
-        self._active_pub : rospy.Publisher = rospy.Publisher('/vehicle/thrusters/active', Bool, queue_size=10)
+        self._thrust_update_time: rospy.Time = rospy.Time.now()
+        self._target_thrusts = [0.0] * len(self._thruster_channels)
+        self._target_positions = [0.0] * len(self._servo_channels)
 
     def _try_init(self):
         try:
@@ -58,21 +64,20 @@ class Thrusters:
 
     def _update(self, timer_event):
         self._ac.set(Alarm.SUB_DISARMED, value=not self._is_armed)
+        self._active_pub.publish(self._is_armed)
 
-        if (rospy.Time.now() - self._wrench_update_time).to_sec() > self._timeout \
+        if (rospy.Time.now() - self._thrust_update_time).to_sec() > self._timeout \
                 or not self._is_armed:
-            self._wrench = Wrench()
-            self._wrench_update_time = rospy.Time.now()
-            self._active_pub.publish(False)
-        else:
-            self._active_pub.publish(True)
-
-        thrusts = self._get_thrusts(self._wrench)
+            self._target_thrusts = [0] * len(self._thruster_channels)
+            # self._thrust_update_time = rospy.Time.now()
 
         self._maestro.clearErrors()
 
-        for (thruster, thrust) in enumerate(thrusts):
+        for (thruster, thrust) in enumerate(self._target_thrusts):
             self._set_thrust(thruster, thrust)
+
+        for (servo, position) in enumerate(self._target_positions):
+            self._set_position(servo, position)
 
         self._ac.clear(Alarm.THRUSTERS_NOT_INITIALIZED)
 
@@ -84,18 +89,23 @@ class Thrusters:
     def _handle_battery(self, msg: BatteryMsg):
         self._battery_voltage = msg.voltage
 
-    def _handle_wrench(self, msg: WrenchStamped):
-        self._wrench = msg.wrench
-        self._wrench_update_time = rospy.Time.now()
+    def _handle_target_thrust(self, msg: Float64, thruster_id: int):
+        if self._is_armed:
+            self._target_thrusts[thruster_id] = msg.data
+            self._thrust_update_time = rospy.Time.now()
 
-    def _handle_servos(self, msg: ServosMsg):
-        for i in range(len(self._servo_channels)):
-            self._maestro.setTarget(floor(msg.targets[i] / 180 * 1000 + 1500) * 4, self._servo_channels[i])
+    def _handle_target_position(self, msg: Float64, servo_id: int):
+        if self._is_armed:
+            self._target_positions[servo_id] = msg.data
 
     def _set_thrust(self, thruster: int, thrust: float):
         pwm_speed = self._get_pwm_speed(thruster, thrust)
 
         self._maestro.setTarget(pwm_speed * 4, self._thruster_channels[thruster])
+
+    def _set_position(self, servo: int, position: float):
+        pwm_speed = floor(position / 180 * 1000 + 1500)
+        self._maestro.setTarget(pwm_speed * 4, self._servo_channels[servo])
 
     def _get_pwm_speed(self, thruster: int, thrust: float) -> int:
         pwm_speed = 1500
@@ -134,9 +144,6 @@ class Thrusters:
 
         return pwm_speed
 
-    def _get_thrusts(self, wrench: Wrench) -> np.array:
-        return self._tam @ np.concatenate((tl(wrench.force), tl(wrench.torque)))
-
     def _load_config(self):
         self._maestro_port: str = rospy.get_param('~maestro_port')
         self._thruster_channels: [int] = rospy.get_param('~thruster_channels')
@@ -151,8 +158,6 @@ class Thrusters:
         self._positive_thrust_coefficients: np.array = np.array(rospy.get_param('~positive_thrust_coefficients'))
         self._negative_thrust_coefficients: np.array = np.array(rospy.get_param('~negative_thrust_coefficients'))
         self._thrust_inversions: [float] = rospy.get_param('~thrust_inversions')
-        self._tam: np.array = np.linalg.pinv(np.array(rospy.get_param('~tam')))
-        self._kill_channel : int = rospy.get_param('~kill_channel')
 
 def main():
     rospy.init_node('thrusters')

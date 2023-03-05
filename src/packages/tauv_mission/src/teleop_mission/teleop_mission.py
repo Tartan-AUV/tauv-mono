@@ -1,15 +1,14 @@
 import rospy
 import argparse
-import numpy as np
 from typing import Optional
 
 from tauv_msgs.msg import PIDTuning, DynamicsTuning, DynamicsParameterConfigUpdate
 from tauv_msgs.srv import \
-    TuneController, TuneControllerRequest, TuneControllerResponse,\
-    TunePIDPlanner, TunePIDPlannerRequest, TunePIDPlannerResponse,\
-    TuneDynamics, TuneDynamicsRequest, TuneDynamicsResponse,\
+    TuneController, TuneControllerRequest,\
+    TunePIDPlanner, TunePIDPlannerRequest,\
+    TuneDynamics, TuneDynamicsRequest,\
     UpdateDynamicsParameterConfigs, UpdateDynamicsParameterConfigsRequest, UpdateDynamicsParameterConfigsResponse
-from geometry_msgs.msg import Pose, Twist, Vector3
+from geometry_msgs.msg import Pose, Twist
 from std_srvs.srv import SetBool
 from motion.motion_utils import MotionUtils
 from motion.trajectories import TrajectoryStatus
@@ -42,7 +41,7 @@ class TeleopMission:
         )
 
     def start(self):
-        while True:
+        while not rospy.is_shutdown():
             cmd = input('>>> ')
             try:
                 args = self._parser.parse_args(cmd.split())
@@ -52,18 +51,62 @@ class TeleopMission:
                 continue
 
     def _handle_tune_controller(self, args):
-        print('tune_controller', args.x, args.y, args.z, args.roll, args.pitch, args.yaw)
+        print('tune_controller', args.z, args.roll, args.pitch)
+        pid_tunings = []
+
+        if args.z is not None:
+            p = PIDTuning(
+                axis="z",
+                kp=args.z[0],
+                ki=args.z[1],
+                kd=args.z[2],
+                tau=args.z[3],
+                limits=args.z[4:6]
+            )
+            pid_tunings.append(p)
+
+        if args.roll is not None:
+            p = PIDTuning(
+                axis="roll",
+                kp=args.roll[0],
+                ki=args.roll[1],
+                kd=args.roll[2],
+                tau=args.roll[3],
+                limits=args.roll[4:6]
+            )
+            pid_tunings.append(p)
+
+        if args.pitch is not None:
+            p = PIDTuning(
+                axis="pitch",
+                kp=args.pitch[0],
+                ki=args.pitch[1],
+                kd=args.pitch[2],
+                tau=args.pitch[3],
+                limits=args.pitch[4:6]
+            )
+            pid_tunings.append(p)
+
+        req = TuneControllerRequest()
+        req.tunings = pid_tunings
+        try:
+            self._tune_controller_srv.call(req)
+        except Exception as e:
+            print(e)
+
+    def _handle_tune_pid_planner(self, args):
+        print('tune_pid_planner', args.x, args.y, args.z, args.roll, args.pitch, args.yaw)
 
         pid_tunings = []
 
         if args.x is not None:
             p = PIDTuning(
-               axis="x",
-               kp=args.x[0],
-               ki=args.x[1],
-               kd=args.x[2],
-               tau=args.x[3],
-               limits=args.x[4:6]
+                axis="x",
+                kp=args.x[0],
+                ki=args.x[1],
+                kd=args.x[2],
+                tau=args.x[3],
+                limits=args.x[4:6]
             )
             pid_tunings.append(p)
 
@@ -89,26 +132,6 @@ class TeleopMission:
             )
             pid_tunings.append(p)
 
-        if args.yaw is not None:
-            p = PIDTuning(
-                axis="yaw",
-                kp=args.yaw[0],
-                ki=args.yaw[1],
-                kd=args.yaw[2],
-                tau=args.yaw[3],
-                limits=[args.yaw[4], args.yaw[5]]
-            )
-            pid_tunings.append(p)
-
-        req = TunePIDPlannerRequest()
-        req.tunings = pid_tunings
-        try:
-            self._tune_pid_planner_srv.call(req)
-        except Exception as e:
-            print(e)
-
-        pid_tunings = []
-
         if args.roll is not None:
             p = PIDTuning(
                 axis="roll",
@@ -131,19 +154,27 @@ class TeleopMission:
             )
             pid_tunings.append(p)
 
-        if args.roll is not None:
-            p = PIDTuning()
+        if args.yaw is not None:
+            p = PIDTuning(
+                axis="yaw",
+                kp=args.yaw[0],
+                ki=args.yaw[1],
+                kd=args.yaw[2],
+                tau=args.yaw[3],
+                limits=[args.yaw[4], args.yaw[5]]
+            )
             pid_tunings.append(p)
 
-        req = TuneControllerRequest()
+        req = TunePIDPlannerRequest()
         req.tunings = pid_tunings
         try:
-            self._tune_controller_srv.call(req)
+            self._tune_pid_planner_srv.call(req)
         except Exception as e:
             print(e)
 
     def _handle_tune_dynamics(self, args):
-        print('tune_dynamics', args.mass, args.volume, args.water_density, args.center_of_gravity, args.center_of_buoyancy, args.moments, args.linear_damping, args.quadratic_damping, args.added_mass)
+        print('tune_dynamics', args.mass, args.volume, args.water_density, args.center_of_gravity,
+              args.center_of_buoyancy, args.moments, args.linear_damping, args.quadratic_damping, args.added_mass)
 
         t = DynamicsTuning()
         if args.mass is not None:
@@ -265,13 +296,19 @@ class TeleopMission:
         subparsers = parser.add_subparsers()
 
         tune_controller = subparsers.add_parser('tune_controller')
+        tune_controller.add_argument('--z', type=float, nargs=6)
         tune_controller.add_argument('--roll', type=float, nargs=6)
         tune_controller.add_argument('--pitch', type=float, nargs=6)
-        tune_controller.add_argument('--yaw', type=float, nargs=6)
-        tune_controller.add_argument('--x', type=float, nargs=6)
-        tune_controller.add_argument('--y', type=float, nargs=6)
-        tune_controller.add_argument('--z', type=float, nargs=6)
         tune_controller.set_defaults(func=self._handle_tune_controller)
+
+        tune_pid_planner = subparsers.add_parser('tune_pid_planner')
+        tune_pid_planner.add_argument('--x', type=float, nargs=6)
+        tune_pid_planner.add_argument('--y', type=float, nargs=6)
+        tune_pid_planner.add_argument('--z', type=float, nargs=6)
+        tune_pid_planner.add_argument('--roll', type=float, nargs=6)
+        tune_pid_planner.add_argument('--pitch', type=float, nargs=6)
+        tune_pid_planner.add_argument('--yaw', type=float, nargs=6)
+        tune_pid_planner.set_defaults(func=self._handle_tune_pid_planner)
 
         tune_dynamics = subparsers.add_parser('tune_dynamics')
         tune_dynamics.add_argument('--mass', type=float)

@@ -1,7 +1,7 @@
 <launch>
     <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
     <arg name="debug" default="none" />
-    <rosparam command="load" file="$(arg config_pkg)/global_map.yaml" />
+    <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
 
 <!--     <group ns="global_map">-->
     <node

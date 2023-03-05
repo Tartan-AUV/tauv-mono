@@ -5,11 +5,12 @@
 int main(int argc, char *argv[])
 {
   ros::init(argc, argv, "state_estimation");
-  ros::NodeHandle n("state_estimation");
+  ros::NodeHandle n;
+  ros::NodeHandle pn("~");
 
   ROS_INFO("Launched!");
 
-  StateEstimator s(n);
+  StateEstimator s(n, pn);
 
   while (ros::ok())
   {

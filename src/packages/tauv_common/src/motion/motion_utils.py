@@ -39,6 +39,8 @@ class MotionUtils:
         self.pose = None
         self.twist = None
 
+        self._tf_namespace = rospy.get_param('tf_namespace')
+
         self._traj_service = rospy.Service('gnc/get_trajectory', GetTrajectory, self._handle_get_traj)
 
         self._arm_srv = rospy.ServiceProxy('thrusters/arm', SetBool)
@@ -166,12 +168,13 @@ class MotionUtils:
         self._target_pub.publish(tp)
 
         tp_pose_stamped = PoseStamped()
-        tp_pose_stamped.header.frame_id = "odom_ned"
+        tp_pose_stamped.header.frame_id = f'{self._tf_namespace}/odom'
         tp_pose_stamped.pose = pose
         self._target_pose_stamped_pub.publish(tp_pose_stamped)
 
         if self.traj is not None:
             path = self.traj.as_path()
+            path.header.frame_id = f'{self._tf_namespace}/odom'
 
             self._path_pub.publish(path)
 

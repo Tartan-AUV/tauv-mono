@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Author: Gleb Ryabtsev, 2023
 
 import copy
@@ -17,10 +19,10 @@ import yaml
 from skspatial.objects import Plane, Points, Line
 
 from geometry_msgs.msg import Pose
-from sensor_msgs.msg import Image
-
-from tauv_common.parms import Parms
-from tauv_common.synchronized_subscriber import SynchronizedSubscriber
+from sensor_msgs.msg import Image, CameraInfo
+from tauv_util.parms import Parms
+import message_filters
+import cv_bridge
 
 import rospy
 
@@ -67,7 +69,7 @@ class GateDetector:
         else:
             self.parms = GateDetector.PARMS_DEFAULT
 
-        self.ht_threshold = self.parms.candidate_filtering.ht.threshold
+        self.ht_threshold = self.parms.candidate_search.ht.threshold
         self.__hfov = pi/2
         self.__vfov = pi/2
         self.__expected_tilt = 0.0
@@ -246,7 +248,7 @@ class GateDetector:
         Set all pixels with hsv values outside the given range to zero.
         :param img: image in RGB
         """
-        hsv_boundaries = np.array(parms.filtering.hsv_boundaries, dtype=np.uint8)
+        hsv_boundaries = np.array(self.parms.filtering.hsv_boundaries, dtype=np.uint8)
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         height, width, _ = img.shape
         mask = np.zeros((height, width, 1), dtype=np.uint8)
@@ -403,20 +405,44 @@ class GateDetector:
 
 
 class GateDetectorNode(GateDetector):
-    rgb_topic = ""
-    depth_topic = ""
-    depth_intrinsics_topic = ""
 
     def __init__(self):
         config_path = "../../../../tauv_config/kingfisher_sim_description/yaml/gate_detector.yaml"
-        super().__init__(Parms.frompath(config_path))
-        self.sub = SynchronizedSubscriber()
-        self.rgb_sub = rospy.Subscriber('rgb_sub', Image, )
+        super().__init__(Parms.fromfile(config_path))
+        self.rgb_sub = message_filters.Subscriber(
+            '/kf/vehicle/oakd_front/stereo/left/image_rect', Image)
+        self.depth_sub = message_filters.Subscriber('/kf/vehicle/oakd_front/stereo/depth_map',
+                                                    Image)
+        self.camera_info_sub = message_filters.Subscriber(
+            '/kf/vehicle/oakd_front/stereo/left/camera_info', CameraInfo)
+        self.ts = message_filters.TimeSynchronizer([self.rgb_sub,
+                                                    self.depth_sub,
+                                                    self.camera_info_sub], 10)
+        self.ts.registerCallback(self.callback)
         self.detection_pub = rospy.Publisher('gate_detection_pub', Pose, queue_size=10)
+        self.bridge = cv_bridge.CvBridge()
 
-    def image_callback(self):
-        pass
+    def callback(self, rgb: Image, depth: Image, camera_info: CameraInfo):
+        # Update FOV
+        fx = camera_info.K[0]
+        fy = camera_info.K[4]
+        w = camera_info.width
+        h = camera_info.height
+        hfov = 2*math.atan(w / (2*fx))
+        vfov = 2*math.atan(h / (2*fy))
+        self.set_fov(hfov, vfov)
 
-    def depth_callback(self):
-        pass
+        # Run detection
+        cv_rgb = self.bridge.imgmsg_to_cv2(rgb, desired_encoding="passthrough")
+        cv_depth = self.bridge.imgmsg_to_cv2(depth, desired_encoding="passthrough")
+        detection = self.detect(cv_rgb, cv_depth)
+        print(detection)
 
+
+def main():
+    rospy.init_node('gate_detector', anonymous=True)
+    g = GateDetectorNode()
+    rospy.spin()
+
+
+main()

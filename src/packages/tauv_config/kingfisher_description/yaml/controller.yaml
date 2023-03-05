@@ -1,10 +1,11 @@
 frequency: 50
 
-kp: [0.3, 0.3]
-ki: [0.1, 0.1]
-kd: [0.1, 0.1]
-tau: [0.0, 0.0]
-limits: [[-0.1, 0.1], [-0.1, 0.1]]
+# z, roll, pitch
+kp: [10.0, 1.0, 1.0]
+ki: [0.0, 0.0, 0.0]
+kd: [10.0, 1.0, 1.0]
+tau: [0.1, 0.1, 0.1]
+limits: [[-1.0, 1.0], [-1.0, 1.0], [-1.0, 1.0]]
 
 # x, y, z, roll, pitch, yaw in N
 max_wrench: [ 30.0, 30.0, 30.0, 15.0, 15.0, 15.0 ]
@@ -14,19 +15,19 @@ dynamics:
   mass: 30.0
 
   # m^3
-  volume: 31.2
+  volume: 0.0306
 
   # kg / m^3
-  water_density: 1.0
+  water_density: 1028.0
 
   # x, y, z in body NED
-  center_of_gravity: [ 0.0, 0.0, 0.0 ]
-  center_of_buoyancy: [ 0.0, 0.0, 0.0 ]
+  center_of_gravity: [0.0, 0.0, 0.0]
+  center_of_buoyancy: [0.0, 0.0, 0.02]
 
   # Ixx, Iyy, Izz, Ixy, Ixz, Iyz
-  moments: [10.0, 60.0, 60.0, 0.0, 0.0, 0.0]
+  moments: [7.0, 7.0, 4.0, 0.0, 0.0, 0.0]
 
   # x, y, z, roll, pitch, yaw
-  linear_damping: [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
+  linear_damping: [100.0, 83.1339, 44.2445, 7.69374, 5.65474, 3.10541]
   quadratic_damping: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-  added_mass: [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
+  added_mass: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

@@ -17,7 +17,7 @@ class Arduino:
 
         self._dt: float = 0.10
 
-        self._depth_pub: rospy.Publisher = rospy.Publisher('/vehicle/arduino/depth', DepthMsg, queue_size=10)
+        self._depth_pub: rospy.Publisher = rospy.Publisher('vehicle/arduino/depth', DepthMsg, queue_size=10)
 
         self._serial = None
 
@@ -73,7 +73,7 @@ class Arduino:
 
         fl = self._ac.get_failure_level()
         c = arduino_fl_codes[fl]
-        self._serial.write(bytearray(c, 'utf-8'))
+        # self._serial.write(bytearray(c, 'utf-8'))
 
         self._ac.clear(Alarm.ARDUINO_NOT_INITIALIZED)
 

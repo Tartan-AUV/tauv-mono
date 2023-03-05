@@ -22,7 +22,7 @@
 #define REALTIME_QUEUE_SIZE 100
 #define TOPIC_QUEUE_SIZE 100
 
-StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
+StateEstimator::StateEstimator(ros::NodeHandle& n, ros::NodeHandle &pn) : n(n), pn(pn), alarm_client(n)
 {
   this->load_config();
 
@@ -41,8 +41,8 @@ StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
   this->dvl_sub = n.subscribe("vehicle/teledyne_dvl/data", TOPIC_QUEUE_SIZE, &StateEstimator::handle_dvl, this);
   this->depth_sub = n.subscribe("vehicle/arduino/depth", TOPIC_QUEUE_SIZE, &StateEstimator::handle_depth, this);
 
-  this->navigation_state_pub = n.advertise<tauv_msgs::NavigationState>("gnc/state_estimation/navigation_state", TOPIC_QUEUE_SIZE);
-  this->odom_pub = n.advertise<nav_msgs::Odometry>("gnc/state_estimation/odom", TOPIC_QUEUE_SIZE);
+  this->navigation_state_pub = n.advertise<tauv_msgs::NavigationState>("gnc/navigation_state", TOPIC_QUEUE_SIZE);
+  this->odom_pub = n.advertise<nav_msgs::Odometry>("gnc/odom", TOPIC_QUEUE_SIZE);
 
   this->set_pose_srv = n.advertiseService("gnc/state_estimation/set_pose", &StateEstimator::handle_set_pose, this);
 
@@ -54,33 +54,33 @@ StateEstimator::StateEstimator(ros::NodeHandle& n) : n(n), alarm_client(n)
 void StateEstimator::load_config()
 {
   int frequency;
-  this->n.getParam("frequency", frequency);
+  this->pn.getParam("frequency", frequency);
   this->dt = ros::Duration(1.0 / double(frequency));
 
   this->n.getParam("max_delayed_queue_size", this->max_delayed_queue_size);
 
   double horizon_delay;
-  this->n.getParam("horizon_delay", horizon_delay);
+  this->pn.getParam("horizon_delay", horizon_delay);
   this->horizon_delay = ros::Duration(horizon_delay);
 
   std::vector<double> dvl_offset;
-  this->n.getParam("dvl_offset", dvl_offset);
+  this->pn.getParam("dvl_offset", dvl_offset);
   this->dvl_offset = Eigen::Map<Eigen::Vector3d>(dvl_offset.data());
 
   std::vector<double> process_covariance;
-  this->n.getParam("process_covariance", process_covariance);
+  this->pn.getParam("process_covariance", process_covariance);
   this->process_covariance = Eigen::Map<Eigen::Matrix<double, 15, 1>>(process_covariance.data());
 
   std::vector<double> imu_covariance;
-  this->n.getParam("imu_covariance", imu_covariance);
+  this->pn.getParam("imu_covariance", imu_covariance);
   this->imu_covariance = Eigen::Map<Eigen::Matrix<double, 9, 1>>(imu_covariance.data());
 
   std::vector<double> dvl_covariance;
-  this->n.getParam("dvl_covariance", dvl_covariance);
+  this->pn.getParam("dvl_covariance", dvl_covariance);
   this->dvl_covariance = Eigen::Map<Eigen::Vector3d>(dvl_covariance.data());
 
   std::vector<double> depth_covariance;
-  this->n.getParam("depth_covariance", depth_covariance);
+  this->pn.getParam("depth_covariance", depth_covariance);
   assert(depth_covariance.size() == 1);
   this->depth_covariance = depth_covariance.front(); 
 }
