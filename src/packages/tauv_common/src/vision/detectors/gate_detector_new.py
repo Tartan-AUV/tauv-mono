@@ -23,6 +23,8 @@ from sensor_msgs.msg import Image, CameraInfo
 from tauv_util.parms import Parms
 import message_filters
 import cv_bridge
+import matplotlib.pyplot as plt
+
 
 import rospy
 
@@ -40,7 +42,7 @@ class GateDetector:
                 'adaptive': True,
                 'adjustment_factor': 0.85,
                 'min_lines': 20,
-                'max_lines': 200,
+                'max_lines': 600,
                 'blur': 5,
                 'theta_steps': 90,
                 'threshold': 200
@@ -83,7 +85,8 @@ class GateDetector:
 
     def detect(self, rgb: np.array, depth: np.array):
         p = self.parms.candidate_filtering
-        assert(rgb.shape == depth.shape)
+        print(rgb.shape)
+        assert(rgb.shape[:2] == depth.shape)
         candidates = self.__find_candidates(rgb)
         if not candidates:
             return None
@@ -129,10 +132,10 @@ class GateDetector:
             n = np.linalg.norm(v)
             u = v / n * p.depth_sampling_interval
             k = np.array([0,0])
-            points = np.array((n / p.depth_sampling_interval, 2), dtype=np.int32)
-            for i in range(len(points)):
-                points[i] = pt1 + u*i
-            return points
+            points = []
+            for i in range(int(n / p.depth_sampling_interval)):
+                points.append(tuple(pt1 + u*i))
+            return np.array(points)
 
         # gc.p0-----gc.p1
         # |      |      |
@@ -178,9 +181,10 @@ class GateDetector:
         return GateDetector.GatePosition(*mid, roll, pitch, yaw)
 
     def __find_candidates(self, img):
+        h, w = img.shape[:2]
         p = self.parms.candidate_filtering
         mask = self.__get_color_filter_mask(img)
-        cv2.imshow("color_filtered", cv2.bitwise_and(img, img, mask=mask))
+        plt.imshow(mask)
         filtered = self.__filter_by_contour_size(mask)
         lines = self.__find_lines(filtered)
         if lines is None:
@@ -202,6 +206,9 @@ class GateDetector:
                     if ((abs(self.__expected_tilt + theta_mean) > p.max_tilt) and
                             (180 - abs(self.__expected_tilt + theta_mean) > p.max_tilt)):
                         continue
+                    if ((not 0 <= x1 <= w) or (not 0 <= x2 <= w) or
+                        (not 0 <= y1 <= h) or (not 0 <= y2 <= h)):
+                        continue
                     gate_candidates.append(self.GateCandidate(np.array((x1, y1)),
                                                               np.array((x2, y2)),
                                                               v))
@@ -212,6 +219,8 @@ class GateDetector:
             if np.linalg.norm(v) < min_gate_size:
                 continue
             gate_candidates_filtered.append(gc)
+
+        print(gate_candidates_filtered)
 
         if gate_candidates_filtered:
             print(len(gate_candidates_filtered))
@@ -241,7 +250,6 @@ class GateDetector:
         #     p0 = (mid-1500*gc.v).astype(int)
         #     p1 = (mid+1500*gc.v).astype(int)
         #     cv2.line(img, p0, p1, (0, 255, 0), 4)
-        # cv2.imshow("img", img)
 
     def __get_color_filter_mask(self, img):
         """
@@ -252,11 +260,9 @@ class GateDetector:
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         height, width, _ = img.shape
         mask = np.zeros((height, width, 1), dtype=np.uint8)
-        cv2.imshow("test", img)
         for boundary in hsv_boundaries:
             new_mask = cv2.inRange(hsv, boundary[0], boundary[1])
             mask = cv2.bitwise_or(mask, new_mask)
-        cv2.imshow("mask", mask)
         return mask
 
     def __filter_by_contour_size(self, img):
@@ -280,12 +286,14 @@ class GateDetector:
         # min_lines = self.__params['candidate_search']['ht']['min_lines']
         # max_lines = self.__params['candidate_search']['ht']['max_lines']
         # adjustment_factor = self.__params['candidate_search']['ht']['adjustment_factor']
-        image_blurred = cv2.GaussianBlur(img, (blur, blur), 0)
+        image_blurred = cv2.GaussianBlur(img, (p.blur, p.blur), 0)
         lines = []
         counter = 0
-        while not p.adaptive or not p.min_lines <= len(lines) <= p.max_lines:
+        while not p.adaptive or lines is None or not p.min_lines <= len(lines) <= p.max_lines:
             lines = cv2.HoughLines(image_blurred, 1, np.pi / p.theta_steps, self.ht_threshold)
-            if len(lines) < p.min_lines:
+            # todo: becomes inf. loop when len(lines) is still greater than p.max_lines when
+            #       threshold exceeds image size
+            if lines is None or len(lines) < p.min_lines:
                 self.ht_threshold = int(self.ht_threshold * p.adjustment_factor)
             elif len(lines) > p.max_lines:
                 self.ht_threshold = int(self.ht_threshold / p.adjustment_factor)
@@ -410,7 +418,7 @@ class GateDetectorNode(GateDetector):
         config_path = "../../../../tauv_config/kingfisher_sim_description/yaml/gate_detector.yaml"
         super().__init__(Parms.fromfile(config_path))
         self.rgb_sub = message_filters.Subscriber(
-            '/kf/vehicle/oakd_front/stereo/left/image_rect', Image)
+            '/kf/vehicle/oakd_front/stereo/left/image_color', Image)
         self.depth_sub = message_filters.Subscriber('/kf/vehicle/oakd_front/stereo/depth_map',
                                                     Image)
         self.camera_info_sub = message_filters.Subscriber(
@@ -431,9 +439,12 @@ class GateDetectorNode(GateDetector):
         hfov = 2*math.atan(w / (2*fx))
         vfov = 2*math.atan(h / (2*fy))
         self.set_fov(hfov, vfov)
+        print(hfov, vfov)
 
         # Run detection
         cv_rgb = self.bridge.imgmsg_to_cv2(rgb, desired_encoding="passthrough")
+        cv_rgb = cv2.cvtColor(cv_rgb, cv2.COLOR_RGB2BGR)
+        plt.imshow(rgb)
         cv_depth = self.bridge.imgmsg_to_cv2(depth, desired_encoding="passthrough")
         detection = self.detect(cv_rgb, cv_depth)
         print(detection)
