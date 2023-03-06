@@ -23,8 +23,6 @@ from sensor_msgs.msg import Image, CameraInfo
 from tauv_util.parms import Parms
 import message_filters
 import cv_bridge
-import matplotlib.pyplot as plt
-
 
 import rospy
 
@@ -85,9 +83,8 @@ class GateDetector:
 
     def detect(self, rgb: np.array, depth: np.array):
         p = self.parms.candidate_filtering
-        print(rgb.shape)
-        assert(rgb.shape[:2] == depth.shape)
-        candidates = self.__find_candidates(rgb)
+        assert(rgb.shape[:2] == depth.shape[:2])
+        candidates = self._find_candidates(rgb)
         if not candidates:
             return None
         # depth_std_dev_cutoff = self.__params['candidate_filtering']['depth_std_dev_cutoff']
@@ -109,7 +106,7 @@ class GateDetector:
         return positions[index]
 
     def __get_position(self, depth_map: np.ndarray, gc: GateCandidate) -> GatePosition:
-        w, h = depth_map.shape
+        h, w = depth_map.shape[:2]
         k_h = w//2 / math.tan(self.__hfov / 2)
         k_v = h//2 / math.tan(self.__vfov / 2)
         p = self.parms.candidate_filtering
@@ -121,11 +118,15 @@ class GateDetector:
                            1/k_h, 0, 0,
                            0, 1/k_v, 0]])
 
-        def _get_3d_point(p):
+        def get_3d_point(p):
             center = np.array([w//2, h//2])
             pc = np.append(p - center, 1)
-            return np.array([1, pc[0]/k_h, pc[1]/k_v])*depth_map[p[0], p[1]]
-        get_3d_point = np.vectorize(_get_3d_point)
+            x, y = p[0], p[1]
+            if (not 0 <= x < w) or (not 0 <= y < h):
+                raise ValueError("Point not in the image")
+            print("Get 3d pt", x, y)
+            return np.array([1, pc[0]/k_h, pc[1]/k_v])*depth_map[y, x]
+        # get_3d_point = np.vectorize(_get_3d_point)
 
         def sample_line(pt1, pt2):
             v = pt2 - pt1
@@ -148,16 +149,22 @@ class GateDetector:
         p2 = p0 + gc.v * int(p.side_h*scale)
         mid = (p0 + p1)//2
         p3 = mid + gc.v * int(p.center_h*scale)
-        p4 = p1 * gc.v * int(p.side_h*scale)
+        p4 = p1 + gc.v * int(p.side_h*scale)
 
-        pts02 = sample_line(p0, p2, )
+        pts02 = sample_line(p0, p2)
         pts01 = sample_line(p0, p1)
         ptsmid3 = sample_line(mid, p3)
         pts14 = sample_line(p1, p4)
-        pts2d = np.concatenate((pts02, pts01, ptsmid3, pts14))
-
-        pts3d = get_3d_point(pts2d)
-
+        pts2d = np.concatenate((pts02, pts01, ptsmid3, pts14)).astype(np.int32)
+        pts3d = np.zeros((len(pts2d), 3))
+        counter = 0
+        for i in range(len(pts2d)): # vectorize
+            x, y = pts2d[i]
+            if (not 0 <= x < w) or (not 0 <= y < h):
+                counter += 1
+                continue
+            pts3d[i] = get_3d_point(pts2d[i])
+        print(f"{counter}/{len(pts2d)} points outside image boundaries")
         plane = Plane.best_fit(pts3d)
 
         dev = 0
@@ -165,7 +172,7 @@ class GateDetector:
             dev += plane.distance_point(point)**2
         dev = math.sqrt(dev)
 
-        mid_line = Line((0,0,0), get_3d_point(mid))
+        mid_line = Line((0,0,0), get_3d_point(mid.astype(np.int32)))
         pos = plane.intersect_line(mid_line)
         up = plane.project_vector([0, -gc.v[0], -gc.v[1]])  # points up
         right_2d = p0-p1
@@ -178,21 +185,23 @@ class GateDetector:
         pitch = math.atan2(forward[2], np.dot(right, forward))
         yaw = math.atan2(forward[1], forward[0])
 
-        return GateDetector.GatePosition(*mid, roll, pitch, yaw)
+        return GateDetector.GatePosition(*pos, roll, pitch, yaw, dev)
 
-    def __find_candidates(self, img):
+    def _find_candidates(self, img):
         h, w = img.shape[:2]
         p = self.parms.candidate_filtering
         mask = self.__get_color_filter_mask(img)
-        plt.imshow(mask)
         filtered = self.__filter_by_contour_size(mask)
+        cv2.imshow("contour", filtered)
         lines = self.__find_lines(filtered)
+        self.draw_lines(img, lines)
         if lines is None:
             return None
         median_lines = self.__find_clusters(lines)
         parallel_groups = self.__find_parallel_groups(median_lines)
         gate_candidates = list()
         # max_tilt = self.__params['candidate_filtering']['max_tilt']
+        self.draw_lines(img, median_lines, (255, 0, 0), 4)
         for horizontal_candidate in median_lines:
             for vertical_candidate_group in parallel_groups:
                 if len(vertical_candidate_group) == 1:
@@ -213,14 +222,12 @@ class GateDetector:
                                                               np.array((x2, y2)),
                                                               v))
         gate_candidates_filtered = []
-        min_gate_size = p.min_gate_size * img.shape[0]
+        min_gate_size = p.min_gate_size * w
         for gc in gate_candidates:
             v = gc.p1 - gc.p0
             if np.linalg.norm(v) < min_gate_size:
                 continue
             gate_candidates_filtered.append(gc)
-
-        print(gate_candidates_filtered)
 
         if gate_candidates_filtered:
             print(len(gate_candidates_filtered))
@@ -230,18 +237,6 @@ class GateDetector:
 
         return gate_candidates_filtered
 
-        # if lines is not None:
-        #     for line in lines:
-        #         rho, theta = line
-        #         a = np.cos(theta)
-        #         b = np.sin(theta)
-        #         x0 = a * rho
-        #         y0 = b * rho
-        #         x1 = int(x0 + 1500 * (-b))
-        #         y1 = int(y0 + 1500 * (a))
-        #         x2 = int(x0 - 1500 * (-b))
-        #         y2 = int(y0 - 1500 * (a))
-        #         cv2.line(img, (x1, y1), (x2, y2), (0, 100, 0), 1)
         # if gc:
         #     cv2.circle(img, gc.p0.astype(np.int32), 10, (255, 0, 0), -1)
         #     cv2.circle(img, gc.p1.astype(np.int32), 10, (255, 0, 0), -1)
@@ -251,6 +246,20 @@ class GateDetector:
         #     p1 = (mid+1500*gc.v).astype(int)
         #     cv2.line(img, p0, p1, (0, 255, 0), 4)
 
+    def draw_lines(self, img, lines, color=(0, 100, 0), width=1):
+        if lines is not None:
+            for line in lines:
+                rho, theta = line
+                a = np.cos(theta)
+                b = np.sin(theta)
+                x0 = a * rho
+                y0 = b * rho
+                x1 = int(x0 + 1500 * (-b))
+                y1 = int(y0 + 1500 * (a))
+                x2 = int(x0 - 1500 * (-b))
+                y2 = int(y0 - 1500 * (a))
+                cv2.line(img, (x1, y1), (x2, y2), color, width)
+
     def __get_color_filter_mask(self, img):
         """
         Set all pixels with hsv values outside the given range to zero.
@@ -258,8 +267,8 @@ class GateDetector:
         """
         hsv_boundaries = np.array(self.parms.filtering.hsv_boundaries, dtype=np.uint8)
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        height, width, _ = img.shape
-        mask = np.zeros((height, width, 1), dtype=np.uint8)
+        h, w = img.shape[:2]
+        mask = np.zeros((h, w, 1), dtype=np.uint8)
         for boundary in hsv_boundaries:
             new_mask = cv2.inRange(hsv, boundary[0], boundary[1])
             mask = cv2.bitwise_or(mask, new_mask)
@@ -418,7 +427,7 @@ class GateDetectorNode(GateDetector):
         config_path = "../../../../tauv_config/kingfisher_sim_description/yaml/gate_detector.yaml"
         super().__init__(Parms.fromfile(config_path))
         self.rgb_sub = message_filters.Subscriber(
-            '/kf/vehicle/oakd_front/stereo/left/image_color', Image)
+            '/kf/vehicle/oakd_front/color/image_raw', Image)
         self.depth_sub = message_filters.Subscriber('/kf/vehicle/oakd_front/stereo/depth_map',
                                                     Image)
         self.camera_info_sub = message_filters.Subscriber(
@@ -444,10 +453,20 @@ class GateDetectorNode(GateDetector):
         # Run detection
         cv_rgb = self.bridge.imgmsg_to_cv2(rgb, desired_encoding="passthrough")
         cv_rgb = cv2.cvtColor(cv_rgb, cv2.COLOR_RGB2BGR)
-        plt.imshow(rgb)
         cv_depth = self.bridge.imgmsg_to_cv2(depth, desired_encoding="passthrough")
-        detection = self.detect(cv_rgb, cv_depth)
-        print(detection)
+        candidates = self._find_candidates(cv_rgb)
+        if not candidates:
+            print("No candidates")
+        else:
+            for gc in candidates:
+                cv2.circle(cv_rgb, tuple(gc.p0.astype(np.int32)), 10, (0,255,0), -1)
+                cv2.circle(cv_rgb, tuple(gc.p1.astype(np.int32)), 10, (0,255,0), -1)
+
+        cv2.imshow('rgb', cv_rgb)
+        cv2.waitKey(1)
+
+        # detection = self.detect(cv_rgb, cv_depth)
+        # print(detection)
 
 
 def main():

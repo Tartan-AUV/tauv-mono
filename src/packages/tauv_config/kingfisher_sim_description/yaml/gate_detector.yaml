@@ -1,7 +1,7 @@
 candidate_filtering:
   center_h: 0.609
   center_score_cutoff: 0.5
-  depth_sampling_interval: 0.2
+  depth_sampling_interval: 20
   depth_std_dev_cutoff: 0.5
   gate_pipe_w: 0.075
   gate_w: 3.048
@@ -19,16 +19,22 @@ candidate_search:
     adjustment_factor: 0.85
     blur: 5
     max_lines: 600
-    min_lines: 20
+    min_lines: 300
     theta_steps: 90
     threshold: 200
   parallel_dtheta_max: 0.1
 filtering:
   hsv_boundaries:
-  - - - 100
+  - - - 150
       - 0
       - 0
-    - - 190
+    - - 200
       - 255
       - 100
+  - - - 0
+      - 0
+      - 0
+    - - 255
+      - 255
+      - 35
   min_contour_size: 50
