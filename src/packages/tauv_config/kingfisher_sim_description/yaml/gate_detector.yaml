@@ -1,0 +1,34 @@
+candidate_filtering:
+  center_h: 0.609
+  center_score_cutoff: 0.5
+  depth_sampling_interval: 0.2
+  depth_std_dev_cutoff: 0.5
+  gate_pipe_w: 0.075
+  gate_w: 3.048
+  max_tilt: 0.25
+  min_gate_size: 0.3
+  score_coefficients:
+  - 1
+  - 1
+  side_h: 1.5
+candidate_search:
+  clustering_drho_min: 30.0
+  clustering_dtheta_min: 0.2
+  ht:
+    adaptive: true
+    adjustment_factor: 0.85
+    blur: 5
+    max_lines: 600
+    min_lines: 20
+    theta_steps: 90
+    threshold: 200
+  parallel_dtheta_max: 0.1
+filtering:
+  hsv_boundaries:
+  - - - 100
+      - 0
+      - 0
+    - - 190
+      - 255
+      - 100
+  min_contour_size: 50
