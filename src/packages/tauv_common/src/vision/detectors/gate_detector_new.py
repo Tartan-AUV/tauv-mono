@@ -14,64 +14,67 @@ import numpy as np
 from math import sin, cos, pi, isnan, isinf
 from typing import List, Tuple, OrderedDict
 from collections import namedtuple
+from timeit import timeit
+import time
 
 import yaml
 from skspatial.objects import Plane, Points, Line
 
-from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Pose, PoseArray, Point, Quaternion
 from sensor_msgs.msg import Image, CameraInfo
 from tauv_util.parms import Parms
+from tf2_ros import Quaternion as tf2_Quaternion
 import message_filters
 import cv_bridge
 
 import rospy
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 class GateDetector:
-    GateCandidate = namedtuple('GateCandidate', 'p0 p1 v')
-    GatePosition = namedtuple('GatePosition', 'x y z roll pitch yaw dev')
+    GateCandidate = namedtuple('GateCandidate', 'l1 l2 lc side_alignment_score center_alignment_score depth_score')
+    GatePosition = namedtuple('GatePosition', 'x y z roll pitch yaw')
 
     PARMS_DEFAULT = Parms({
-        'filtering': {
-            'hsv_boundaries': [[[100, 0, 0], [190, 255, 100]]],
-            'min_contour_size': 50
+        'preprocessing': {
+            'hsv_boundaries': [[[100, 0, 20], [170, 180, 80]]],
+            'dilation_ks': 2,
+            'erosion_ks': 5
         },
-        'candidate_search': {
-            'ht': {
-                'adaptive': True,
-                'adjustment_factor': 0.85,
-                'min_lines': 20,
-                'max_lines': 600,
-                'blur': 5,
-                'theta_steps': 90,
-                'threshold': 200
-            },
-            'clustering_drho_min': 30.0,
-            'clustering_dtheta_min': 0.2,
-            'parallel_dtheta_max': 0.1,
+        'contours': {
+            'min_size': 50,
+            'min_hw_ratio': 5
         },
-        'candidate_filtering': {
-            'min_gate_size': 0.3,
-            'max_tilt': 0.25,
-            'gate_w': 3.048,
-            'center_h': 0.609,
-            'gate_pipe_w': 0.075,
-            'side_h': 1.5,
-            'depth_sampling_interval': 0.2,
-            'center_score_cutoff': 0.5,
-            'depth_std_dev_cutoff': 0.5,
-            'score_coefficients': [1, 1]
-        }
+        'geometry': {
+            'parallel_dth_max': 0.1,
+            'side_endpoint_dev_f': 3,
+            'side_alignment_score_cutoff': 0.5,
+            'center_dev_cutoff': 0.2,
+            'center_alignment_f': 3,
+            'center_alignment_score_cutoff': 0.5,
+        },
+        'depth': {
+            'sampling_interval': 10,
+            'start_end_offset': 0,
+            'outlier_f': 1.5,
+            'dev_cutoff': 1.0,
+            'dev_score_f': 2.0
+        },
+        'side_alignment_score_w': 1.0,
+        'center_alignment_score_w': 1.0,
+        'plane_dev_score_w': 1.0,
+        'total_score_cutoff': 0.5
     })
 
-    def __init__(self, parms: Parms):
+    def __init__(self, parms: Parms = None):
         if parms:
             self.parms = parms
         else:
             self.parms = GateDetector.PARMS_DEFAULT
 
-        self.ht_threshold = self.parms.candidate_search.ht.threshold
-        self.__hfov = pi/2
-        self.__vfov = pi/2
+        self.__hfov = pi / 2
+        self.__vfov = pi / 2
         self.__expected_tilt = 0.0
 
     def set_fov(self, hfov, vfov):
@@ -82,347 +85,280 @@ class GateDetector:
         self.__expected_tilt = tilt
 
     def detect(self, rgb: np.array, depth: np.array):
-        p = self.parms.candidate_filtering
-        assert(rgb.shape[:2] == depth.shape[:2])
-        candidates = self._find_candidates(rgb)
-        if not candidates:
-            return None
-        # depth_std_dev_cutoff = self.__params['candidate_filtering']['depth_std_dev_cutoff']
-        # center_score_cutoff = self.__params['candidate_filtering']['center_score_cutoff']
-        # coeffs = self.__params['candidate_filtering']['score_coefficients']
-        scores = []
-        positions = []
+        p = self.parms
+        candidates = self._detect_rgb(rgb)
         for gc in candidates:
-            pos = self.__get_position(depth, gc)
-            if pos.dev > p.depth_std_dev_cutoff:
+            self.__get_position(depth, gc)
+        detections = []
+        for gc in candidates:
+            r = self.__get_position(depth, gc)
+            if r is None:
                 continue
-            center_score = self.__get_center_score(rgb, gc)
-            if center_score > p.center_score_cutoff:
+            pos, dev = r
+            if dev > p.depth.dev_cutoff:
                 continue
-            positions.append(pos)
-            scores.append(center_score*p.coeffs[0]+pos.dev*p.coeffs[1])
+            dev_score = 1/(1+dev*p.depth.dev_score_f)
+            norm_f = p.side_alignment_score_w + p.center_alignment_score_w + p.plane_dev_score_w
+            score = (gc.side_alignment_score*p.side_alignment_score_w +
+                     gc.center_alignment_score*p.center_alignment_score_w +
+                     dev_score*p.plane_dev_score_w) / norm_f
+            if score > p.total_score_cutoff:
+                detections.append((pos, score))
+        return detections
 
-        index = max(range(len(scores)), key=lambda i: scores[i])
-        return positions[index]
-
-    def __get_position(self, depth_map: np.ndarray, gc: GateCandidate) -> GatePosition:
+    def __get_position(self, depth_map: np.ndarray, gc: GateCandidate):
+        p = self.parms.depth
         h, w = depth_map.shape[:2]
-        k_h = w//2 / math.tan(self.__hfov / 2)
-        k_v = h//2 / math.tan(self.__vfov / 2)
-        p = self.parms.candidate_filtering
-        # side_h = self.__params['candidate_filtering']['side_h']
-        # center_h = self.__params['candidate_filtering']['center_h']
-        # gate_w = self.__params['candidate_filtering']['gate_w']
-        # d = self.__params['candidate_filtering']['depth_sampling_interval']
-        projection_mat = np.array([[0, 0, 1,
-                           1/k_h, 0, 0,
-                           0, 1/k_v, 0]])
+        k_h = w // 2 / math.tan(self.__hfov / 2)
+        k_v = h // 2 / math.tan(self.__vfov / 2)
 
         def get_3d_point(p):
-            center = np.array([w//2, h//2])
+            center = np.array([w // 2, h // 2])
             pc = np.append(p - center, 1)
             x, y = p[0], p[1]
             if (not 0 <= x < w) or (not 0 <= y < h):
                 raise ValueError("Point not in the image")
-            print("Get 3d pt", x, y)
-            return np.array([1, pc[0]/k_h, pc[1]/k_v])*depth_map[y, x]
+            return np.array([1, pc[0] / k_h, pc[1] / k_v]) * depth_map[y, x]
+
         # get_3d_point = np.vectorize(_get_3d_point)
 
-        def sample_line(pt1, pt2):
-            v = pt2 - pt1
+        depth_map_normalized = (depth_map * 25).astype(np.uint8)
+        depth_map_rgb = cv2.applyColorMap(depth_map_normalized, cv2.COLORMAP_HOT)
+        def sample_line(l):
+            v = l[2:] - l[:2]
             n = np.linalg.norm(v)
-            u = v / n * p.depth_sampling_interval
-            k = np.array([0,0])
+            u = v / n * p.sampling_interval
+            k = np.array([0, 0])
             points = []
-            for i in range(int(n / p.depth_sampling_interval)):
-                points.append(tuple(pt1 + u*i))
-            return np.array(points)
+            for i in range(p.start_end_offset, int(n / p.sampling_interval)-p.start_end_offset):
+                points.append(tuple(l[:2] + u * i))
+            return np.array(points).astype(np.int32)
 
-        # gc.p0-----gc.p1
-        # |      |      |
-        # |      p3     |
-        # p2           p4
 
-        p0, p1 = gc.p0, gc.p1
-        pixel_w = np.linalg.norm(p1 - p0)
-        scale = pixel_w / p.gate_w
-        p2 = p0 + gc.v * int(p.side_h*scale)
-        mid = (p0 + p1)//2
-        p3 = mid + gc.v * int(p.center_h*scale)
-        p4 = p1 + gc.v * int(p.side_h*scale)
+        pts1 = sample_line(gc.l1)
+        pts2 = sample_line(gc.l2)
+        ptsc = sample_line(gc.lc)
 
-        pts02 = sample_line(p0, p2)
-        pts01 = sample_line(p0, p1)
-        ptsmid3 = sample_line(mid, p3)
-        pts14 = sample_line(p1, p4)
-        pts2d = np.concatenate((pts02, pts01, ptsmid3, pts14)).astype(np.int32)
-        pts3d = np.zeros((len(pts2d), 3))
-        counter = 0
-        for i in range(len(pts2d)): # vectorize
-            x, y = pts2d[i]
-            if (not 0 <= x < w) or (not 0 <= y < h):
-                counter += 1
-                continue
-            pts3d[i] = get_3d_point(pts2d[i])
-        print(f"{counter}/{len(pts2d)} points outside image boundaries")
-        plane = Plane.best_fit(pts3d)
+        #
 
-        dev = 0
-        for point in pts3d:
-            dev += plane.distance_point(point)**2
-        dev = math.sqrt(dev)
-
-        mid_line = Line((0,0,0), get_3d_point(mid.astype(np.int32)))
-        pos = plane.intersect_line(mid_line)
-        up = plane.project_vector([0, -gc.v[0], -gc.v[1]])  # points up
-        right_2d = p0-p1
-        if right_2d[0] < 0:
-            right_2d *= -1
-        right = plane.project_vector([0, right_2d[0], right_2d[1]])
-
-        forward = np.cross(up, right)
-        roll = math.atan2(right[1], np.dot(forward, right))
-        pitch = math.atan2(forward[2], np.dot(right, forward))
-        yaw = math.atan2(forward[1], forward[0])
-
-        return GateDetector.GatePosition(*pos, roll, pitch, yaw, dev)
-
-    def _find_candidates(self, img):
-        h, w = img.shape[:2]
-        p = self.parms.candidate_filtering
-        mask = self.__get_color_filter_mask(img)
-        filtered = self.__filter_by_contour_size(mask)
-        cv2.imshow("contour", filtered)
-        lines = self.__find_lines(filtered)
-        self.draw_lines(img, lines)
-        if lines is None:
-            return None
-        median_lines = self.__find_clusters(lines)
-        parallel_groups = self.__find_parallel_groups(median_lines)
-        gate_candidates = list()
-        # max_tilt = self.__params['candidate_filtering']['max_tilt']
-        self.draw_lines(img, median_lines, (255, 0, 0), 4)
-        for horizontal_candidate in median_lines:
-            for vertical_candidate_group in parallel_groups:
-                if len(vertical_candidate_group) == 1:
+        def map_to_3d(pts2d):
+            pts3d = np.zeros((len(pts2d), 3))
+            for i in range(len(pts2d)):  # vectorize
+                cv2.circle(depth_map, pts2d[i], 5, (0,0,255), 1)
+                x, y = pts2d[i]
+                if (not 0 <= x < w) or (not 0 <= y < h):
                     continue
-                intersections = self.__intersect_group(horizontal_candidate, vertical_candidate_group)
-                for i, j in itertools.combinations(range(len(intersections)), 2):
-                    x1, y1, _, theta1 = intersections[i]
-                    x2, y2, _, theta2 = intersections[j]
-                    theta_mean = (theta1 + theta2) / 2
-                    v = np.array([-sin(theta_mean), cos(theta_mean)])
-                    if ((abs(self.__expected_tilt + theta_mean) > p.max_tilt) and
-                            (180 - abs(self.__expected_tilt + theta_mean) > p.max_tilt)):
-                        continue
-                    if ((not 0 <= x1 <= w) or (not 0 <= x2 <= w) or
-                        (not 0 <= y1 <= h) or (not 0 <= y2 <= h)):
-                        continue
-                    gate_candidates.append(self.GateCandidate(np.array((x1, y1)),
-                                                              np.array((x2, y2)),
-                                                              v))
-        gate_candidates_filtered = []
-        min_gate_size = p.min_gate_size * w
-        for gc in gate_candidates:
-            v = gc.p1 - gc.p0
-            if np.linalg.norm(v) < min_gate_size:
+                pts3d[i] = get_3d_point(pts2d[i])
+            return pts3d
+
+        pts3d1 = map_to_3d(pts1)
+        pts3d2 = map_to_3d(pts2)
+        pts3dc = map_to_3d(ptsc)
+
+        cv2.imshow("depth", depth_map_rgb)
+        if not len(pts1) or not len(pts2) or not len(ptsc):
+            return None
+        pts3d = np.concatenate((pts3d1, pts3d2, pts3dc))
+        # remove zeros
+        index = np.where(pts3d[:,0] == 0.0)
+        pts3d = np.delete(pts3d, index, axis = 0)
+        pts3d_depth = pts3d[:,0]
+        # remove outliers
+        quantiles = np.quantile(pts3d_depth, [.25, .75])
+        q1 = quantiles[0]
+        q3 = quantiles[1]
+        iqr = q3-q1
+        lower = q1 - p.outlier_f*iqr
+        upper = q3 + p.outlier_f*iqr
+        index = np.where(np.logical_or(pts3d_depth<lower, upper<pts3d_depth))
+        pts3d = np.delete(pts3d, index, axis=0)
+        # fit plane
+        try:
+            plane = Plane.best_fit(pts3d)
+            # fig = plt.figure()
+            # ax = fig.add_subplot(111, projection='3d')
+            # ax.scatter(pts3d[:, 0], pts3d[:, 1], pts3d[:, 2])
+            # plane.plot_3d(ax, alpha=0.2)
+            # ax.set_xlabel('X Label')
+            # ax.set_ylabel('Y Label')
+            # ax.set_zlabel('Z Label')
+            # plt.show()
+
+            # get standard deviation
+            dev = 0
+            for point in pts3d:
+                dev += plane.distance_point(point) ** 2
+            dev = math.sqrt(dev)
+            # calculate midpoint (bottom of the center pole) and orientation
+            mid_line = Line((0, 0, 0), pts3dc[-1])
+            pos = plane.intersect_line(mid_line)
+            v1 = gc.l1[:2]-gc.l1[2:]
+            v2 = gc.l2[:2]-gc.l2[2:]
+            u1 = v1/np.linalg.norm(v1)
+            u2 = v2/np.linalg.norm(v2)
+            u = (u1 + u2) / 2
+            up = plane.project_vector([0, u[0], u[1]])  # points up
+            right = pts3d2[-1]-pts3d1[-1]
+            forward = np.cross(up, right)
+            roll = math.atan2(right[1], np.dot(forward, right))
+            pitch = math.atan2(forward[2], np.dot(right, forward))
+            yaw = math.atan2(forward[1], forward[0])
+
+            return GateDetector.GatePosition(*pos, roll, pitch, yaw), dev
+
+        except ValueError:
+            return None
+
+    def _detect_rgb(self, img):
+        p = self.parms
+        filtered = self._get_color_filter_mask(img, p.preprocessing.hsv_boundaries)
+        # filtered = self.__filter_by_contour_size(mask)
+        ds = p.preprocessing.dilation_ks
+        dilation_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2*ds+1, 2 * ds + 1), (ds, ds))
+        dilated = cv2.dilate(filtered,dilation_kernel)
+        im_floodfill = dilated.copy()
+        h, w = filtered.shape[:2]
+        mask = np.zeros((h + 2, w + 2), np.uint8)
+        cv2.floodFill(im_floodfill, mask, (0, 0), 255)
+        im_floodfill_inv = cv2.bitwise_not(im_floodfill)
+        floodfilled = dilated | im_floodfill_inv
+        es = p.preprocessing.erosion_ks
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2*es+1, 2*es+1), (es,es))
+        eroded = cv2.erode(floodfilled, kernel)
+        cv2.imshow("eroded", eroded)
+        edges = cv2.Canny(eroded, 0, 255)
+        contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        lines = []
+        for i, c in enumerate(contours):
+            (cx, cy), (w, h), th = cv2.minAreaRect(c)
+            w, h = min(w, h), max(w, h)
+            if w == 0 or h < p.contours.min_size or h/w < p.contours.min_hw_ratio:
                 continue
-            gate_candidates_filtered.append(gc)
+            th = -math.radians(th)
+            dx = math.sin(th)*h/2
+            dy = math.cos(th)*h/2
+            lines.append([[cx-dx, cy-dy, cx+dx, cy+dy]])
+        lines = np.array(lines).astype(np.int32)
+        if len(lines) == 0:
+            return []
+        lines_polar = self._lines_cartesian_to_polar(lines[:,0,:])
+        sorted_i = np.argsort(lines_polar[:, 1])
+        parallel_ranges = self._get_continuous_ranges(lines_polar[sorted_i][:,1], p.geometry.parallel_dth_max)
 
-        if gate_candidates_filtered:
-            print(len(gate_candidates_filtered))
-            gc = max(gate_candidates_filtered, key=lambda gc: self.__get_center_score(filtered, gc))
-        else:
-            gc = None
+        def show_pair(pair):
+            img_cp = np.copy(img)
+            l1 = lines[sorted_i][pair[0]]
+            l2 = lines[sorted_i][pair[1]]
+            GateDetector.draw_lines(img_cp, [l1, l2], 2, (0,255,0))
+            cv2.imshow("pair", img_cp)
+            cv2.waitKey(0)
+        def side_alignment_score(i1: int, i2: int):
+            l1 = lines[sorted_i][i1, 0]
+            l2 = lines[sorted_i][i2, 0]
+            length1 = np.linalg.norm(l1[:2] - l1[2:])
+            length2 = np.linalg.norm(l2[:2] - l2[2:])
+            th1 = lines_polar[sorted_i][i1][1]
+            rho1 = lines_polar[sorted_i][i1][0]
+            rho2 = lines_polar[sorted_i][i2][0]
+            drho = rho2 - rho1
+            p11 = l1[:2]
+            p21 = l2[:2]
+            proj = p11 + [math.cos(th1) * drho, -math.sin(th1) * drho]
+            ep_dev_px = np.linalg.norm(p21 - proj)
+            ep_dev = ep_dev_px / length2 * p.geometry.side_endpoint_dev_f + 1
+            return 1/ep_dev
 
-        return gate_candidates_filtered
+        pairs = []
+        for parallel_range_index, (start, end) in enumerate(parallel_ranges):
+            for i1, i2 in itertools.combinations(range(start, end), 2):
+                score = side_alignment_score(i1, i2)
+                if score > p.geometry.side_alignment_score_cutoff:
+                    pairs.append((i1, i2, parallel_range_index, score))
 
-        # if gc:
-        #     cv2.circle(img, gc.p0.astype(np.int32), 10, (255, 0, 0), -1)
-        #     cv2.circle(img, gc.p1.astype(np.int32), 10, (255, 0, 0), -1)
-        #     mid = gc.p0 + (gc.p1 - gc.p0) / 2
-        #     cv2.circle(img, mid.astype(np.int32), 10, (0, 255, 0), -1)
-        #     p0 = (mid-1500*gc.v).astype(int)
-        #     p1 = (mid+1500*gc.v).astype(int)
-        #     cv2.line(img, p0, p1, (0, 255, 0), 4)
+        pairs_with_center = []  # [index_l1, index_l2, index_c, side_alignment_score]
+        for i1, i2, parallel_range_index, side_alignment_score in pairs:
+            l1 = lines_polar[sorted_i][i1]
+            l2 = lines_polar[sorted_i][i2]
+            rho1, th1 = l1[0], l1[1]
+            rho2, th2 = l2[0], l2[1]
+            mid = (rho1+rho2)/2
+            drho = p.geometry.center_dev_cutoff * abs(rho1-rho2)
+            for i in range(*parallel_ranges[parallel_range_index]):
+                lc = lines_polar[sorted_i][i]
+                rhoc = lc[0]
+                if mid-drho < rhoc < mid+drho:
+                    pairs_with_center.append((i1, i2, i, side_alignment_score))
 
-    def draw_lines(self, img, lines, color=(0, 100, 0), width=1):
-        if lines is not None:
-            for line in lines:
-                rho, theta = line
-                a = np.cos(theta)
-                b = np.sin(theta)
-                x0 = a * rho
-                y0 = b * rho
-                x1 = int(x0 + 1500 * (-b))
-                y1 = int(y0 + 1500 * (a))
-                x2 = int(x0 - 1500 * (-b))
-                y2 = int(y0 - 1500 * (a))
-                cv2.line(img, (x1, y1), (x2, y2), color, width)
+        candidates = []
+        for i1, i2, ic, side_alignment_score in pairs_with_center:
+            l1 = lines[sorted_i][i1][0]
+            l2 = lines[sorted_i][i2][0]
+            lc = lines[sorted_i][ic][0]
+            th = (lines_polar[sorted_i][i1][1] + lines_polar[sorted_i][i2][1])/2
+            side_length = (np.linalg.norm(l1[:2] - l1[2:]) + np.linalg.norm(l2[:2] - l2[2:]))/2
+            u = np.array([-math.sin(th), -math.cos(th)])
+            bottom_center = (l1[2:] + l2[2:]) / 2
+            exp_bottom = bottom_center + u*side_length/410*325
+            exp_top = bottom_center + u*side_length/410*510
+            dist_sum = (np.linalg.norm(exp_top-lc[:2]) + np.linalg.norm(exp_bottom-lc[2:]))
+            center_alignment_score = 1 / (dist_sum / side_length * 1.52 * p.geometry.center_alignment_f + 1)
+            if center_alignment_score > p.geometry.center_alignment_score_cutoff:
+                candidates.append(GateDetector.GateCandidate(l1, l2, lc, side_alignment_score, center_alignment_score, 0))
 
-    def __get_color_filter_mask(self, img):
+        return candidates
+
+    @staticmethod
+    def draw_lines(img, lines, width, color):
+        if lines is None:
+            return
+        for line in lines:
+            line = line[0]
+            if len(line) == 4:
+                cv2.line(img, line[0:2], line[2:4], color, width)
+            else:
+                raise NotImplementedError()
+
+    @staticmethod
+    def _get_color_filter_mask(img, hsv_boundaries):
         """
         Set all pixels with hsv values outside the given range to zero.
         :param img: image in RGB
         """
-        hsv_boundaries = np.array(self.parms.filtering.hsv_boundaries, dtype=np.uint8)
+        hsv_boundaries_arr = np.array(hsv_boundaries, dtype=np.uint8)
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         h, w = img.shape[:2]
         mask = np.zeros((h, w, 1), dtype=np.uint8)
-        for boundary in hsv_boundaries:
+        for boundary in hsv_boundaries_arr:
             new_mask = cv2.inRange(hsv, boundary[0], boundary[1])
             mask = cv2.bitwise_or(mask, new_mask)
         return mask
 
-    def __filter_by_contour_size(self, img):
-        p = self.parms.filtering
-        # min_contour_size = self.__params['filtering']['min_contour_size']
-        contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        filtered_contours = []
-        for c in contours:
-            _, _, w, h = cv2.boundingRect(c)
-            if w > p.min_contour_size or h > p.min_contour_size:
-                filtered_contours.append(c)
-        mask = np.zeros_like(img)
-        cv2.drawContours(mask, filtered_contours, -1, 255, -1)
-        return mask
-
-    def __find_lines(self, img):
-        p = self.parms.candidate_search.ht
-        # blur = self.__params['candidate_search']['ht']['blur']
-        # theta_steps = self.__params['candidate_search']['ht']['theta_steps']
-        # adaptive = self.__params['candidate_search']['ht']['adaptive']
-        # min_lines = self.__params['candidate_search']['ht']['min_lines']
-        # max_lines = self.__params['candidate_search']['ht']['max_lines']
-        # adjustment_factor = self.__params['candidate_search']['ht']['adjustment_factor']
-        image_blurred = cv2.GaussianBlur(img, (p.blur, p.blur), 0)
-        lines = []
-        counter = 0
-        while not p.adaptive or lines is None or not p.min_lines <= len(lines) <= p.max_lines:
-            lines = cv2.HoughLines(image_blurred, 1, np.pi / p.theta_steps, self.ht_threshold)
-            # todo: becomes inf. loop when len(lines) is still greater than p.max_lines when
-            #       threshold exceeds image size
-            if lines is None or len(lines) < p.min_lines:
-                self.ht_threshold = int(self.ht_threshold * p.adjustment_factor)
-            elif len(lines) > p.max_lines:
-                self.ht_threshold = int(self.ht_threshold / p.adjustment_factor)
-        print(f'Ctr: {counter}, thresh: {self.ht_threshold}, lines: {len(lines)}')
-        if lines is not None:
-            lines = lines[:, 0, :]
-        return lines
+    @staticmethod
+    def _get_continuous_ranges(arr, min_gap):
+        # requires that arr is sorted, n x 1 array supporting comparison
+        diff = np.diff(arr)
+        gaps = np.where(diff >= min_gap)[0]
+        gaps += 1
+        ranges = np.empty((len(gaps) + 1, 2), dtype=np.int64)
+        ranges[0, 0] = 0
+        ranges[-1, 1] = len(arr)
+        ranges[1:, 0] = gaps
+        ranges[:-1, 1] = gaps
+        return ranges
 
     @staticmethod
-    def __get_continuous_ranges(arr, gap_threshold, sort_by):
-        arr_sorted = arr[np.argsort(arr[:, sort_by])]
-        diff = np.diff(arr_sorted[:, sort_by])
-        gap_indices = np.where(diff > gap_threshold)[0] + 1
-        ranges = np.empty((len(gap_indices) + 1, 2), dtype=np.int64)
-        if not len(gap_indices):
-            ranges[0] = np.array([0, len(arr_sorted)])
-            return arr_sorted, ranges
-
-        prev_gap_index = 0
-        for i in range(len(gap_indices)):
-            ranges[i][0] = prev_gap_index
-            ranges[i][1] = gap_indices[i]
-            prev_gap_index = gap_indices[i]
-        ranges[-1][0] = gap_indices[-1]
-        ranges[-1][1] = len(arr_sorted)
-        return arr_sorted, ranges
-
-    def __find_clusters(self, lines):
-        # clustering_dtheta_min = self.__params['candidate_search']['clustering_dtheta_min']
-        # clustering_drho_min = self.__params['candidate_search']['clustering_drho_min']
-        p = self.parms.candidate_search
-        lines_theta_sorted, ranges_theta = self.__get_continuous_ranges(lines,
-                                                                        p.clustering_dtheta_min, 1)
-
-        median_lines = []
-
-        for r_th in ranges_theta:
-            rho_sorted, ranges_rho = self.__get_continuous_ranges(lines_theta_sorted[r_th[0]:r_th[1]],
-                                                                  p.clustering_drho_min, 0)
-            for r_rho in ranges_rho:
-                start, end = r_rho[0], r_rho[1]
-                median_index = (start + end) // 2
-                if median_index < 0:
-                    continue  # todo: this is dirty fix
-                mean_theta = np.mean(rho_sorted[start:end, 1])
-                median_line = np.array([rho_sorted[median_index][0], mean_theta])
-                median_lines.append(median_line)
-
-        return np.array(median_lines)
-
-    def __find_parallel_groups(self, lines):
-        # parallel_dtheta_max = self.__params['candidate_search']['parallel_dtheta_max']
-        p = self.parms.candidate_search
-        lines_sorted, ranges = self.__get_continuous_ranges(lines, p.parallel_dtheta_max, 1)
-        result = []
-        for i, (start, end) in enumerate(ranges):
-            result.append(list())
-            for j in range(start, end):
-                result[i].append(list(lines_sorted[j]))
-        return result
-
-    def __intersect_group(self, line: Tuple[float, float], line_group: List[Tuple[float, float]]):
-        """
-        Calculate all intersections between a given line and lines in line_group
-        :param line: Tuple (rho, theta)
-        :param line_group: List of tuples (rho, theta)
-        :return: List of tuples (x, y, rho, theta) representing the intersection points, each with
-        the corresponding line from other_lines
-        """
-        rho1, theta1 = line
-        intersections = []
-        for group_line in line_group:
-            intersection = self.__intersect_polar(line, group_line)
-            if intersection is not None:
-                intersections.append(intersection + tuple(group_line))
-        return intersections
-
-    def __intersect_polar(self, l1, l2):
-        assert (-pi <= l1[1] <= pi)
-        assert (-pi <= l2[1] <= pi)
-
-        # Find the equation of each line
-        m1 = np.tan(l1[1] + pi / 2)
-        b1 = l1[0] / sin(l1[1])
-        m2 = np.tan(l2[1] + pi / 2)
-        b2 = l2[0] / sin(l2[1])
-
-        # Find the intersection point of the two lines
-        x = (b2 - b1) / (m1 - m2)
-        y = m1 * x + b1
-        if isnan(x) or isnan(y) or isinf(x) or isinf(y):
-            return None
-        return x, y
-
-    def __get_center_score(self, img, gc: GateCandidate):
-        # gate_w = self.__params['candidate_filtering']['gate_w']
-        # center_h = self.__params['candidate_filtering']['center_h']
-        # gate_pipe_w = self.__params['candidate_filtering']['gate_pipe_w']
-        p = self.parms.candidate_filtering
-        delta_hor = gc.p1 - gc.p0
-        pts = np.zeros((4, 1, 2), np.int32)
-        center_region_w_rel = p.gate_pipe_w / p.gate_w
-        pts[0][0] = gc.p0 + (1 - center_region_w_rel) / 2 * delta_hor
-        pts[3][0] = gc.p0 + (1 + center_region_w_rel) / 2 * delta_hor
-        center_h_px = np.linalg.norm(delta_hor) / p.gate_w * p.center_h
-        pts[1][0] = pts[0][0] + center_h_px * gc.v
-        pts[2][0] = pts[3][0] + center_h_px * gc.v
-        mask = np.zeros(img.shape[:2], dtype=np.uint8)
-        cv2.fillPoly(mask, [pts], 255)
-        masked_img = cv2.bitwise_and(img, img, mask=mask)
-        mask_area = np.count_nonzero(mask)
-        if mask_area > 0:
-            score = np.count_nonzero(masked_img) / mask_area
-        else:
-            score = 0
-        return score
+    def _lines_cartesian_to_polar(l):
+        # y pointing down, theta from +x-axis ccw
+        dx = l[:, 2] - l[:, 0]
+        dy = l[:, 3] - l[:, 1]
+        dx = np.where(dy < 0, -dx, dx)
+        dy = np.abs(dy)
+        th = np.arctan2(dx, dy)
+        rho = (l[:, 0] - l[:, 1] * np.tan(th)) * np.cos(th)
+        return np.transpose(np.array([rho, th]))
 
 
 class GateDetectorNode(GateDetector):
-
     def __init__(self):
         config_path = "../../../../tauv_config/kingfisher_sim_description/yaml/gate_detector.yaml"
         super().__init__(Parms.fromfile(config_path))
@@ -454,13 +390,17 @@ class GateDetectorNode(GateDetector):
         cv_rgb = self.bridge.imgmsg_to_cv2(rgb, desired_encoding="passthrough")
         cv_rgb = cv2.cvtColor(cv_rgb, cv2.COLOR_RGB2BGR)
         cv_depth = self.bridge.imgmsg_to_cv2(depth, desired_encoding="passthrough")
-        candidates = self._find_candidates(cv_rgb)
-        if not candidates:
-            print("No candidates")
-        else:
-            for gc in candidates:
-                cv2.circle(cv_rgb, tuple(gc.p0.astype(np.int32)), 10, (0,255,0), -1)
-                cv2.circle(cv_rgb, tuple(gc.p1.astype(np.int32)), 10, (0,255,0), -1)
+        detections = self.detect(cv_rgb, cv_depth)
+        print(detections)
+        pose_array = PoseArray()
+        pose_array.header.stamp = rgb.header.stamp
+        pose_array.header.frame_id = "oakd_front"
+
+        for pos, score in detections:
+            q = tf2_Quaternion()
+            q.setRPY(pos.roll, pos.pitch, pos.yaw)
+            pass
+
 
         cv2.imshow('rgb', cv_rgb)
         cv2.waitKey(1)
@@ -474,5 +414,24 @@ def main():
     g = GateDetectorNode()
     rospy.spin()
 
-
 main()
+
+
+# if __name__ == "__main__":
+#     g = GateDetector()
+#     p = "C:/Users/Gleb Ryabtsev/CMU/TAUV/TAUV-Assets/gate_sim_close_up.png"
+#     v = "C:/Users/Gleb Ryabtsev/CMU/TAUV/TAUV-Assets/gate_gopro_full.mp4"
+#     # img = cv2.imread(p, cv2.IMREAD_COLOR)
+#     # g.detect(img, None)
+#     cap = cv2.VideoCapture(v)
+#     while cap.isOpened():
+#         ret, frame = cap.read()
+#         if ret:
+#             g.detect(frame, None)
+#             if cv2.waitKey(25) & 0xFF == ord('q'):
+#                 break
+#         else:
+#             break
+#     cap.release()
+#     cv2.destroyAllWindows()
+

@@ -1,29 +1,4 @@
-candidate_filtering:
-  center_h: 0.609
-  center_score_cutoff: 0.5
-  depth_sampling_interval: 20
-  depth_std_dev_cutoff: 0.5
-  gate_pipe_w: 0.075
-  gate_w: 3.048
-  max_tilt: 0.25
-  min_gate_size: 0.3
-  score_coefficients:
-  - 1
-  - 1
-  side_h: 1.5
-candidate_search:
-  clustering_drho_min: 30.0
-  clustering_dtheta_min: 0.2
-  ht:
-    adaptive: true
-    adjustment_factor: 0.85
-    blur: 5
-    max_lines: 600
-    min_lines: 300
-    theta_steps: 90
-    threshold: 200
-  parallel_dtheta_max: 0.1
-filtering:
+preprocessing:
   hsv_boundaries:
   - - - 150
       - 0
@@ -31,10 +6,25 @@ filtering:
     - - 200
       - 255
       - 100
-  - - - 0
-      - 0
-      - 0
-    - - 255
-      - 255
-      - 35
-  min_contour_size: 50
+  dilation_ks: 2
+  erosion_ks: 2
+contours:
+  min_size: 50
+  min_hw_ratio: 5
+geometry:
+  parallel_dth_max: 0.1
+  side_endpoint_dev_f: 3
+  side_alignment_score_cutoff: 0.5
+  center_dev_cutoff: 0.2
+  center_alignment_f: 3
+  center_alignment_score_cutoff: 0.5
+depth:
+  sampling_interval: 10
+  start_end_offset: 0
+  outlier_f: 1.5
+  dev_cutoff: 1.0
+  dev_score_f: 2.0
+side_alignment_score_w: 1.0
+center_alignment_score_w: 1.0
+plane_dev_score_w: 1.0
+total_score_cutoff: 0.5
