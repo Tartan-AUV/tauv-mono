@@ -23,18 +23,18 @@ from skspatial.objects import Plane, Points, Line
 from geometry_msgs.msg import Pose, PoseArray, Point, Quaternion
 from sensor_msgs.msg import Image, CameraInfo
 from tauv_util.parms import Parms
-from tf2_ros import Quaternion as tf2_Quaternion
 import message_filters
 import cv_bridge
 
 import rospy
+import tf
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 class GateDetector:
     GateCandidate = namedtuple('GateCandidate', 'l1 l2 lc side_alignment_score center_alignment_score depth_score')
-    GatePosition = namedtuple('GatePosition', 'x y z roll pitch yaw')
+    GatePosition = namedtuple('GatePosition', 'x y z q0 q1 q2 q3')
 
     PARMS_DEFAULT = Parms({
         'preprocessing': {
@@ -87,6 +87,7 @@ class GateDetector:
     def detect(self, rgb: np.array, depth: np.array):
         p = self.parms
         candidates = self._detect_rgb(rgb)
+        print(candidates)
         for gc in candidates:
             self.__get_position(depth, gc)
         detections = []
@@ -122,8 +123,8 @@ class GateDetector:
 
         # get_3d_point = np.vectorize(_get_3d_point)
 
-        depth_map_normalized = (depth_map * 25).astype(np.uint8)
-        depth_map_rgb = cv2.applyColorMap(depth_map_normalized, cv2.COLORMAP_HOT)
+        # depth_map_normalized = (depth_map * 25).astype(np.uint8)
+        # depth_map_rgb = cv2.applyColorMap(depth_map_normalized, cv2.COLORMAP_HOT)
         def sample_line(l):
             v = l[2:] - l[:2]
             n = np.linalg.norm(v)
@@ -132,6 +133,7 @@ class GateDetector:
             points = []
             for i in range(p.start_end_offset, int(n / p.sampling_interval)-p.start_end_offset):
                 points.append(tuple(l[:2] + u * i))
+                # cv2.circle(depth_map_rgb, points[-1][0], 3, (0,255,0), 1)
             return np.array(points).astype(np.int32)
 
 
@@ -139,6 +141,8 @@ class GateDetector:
         pts2 = sample_line(gc.l2)
         ptsc = sample_line(gc.lc)
 
+        # cv2.imshow('depth', depth_map_rgb)
+        # cv2.waitKey(1)
         #
 
         def map_to_3d(pts2d):
@@ -155,7 +159,6 @@ class GateDetector:
         pts3d2 = map_to_3d(pts2)
         pts3dc = map_to_3d(ptsc)
 
-        cv2.imshow("depth", depth_map_rgb)
         if not len(pts1) or not len(pts2) or not len(ptsc):
             return None
         pts3d = np.concatenate((pts3d1, pts3d2, pts3dc))
@@ -198,13 +201,11 @@ class GateDetector:
             u2 = v2/np.linalg.norm(v2)
             u = (u1 + u2) / 2
             up = plane.project_vector([0, u[0], u[1]])  # points up
-            right = pts3d2[-1]-pts3d1[-1]
-            forward = np.cross(up, right)
-            roll = math.atan2(right[1], np.dot(forward, right))
-            pitch = math.atan2(forward[2], np.dot(right, forward))
-            yaw = math.atan2(forward[1], forward[0])
-
-            return GateDetector.GatePosition(*pos, roll, pitch, yaw), dev
+            up_u = up / np.linalg.norm(up)
+            z = np.array([0,0,1])
+            [q0, q1, q2] = np.cross(z, up_u)
+            q3 = np.arccos(np.clip(np.dot(up_u, z), -1.0, 1.0))
+            return GateDetector.GatePosition(*pos, q0, q1, q2, q3), dev
 
         except ValueError:
             return None
@@ -225,12 +226,14 @@ class GateDetector:
         es = p.preprocessing.erosion_ks
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2*es+1, 2*es+1), (es,es))
         eroded = cv2.erode(floodfilled, kernel)
-        cv2.imshow("eroded", eroded)
+        # cv2.imshow("eroded", eroded)
         edges = cv2.Canny(eroded, 0, 255)
         contours, _ = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         lines = []
         for i, c in enumerate(contours):
             (cx, cy), (w, h), th = cv2.minAreaRect(c)
+            if w > h:
+                th -= 90.0
             w, h = min(w, h), max(w, h)
             if w == 0 or h < p.contours.min_size or h/w < p.contours.min_hw_ratio:
                 continue
@@ -238,6 +241,7 @@ class GateDetector:
             dx = math.sin(th)*h/2
             dy = math.cos(th)*h/2
             lines.append([[cx-dx, cy-dy, cx+dx, cy+dy]])
+        print(f'Extracted {len(lines)} lines from {len(contours)} contours')
         lines = np.array(lines).astype(np.int32)
         if len(lines) == 0:
             return []
@@ -250,8 +254,6 @@ class GateDetector:
             l1 = lines[sorted_i][pair[0]]
             l2 = lines[sorted_i][pair[1]]
             GateDetector.draw_lines(img_cp, [l1, l2], 2, (0,255,0))
-            cv2.imshow("pair", img_cp)
-            cv2.waitKey(0)
         def side_alignment_score(i1: int, i2: int):
             l1 = lines[sorted_i][i1, 0]
             l2 = lines[sorted_i][i2, 0]
@@ -269,11 +271,19 @@ class GateDetector:
             return 1/ep_dev
 
         pairs = []
+        for line in lines:
+            cv2.line(img, line[0][:2], line[0][2:], (0, 255, 0), 2)
         for parallel_range_index, (start, end) in enumerate(parallel_ranges):
             for i1, i2 in itertools.combinations(range(start, end), 2):
                 score = side_alignment_score(i1, i2)
                 if score > p.geometry.side_alignment_score_cutoff:
                     pairs.append((i1, i2, parallel_range_index, score))
+                    cv2.line(img, lines[sorted_i][i1,0][:2], lines[sorted_i][i1,0][2:], (0,0,
+                                                                                        255), 2)
+                    cv2.line(img, lines[sorted_i][i2,0][:2], lines[sorted_i][i2,0][2:], (0,0,
+                                                                                         255), 2)
+
+        print(f'Found {len(pairs)} pairs')
 
         pairs_with_center = []  # [index_l1, index_l2, index_c, side_alignment_score]
         for i1, i2, parallel_range_index, side_alignment_score in pairs:
@@ -289,6 +299,7 @@ class GateDetector:
                 if mid-drho < rhoc < mid+drho:
                     pairs_with_center.append((i1, i2, i, side_alignment_score))
 
+        print(f'Found {len(pairs_with_center)} pairs with center')
         candidates = []
         for i1, i2, ic, side_alignment_score in pairs_with_center:
             l1 = lines[sorted_i][i1][0]
@@ -305,6 +316,7 @@ class GateDetector:
             if center_alignment_score > p.geometry.center_alignment_score_cutoff:
                 candidates.append(GateDetector.GateCandidate(l1, l2, lc, side_alignment_score, center_alignment_score, 0))
 
+        print(f'Found {len(candidates)} candidates')
         return candidates
 
     @staticmethod
@@ -360,23 +372,24 @@ class GateDetector:
 
 class GateDetectorNode(GateDetector):
     def __init__(self):
-        config_path = "../../../../tauv_config/kingfisher_sim_description/yaml/gate_detector.yaml"
-        super().__init__(Parms.fromfile(config_path))
-        self.rgb_sub = message_filters.Subscriber(
-            '/kf/vehicle/oakd_front/color/image_raw', Image)
-        self.depth_sub = message_filters.Subscriber('/kf/vehicle/oakd_front/stereo/depth_map',
+        print("Initializing Gate Detector...")
+        super().__init__(Parms(rospy.get_param('~gate_detector_parameters')))
+        self.rgb_sub = message_filters.Subscriber('oakd_front/color/image_raw', Image)
+        self.depth_sub = message_filters.Subscriber('oakd_front/stereo/depth_map',
                                                     Image)
         self.camera_info_sub = message_filters.Subscriber(
-            '/kf/vehicle/oakd_front/stereo/left/camera_info', CameraInfo)
+            'oakd_front/stereo/left/camera_info', CameraInfo)
         self.ts = message_filters.TimeSynchronizer([self.rgb_sub,
                                                     self.depth_sub,
                                                     self.camera_info_sub], 10)
         self.ts.registerCallback(self.callback)
-        self.detection_pub = rospy.Publisher('gate_detection_pub', Pose, queue_size=10)
+        self.detection_pub = rospy.Publisher('gate_detections', PoseArray, queue_size=10)
         self.bridge = cv_bridge.CvBridge()
+        print("Done.")
 
     def callback(self, rgb: Image, depth: Image, camera_info: CameraInfo):
         # Update FOV
+        print('Callback')
         fx = camera_info.K[0]
         fy = camera_info.K[4]
         w = camera_info.width
@@ -391,23 +404,18 @@ class GateDetectorNode(GateDetector):
         cv_rgb = cv2.cvtColor(cv_rgb, cv2.COLOR_RGB2BGR)
         cv_depth = self.bridge.imgmsg_to_cv2(depth, desired_encoding="passthrough")
         detections = self.detect(cv_rgb, cv_depth)
-        print(detections)
+        # cv2.imshow('rgb', cv_rgb)
+        # cv2.waitKey(1)
         pose_array = PoseArray()
         pose_array.header.stamp = rgb.header.stamp
-        pose_array.header.frame_id = "oakd_front"
-
+        pose_array.header.frame_id = "kf/vehicle"
         for pos, score in detections:
-            q = tf2_Quaternion()
-            q.setRPY(pos.roll, pos.pitch, pos.yaw)
-            pass
+            pose = Pose()
+            pose.position = Point(pos.x, pos.y, pos.z)
+            pose.orientation = Quaternion(pos.q0, pos.q1, pos.q2, pos.q3)
+            pose_array.poses.append(pose)
 
-
-        cv2.imshow('rgb', cv_rgb)
-        cv2.waitKey(1)
-
-        # detection = self.detect(cv_rgb, cv_depth)
-        # print(detection)
-
+        self.detection_pub.publish(pose_array)
 
 def main():
     rospy.init_node('gate_detector', anonymous=True)

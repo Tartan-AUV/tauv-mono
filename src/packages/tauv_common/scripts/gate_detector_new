@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from vision.detectors import gate_detector_new
+
+if __name__ == "__main__":
+    gate_detector_new.main()
