@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from cameras import oakd_ros
+from oakd import oakd
 
 if __name__ == "__main__":
-    oakd_ros.main()
+    oakd.main()
