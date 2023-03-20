@@ -13,19 +13,25 @@ gate_detector_parameters:
     min_size: 50
     min_hw_ratio: 5
   geometry:
-    parallel_dth_max: 0.1
-    side_endpoint_dev_f: 3
-    side_alignment_score_cutoff: 0.5
-    center_dev_cutoff: 0.2
-    center_alignment_f: 3
-    center_alignment_score_cutoff: 0.5
+    side_poles: # in the camera frame (x right, y down, z forward)
+      - - -1.52
+        - -0.61
+        - 0.0
+      - - 1.52
+        - -0.61
+        - 0.0
+      - - 1.52
+        - 0.61
+        - 0.0
+      - - -1.52
+        - 0.61
+        - 0.0
+  clipping:
+    max_distance: 30.0
+    max_angle: 75.0
   depth:
-    sampling_interval: 10
-    start_end_offset: 0
     outlier_f: 1.5
-    dev_cutoff: 1.0
-    dev_score_f: 2.0
-  side_alignment_score_w: 1.0
-  center_alignment_score_w: 1.0
-  plane_dev_score_w: 1.0
-  total_score_cutoff: 0.5
+    sampling_interval: 15
+    dev_cutoff: 0.35
+    max_translation_diff: 1.0
+    max_rotation_diff: 40.0
