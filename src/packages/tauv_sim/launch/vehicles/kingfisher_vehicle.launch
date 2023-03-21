@@ -24,6 +24,14 @@
         <rosparam param="approximate_sync">true</rosparam>
     </node>
 
+    <node
+        ns="vehicle/oakd_front/stereo"
+        pkg="tauv_sim"
+        type="disparity_to_depth"
+        name="disparity_to_depth"
+        output="screen"
+    >
+    </node>
     <group if="$(arg show_front_disparity)">
         <node pkg="image_view"
               type="disparity_view"

@@ -2,23 +2,23 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 <!--    Needs sudo apt-get install ros-noetic-gazebo-ros-pkgs ros-noetic-gazebo-ros-control-->
 
-    <xacro:property name="oakd_color_k1" value="-0.389021"/>
-    <xacro:property name="oakd_color_k2" value="0.118184"/>
-    <xacro:property name="oakd_color_k3" value="0.000000"/>
-    <xacro:property name="oakd_color_p1" value="0.001259"/>
-    <xacro:property name="oakd_color_p2" value="0.002050"/>
-    <xacro:property name="oakd_color_hfov" value="1.20428"/>
-    <xacro:property name="oakd_color_width" value="2016"/>
-    <xacro:property name="oakd_color_height" value="1520"/>
+    <xacro:property name="oakd_color_k1" value="0"/>
+    <xacro:property name="oakd_color_k2" value="0"/>
+    <xacro:property name="oakd_color_k3" value="0"/>
+    <xacro:property name="oakd_color_p1" value="0"/>
+    <xacro:property name="oakd_color_p2" value="0"/>
+    <xacro:property name="oakd_color_hfov" value="1.1071"/>
+    <xacro:property name="oakd_color_width" value="1280"/>
+    <xacro:property name="oakd_color_height" value="720"/>
 
-    <xacro:property name="oakd_stereo_k1" value="-0.389021"/>
-    <xacro:property name="oakd_stereo_k2" value="0.118184"/>
-    <xacro:property name="oakd_stereo_k3" value="0.000000"/>
-    <xacro:property name="oakd_stereo_p1" value="0.001259"/>
-    <xacro:property name="oakd_stereo_p2" value="0.002050"/>
-    <xacro:property name="oakd_stereo_hfov" value="1.25664"/>
+    <xacro:property name="oakd_stereo_k1" value="0"/>
+    <xacro:property name="oakd_stereo_k2" value="0"/>
+    <xacro:property name="oakd_stereo_k3" value="0"/>
+    <xacro:property name="oakd_stereo_p1" value="0"/>
+    <xacro:property name="oakd_stereo_p2" value="0"/>
+    <xacro:property name="oakd_stereo_hfov" value="1.1071"/>
     <xacro:property name="oakd_stereo_width" value="1280"/>
-    <xacro:property name="oakd_stereo_height" value="800"/>
+    <xacro:property name="oakd_stereo_height" value="720"/>
     <xacro:property name="oakd_stereo_baseline" value="0.07"/>
 
     <link name="${ns}/front_oakd_link">
@@ -145,6 +145,7 @@
                     <p1>${oakd_color_p1}</p1>
                     <p2>${oakd_color_p2}</p2>
                     <center>0.5 0.5</center>
+                    <distortionModel>plumb_bob</distortionModel>
                 </distortion>
             </camera>
 

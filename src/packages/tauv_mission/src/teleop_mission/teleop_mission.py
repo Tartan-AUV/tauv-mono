@@ -232,6 +232,7 @@ class TeleopMission:
                 block=TrajectoryStatus.EXECUTING
             )
         except Exception as e:
+            print("Exception from teleop_mission! (Gleb)")
             print(e)
 
     def _handle_goto_relative(self, args):
