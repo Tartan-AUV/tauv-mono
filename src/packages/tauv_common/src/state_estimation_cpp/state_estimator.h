@@ -40,6 +40,8 @@ class StateEstimator {
     ros::NodeHandle& pn;
     ros::Timer timer;
 
+    std::string tf_namespace;
+
     tauv_alarms::AlarmClient alarm_client;
 
     ros::Subscriber imu_sub;

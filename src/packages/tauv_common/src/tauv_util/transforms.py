@@ -108,6 +108,16 @@ def tf2_transform_to_quat(t: tf2.TransformStamped) -> np.array:
     ])
     return quat
 
+def tf2_transform_to_homogeneous(t: tf2.TransformStamped) -> np.array:
+    trans = tf2_transform_to_translation(t)
+    quat = tf2_transform_to_quat(t)
+    rotm = quat_to_rotm(quat)
+
+    return np.vstack((
+        np.hstack((rotm, trans[:, np.newaxis])),
+        np.array([0, 0, 0, 1])
+    ))
+
 # https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Quaternion-derived_rotation_matrix
 def quat_to_rotm(q: np.array) -> np.array:
     # q is a unit quaternion

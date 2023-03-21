@@ -104,7 +104,8 @@ class Thrusters:
         self._maestro.setTarget(pwm_speed * 4, self._thruster_channels[thruster])
 
     def _set_position(self, servo: int, position: float):
-        pwm_speed = floor(position / 180 * 1000 + 1500)
+        position = clamp(position, -180, 180)
+        pwm_speed = floor((position / 90) * 1000 + 1500)
         self._maestro.setTarget(pwm_speed * 4, self._servo_channels[servo])
 
     def _get_pwm_speed(self, thruster: int, thrust: float) -> int:
@@ -158,6 +159,9 @@ class Thrusters:
         self._positive_thrust_coefficients: np.array = np.array(rospy.get_param('~positive_thrust_coefficients'))
         self._negative_thrust_coefficients: np.array = np.array(rospy.get_param('~negative_thrust_coefficients'))
         self._thrust_inversions: [float] = rospy.get_param('~thrust_inversions')
+
+def clamp(x, x_min, x_max):
+    return min(max(x, x_min), x_max)
 
 def main():
     rospy.init_node('thrusters')

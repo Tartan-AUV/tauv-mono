@@ -47,10 +47,9 @@
       <arg name="teleop" value="$(arg teleop)" />
     </include>
 
-  <!--  <include file="$(find tauv_common)/launch/vision/global_map.launch"/>-->
+    <include file="$(find tauv_common)/launch/vision/vision.launch"/>
 
     <!-- Start the vision system: -->
-  <!--    <node pkg="tauv_common" type="transform_detections" name="transform_detections" output="log"/>-->
     <!-- Launch mission system -->
     <!-- <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
   </group>

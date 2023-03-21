@@ -108,7 +108,7 @@ class Controller:
         #     tau = 0.75 * tau
         #     # TODO FIX THIS
         #     # tau = self._dyn.compute_tau(eta, v, vd)
-        # tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
+        tau = np.sign(tau) * np.minimum(np.abs(tau), self._max_wrench)
 
         # Need to LPF the wrench here with a certain time constant
         wrench: WrenchStamped = WrenchStamped()
