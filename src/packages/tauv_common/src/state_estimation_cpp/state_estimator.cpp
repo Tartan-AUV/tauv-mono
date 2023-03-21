@@ -82,7 +82,9 @@ void StateEstimator::load_config()
   std::vector<double> depth_covariance;
   this->pn.getParam("depth_covariance", depth_covariance);
   assert(depth_covariance.size() == 1);
-  this->depth_covariance = depth_covariance.front(); 
+  this->depth_covariance = depth_covariance.front();
+
+  this->n.getParam("tf_namespace", this->tf_namespace);
 }
 
 void StateEstimator::update(const ros::TimerEvent& e)
@@ -324,8 +326,8 @@ void StateEstimator::publish_odom(
   Eigen::Quaterniond orientation_quat = rpy_to_quat(orientation);
   nav_msgs::Odometry odom_msg;
   odom_msg.header.stamp = time;
-  odom_msg.header.frame_id = "odom_ned";
-  odom_msg.child_frame_id = "vehicle_ned";
+  odom_msg.header.frame_id = this->tf_namespace + "/odom";
+  odom_msg.child_frame_id = this->tf_namespace + "/vehicle";
   odom_msg.pose.pose.position.x = position.x();
   odom_msg.pose.pose.position.y = position.y();
   odom_msg.pose.pose.position.z = position.z();
@@ -352,7 +354,7 @@ void StateEstimator::publish_tf(
   tf::Quaternion odom_quat;
   odom_quat.setRPY(orientation.x(), orientation.y(), orientation.z());
   odom_tf.setRotation(odom_quat);
-  this->odom_tf_broadcaster.sendTransform(tf::StampedTransform(odom_tf, time, "odom_ned", "vehicle_ned"));
+  this->odom_tf_broadcaster.sendTransform(tf::StampedTransform(odom_tf, time, this->tf_namespace + "/odom", this->tf_namespace + "/vehicle"));
 }
 
 StateEstimator::ImuMsg::ImuMsg(const tauv_msgs::XsensImuData::ConstPtr &msg) {

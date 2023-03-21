@@ -24,4 +24,10 @@
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_7_static_publisher"
           args="-0.23876 -0.21308 0.01115 0 -1.571 1.571 $(arg namespace)/vehicle $(arg namespace)/vehicle/thruster_7" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_front_static_publisher"
+          args="1 0 0 0 0 0 $(arg namespace)/vehicle $(arg namespace)/oakd_front" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_bottom_static_publisher"
+          args="1 0 0 0 0 0 $(arg namespace)/vehicle $(arg namespace)/oakd_bottom" />
 </launch>

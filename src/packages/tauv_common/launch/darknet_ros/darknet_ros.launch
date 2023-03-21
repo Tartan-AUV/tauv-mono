@@ -28,6 +28,8 @@
     <param name="weights_path"          value="$(arg yolo_weights_path)" />
     <param name="config_path"           value="$(arg yolo_config_path)" />
   </node> -->
+  <node name="republish_front" type="republish" pkg="image_transport" output="screen" args="raw in:=/kf/vehicle/oakd_front/color raw out:=/kf/darknet_ros/image" />
+  <node name="republish_bottom" type="republish" pkg="image_transport" output="screen" args="raw in:=/kf/vehicle/oakd_bottom/color raw out:=/kf/darknet_ros/image" />
 
  <!--<node name="republish" type="republish" pkg="image_transport" output="screen" 	args="compressed in:=/front_camera/image_raw raw out:=/camera/image_raw" /> -->
 </launch>
