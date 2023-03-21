@@ -4,17 +4,10 @@
 
     <node pkg="tauv_common" type="gate_detector_new" name="gate_detector" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/yaml/gate_detector.yaml" />
-        <remap from="oakd_front/color/image_raw" to="/kf/vehicle/oakd_front/color/image_raw"/>
-        <remap from="oakd_front/stereo/depth_map" to="/kf/vehicle/oakd_front/stereo/depth_map"/>
-        <remap from="oakd_front/stereo/left/camera_info" to="/kf/vehicle/oakd_front/stereo/left/camera_info"/>
-<!--         <remap from="joy" to="/joy" /> -->
-<!--         <remap from="cmd" to="/controller/cmd" /> -->
-<!--         <remap from="mpc_cmd" to="/mpc/cmd" /> -->
-<!--         <remap from="arm" to="/thrusters/arm" /> -->
-<!--         <remap from="pose" to="/gnc/pose" /> -->
-<!--         <remap from="set_target_pose" to="/controller/set_target_pose" /> -->
-<!--         <remap from="set_hold_z" to="/controller/set_hold_z" /> -->
-<!--         <remap from="set_hold_xy" to="/controller/set_hold_xy" /> -->
-<!--         <remap from="set_hold_yaw" to="/controller/set_hold_yaw" /> -->
+        <rosparam param="frame_id">/kf/vehicle</rosparam>
+        <remap from="color" to="/kf/vehicle/oakd_front/color/image_raw"/>
+        <remap from="depth_map" to="/kf/vehicle/oakd_front/stereo/depth_map"/>
+        <remap from="camera_info" to="/kf/vehicle/oakd_front/stereo/left/camera_info"/>
+
     </node>
 </launch>
