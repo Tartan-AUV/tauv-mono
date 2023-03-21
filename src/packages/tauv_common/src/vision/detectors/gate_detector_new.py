@@ -131,6 +131,9 @@ class GateDetector:
 
         result = []
         for c in candidates:
+            if c.depth_plane_dev is None:
+                # Could not fit plane, so assuming candidate is invalid
+                continue
             if c.depth_plane_dev < p.depth.dev_cutoff:
                 result.append(c)
 

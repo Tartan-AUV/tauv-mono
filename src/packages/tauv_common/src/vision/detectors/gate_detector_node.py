@@ -8,12 +8,13 @@ import cv_bridge
 import message_filters
 from sensor_msgs.msg import Image, CameraInfo
 from geometry_msgs.msg import Pose, PoseArray, Point, Quaternion
+from tauv_util.parms import Parms
 
-from vision.detectors.gate_detector import GateDetector
+from vision.detectors.gate_detector_new import GateDetector
 
 class GateDetectorNode:
     def __init__(self):
-        parameters = Parms(ropsy.get_param("~gate_detector_parameters"))
+        parameters = Parms(rospy.get_param("~gate_detector_parameters"))
         self._detector = GateDetector(parameters)
 
         self._rgb_sub = message_filters.Subscriber('color', Image)
