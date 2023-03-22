@@ -61,7 +61,7 @@ setup_args = generate_distutils_setup(
              'scripts/message_printer',
              'scripts/retare_sub_position',
              'scripts/watchdogs',
-             'scripts/transform_detections',
+             'scripts/darknet_transformer',
              'scripts/bucket_to_tf'],
 
 )

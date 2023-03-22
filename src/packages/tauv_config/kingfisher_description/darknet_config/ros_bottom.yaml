@@ -18,12 +18,12 @@ publishers:
 
   bounding_boxes:
     topic: /darknet_ros_bottom/bounding_boxes
-    queue_size: 1
+    queue_size: 10
     latch: false
 
   detection_image:
     topic: /darknet_ros_bottom/detection_image
-    queue_size: 1
+    queue_size: 10
     latch: true
 
 image_view:

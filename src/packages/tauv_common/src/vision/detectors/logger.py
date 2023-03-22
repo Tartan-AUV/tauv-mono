@@ -27,11 +27,11 @@ def getColor(tag, trans=False):
 
     return color
 
-def makeMarker(id, detection, color, scale = 0.5, shape = Marker.SPHERE, time = rospy.Duration(1.0)):
+def makeMarker(tag, id, detection, color, scale = 0.5, shape = Marker.SPHERE, time = rospy.Duration(1.0)):
     marker = Marker()
-    marker.header.frame_id = "odom_ned"
+    marker.header.frame_id = "kf/odom" # FIX THIS
     marker.header.stamp = rospy.Time()
-    marker.ns = "my_namespace"
+    marker.ns = tag
     marker.id = id
     marker.type = shape
     marker.action = Marker.ADD
@@ -57,25 +57,24 @@ def makeMarker(id, detection, color, scale = 0.5, shape = Marker.SPHERE, time = 
 class Logger():
     def __init__(self):
         rospy.init_node('logger')
-        rospy.Subscriber("/global_map/transform_detections", FeatureDetections,
-                                                self.publish)
 
-        rospy.Subscriber("/global_map/find", FeatureDetections,
-                                        self.visualize)
-
-        rospy.wait_for_service("/global_map/find")
-        self.find = rospy.ServiceProxy("/global_map/find", MapFind)
-
+        self.ind = 10000
+        self.viz = rospy.Publisher("global_map/visualization_marker_array", MarkerArray, queue_size=100)
+        self.find = rospy.ServiceProxy("global_map/find", MapFind)
         self.bridge = CvBridge()
 
-        self.viz = rospy.Publisher("/visualization_marker_array", MarkerArray, queue_size=100)
+        rospy.Subscriber("global_map/feature_detections", FeatureDetections,
+                                                self.publish)
+
+        rospy.Subscriber("global_map/find", FeatureDetections,
+                                        self.visualize)
+
+        rospy.wait_for_service("global_map/find")
 
         #rospy.Subscriber("/oakd/oakd_front/depth_map", Image, self.depth)
         #rospy.Subscriber("/oakd/oakd_front/color_image", Image, self.color)
 
         rospy.Timer(rospy.Duration(0.5), self.visualize)
-
-        self.ind = 10000
 
     def color(self, data):
         print("COLOR")
@@ -98,15 +97,15 @@ class Logger():
         markers = []
         for ind in range(len(buckets1)):
             det = buckets1[ind]
-            markers.append(makeMarker(ind, det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+            markers.append(makeMarker("badge", ind, det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
 
         for ind in range(len(buckets2)):
             det = buckets2[ind]
-            markers.append(makeMarker(ind+len(buckets1), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+            markers.append(makeMarker("phone", ind+len(buckets1), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
 
         for ind in range(len(buckets3)):
             det = buckets3[ind]
-            markers.append(makeMarker(ind+len(buckets1)+len(buckets2), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+            markers.append(makeMarker("notebook", ind+len(buckets1)+len(buckets2), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
 
         OBJ = MarkerArray()
         OBJ.markers = markers
@@ -117,8 +116,8 @@ class Logger():
         detections = objects.detections
         markers = []
         for detection in detections:
-            markers.append(makeMarker(self.ind, detection, getColor(detection.tag, True)))
-            self.ind+=1
+            markers.append(makeMarker(detection.tag, self.ind, detection, getColor(detection.tag, True)))
+            self.ind += 1
 
         markersPub = MarkerArray()
         markersPub.markers = markers

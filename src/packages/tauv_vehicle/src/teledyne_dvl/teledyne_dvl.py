@@ -30,7 +30,7 @@ class TeledyneDVL:
             ensemble = self._pf.poll()
 
             if ensemble is None:
-                rospy.logwarn('No ensemble')
+                rospy.logwarn_throttle(10, 'No ensemble')
                 continue
 
             rospy.logdebug(f'[teledyne_dvl] timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')

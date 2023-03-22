@@ -141,7 +141,7 @@ class OAKDNode:
         self._frame = rospy.get_param('~frame')
         self._ip = rospy.get_param('~ip')
         self._fps = 10
-        self._queue_size = 100
+        self._queue_size = 10
 
 def main():
     rospy.init_node('oakd')

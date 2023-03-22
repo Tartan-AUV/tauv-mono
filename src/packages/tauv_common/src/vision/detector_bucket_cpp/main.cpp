@@ -7,10 +7,11 @@ int main(int argc, char *argv[])
   cout<<"HERE!!!\n";
   ros::init(argc, argv, "global_map");
   ros::NodeHandle n("global_map");
+  ros::NodeHandle pn("~");
 
   ROS_INFO("Launched!");
 
-  GlobalMap s(n);
+  GlobalMap s(n, pn);
   ROS_INFO("Launched!");
 
   while (ros::ok())

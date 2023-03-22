@@ -53,7 +53,6 @@ class DarknetTransformer():
             self._bboxes_queues[frame_id] = deque(maxlen=self._bboxes_queue_size)
             self._depth_queues[frame_id] = deque(maxlen=self._depth_queue_size)
 
-        print(self._bboxes_queues, self._depth_queues)
         self._depth_lock.release()
         self._bboxes_lock.release()
 
@@ -86,7 +85,6 @@ class DarknetTransformer():
             for (bboxes_i, bboxes) in enumerate(bboxes_queue):
                 deltas =\
                     [(depth_i, (msg.header.stamp - bboxes.image_header.stamp).to_sec())for (depth_i, msg) in enumerate(depth_queue)]
-                print(deltas)
                 deltas = list(filter(lambda t : abs(t[1]) < self._max_sync_delta, deltas))
 
                 if len(deltas) == 0:
@@ -101,7 +99,6 @@ class DarknetTransformer():
         self._bboxes_lock.release()
 
     def _transform(self, frame_id, bboxes, depth):
-        print('transform')
         detections = FeatureDetections()
         detections.header.frame_id = frame_id
         detections.header.stamp = depth.header.stamp

@@ -5,7 +5,9 @@ yolo_model:
   weight_file:
     name: yolov3-comp_combined_6800.weights
   threshold:
-    value: 0.3
+    value: 0.1
   detection_classes:
     names:
       - badge
+      - notebook
+      - phone
