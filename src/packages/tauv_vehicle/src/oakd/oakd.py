@@ -118,7 +118,7 @@ class OAKDNode:
             if rgb is not None:
                 try:
                     img = self._bridge.cv2_to_imgmsg(rgb.getCvFrame(), encoding='bgr8')
-                    img.header.frame_id = f'{self._tf_namespace}/{self._frame}'
+                    img.header.frame_id = self._frame
                     img.header.seq = rgb.getSequenceNum()
                     img.header.stamp = self._time_offset + rospy.Time.from_sec(rgb.getTimestamp().total_seconds())
                     self._color_pub.publish(img)
@@ -128,7 +128,7 @@ class OAKDNode:
             if depth is not None:
                 try:
                     img = self._bridge.cv2_to_imgmsg(depth.getCvFrame(), encoding='mono16')
-                    img.header.frame_id = f'{self._tf_namespace}/{self._frame}'
+                    img.header.frame_id = self._frame
                     img.header.seq = depth.getSequenceNum()
                     img.header.stamp = self._time_offset + rospy.Time.from_sec(depth.getTimestamp().total_seconds())
                     self._depth_pub.publish(img)

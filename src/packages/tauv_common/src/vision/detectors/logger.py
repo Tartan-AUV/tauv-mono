@@ -4,6 +4,7 @@ import rospy
 from tauv_msgs.msg import FeatureDetections, FeatureDetection
 from tauv_msgs.srv import MapFind, MapFindClosest
 from visualization_msgs.msg import MarkerArray, Marker
+from tauv_util.transforms import rpy_to_quat
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Point
 import numpy as np
@@ -11,7 +12,7 @@ import cv2
 from cv_bridge import CvBridge, CvBridgeError
 
 def getColor(tag, trans=False):
-    color = [0,0,0,0]
+    color = [0,0,0,1]
 
     if(tag=="phone"):
         color = [1,0,0,1]
@@ -24,6 +25,9 @@ def getColor(tag, trans=False):
 
     if(tag=="gate"):
         color = [1,1,0,1]
+
+    if (tag == "circle"):
+        color = [0, 1, 1, 1]
 
     if(not trans):
         color[3] = 0.75
@@ -54,6 +58,32 @@ def makeMarker(tag, id, detection, color, scale = 0.5, shape = Marker.SPHERE, ti
     marker.color.b = color[2]
     marker.lifetime = time
     
+    return marker
+
+def makeCircleMarker(id, detection):
+    marker = Marker()
+    marker.header.frame_id = "kf/odom" # FIX THIS
+    marker.header.stamp = rospy.Time()
+    marker.ns = 'circle'
+    marker.id = id
+    marker.type = Marker.ARROW
+    marker.pose.position.x = detection.position.x
+    marker.pose.position.y = detection.position.y
+    marker.pose.position.z = detection.position.z
+    marker.pose.orientation = rpy_to_quat(np.array([
+        detection.orientation.x,
+        detection.orientation.y,
+        detection.orientation.z,
+    ]))
+    marker.scale.x = 1
+    marker.scale.y = 0.1
+    marker.scale.z = 0.1
+    marker.color.r = 1
+    marker.color.g = 1
+    marker.color.b = 0
+    marker.color.a = 1
+    marker.lifetime = rospy.Duration(1.0)
+
     return marker
 
 
@@ -97,6 +127,7 @@ class Logger():
         buckets2 = self.find("phone").detections
         buckets3 = self.find("notebook").detections
         buckets4 = self.find("gate").detections
+        buckets5 = self.find("circle").detections
 
         markers = []
         for ind in range(len(buckets1)):
@@ -114,6 +145,10 @@ class Logger():
         for ind in range(len(buckets4)):
             det = buckets4[ind]
             markers.append(makeMarker("gate", ind+len(buckets1)+len(buckets2)+len(buckets3), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+
+        for ind in range(len(buckets5)):
+            det = buckets5[ind]
+            markers.append(makeCircleMarker(ind+len(buckets1)+len(buckets2)+len(buckets3)+len(buckets4), det))
 
         OBJ = MarkerArray()
         OBJ.markers = markers

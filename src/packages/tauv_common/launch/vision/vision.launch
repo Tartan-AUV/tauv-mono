@@ -1,7 +1,7 @@
 <launch>
     <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
     <arg name="debug" default="none" />
-    <arg name="yolo_weights_path" />
+    <arg name="yolo_weights_path" default="/shared/weights" />
 
     <node
         pkg="tauv_common"
@@ -23,10 +23,15 @@
         <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>
     </node>
 
-    <node pkg="tauv_common" type="gate_detector" name="gate_detector" output="screen">
-        <rosparam command="load" file="$(arg config_pkg)/yaml/gate_detector.yaml" />
-        <remap from="color" to="vehicle/oakd_front/color/image_raw"/>
-        <remap from="depth" to="vehicle/oakd_front/depth/image_raw"/>
-        <remap from="camera_info" to="vehicle/oakd_front/depth/camera_info"/>
+<!--    <node pkg="tauv_common" type="gate_detector" name="gate_detector" output="screen">-->
+<!--        <rosparam command="load" file="$(arg config_pkg)/yaml/gate_detector.yaml" />-->
+<!--        <remap from="color" to="vehicle/oakd_front/color/image_raw"/>-->
+<!--        <remap from="depth" to="vehicle/oakd_front/depth/image_raw"/>-->
+<!--        <remap from="camera_info" to="vehicle/oakd_front/depth/camera_info"/>-->
+<!--    </node>-->
+
+    <node pkg="tauv_common" type="shape_detector" name="shape_detector" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/yaml/shape_detector.yaml" />
+        <rosparam param="frame_id">oakd_front</rosparam>
     </node>
 </launch>

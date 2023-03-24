@@ -62,7 +62,8 @@ setup_args = generate_distutils_setup(
              'scripts/retare_sub_position',
              'scripts/watchdogs',
              'scripts/darknet_transformer',
-             'scripts/bucket_to_tf'],
+             'scripts/bucket_to_tf',
+             'scripts/shape_detector'],
 
 )
 setup(**setup_args)

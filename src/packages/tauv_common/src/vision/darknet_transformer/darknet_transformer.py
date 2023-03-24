@@ -94,7 +94,7 @@ class DarknetTransformer():
 
                 processed_bboxes_is.append(bboxes_i)
 
-            for processed_bboxes_i in processed_bboxes_is:
+            for processed_bboxes_i in reversed(sorted(processed_bboxes_is)):
                 del bboxes_queue[processed_bboxes_i]
 
         self._depth_lock.release()
@@ -135,7 +135,7 @@ class DarknetTransformer():
                 detection.position = Vector3(world_point[0], world_point[1], world_point[2])
                 detections.detections.append(detection)
             except (tf2.LookupException, tf2.ConnectivityException, tf2.ExtrapolationException) as e:
-                rospy.logerr(f'Could not get transform from {world_frame} to {camera_frame}: {e}')
+                rospy.logwarn(f'Could not get transform from {world_frame} to {camera_frame}: {e}')
 
         self._detections_pub.publish(detections)
 
