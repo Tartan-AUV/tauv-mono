@@ -1,7 +1,0 @@
-<launch>
-   <arg name="model_name" default="kingfisher"/>
-    <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
-
-    <rosparam command="load" file="$(arg config_pkg)/global_map.yaml" />
-    <node pkg="tauv_common" type="gateDetector" name="gateDetector" output ="screen" />
-</launch>

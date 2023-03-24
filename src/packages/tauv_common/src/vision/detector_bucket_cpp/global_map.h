@@ -181,7 +181,7 @@ class FeatureTracker : public enable_shared_from_this<FeatureTracker>
 class GlobalMap
 {
     public:
-        GlobalMap(ros::NodeHandle& handler, ros::NodeHandle &private_handler);
+        GlobalMap(ros::NodeHandle& handler);
 
         void updateTrackers(const tauv_msgs::FeatureDetections::ConstPtr& detections);
         void addTracker(FeatureDetection &detection);

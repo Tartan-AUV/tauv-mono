@@ -17,19 +17,18 @@ geometry_msgs::Point vec_to_point(Eigen::Vector3d vec)
     return point;
 }
 
-GlobalMap::GlobalMap(ros::NodeHandle& handler, ros::NodeHandle &private_handler)
+GlobalMap::GlobalMap(ros::NodeHandle& handler)
 {
     featureCount = 0;
     totalDetections = 0;
     DUMMY_FILL=0;
     MAP = {};
 
-    // private_handler ensures these paths resolve correctly
-    listener = private_handler.subscribe("global_map/feature_detections", 100, &GlobalMap::updateTrackers, this);
-    resetService = private_handler.advertiseService("global_map/reset", &GlobalMap::reset, this);
-    findService = private_handler.advertiseService("global_map/find", &GlobalMap::find, this);
-    findOneService = private_handler.advertiseService("global_map/find_one", &GlobalMap::findOne, this);
-    findClosestService = private_handler.advertiseService("global_map/find_closest", &GlobalMap::findClosest, this);
+    listener = handler.subscribe("global_map/feature_detections", 100, &GlobalMap::updateTrackers, this);
+    resetService = handler.advertiseService("global_map/reset", &GlobalMap::reset, this);
+    findService = handler.advertiseService("global_map/find", &GlobalMap::find, this);
+    findOneService = handler.advertiseService("global_map/find_one", &GlobalMap::findOne, this);
+    findClosestService = handler.advertiseService("global_map/find_closest", &GlobalMap::findClosest, this);
 }
 
 vector<FeatureDetection> GlobalMap::convertToStruct(vector<tauv_msgs::FeatureDetection> &detections)
