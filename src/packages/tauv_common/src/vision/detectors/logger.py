@@ -99,8 +99,9 @@ class Logger():
         rospy.Subscriber("global_map/feature_detections", FeatureDetections,
                                                 self.publish)
 
-        rospy.Subscriber("global_map/find", FeatureDetections,
-                                        self.visualize)
+        # ???
+        # rospy.Subscriber("global_map/find", FeatureDetections,
+        #                                 self.visualize)
 
         rospy.wait_for_service("global_map/find")
 

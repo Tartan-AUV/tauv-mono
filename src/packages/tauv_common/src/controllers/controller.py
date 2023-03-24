@@ -119,6 +119,7 @@ class Controller:
         self._wrench_pub.publish(wrench)
 
         controller_debug: ControllerDebug = ControllerDebug()
+        controller_debug.z.tuning = self._pids[0].get_tuning()
         controller_debug.z.value = position[2]
         controller_debug.z.error = z_error
         controller_debug.z.setpoint = cmd.setpoint_z
@@ -126,6 +127,7 @@ class Controller:
         controller_debug.z.integral = self._pids[0]._integral
         controller_debug.z.derivative = self._pids[0]._derivative
         controller_debug.z.effort = z_effort
+        controller_debug.roll.tuning = self._pids[1].get_tuning()
         controller_debug.roll.value = orientation[0]
         controller_debug.roll.error = roll_error
         controller_debug.roll.setpoint = cmd.setpoint_roll
@@ -133,6 +135,7 @@ class Controller:
         controller_debug.roll.integral = self._pids[1]._integral
         controller_debug.roll.derivative = self._pids[1]._derivative
         controller_debug.roll.effort = roll_effort
+        controller_debug.pitch.tuning = self._pids[2].get_tuning()
         controller_debug.pitch.value = orientation[1]
         controller_debug.pitch.setpoint = cmd.setpoint_pitch
         controller_debug.pitch.error = pitch_error

@@ -43,7 +43,7 @@ class MotionUtils:
 
         self._traj_service = rospy.Service('gnc/get_trajectory', GetTrajectory, self._handle_get_traj)
 
-        self._arm_srv = rospy.ServiceProxy('thrusters/arm', SetBool)
+        self._arm_srv = rospy.ServiceProxy('vehicle/thrusters/arm', SetBool)
 
         self._path_pub = rospy.Publisher('gnc/path', Path, queue_size=10)
         self._target_pub = rospy.Publisher("gnc/traj_target", TrajPoint, queue_size=10)
