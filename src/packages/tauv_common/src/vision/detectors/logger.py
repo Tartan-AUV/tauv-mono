@@ -22,6 +22,9 @@ def getColor(tag, trans=False):
     if(tag=="notebook"):
         color = [0,0,1,1]
 
+    if(tag=="gate"):
+        color = [1,1,0,1]
+
     if(not trans):
         color[3] = 0.75
 
@@ -93,6 +96,7 @@ class Logger():
         buckets1 = self.find("badge").detections
         buckets2 = self.find("phone").detections
         buckets3 = self.find("notebook").detections
+        buckets4 = self.find("gate").detections
 
         markers = []
         for ind in range(len(buckets1)):
@@ -106,6 +110,10 @@ class Logger():
         for ind in range(len(buckets3)):
             det = buckets3[ind]
             markers.append(makeMarker("notebook", ind+len(buckets1)+len(buckets2), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+
+        for ind in range(len(buckets4)):
+            det = buckets4[ind]
+            markers.append(makeMarker("gate", ind+len(buckets1)+len(buckets2)+len(buckets3), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
 
         OBJ = MarkerArray()
         OBJ.markers = markers

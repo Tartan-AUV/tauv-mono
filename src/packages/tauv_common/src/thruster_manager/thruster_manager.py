@@ -64,7 +64,7 @@ class ThrusterManager:
 
         for (i, thruster_id) in enumerate(self._thruster_ids):
             base_frame = f'{self._tf_namespace}/vehicle'
-            thruster_frame = f'{self._tf_namespace}/vehicle/thruster_{thruster_id}'
+            thruster_frame = f'{self._tf_namespace}/thruster_{thruster_id}'
             current_time = rospy.Time.now()
             try:
                 transform = self._tf_buffer.lookup_transform(

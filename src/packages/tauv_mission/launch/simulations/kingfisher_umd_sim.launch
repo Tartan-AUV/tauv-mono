@@ -7,7 +7,7 @@
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
     <arg name="launch_vision" default="true" />
-    <arg name="teleop" default="false" />
+    <arg name="teleop" default="true" />
 
     <include file="$(find tauv_sim_worlds)/launch/umd.launch" />
 
@@ -62,9 +62,9 @@
         </group>
 
         <group if="$(arg launch_vision)">
-            <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">
-                <arg name="model_name" value="$(arg model_name)" />
-                <arg name="yolo_weights_path" value="/home/theo/weights" />
+            <include file="$(find tauv_common)/launch/vision/vision.launch">
+                <arg name="config_pkg" value="$(arg config_pkg)" />
+                <arg name="yolo_weights_path" value="/home/tauv/weights" />
             </include>
         </group>
     </group>
