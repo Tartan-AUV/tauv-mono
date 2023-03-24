@@ -106,6 +106,7 @@ class PIDPlanner:
         self._controller_command_pub.publish(controller_command)
 
         pid_planner_debug = PIDPlannerDebug()
+        pid_planner_debug.x.tuning = self._pids[0].get_tuning()
         pid_planner_debug.x.value = current_position[0]
         pid_planner_debug.x.setpoint = target_position[0]
         pid_planner_debug.x.error = position_error[0]
@@ -113,6 +114,7 @@ class PIDPlanner:
         pid_planner_debug.x.integral = self._pids[0]._integral
         pid_planner_debug.x.derivative = self._pids[0]._derivative
         pid_planner_debug.x.effort = world_position_effort[0]
+        pid_planner_debug.y.tuning = self._pids[1].get_tuning()
         pid_planner_debug.y.value = target_position[1]
         pid_planner_debug.y.setpoint = self._pids[1].setpoint
         pid_planner_debug.y.error = position_error[1]
@@ -120,6 +122,7 @@ class PIDPlanner:
         pid_planner_debug.y.integral = self._pids[1]._integral
         pid_planner_debug.y.derivative = self._pids[1]._derivative
         pid_planner_debug.y.effort = world_position_effort[1]
+        pid_planner_debug.z.tuning = self._pids[2].get_tuning()
         pid_planner_debug.z.value = target_position[2]
         pid_planner_debug.z.setpoint = self._pids[2].setpoint
         pid_planner_debug.z.error = position_error[2]
@@ -130,6 +133,7 @@ class PIDPlanner:
         pid_planner_debug.roll.value = current_orientation[0]
         pid_planner_debug.roll.setpoint = target_orientation[0]
         pid_planner_debug.roll.error = orientation_error[0]
+        pid_planner_debug.roll.tuning = self._pids[3].get_tuning()
         pid_planner_debug.roll.proportional = self._pids[3]._proportional
         pid_planner_debug.roll.integral = self._pids[3]._integral
         pid_planner_debug.roll.derivative = self._pids[3]._derivative
@@ -137,6 +141,7 @@ class PIDPlanner:
         pid_planner_debug.pitch.value = current_orientation[1]
         pid_planner_debug.pitch.setpoint = target_orientation[1]
         pid_planner_debug.pitch.error = orientation_error[1]
+        pid_planner_debug.pitch.tuning = self._pids[4].get_tuning()
         pid_planner_debug.pitch.proportional = self._pids[4]._proportional
         pid_planner_debug.pitch.integral = self._pids[4]._integral
         pid_planner_debug.pitch.derivative = self._pids[4]._derivative
@@ -144,6 +149,7 @@ class PIDPlanner:
         pid_planner_debug.yaw.value = target_orientation[2]
         pid_planner_debug.yaw.setpoint = self._pids[5].setpoint
         pid_planner_debug.yaw.error = orientation_error[2]
+        pid_planner_debug.yaw.tuning = self._pids[5].get_tuning()
         pid_planner_debug.yaw.proportional = self._pids[5]._proportional
         pid_planner_debug.yaw.integral = self._pids[5]._integral
         pid_planner_debug.yaw.derivative = self._pids[5]._derivative

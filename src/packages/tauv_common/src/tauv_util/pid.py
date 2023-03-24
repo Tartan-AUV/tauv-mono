@@ -1,6 +1,7 @@
 import time
 from math import pi
 import warnings
+from tauv_msgs.msg import PIDTuning
 
 # From SimplePID pip package
 
@@ -45,7 +46,8 @@ class PID(object):
         auto_mode=True,
         proportional_on_measurement=False,
         error_map=None,
-        d_alpha=1.0
+        d_alpha=1.0,
+        axis=''
     ):
         """
         Initialize a new PID controller.
@@ -88,6 +90,8 @@ class PID(object):
         self._last_input = None
 
         self._alpha = d_alpha
+
+        self._axis = axis
 
         self.output_limits = output_limits
         self.reset()
@@ -255,3 +259,13 @@ class PID(object):
         self._last_time = _current_time()
         self._last_output = None
         self._last_input = None
+
+    def get_tuning(self):
+        tuning = PIDTuning()
+        tuning.axis = self._axis
+        tuning.limits[0] = self._min_output
+        tuning.limits[1] = self._max_output
+        tuning.kp = self.Kp
+        tuning.ki = self.Ki
+        tuning.kd = self.Kd
+        tuning.tau = self._alpha
