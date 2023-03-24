@@ -30,7 +30,6 @@
           args="0.508 0 -0.0508 1.57 0 1.57 $(arg namespace)/vehicle $(arg namespace)/oakd_front" />
 
     <!--    10in forward, 0in right, 5in down-->
-    <!-- FIX THIS -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_bottom_static_publisher"
-          args="0.254 0 0.127 3.14 0 0 $(arg namespace)/vehicle $(arg namespace)/oakd_bottom" />
+          args="0.254 0 0.127 1.57 -1.57 0 $(arg namespace)/vehicle $(arg namespace)/oakd_bottom" />
 </launch>

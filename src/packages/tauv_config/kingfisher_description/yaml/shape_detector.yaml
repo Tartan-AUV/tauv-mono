@@ -4,4 +4,4 @@ hsv_ranges:
   - [170, 180, 100, 255, 50, 255]
 contour_area_threshold: 1000
 ellipse_defects_threshold: 0.01
-circle_width: 0.2
+circle_width: 0.29
