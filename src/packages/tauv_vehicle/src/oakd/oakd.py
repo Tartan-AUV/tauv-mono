@@ -3,7 +3,6 @@
 import rospy
 import depthai
 from sensor_msgs.msg import Image, CameraInfo
-from tauv_msgs.srv import GetCameraInfo, GetCameraInfoResponse
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
 
@@ -84,10 +83,14 @@ class OAKDNode:
                 rospy.sleep(1.0)
         
         self._calibration = self._device.readCalibration()
-        self._camera_info = CameraInfo()
-        self._camera_info.K = np.ndarray.flatten(np.array(self._calibration.getCameraIntrinsics(depthai.CameraBoardSocket.RGB)))
-        self._camera_info.distortion_model = 'rational_polynomial'
-        self._camera_info.D = np.array(self._calibration.getDistortionCoefficients(depthai.CameraBoardSocket.RGB))
+        self._depth_info = CameraInfo()
+        self._depth_info.K = np.ndarray.flatten(np.array(self._calibration.getCameraIntrinsics(depthai.CameraBoardSocket.LEFT)))
+        self._depth_info.distortion_model = 'rational_polynomial'
+        self._depth_info.D = np.array(self._calibration.getDistortionCoefficients(depthai.CameraBoardSocket.LEFT))
+        self._color_info = CameraInfo()
+        self._color_info.K = np.ndarray.flatten(np.array(self._calibration.getCameraIntrinsics(depthai.CameraBoardSocket.RGB)))
+        self._color_info.distortion_model = 'rational_polynomial'
+        self._color_info.D = np.array(self._calibration.getDistortionCoefficients(depthai.CameraBoardSocket.RGB))
 
         self._bridge = CvBridge()
 
@@ -96,19 +99,15 @@ class OAKDNode:
         self._time_offset = rospy.Time.now() - rospy.Time.from_sec(depthai_time.total_seconds())
         rospy.loginfo(f'Time offset: {self._time_offset}')
 
-        self._depth_pub = rospy.Publisher(f'vehicle/{self._frame}/depth', Image, queue_size=self._queue_size)
-        self._color_pub = rospy.Publisher(f'vehicle/{self._frame}/color', Image, queue_size=self._queue_size)
-        self._camera_info_srv = rospy.Service(f'vehicle/{self._frame}/camera_info', GetCameraInfo, self._handle_get_camera_info)
-
-    def _handle_get_camera_info(self, req):
-        if req.camera_name == self._frame:
-            resp = GetCameraInfoResponse()
-            resp.camera_info = self._camera_info
-            return resp
-
-        return None
+        self._depth_pub = rospy.Publisher(f'vehicle/{self._frame}/depth/image_raw', Image, queue_size=self._queue_size)
+        self._color_pub = rospy.Publisher(f'vehicle/{self._frame}/color/image_raw', Image, queue_size=self._queue_size)
+        self._depth_info_pub = rospy.Publisher(f'vehicle/{self._frame}/depth/camera_info', CameraInfo, queue_size=1, latch=True)
+        self._color_info_pub = rospy.Publisher(f'vehicle/{self._frame}/color/camera_info', CameraInfo, queue_size=1, latch=True)
 
     def start(self):
+        self._depth_info_pub.publish(self._depth_info)
+        self._color_info_pub.publish(self._color_info)
+
         rgb_queue = self._device.getOutputQueue(name='rgb', maxSize=1, blocking=False)
         depth_queue = self._device.getOutputQueue(name='depth', maxSize=1, blocking=False)
 

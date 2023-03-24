@@ -77,10 +77,11 @@ double FeatureTracker::getParam(string property, double def)
     double val;
 
     //try tag-specific
-    if(!ros::param::get("/tracker_params/"+tag+"/"+property, val)){
+    if(!ros::param::get("global_map/tracker_params/"+tag+"/"+property, val)){
         //try default
-        if(!ros::param::get("/tracker_params/default/"+property, val))
+        if(!ros::param::get("global_map/tracker_params/default/"+property, val))
         {
+            ROS_INFO("missing parameter!");
             return def;
         }
     }

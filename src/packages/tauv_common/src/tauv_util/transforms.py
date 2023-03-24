@@ -19,6 +19,17 @@ def build_pose(position: np.array, orientation: np.array) -> Pose:
 def build_twist(linear_velocity: np.array, angular_velocity: np.array) -> Twist:
     return Twist(tm(linear_velocity, Vector3), tm(angular_velocity, Vector3))
 
+def multiply_quat(q1: np.array, q2: np.array) -> np.array:
+    x1, y1, z1, w1 = q1
+    x2, y2, z2, w2 = q2
+    return np.array([
+        w1 * x2 + x1 * w2 + y1 * z2 - z1 * y2,
+        w1 * y2 + y1 * w2 + z1 * x2 - x1 * z2,
+        w1 * z2 + z1 * w2 + x1 * y2 - y1 * x2,
+        w1 * w2 - x1 * x2 - y1 * y2 - z1 * z2
+    ])
+
+
 def linear_body_to_world_matrix(pose: Pose) -> np.array:
     orientation = quat_to_rpy(pose.orientation)
 

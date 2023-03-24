@@ -41,14 +41,9 @@ class DarknetTransformer():
         self._detections_pub: rospy.Publisher = rospy.Publisher('global_map/feature_detections', FeatureDetections, queue_size=10)
 
         for frame_id in self._frame_ids:
-            camera_info_topic = f'vehicle/{frame_id}/camera_info'
-            rospy.wait_for_service(camera_info_topic, 10)
-            camera_info_srv = rospy.ServiceProxy(camera_info_topic, GetCameraInfo)
+            self._camera_infos[frame_id] = rospy.wait_for_message(f'vehicle/{frame_id}/depth/camera_info', CameraInfo, 60)
 
-            resp = camera_info_srv.call(frame_id)
-            self._camera_infos[frame_id] = resp.camera_info
-
-            self._depth_subs[frame_id] = rospy.Subscriber(f'vehicle/{frame_id}/depth', Image, self._handle_depth, callback_args=frame_id)
+            self._depth_subs[frame_id] = rospy.Subscriber(f'vehicle/{frame_id}/depth/image_raw', Image, self._handle_depth, callback_args=frame_id)
 
             self._bboxes_queues[frame_id] = deque(maxlen=self._bboxes_queue_size)
             self._depth_queues[frame_id] = deque(maxlen=self._depth_queue_size)
@@ -68,7 +63,7 @@ class DarknetTransformer():
 
     def _handle_bboxes(self, msg):
         self._bboxes_lock.acquire()
-        frame_id = msg.image_header.frame_id.split('/')[1]
+        frame_id = msg.image_header.frame_id
         self._bboxes_queues[frame_id].append(msg)
         self._bboxes_lock.release()
 
@@ -82,6 +77,8 @@ class DarknetTransformer():
             bboxes_queue = self._bboxes_queues[frame_id]
             depth_queue = self._depth_queues[frame_id]
 
+            processed_bboxes_is = []
+
             for (bboxes_i, bboxes) in enumerate(bboxes_queue):
                 deltas =\
                     [(depth_i, (msg.header.stamp - bboxes.image_header.stamp).to_sec())for (depth_i, msg) in enumerate(depth_queue)]
@@ -94,6 +91,11 @@ class DarknetTransformer():
                 matched_depth = depth_queue[matched_depth_i]
 
                 self._transform(frame_id, bboxes, matched_depth)
+
+                processed_bboxes_is.append(bboxes_i)
+
+            for processed_bboxes_i in processed_bboxes_is:
+                del bboxes_queue[processed_bboxes_i]
 
         self._depth_lock.release()
         self._bboxes_lock.release()

@@ -1,6 +1,7 @@
 <launch>
     <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
     <arg name="debug" default="none" />
+    <arg name="yolo_weights_path" />
 
     <node
         pkg="tauv_common"
@@ -14,9 +15,18 @@
 
     <node pkg="tauv_common" type="logger" name="logger" output="screen" />
 
-    <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch" />
+    <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">
+        <arg name="yolo_weights_path" value="$(arg yolo_weights_path)" />
+    </include>
 
     <node pkg="tauv_common" type="darknet_transformer" name="darknet_transformer" output="screen">
         <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>
+    </node>
+
+    <node pkg="tauv_common" type="gate_detector" name="gate_detector" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/yaml/gate_detector.yaml" />
+        <remap from="color" to="vehicle/oakd_front/color/image_raw"/>
+        <remap from="depth" to="vehicle/oakd_front/depth/image_raw"/>
+        <remap from="camera_info" to="vehicle/oakd_front/depth/camera_info"/>
     </node>
 </launch>
