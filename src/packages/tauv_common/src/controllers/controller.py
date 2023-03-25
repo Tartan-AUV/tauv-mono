@@ -35,6 +35,8 @@ class Controller:
             Ma=self._Ma,
         )
 
+        self._build_pids()
+
         self._navigation_state_sub: rospy.Subscriber = rospy.Subscriber('gnc/navigation_state', NavigationState, self._handle_navigation_state)
         self._controller_command_sub: rospy.Subscriber = rospy.Subscriber('gnc/controller_command', ControllerCommand, self._handle_controller_command)
         self._controller_debug_pub = rospy.Publisher('gnc/controller_debug', ControllerDebug, queue_size=10)
@@ -42,7 +44,6 @@ class Controller:
         self._tune_dynamics_srv: rospy.Service = rospy.Service('gnc/tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
         self._tune_controller_srv: rospy.Service = rospy.Service('gnc/tune_controller', TuneController, self._handle_tune_controller)
 
-        self._build_pids()
 
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)

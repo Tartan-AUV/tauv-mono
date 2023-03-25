@@ -13,7 +13,7 @@ from tauv_msgs.srv import \
 from geometry_msgs.msg import Pose, Twist, Point
 from std_srvs.srv import SetBool
 from std_msgs.msg import Float64
-from tauv_msgs.srv import MapFindClosest
+from tauv_msgs.srv import MapFind, MapFindRequest
 from motion.motion_utils import MotionUtils
 from motion.trajectories import TrajectoryStatus
 
@@ -51,7 +51,7 @@ class TeleopMission:
         self._goto_circle_a = 0.1
         self._goto_circle_j = 0.4
 
-        self._find_srv = rospy.ServiceProxy("global_map/find_closest", MapFindClosest)
+        self._find_srv = rospy.ServiceProxy("global_map/find", MapFind)
 
     def start(self):
         while not rospy.is_shutdown():
@@ -273,46 +273,44 @@ class TeleopMission:
         self._goto_circle_a = a
         self._goto_circle_j = j
 
-        self._goto_circle_timer = rospy.Timer(rospy.Duration(1.0), self._update_goto_circle, oneshot=True)
+        self._goto_circle_timer = rospy.Timer(rospy.Duration(5.0), self._update_goto_circle)
 
     def _handle_stop_goto_circle(self, args):
         if self._goto_circle_timer is not None:
             self._goto_circle_timer.shutdown()
 
     def _update_goto_circle(self, timer_event):
-        req = MapFindClosest()
+        req = MapFindRequest()
         req.tag = 'circle'
-        req.point = Point(
-            self._pose.position.x,
-            self._pose.position.y,
-            self._pose.position.z,
-        )
-        detection, success = self._find_srv.call()
+        # detections, success = self._find_srv.call()
+        resp = self._find_srv.call(req)
 
-        if not success:
+        if not resp.success or len(resp.detections) == 0:
             print('no circle')
             return
 
+        detection = resp.detections[0]
+
         # Use detection
         circle_position = np.array([detection.position.x, detection.position.y, detection.position.z])
-        sub_position = np.array([self._pose.position.x, self._pose.position.y, self._pose.position.z])
+        sub_position = self._motion.get_position()
 
         delta_position = circle_position - sub_position
         circle_yaw = atan2(delta_position[1], delta_position[0])
 
-        self._motion.goto(
-            (sub_position[0], sub_position[1], sub_position[2]),
-            circle_yaw,
-            v=self._goto_circle_v,
-            a=self._goto_circle_a,
-            j=self._goto_circle_j,
-            block=TrajectoryStatus.EXECUTING
-        )
+        # self._motion.goto(
+        #     (sub_position[0], sub_position[1], sub_position[2]),
+        #     circle_yaw,
+        #     v=self._goto_circle_v,
+        #     a=self._goto_circle_a,
+        #     j=self._goto_circle_j,
+        #     block=TrajectoryStatus.FINISHED
+        # )
 
         target_position = circle_position + np.array([
-            0.5 * cos(circle_yaw),
-            0.5 * sin(circle_yaw),
-            0.1
+            -0.7 * cos(circle_yaw),
+            -0.7 * sin(circle_yaw),
+            0.2
         ])
         target_yaw = circle_yaw
 

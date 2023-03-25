@@ -269,3 +269,4 @@ class PID(object):
         tuning.ki = self.Ki
         tuning.kd = self.Kd
         tuning.tau = self._alpha
+        return tuning
