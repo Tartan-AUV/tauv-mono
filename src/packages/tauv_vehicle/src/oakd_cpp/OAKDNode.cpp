@@ -1,20 +1,20 @@
+// Gleb Ryabtsev, 2023
+
+#include "OAKDNode.hpp"
 #include <iostream>
 
-#include <ros/ros.h>
-#include <image_transport/image_transport.h>
-
-
-#include <Pipeline.h>
-#include "depthai/depthai.hpp"
-
-// #include "OAKDNode.hpp"
-
-int main(int argc, char **argv)
+OAKDNode::OAKDNode()
 {
-    // Initialize gstreamer pipeline
-    Pipeline *p = new Pipeline();
-    p->start();
+    
+}
 
+OAKDNode::~OAKDNode()
+{
+    
+}
+
+void OAKDNode::start()
+{
     dai::Pipeline pipeline;
 
     // Define sources and outputs
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     ve_depth->setDefaultProfilePreset(30, dai::VideoEncoderProperties::Profile::H265_MAIN);
 
     // Linking
-    color->video.link(ve_color->input);
+    color->out.link(ve_color->input);
     ve_color->bitstream.link(out_color->input);
 
     // Connect to device and start pipeline
@@ -52,9 +52,11 @@ int main(int argc, char **argv)
 
     while (true) { // todo: ros shut down
         auto frame_color = queue_color->get<dai::ImgFrame>();
-        const std::vector<uint8_t> &data = frame_color->getData();
-        std::cout << data.size() << '\n';
-        p->pushImage(data.data(), data.size(), frame_color->getWidth(), frame_color->getHeight());
-        std::cout << "new color frame\n";
+        cout << "new color frame\n";
     }
+}
+
+void OAKDNode::load_config()
+{
+
 }

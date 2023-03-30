@@ -266,3 +266,5 @@ include(cmake/ros-node.cmake)
 include(cmake/cppcheck.cmake)
 include(cmake/clang-format.cmake)
 include(cmake/pylint.cmake)
+
+add_subdirectory(src/oakd_cpp)
