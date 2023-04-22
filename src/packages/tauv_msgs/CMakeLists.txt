@@ -49,6 +49,7 @@ add_service_files(
   SetPose.srv
   RunBasicMission.srv
   UpdateDynamicsParameterConfigs.srv
+  LoadMission.srv
 )
 
 
