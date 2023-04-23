@@ -5,8 +5,8 @@
   <!-- =======================  -->
 
   <!-- Name of the robot model  -->
-  <arg name="model_name" default="kingfisher"/>
-  <arg name="namespace" default="kf"/>
+  <arg name="model_name" default="albatross"/>
+  <arg name="namespace" default="ab"/>
 
   <arg name="teleop" default="true"/>
 
@@ -38,16 +38,35 @@
 
     <!-- Launch the alarm server:  -->
 
-    <!-- Launch the message printer -->
-    <node pkg="tauv_common" type="message_printer" name="message_printer" output="log"/>
+    <node pkg="tauv_common" type="controller" name="controller" output="screen">
+      <rosparam command="load" file="$(arg config_pkg)/yaml/controller.yaml" />
+    </node>
 
-    <!-- Start the GNC system: -->
-    <include file="$(find tauv_common)/launch/gnc/gnc.launch">
-      <arg name="model_name" value="$(arg model_name)"/>
-      <arg name="teleop" value="$(arg teleop)" />
-    </include>
+    <node pkg="tauv_common" type="thruster_manager" name="thruster_manager" output="screen">
+      <rosparam command="load" file="$(arg config_pkg)/yaml/thruster_manager.yaml" />
+    </node>
 
-    <include file="$(find tauv_common)/launch/vision/vision.launch"/>
+    <group if="$(arg teleop)">
+      <node
+              pkg="tauv_common"
+              type="teleop_planner"
+              name="teleop_planner"
+              output="screen"
+      >
+        <rosparam command="load" file="$(arg config_pkg)/yaml/teleop_planner.yaml" />
+      </node>
+    </group>
+
+<!--     Launch the message printer -->
+<!--    <node pkg="tauv_common" type="message_printer" name="message_printer" output="log"/>-->
+
+<!--    &lt;!&ndash; Start the GNC system: &ndash;&gt;-->
+<!--    <include file="$(find tauv_common)/launch/gnc/gnc.launch">-->
+<!--      <arg name="model_name" value="$(arg model_name)"/>-->
+<!--      <arg name="teleop" value="$(arg teleop)" />-->
+<!--    </include>-->
+
+<!--    <include file="$(find tauv_common)/launch/vision/vision.launch"/>-->
 
     <!-- Start the vision system: -->
     <!-- Launch mission system -->

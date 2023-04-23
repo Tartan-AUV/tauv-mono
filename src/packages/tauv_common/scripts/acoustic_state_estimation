@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from acoustic_state_estimation import acoustic_state_estimation
+
+if __name__ == "__main__":
+    acoustic_state_estimation.main()
