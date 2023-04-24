@@ -13,12 +13,14 @@ void setup()
   Serial.begin(115200);
 
   config.freq_lo = 50000;
-  config.freq_hi = 55000;
+  config.freq_hi = 51000;
   config.freq_sample = 200000;
   config.freq_bit = 10;
   config.freq_sync_bit = 20;
   config.sdft_N = 500;
   config.sdft_r = 0.99;
+  config.sdft_ema_alpha = 0.9;
+  config.sdft_emv_alpha = 0.9;
 
   tx::setup(&config);
   rx::setup(&config);

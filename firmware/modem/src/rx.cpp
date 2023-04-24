@@ -7,9 +7,10 @@
 
 #define PIN_RX 14
 #define PIN_RX_CLK 4
-#define PIN_RX_DEMOD 5
+#define PIN_RX_DEMOD_DATA 5
+#define PIN_RX_DEMOD_VALID 6
 
-static TeensyTimerTool::PeriodicTimer sample_timer;
+static TeensyTimerTool::PeriodicTimer sample_timer(TeensyTimerTool::PIT);
 static TeensyTimerTool::OneShotTimer timeout_timer;
 
 static ADC adc;
@@ -33,6 +34,9 @@ static float r;
 static float k_lo;
 static float k_hi;
 
+static float ema_alpha;
+static float emv_alpha;
+
 static float coeff_w[3];
 
 static float coeff_a;
@@ -44,6 +48,11 @@ static volatile __complex__ float s_hi_w[3];
 
 static volatile __complex__ float s_lo;
 static volatile __complex__ float s_hi;
+
+static volatile float ema_mag_lo;
+static volatile float ema_mag_hi;
+static volatile float emv_mag_lo;
+static volatile float emv_mag_hi;
 
 static volatile float mag_lo;
 static volatile float mag_hi;
@@ -64,6 +73,9 @@ void rx::setup(Config *new_config)
     N = config->sdft_N;
     r = (float)config->sdft_r;
 
+    ema_alpha = config->sdft_ema_alpha;
+    emv_alpha = config->sdft_emv_alpha;
+
     k_lo = ((float)config->freq_lo * (float)N) / ((float)config->freq_sample);
     k_hi = ((float)config->freq_hi * (float)N) / ((float)config->freq_sample);
 
@@ -81,7 +93,8 @@ void rx::setup(Config *new_config)
     coeff_b_hi[2] = r * cexp((2.i * PI * (k_hi + 1.)) / (float)N);
 
     pinMode(PIN_RX_CLK, OUTPUT);
-    pinMode(PIN_RX_DEMOD, OUTPUT);
+    pinMode(PIN_RX_DEMOD_DATA, OUTPUT);
+    pinMode(PIN_RX_DEMOD_VALID, OUTPUT);
 }
 
 void rx::receive(Frame *frame, std::chrono::nanoseconds timeout)
@@ -98,6 +111,7 @@ void rx::receive(Frame *frame, std::chrono::nanoseconds timeout)
 
     while (receiving)
     {
+        // TeensyTimerTool::tick();
     }
 
     Serial.printf("%f %f\n", mag_lo, mag_hi);
@@ -123,11 +137,18 @@ static void reset()
     memset((void *)sample_buf, 0, sizeof(float) * sizeof(sample_buf_length));
     memset((void *)s_lo_w, 0, sizeof(s_lo_w));
     memset((void *)s_hi_w, 0, sizeof(s_lo_w));
+
+    ema_mag_lo = 0;
+    ema_mag_hi = 0;
+    emv_mag_lo = 0;
+    emv_mag_hi = 0;
 }
 
 static void handle_sample_ready()
 {
     uint8_t sample_raw = adc.adc0->readSingle();
+
+    digitalWriteFast(PIN_RX_CLK, LOW);
 
     float sample = ((float)sample_raw) / UINT8_MAX;
 
@@ -153,7 +174,10 @@ static void handle_sample_ready()
 
     sample_buf_index = (sample_buf_index + 1) % sample_buf_length;
 
-    digitalWriteFast(PIN_RX_CLK, LOW);
+    ema_mag_lo = ema_alpha * ema_mag_lo + (1 - ema_alpha) * mag_lo;
+    ema_mag_hi = ema_alpha * ema_mag_hi + (1 - ema_alpha) * mag_hi;
 
-    digitalWriteFast(PIN_RX_DEMOD, mag_hi > mag_lo);
+    emv_mag_lo = emv_alpha * emv_mag_lo + (1 - emv_alpha) * exp(ema_mag_lo - emv_alpha);
+
+    digitalWriteFast(PIN_RX_DEMOD_DATA, mag_hi > mag_lo);
 }

@@ -18,6 +18,9 @@ struct Config
     size_t sdft_N;
     float sdft_r;
 
+    float sdft_ema_alpha;
+    float sdft_emv_alpha;
+
     const std::chrono::nanoseconds half_period_lo_ns() { return ONE_S_IN_NS / (2 * freq_lo); };
     const std::chrono::nanoseconds half_period_hi_ns() { return ONE_S_IN_NS / (2 * freq_hi); };
     const std::chrono::nanoseconds period_sample_ns() { return ONE_S_IN_NS / freq_sample; };
