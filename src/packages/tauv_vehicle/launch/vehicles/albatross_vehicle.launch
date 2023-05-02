@@ -5,6 +5,15 @@
     <arg name="model_name" value="$(arg model_name)" />
   </include>
 
+  <include file="$(find tauv_vehicle)/launch/xsens_imu/xsens_imu.launch">
+    <arg name="model_name" value="$(arg model_name)" />
+  </include>
+
+  <include file="$(find tauv_vehicle)/launch/arduino/arduino.launch">
+    <arg name="model_name" value="$(arg model_name)" />
+  </include>
+
+
   <node pkg="tauv_vehicle"
         type="oakd"
         name="oakd_front"

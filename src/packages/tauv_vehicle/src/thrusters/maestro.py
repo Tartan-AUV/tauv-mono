@@ -34,6 +34,7 @@ class Maestro:
         # Open the command port
         self.ttyStr = ttyStr
         self.device = device
+        print(f'opening maestro at {self.ttyStr}')
         try:
             self.usb = serial.Serial(self.ttyStr, 115200, timeout=1.0, writeTimeout=1.0)
         except:

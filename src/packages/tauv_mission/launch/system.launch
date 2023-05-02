@@ -38,8 +38,11 @@
 
     <!-- Launch the alarm server:  -->
 
-    <node pkg="tauv_common" type="controller" name="controller" output="screen">
-      <rosparam command="load" file="$(arg config_pkg)/yaml/controller.yaml" />
+<!--    <node pkg="tauv_common" type="controller" name="controller" output="screen">-->
+<!--      <rosparam command="load" file="$(arg config_pkg)/yaml/controller.yaml" />-->
+<!--    </node>-->
+
+    <node pkg="tauv_common" type="acoustic_state_estimation" name="acoustic_state_estimation" output="screen">
     </node>
 
     <node pkg="tauv_common" type="thruster_manager" name="thruster_manager" output="screen">
