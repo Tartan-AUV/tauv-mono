@@ -45,6 +45,8 @@ class TeleopMission:
         )
 
         self._torpedo_servo_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/0/target_position', Float64, queue_size=10)
+        self._arm_servo_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/4/target_position', Float64, queue_size=10)
+        self._suction_servo_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/5/target_position', Float64, queue_size=10)
 
         self._goto_circle_timer: rospy.Timer = None
         self._goto_circle_v = 0.1
@@ -337,6 +339,16 @@ class TeleopMission:
         else:
             self._torpedo_servo_pub.publish(0)
 
+    def _handle_move_arm(self, args):
+        print(f'move arm {args.position}')
+
+        self._arm_servo_pub.publish(args.position)
+
+    def _handle_suction(self, args):
+        print(f'suction {args.power}')
+
+        self._suction_servo_pub.publish(args.power * (90 / 100))
+
     def _handle_arm(self, args):
         print('arm')
 
@@ -441,6 +453,14 @@ class TeleopMission:
         shoot_torpedo = subparsers.add_parser('shoot_torpedo')
         shoot_torpedo.add_argument('torpedo', type=int)
         shoot_torpedo.set_defaults(func=self._handle_shoot_torpedo)
+
+        move_arm = subparsers.add_parser('move_arm')
+        move_arm.add_argument('position', type=float)
+        move_arm.set_defaults(func=self._handle_move_arm)
+
+        suction = subparsers.add_parser('suction')
+        suction.add_argument('power', type=float)
+        suction.set_defaults(func=self._handle_suction)
 
         arm = subparsers.add_parser('arm')
         arm.set_defaults(func=self._handle_arm)

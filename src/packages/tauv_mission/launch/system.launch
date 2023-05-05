@@ -47,7 +47,7 @@
       <arg name="teleop" value="$(arg teleop)" />
     </include>
 
-    <include file="$(find tauv_common)/launch/vision/vision.launch"/>
+<!--    <include file="$(find tauv_common)/launch/vision/vision.launch"/>-->
 
     <!-- Start the vision system: -->
     <!-- Launch mission system -->
