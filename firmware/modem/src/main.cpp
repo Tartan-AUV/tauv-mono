@@ -19,8 +19,6 @@ void setup()
   config.freq_sync_bit = 20;
   config.sdft_N = 500;
   config.sdft_r = 0.99;
-  config.sdft_ema_alpha = 0.9;
-  config.sdft_emv_alpha = 0.9;
 
   tx::setup(&config);
   rx::setup(&config);

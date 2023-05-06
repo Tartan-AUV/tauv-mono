@@ -79,8 +79,7 @@ static void transmit_sync()
     handle_sync_bit_timer();
 
     while (transmitting_sync)
-    {
-    }
+        ;
 
     digitalWriteFast(PIN_TX_EN, LOW);
     digitalWriteFast(PIN_TX, LOW);

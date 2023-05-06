@@ -16,7 +16,7 @@ static TeensyTimerTool::OneShotTimer timeout_timer;
 static ADC adc;
 static Config *config;
 
-static volatile bool receiving;
+static volatile bool listening;
 
 static void handle_sample_timer();
 static void handle_timeout_timer();
@@ -34,9 +34,6 @@ static float r;
 static float k_lo;
 static float k_hi;
 
-static float ema_alpha;
-static float emv_alpha;
-
 static float coeff_w[3];
 
 static float coeff_a;
@@ -49,13 +46,13 @@ static volatile __complex__ float s_hi_w[3];
 static volatile __complex__ float s_lo;
 static volatile __complex__ float s_hi;
 
-static volatile float ema_mag_lo;
-static volatile float ema_mag_hi;
-static volatile float emv_mag_lo;
-static volatile float emv_mag_hi;
-
 static volatile float mag_lo;
 static volatile float mag_hi;
+
+static volatile bool receiving_sync;
+static volatile bool receiving;
+static volatile bool current_bit;
+static volatile uint current_bit_duration;
 
 void rx::setup(Config *new_config)
 {
@@ -72,9 +69,6 @@ void rx::setup(Config *new_config)
 
     N = config->sdft_N;
     r = (float)config->sdft_r;
-
-    ema_alpha = config->sdft_ema_alpha;
-    emv_alpha = config->sdft_emv_alpha;
 
     k_lo = ((float)config->freq_lo * (float)N) / ((float)config->freq_sample);
     k_hi = ((float)config->freq_hi * (float)N) / ((float)config->freq_sample);
@@ -99,7 +93,7 @@ void rx::setup(Config *new_config)
 
 void rx::receive(Frame *frame, std::chrono::nanoseconds timeout)
 {
-    receiving = true;
+    listening = true;
 
     reset();
 
@@ -109,10 +103,8 @@ void rx::receive(Frame *frame, std::chrono::nanoseconds timeout)
 
     sample_timer.begin(handle_sample_timer, config->period_sample_ns());
 
-    while (receiving)
-    {
-        // TeensyTimerTool::tick();
-    }
+    while (listening)
+        ;
 
     Serial.printf("%f %f\n", mag_lo, mag_hi);
 }
@@ -127,7 +119,7 @@ static void handle_sample_timer()
 static void handle_timeout_timer()
 {
     sample_timer.stop();
-    receiving = false;
+    listening = false;
 }
 
 static void reset()
@@ -137,11 +129,6 @@ static void reset()
     memset((void *)sample_buf, 0, sizeof(float) * sizeof(sample_buf_length));
     memset((void *)s_lo_w, 0, sizeof(s_lo_w));
     memset((void *)s_hi_w, 0, sizeof(s_lo_w));
-
-    ema_mag_lo = 0;
-    ema_mag_hi = 0;
-    emv_mag_lo = 0;
-    emv_mag_hi = 0;
 }
 
 static void handle_sample_ready()
@@ -174,10 +161,27 @@ static void handle_sample_ready()
 
     sample_buf_index = (sample_buf_index + 1) % sample_buf_length;
 
-    ema_mag_lo = ema_alpha * ema_mag_lo + (1 - ema_alpha) * mag_lo;
-    ema_mag_hi = ema_alpha * ema_mag_hi + (1 - ema_alpha) * mag_hi;
+    // TODO: Add some sort of hysterisis here
+    bool bit = mag_hi > mag_lo;
 
-    emv_mag_lo = emv_alpha * emv_mag_lo + (1 - emv_alpha) * exp(ema_mag_lo - emv_alpha);
+    if (bit == current_bit)
+    {
+        ++current_bit_duration;
+    }
+    else
+    {
+        current_bit = bit;
+        current_bit_duration = 0;
+    }
 
-    digitalWriteFast(PIN_RX_DEMOD_DATA, mag_hi > mag_lo);
+    if (!receiving && !receiving_sync && bit && current_bit_duration > config->sync_bit_duration)
+    {
+    }
+
+    // After high for sync bit duration, set receiving sync
+    // On falling edge, set receiving sync off and set receiving
+    // Then take majority over each bit window for next 8 bits
+    // Repeat to get multiple bytes of received data (expect sync pulses between bytes)
+
+    digitalWriteFast(PIN_RX_DEMOD_DATA, bit);
 }
