@@ -1,4 +1,4 @@
-channel_mappings: [0, 2, 3, 1]
+channel_mappings: [2, 0, 3, 1]
 interpolation_factor: 1
 channel_positions:
     - [0.006, 0.006, 0.0]

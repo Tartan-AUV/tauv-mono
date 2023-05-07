@@ -75,8 +75,12 @@ class ADALMChainedBackend:
 
 
     def sample(self) -> (bool, Optional[np.array], Optional[np.array]):
+        rospy.loginfo('sampling')
+
         self._ain0.startAcquisition(self._sample_size)
         self._ain1.startAcquisition(self._sample_size)
+
+        rospy.loginfo('acquisition started')
 
         data0 = None
         data1 = None
@@ -87,14 +91,20 @@ class ADALMChainedBackend:
         except:
             rospy.loginfo('Sample timeout.')
 
+        rospy.loginfo('got samples')
+
         self._ain0.stopAcquisition()
         self._ain1.stopAcquisition()
+
+        rospy.loginfo('stopped acquisition')
 
         if data0 is None or data1 is None:
             return False, None, None
 
         times = np.tile(np.arange(0, self._sample_size) / self._sample_frequency, (4, 1))
         samples = np.array([data0[0], data0[1], data1[0], data1[1]])
+
+        rospy.loginfo('acquisition finished')
 
         return True, times, samples
 
@@ -123,7 +133,7 @@ class ADALMChainedBackend:
         ain.setRange(0, libm2k.PLUS_MINUS_2_5V)
         ain.setRange(1, libm2k.PLUS_MINUS_2_5V)
 
-        # ctx.calibrateADC()
+        ctx.calibrateADC()
 
         return ain, trig
 

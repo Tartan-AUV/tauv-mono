@@ -20,7 +20,7 @@ class PingerLocalizer:
     def __init__(self):
         self._load_config()
 
-        self._gain: int = 2
+        self._gain: int = 4
 
         self._frontend: AS1Rev4Frontend = AS1Rev4Frontend(
             gain_pins=self._frontend_gain_pins,

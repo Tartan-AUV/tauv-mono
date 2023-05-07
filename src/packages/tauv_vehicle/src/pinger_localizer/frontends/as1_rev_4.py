@@ -1,4 +1,5 @@
 import numpy as np
+import rospy
 import RPi.GPIO as gpio
 
 
@@ -19,14 +20,17 @@ class AS1Rev4Frontend:
         gpio.cleanup()
 
     def set_gain(self, gain):
-        assert(1 <= gain <= 8)
-        gain_index = gain - 1
+        rospy.loginfo(f'set gain: {gain}')
+        assert(0 <= gain <= 7)
+        gain_index = gain
 
         bits = [bool(int(bit)) for bit in format(gain_index, '03b')]
 
         gpio.output(self._gain_pins[2], bits[0])
         gpio.output(self._gain_pins[1], bits[1])
         gpio.output(self._gain_pins[0], bits[2])
+
+        rospy.loginfo(f'gain set')
 
     def min_gain(self) -> int:
         return 1
