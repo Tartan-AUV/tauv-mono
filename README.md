@@ -53,6 +53,8 @@ cd TAUV-ROS-Packages
 sudo make deps # run the Makefile, this might take 5 to 10 minutes
 ```
 
+If you run into permission errors on the last step, see which file is giving the error. Give it the correct permissions with the `chmod` command. For example, `sudo chmod 777 filename` will give the current user read, write, and execute permissions for `filename`.
+
 ## Darknet installation
 To use darknet in sim, you will need to [build it from source](https://github.com/leggedrobotics/darknet_ros).
 ```bash
