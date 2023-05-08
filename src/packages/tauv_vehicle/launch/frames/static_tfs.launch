@@ -2,4 +2,6 @@
     <!-- Publish the vehicle -> oakd_front transform -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_front_static_publisher"
         args="0 0 0 0 0 0 1 vehicle_ned oakd_front" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="sonar static_publisher"
+        args="0 0 0 0 0 0 1 vehicle_ned sonar" />
 </launch>

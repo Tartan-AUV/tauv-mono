@@ -1,7 +1,9 @@
 tracker_params: {
   default: {
     mahalanobis_threshold: 10,
-    DECAY_THRESHOLD: 0.25, #in practice should probably be around .25 but ~.6 for testing
+    DECAY_THRESHOLD: 0.6, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
+    min_decay_time: 1, #lower limit on decay time, resets w every new detection (>=0 seconds)
+    tracker_bias: 0, #larger decreases the odds of matches w assigned tracker
     matching_weights: {
       tag_weight: 100,
       distance_weight: 1,
@@ -20,6 +22,13 @@ tracker_params: {
   phone: {
     mahalanobis_threshold: 5,
     expected_count: 1
+  },
+  survey: {
+    mahalnobis_threshold: 10,
+    decay_min_time: 30, #at least 30 seconds between sonar detections decay
+    matching_weights: {
+      tag_weight: 0
+    }
   }
 }
 

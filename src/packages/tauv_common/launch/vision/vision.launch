@@ -14,9 +14,9 @@
 
     <node pkg="tauv_common" type="logger" name="logger" output="screen" />
 
-    <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch" />
+    <!--<include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch" />
 
     <node pkg="tauv_common" type="darknet_transformer" name="darknet_transformer" output="screen">
         <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>
-    </node>
+    </node>-->
 </launch>

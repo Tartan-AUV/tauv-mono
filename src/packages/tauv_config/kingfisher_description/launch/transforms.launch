@@ -33,4 +33,7 @@
     <!-- FIX THIS -->
     <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_bottom_static_publisher"
           args="0.254 0 0.127 1.57 -1.57 0 $(arg namespace)/vehicle $(arg namespace)/oakd_bottom" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="sonar_static_publisher"
+        args="0 0 0 0 0 0 1 $(arg namespace)/vehicle $(arg namespace)/sonar" />
 </launch>

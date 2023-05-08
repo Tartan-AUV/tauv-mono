@@ -17,19 +17,21 @@ geometry_msgs::Point vec_to_point(Eigen::Vector3d vec)
     return point;
 }
 
-GlobalMap::GlobalMap(ros::NodeHandle& handler, ros::NodeHandle &private_handler)
+GlobalMap::GlobalMap(ros::NodeHandle& handler)
 {
     featureCount = 0;
     totalDetections = 0;
     DUMMY_FILL=0;
     MAP = {};
 
-    // private_handler ensures these paths resolve correctly
-    listener = private_handler.subscribe("global_map/feature_detections", 100, &GlobalMap::updateTrackers, this);
-    resetService = private_handler.advertiseService("global_map/reset", &GlobalMap::reset, this);
-    findService = private_handler.advertiseService("global_map/find", &GlobalMap::find, this);
-    findOneService = private_handler.advertiseService("global_map/find_one", &GlobalMap::findOne, this);
-    findClosestService = private_handler.advertiseService("global_map/find_closest", &GlobalMap::findClosest, this);
+    listener = handler.subscribe("/feature_detections", 100, &GlobalMap::updateTrackersInterface, this);
+    resetService = handler.advertiseService("/global_map/reset", &GlobalMap::reset, this);
+    findService = handler.advertiseService("/global_map/find", &GlobalMap::find, this);
+    findOneService = handler.advertiseService("/global_map/find_one", &GlobalMap::findOne, this);
+    findClosestService = handler.advertiseService("/global_map/find_closest", &GlobalMap::findClosest, this);
+    nodeHandler = handler;
+
+    cout<<"we here \n";
 }
 
 vector<FeatureDetection> GlobalMap::convertToStruct(vector<tauv_msgs::FeatureDetection> &detections)
@@ -39,22 +41,30 @@ vector<FeatureDetection> GlobalMap::convertToStruct(vector<tauv_msgs::FeatureDet
     for(size_t i=0;i<detections.size();i++)
     {
         tauv_msgs::FeatureDetection detection = detections[i];
-        trueDets[i] = FeatureDetection{point_to_vec(detection.position), point_to_vec(detection.orientation), detection.tag};
+        trueDets[i] = FeatureDetection{point_to_vec(detection.position), point_to_vec(detection.orientation), detection.tag, (bool)(detection.survey_point)};
     }
 
     return trueDets;
 }
 
-void GlobalMap::updateTrackers(const tauv_msgs::FeatureDetections::ConstPtr& detectionObjects)
+//for interfacing w publisher
+void GlobalMap::updateTrackersInterface(const tauv_msgs::FeatureDetections::ConstPtr& detectionObjects)
 {
+    cout<<"updating\n";
     //convert trackers into readable cpp format to save later repeated computation
     vector<tauv_msgs::FeatureDetection> objdets = detectionObjects->detections;
+    updateTrackers(objdets);
+    cout<<"updated\n";
+}
+
+bool GlobalMap::updateTrackers(vector<tauv_msgs::FeatureDetection> objdets)
+{
     vector<FeatureDetection> detections = convertToStruct(objdets);
 
     size_t len = detections.size();
     
     if(len==0){
-        return;
+        return false;
     }
 
     totalDetections+=len;
@@ -64,6 +74,8 @@ void GlobalMap::updateTrackers(const tauv_msgs::FeatureDetections::ConstPtr& det
     assignDetections(detections);
 
     mtx.unlock();
+
+    return true;
 }
 
 vector<pair<shared_ptr<FeatureTracker>, int>> GlobalMap::generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t costMatSize)
@@ -93,21 +105,27 @@ vector<pair<shared_ptr<FeatureTracker>, int>> GlobalMap::generateSimilarityMatri
 
 void GlobalMap::assignDetections(vector<FeatureDetection> &detections)
 {
+    cout<<"assigning\n";
     size_t initFeatureNum = featureCount; //will change during iterations if new trackers added
 
     size_t costMatSize = max(featureCount,detections.size());
     vector<vector<double>> costMatrix(costMatSize);
     vector<pair<shared_ptr<FeatureTracker>, int>> trackerList = generateSimilarityMatrix(detections, costMatrix, costMatSize);
 
+    cout<<"made sim\n";
+
     //find best assignment
     vector<int> assignment;
     HungarianAlgorithm Matcher;
     Matcher.Solve(costMatrix, assignment);
 
+    cout<<"this good\n";
+
     //if valid match, assign detection to tracker,
     //otherwise, create a new tracker
     for(size_t tracker=0; tracker<initFeatureNum;tracker++)
     {
+        cout<<"tacker!\n";
         int detectionIdx = assignment[tracker];
         pair<shared_ptr<FeatureTracker>, int> Tracker = trackerList[tracker];
 
@@ -125,12 +143,17 @@ void GlobalMap::assignDetections(vector<FeatureDetection> &detections)
         }
     }
 
+    cout<<"making new\n";
+
     //make new trackers for unmatched detections
     for(size_t unmatched=initFeatureNum; unmatched<costMatSize; unmatched++)
     {
         int detectionIdx = assignment[unmatched];
         addTracker(detections[detectionIdx]);
     }
+
+
+    cout<<"made\n";
 }
 
 void GlobalMap::updateDecay(shared_ptr<FeatureTracker> F, int featureIdx)
@@ -149,7 +172,7 @@ void GlobalMap::addTracker(FeatureDetection &detection)
 
     if(NEW == MAP.end())
     {
-        shared_ptr<FeatureTracker> F (new FeatureTracker(detection));
+        shared_ptr<FeatureTracker> F (new FeatureTracker(detection, nodeHandler));
         MAP.insert({detection.tag, F});
         DUMMY_FILL = max(DUMMY_FILL, F->getMaxThreshold());
     }
@@ -159,8 +182,16 @@ void GlobalMap::addTracker(FeatureDetection &detection)
     }
 }
 
+bool GlobalMap::syncAddDetections(tauv_msgs::FeatureDetectionsSync::Request &req, tauv_msgs::FeatureDetectionsSync::Response &res)
+{
+    vector<tauv_msgs::FeatureDetection> objdets = req.detections.detections;
+    res.success = updateTrackers(objdets);
+    return true;
+}
+
 bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Response &res)
 {
+    cout<<"called\n";
     unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
 
     if(Tracker == MAP.end()){res.success=false; res.detections = {}; return true;}
@@ -176,7 +207,8 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
         tauv_msgs::FeatureDetection returnDetection{};
         returnDetection.position = vec_to_point(detection->getPosition());
         returnDetection.orientation = vec_to_point(detection->getOrientation());
-        returnDetection.tag = req.tag;
+        returnDetection.tag = (Tracker->second)->tag;
+        returnDetection.survey_point = (Tracker->second)->survey_point;
 
         returnDetections[count] = returnDetection;
         count++;
@@ -184,6 +216,8 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
 
     res.detections = returnDetections;
     res.success = true;
+
+    cout<<"returned\n";
 
     return true;
 }
