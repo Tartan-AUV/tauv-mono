@@ -1,0 +1,10 @@
+<launch>
+    <arg name="config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
+
+    <group ns="kf">
+        <node pkg="tauv_common" type="chevron_detector" name="chevron_detector" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/yaml/chevron_detector.yaml" />
+            <rosparam param="frame_id">oakd_bottom</rosparam>
+        </node>
+    </group>
+</launch>

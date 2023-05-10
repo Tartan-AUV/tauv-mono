@@ -1,0 +1,14 @@
+hsv_ranges:
+  - [0, 30, 10, 255, 10, 255]
+  - [150, 180, 10, 255, 10, 255]
+area_threshold: 10000
+suction_mask_width: 400
+border_mask_width: 10
+contour_approximation_factor: 0.02
+angle_threshold: 0.2
+points:
+  - [0.0, 0.0, 0.0] # front
+  - [0.11, 0.0, 0.0] # side
+  - [0.0, 0.11, 0.0] # side
+  - [0.11, 0.11, 0.0] # back
+fallback_depth: 0.38 # 10cm above table
