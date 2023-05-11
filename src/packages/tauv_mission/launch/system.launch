@@ -47,10 +47,10 @@
       <arg name="teleop" value="$(arg teleop)" />
     </include>
 
-<!--    <include file="$(find tauv_common)/launch/vision/vision.launch"/>-->
+    <include file="$(find tauv_common)/launch/vision/vision.launch"/>
 
     <!-- Start the vision system: -->
     <!-- Launch mission system -->
-    <!-- <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
+<!--     <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
   </group>
 </launch>
