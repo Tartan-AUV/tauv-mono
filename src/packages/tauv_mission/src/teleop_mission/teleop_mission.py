@@ -2,7 +2,7 @@ import rospy
 import argparse
 from typing import Optional
 import numpy as np
-from math import atan2, cos, sin
+from math import atan2, cos, sin, e
 
 from tauv_msgs.msg import PIDTuning, DynamicsTuning, DynamicsParameterConfigUpdate
 from tauv_msgs.srv import \
@@ -325,6 +325,81 @@ class TeleopMission:
             block=TrajectoryStatus.EXECUTING
         )
 
+    def _handle_pick_chevron(self, args):
+        v = args.v if args.v is not None else .1
+        a = args.a if args.a is not None else .1
+        j = args.j if args.j is not None else .4
+
+        self._pick_chevron_v = v
+        self._pick_chevron_a = a
+        self._pick_chevron_j = j
+        self._pick_chevron_args = args
+
+        self._pick_chevron_timer = rospy.Timer(rospy.Duration(1.0), self._handle_update_pick_chevron)
+
+    def _handle_update_pick_chevron(self, timer_event):
+        args = self._pick_chevron_args
+
+        req = MapFindRequest()
+        req.tag = 'chevron'
+        resp = self._find_srv.call(req)
+
+        if not resp.success or len(resp.detections) == 0:
+            print('no chevron')
+            return
+
+        detection = resp.detections[0]
+
+        approach_yaw = detection.orientation.z
+
+        chevron_position = np.array([detection.position.x, detection.position.y, detection.position.z])
+        suction_offset = np.array([args.offset_x, args.offset_y, args.offset_z])
+        goal_position = chevron_position + np.array([
+            suction_offset[0] * cos(approach_yaw) + suction_offset[1] * sin(approach_yaw),
+            suction_offset[0] * sin(approach_yaw) + suction_offset[1] * cos(approach_yaw),
+            suction_offset[2]
+        ])
+
+        sub_position = self._motion.get_position()
+        sub_orientation = self._motion.get_orientation()
+
+        error = args.xy_weight * np.linalg.norm(goal_position[0:2] - sub_position[0:2]) + args.yaw_weight * np.abs(sub_orientation[2] - approach_yaw)
+
+        target_position = goal_position + (1 - (e ** (-error))) * np.array([0, 0, sub_position[2] - goal_position[2]])
+
+        if np.linalg.norm(sub_position - goal_position) < 0.1:
+            self._pick_chevron_timer.shutdown()
+            self._suction_servo_pub.publish(90)
+            self._motion.goto(
+                (goal_position[0], goal_position[1], goal_position[2] + args.offset_stick),
+                approach_yaw,
+                v=self._pick_chevron_v,
+                a=self._pick_chevron_a,
+                j=self._pick_chevron_j,
+                block=TrajectoryStatus.FINISHED
+            )
+            self._motion.goto(
+                (target_position[0], target_position[1], 0),
+                approach_yaw,
+                v=self._pick_chevron_v,
+                a=self._pick_chevron_a,
+                j=self._pick_chevron_j,
+                block=TrajectoryStatus.FINISHED
+            )
+        else:
+            self._motion.goto(
+                (target_position[0], target_position[1], target_position[2]),
+                approach_yaw,
+                v=self._pick_chevron_v,
+                a=self._pick_chevron_a,
+                j=self._pick_chevron_j,
+                block=TrajectoryStatus.EXECUTING
+            )
+
+    def _handle_stop_pick_chevron(self, args):
+        if self._pick_chevron_timer is not None:
+            self._pick_chevron_timer.shutdown()
+
     def _handle_shoot_torpedo(self, args):
         print(f'shoot torpedo {args.torpedo}')
 
@@ -449,6 +524,21 @@ class TeleopMission:
 
         stop_goto_circle = subparsers.add_parser('stop_goto_circle')
         stop_goto_circle.set_defaults(func=self._handle_stop_goto_circle)
+
+        pick_chevron = subparsers.add_parser('pick_chevron')
+        pick_chevron.add_argument('--v', type=float)
+        pick_chevron.add_argument('--a', type=float)
+        pick_chevron.add_argument('--j', type=float)
+        pick_chevron.add_argument('offset_x', type=float)
+        pick_chevron.add_argument('offset_y', type=float)
+        pick_chevron.add_argument('offset_z', type=float)
+        pick_chevron.add_argument('offset_stick', type=float)
+        pick_chevron.add_argument('xy_weight', type=float)
+        pick_chevron.add_argument('yaw_weight', type=float)
+        pick_chevron.set_defaults(func=self._handle_pick_chevron)
+
+        stop_pick_chevron = subparsers.add_parser('stop_pick_chevron')
+        stop_pick_chevron.set_defaults(func=self._handle_stop_pick_chevron)
 
         shoot_torpedo = subparsers.add_parser('shoot_torpedo')
         shoot_torpedo.add_argument('torpedo', type=int)

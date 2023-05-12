@@ -20,12 +20,16 @@ def threshold(img, hsv_ranges):
 
 
 def get_border_mask(img, left, right, top, bottom):
-    mask = np.ones((img.shape[0], img.shape[1]))
+    mask = 255 * np.ones((img.shape[0], img.shape[1]), dtype=np.uint8)
 
-    mask[:, :left] = 0
-    mask[:, -right:] = 0
-    mask[top:, :] = 0
-    mask[-bottom:, :] = 0
+    if left > 0:
+        mask[:, :left] = 0
+    if right > 0:
+        mask[:, -right:] = 0
+    if top > 0:
+        mask[:top, :] = 0
+    if bottom > 0:
+        mask[-bottom:, :] = 0
 
     return mask
 
@@ -41,7 +45,7 @@ def clean(img, close_size, open_size):
 
 
 def get_components(img, area_threshold):
-    labels, n_labels, stats, centroids = cv2.connectedComponentsWithStats(img, 4, cv2.CV_32S)
+    n_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(img, 4, cv2.CV_32S)
 
     label = 0
     out_labels = np.zeros(labels.shape, dtype=np.uint8)
@@ -62,8 +66,12 @@ def get_contour(img, approximation_factor):
 
     perimeter = cv2.arcLength(contour, True)
     contour_approx = cv2.approxPolyDP(contour, approximation_factor * perimeter, True)
+    hull = cv2.convexHull(contour_approx)
 
-    return contour_approx
+    contour_approx_flat = np.fliplr(contour_approx.reshape((contour_approx.shape[0], contour_approx.shape[2])))
+    hull_flat = np.fliplr(hull.reshape((hull.shape[0], hull.shape[2])))
+
+    return contour_approx_flat, hull_flat
 
 
 def get_angles(contour):
@@ -72,9 +80,9 @@ def get_angles(contour):
     angles = np.zeros((n_points))
 
     for i in range(n_points):
-        x1, y1 = contour[(i - 1) % n_points, :]
-        x2, y2 = contour[i, :]
-        x3, y3 = contour[(i + 1) % n_points, :]
+        y1, x1 = contour[(i - 1) % n_points, :]
+        y2, x2 = contour[i, :]
+        y3, x3 = contour[(i + 1) % n_points, :]
 
         angle = atan2(y3 - y2, x3 - x2) - atan2(y1 - y2, x1 - x2)
 
@@ -96,25 +104,28 @@ class AngleClassification(IntEnum):
     TAIL = 4
 
 
-def classify_angles(contour, angles, angle_threshold, mask):
+def classify_angles(contour, hull, angles, angle_threshold, mask):
     n_points = contour.shape[0]
 
-    hull = cv2.convexHull(contour, returnPoints=False)
-
-    classifications = np.zeros((n_points))
+    classifications = np.zeros((n_points), dtype=np.uint8)
 
     for i in range(n_points):
         classification = AngleClassification.NONE
 
-        if mask[contour[i]] != 0:
-            if np.abs(angles[i] - (pi / 2)) < angle_threshold:
-                if contour[i] in hull:
+        point = contour[i]
+        angle = angles[i]
+
+        hull_list = hull.tolist()
+
+        if mask[point[0], point[1]] != 0:
+            if np.abs(angle - (pi / 2)) < angle_threshold:
+                if point.tolist() in hull_list:
                     classification = AngleClassification.FRONT
                 else:
                     classification = AngleClassification.BACK
-            elif np.abs(angles[i] - (3 * pi / 4)) < angle_threshold and contour[i] in hull:
+            elif np.abs(angle - (3 * pi / 4)) < angle_threshold and point.tolist() in hull_list:
                 classification = AngleClassification.SIDE
-            elif np.abs(angles[i] - (pi / 4)) < angle_threshold and contour[i] in hull:
+            elif np.abs(angle - (pi / 4)) < angle_threshold and point.tolist() in hull_list:
                 classification = AngleClassification.TAIL
 
         classifications[i] = classification.value

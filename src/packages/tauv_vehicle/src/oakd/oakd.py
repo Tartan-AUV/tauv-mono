@@ -88,7 +88,7 @@ class OAKDNode:
         self._depth_info.distortion_model = 'rational_polynomial'
         self._depth_info.D = np.array(self._calibration.getDistortionCoefficients(depthai.CameraBoardSocket.LEFT))
         self._color_info = CameraInfo()
-        self._color_info.K = np.ndarray.flatten(np.array(self._calibration.getCameraIntrinsics(depthai.CameraBoardSocket.RGB)))
+        self._color_info.K = np.ndarray.flatten(np.array(self._calibration.getCameraIntrinsics(depthai.CameraBoardSocket.RGB, resizeWidth=1280, resizeHeight=720)))
         self._color_info.distortion_model = 'rational_polynomial'
         self._color_info.D = np.array(self._calibration.getDistortionCoefficients(depthai.CameraBoardSocket.RGB))
 

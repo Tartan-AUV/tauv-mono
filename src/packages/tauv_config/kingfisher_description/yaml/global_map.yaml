@@ -21,7 +21,8 @@ tracker_params: {
     mahalanobis_threshold: 5,
     expected_count: 1
   },
-  circle: {
+  chevron: {
+    mahalanobis_threshold: 5,
     expected_count: 1
   }
 }
