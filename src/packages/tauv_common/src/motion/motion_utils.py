@@ -147,6 +147,9 @@ class MotionUtils:
         while self.get_motion_status().value < block.value:
             rospy.sleep(0.1)
 
+    def reset(self):
+        self.traj = None
+
     def get_target(self) -> typing.Tuple[Pose, Twist]:
         if self.get_motion_status() == TrajectoryStatus.PENDING:
             # Return current position? or none?

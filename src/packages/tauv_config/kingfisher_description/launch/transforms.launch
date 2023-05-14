@@ -29,7 +29,11 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_front_static_publisher"
           args="0.508 0 -0.0508 1.57 0 1.57 $(arg namespace)/vehicle $(arg namespace)/oakd_front" />
 
-    <!--    10in forward, 0in right, 5in down-->
+    <!--    11in forward, 0in right, 7in down-->
     <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_bottom_static_publisher"
-          args="0.254 0 0.127 -3.14 0 0 $(arg namespace)/vehicle $(arg namespace)/oakd_bottom" />
+          args="0.2794 0 0.1778 -3.14 0 0 $(arg namespace)/vehicle $(arg namespace)/oakd_bottom" />
+
+    <!--    6in forward, -2in right, 18in down-->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="suction_static_publisher"
+          args="0.1524 -0.0508 0.4572 0 0 0 $(arg namespace)/vehicle $(arg namespace)/suction" />
 </launch>

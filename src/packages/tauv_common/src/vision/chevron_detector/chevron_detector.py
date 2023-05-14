@@ -140,7 +140,7 @@ class ChevronDetector:
                     depth_window = depth_img[y2 - (self._depth_window_size // 2):y2 + (self._depth_window_size // 2),
                                    x2 - (self._depth_window_size // 2):x2 + (self._depth_window_size // 2)
                                    ]
-                    depth = np.nanmean(depth_window) / 1000
+                    depth = (np.nanmean(depth_window) / 1000) * 1.5
                 else:
                     depth = self._table_depth - tf_cam_odom_H[2, 3]
 
@@ -150,8 +150,8 @@ class ChevronDetector:
                     fy = self._color_camera_info.K[4]
                     cy = self._color_camera_info.K[5]
 
-                    x = ((x2 - cx) * depth) / fx
-                    y = ((y2 - cy) * depth) / fy
+                    x = ((x2 - cx) * depth) / (1.5 * fx)
+                    y = ((y2 - cy) * depth) / (1.5 * fy)
 
                     world_point_h = tf_cam_odom_H @ np.array([x, y, depth, 1])
 

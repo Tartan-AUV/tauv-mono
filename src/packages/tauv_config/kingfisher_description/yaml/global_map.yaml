@@ -22,7 +22,7 @@ tracker_params: {
     expected_count: 1
   },
   chevron: {
-    mahalanobis_threshold: 5,
+    mahalanobis_threshold: 100,
     expected_count: 1
   }
 }

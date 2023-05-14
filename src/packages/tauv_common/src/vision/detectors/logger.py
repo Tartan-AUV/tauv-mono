@@ -168,7 +168,7 @@ class Logger():
         detections = objects.detections
         markers = []
         for detection in detections:
-            markers.append(makeMarker(detection.tag, self.ind, detection, getColor(detection.tag, True)))
+            markers.append(makeMarker(detection.tag, self.ind, detection, getColor(detection.tag, True), scale=0.05))
             self.ind += 1
 
         markersPub = MarkerArray()
