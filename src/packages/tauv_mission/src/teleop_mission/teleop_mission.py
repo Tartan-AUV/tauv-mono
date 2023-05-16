@@ -2,7 +2,7 @@ import rospy
 import argparse
 from typing import Optional
 import numpy as np
-from math import atan2, cos, sin, e
+from math import atan2, cos, sin, e, pi
 
 from tauv_msgs.msg import PIDTuning, DynamicsTuning, DynamicsParameterConfigUpdate
 from tauv_msgs.srv import \
@@ -59,6 +59,8 @@ class TeleopMission:
 
         self._pick_chevron_timer = None
         self._last_chevron_position = None
+
+        self._prequal_timer = None
 
     def start(self):
         while not rospy.is_shutdown():
@@ -486,6 +488,49 @@ class TeleopMission:
 
         self._update_dynamics_parameter_configs_srv.call(req)
 
+    def _handle_prequal(self, args):
+        if self._prequal_timer is not None:
+            self._prequal_timer.shutdown()
+
+        self._prequal_timer = rospy.Timer(rospy.Duration(30), self._handle_update_prequal, oneshot=True)
+
+    def _handle_update_prequal(self, timer_event):
+        self._motion.arm(True)
+        self._motion.reset()
+
+        print('running!')
+
+        depth = 1.5
+
+        start_position = self._motion.get_position()
+        start_yaw = self._motion.get_orientation()[2]
+
+        waypoints = np.array([
+            [0, 0, depth, 0],
+            [3, 0, depth, 0],
+            [12, 2, depth, 0],
+            [12, -2, depth, 0],
+            [3, 0, depth, 0],
+            [0, 0, depth, 0],
+        ])
+        n_waypoints = waypoints.shape[0]
+
+        for i in range(n_waypoints):
+            position = waypoints[i, 0:3]
+            yaw = waypoints[i, 3]
+
+            transformed_position = start_position + np.array([
+                position[0] * cos(start_yaw) + position[1] * -sin(start_yaw),
+                position[0] * sin(start_yaw) + position[1] * cos(start_yaw),
+                position[2]
+            ])
+
+            transformed_yaw = start_yaw + yaw
+
+            self._motion.goto(transformed_position, transformed_yaw, v=0.3, a=0.05, j=0.04)
+
+        self._motion.arm(False)
+
     def _build_parser(self) -> argparse.ArgumentParser:
         parser = ThrowingArgumentParser(prog="teleop_mission")
         subparsers = parser.add_subparsers()
@@ -590,6 +635,9 @@ class TeleopMission:
         config_param_est.add_argument('--limits', type=float, nargs=2)
         config_param_est.add_argument('--reset', default=False, action='store_true')
         config_param_est.set_defaults(func=self._handle_config_param_est)
+
+        prequal = subparsers.add_parser('prequal')
+        prequal.set_defaults(func=self._handle_prequal)
 
         return parser
 
