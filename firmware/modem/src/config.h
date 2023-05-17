@@ -24,5 +24,13 @@ struct Config
     const std::chrono::nanoseconds period_bit_ns() { return ONE_S_IN_NS / freq_bit; };
     const std::chrono::nanoseconds period_sync_bit_ns() { return ONE_S_IN_NS / freq_sync_bit; };
 
+    const std::chrono::nanoseconds period_sync_bit_min_ns() { return (3 * period_sync_bit_ns()) / 4; };
+
+    uint8_t max_payload_length;
+
+    float slow_bit_coeff;
+    float fast_bit_coeff;
+    float edge_threshold;
+
     Config(){};
 };

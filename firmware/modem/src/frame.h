@@ -7,9 +7,8 @@
 
 struct Frame
 {
-    uint8_t sequence;
+    uint8_t payload_length;
     uint8_t payload[FRAME_MAX_PAYLOAD_LENGTH];
-    uint8_t payload_length; // Not transmitted
     uint8_t checksum;
 
     void update_checksum();

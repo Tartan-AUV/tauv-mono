@@ -10,5 +10,5 @@
 namespace rx
 {
     void setup(Config *config);
-    void receive(Frame *frame, std::chrono::nanoseconds timeout);
+    bool receive(Frame *frame, std::chrono::nanoseconds timeout);
 }

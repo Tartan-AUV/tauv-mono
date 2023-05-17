@@ -2,8 +2,8 @@
 
 #include "tx.h"
 
-#define PIN_TX 2
-#define PIN_TX_EN 3
+#define PIN_TX 3
+#define PIN_TX_EN 2
 
 static Config *config;
 
@@ -52,8 +52,8 @@ void tx::transmit(Frame *frame)
 
     frame->update_checksum();
 
-    buf[0] = frame->sequence;
-    memcpy(frame->payload, buf, frame->payload_length);
+    buf[0] = frame->payload_length;
+    memcpy(buf, frame->payload, frame->payload_length);
     buf[frame->payload_length + 1] = frame->checksum;
 
     buf_length = frame->payload_length + FRAME_META_LENGTH;
@@ -117,6 +117,7 @@ static void handle_buf_bit_timer()
         carrier_timer.stop();
         bit_timer.stop();
         transmitting_buf = false;
+        Serial.println("done tx");
         return;
     }
 
@@ -151,6 +152,7 @@ static void handle_sync_bit_timer()
         carrier_timer.stop();
         bit_timer.stop();
         transmitting_sync = false;
+        Serial.println("done sync");
     }
 
     ++sync_bit_index;

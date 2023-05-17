@@ -8,10 +8,11 @@
 #define PIN_RX 14
 #define PIN_RX_CLK 4
 #define PIN_RX_DEMOD_DATA 5
-#define PIN_RX_DEMOD_VALID 6
+#define PIN_RX_DEMOD_DATA_RAW 6
+#define PIN_RX_DEMOD_BIT_CLOCK 7
 
 static TeensyTimerTool::PeriodicTimer sample_timer(TeensyTimerTool::PIT);
-static TeensyTimerTool::OneShotTimer timeout_timer;
+static TeensyTimerTool::OneShotTimer timeout_timer(TeensyTimerTool::PIT);
 
 static ADC adc;
 static Config *config;
@@ -49,10 +50,23 @@ static volatile __complex__ float s_hi;
 static volatile float mag_lo;
 static volatile float mag_hi;
 
-static volatile bool receiving_sync;
+static volatile bool receiving_sync_hi;
+static volatile bool receiving_sync_lo;
 static volatile bool receiving;
 static volatile bool current_bit;
-static volatile uint current_bit_duration;
+
+static volatile uint32_t current_bit_time;
+static volatile uint32_t sync_time;
+static volatile uint32_t next_bit_time;
+static volatile uint32_t bit_count;
+static volatile uint32_t bit_sample_count;
+
+static uint8_t rx_buf[FRAME_MAX_PAYLOAD_LENGTH + FRAME_META_LENGTH];
+static size_t rx_bit_index;
+static size_t rx_buf_size = 0;
+
+static volatile float slow_bit_avg;
+static volatile float fast_bit_avg;
 
 void rx::setup(Config *new_config)
 {
@@ -88,10 +102,11 @@ void rx::setup(Config *new_config)
 
     pinMode(PIN_RX_CLK, OUTPUT);
     pinMode(PIN_RX_DEMOD_DATA, OUTPUT);
-    pinMode(PIN_RX_DEMOD_VALID, OUTPUT);
+    pinMode(PIN_RX_DEMOD_DATA_RAW, OUTPUT);
+    pinMode(PIN_RX_DEMOD_BIT_CLOCK, OUTPUT);
 }
 
-void rx::receive(Frame *frame, std::chrono::nanoseconds timeout)
+bool rx::receive(Frame *frame, std::chrono::nanoseconds timeout)
 {
     listening = true;
 
@@ -106,7 +121,14 @@ void rx::receive(Frame *frame, std::chrono::nanoseconds timeout)
     while (listening)
         ;
 
-    Serial.printf("%f %f\n", mag_lo, mag_hi);
+    if (receiving)
+    {
+        frame->payload_length = rx_buf[0];
+        memcpy(frame->payload, &rx_buf[1], frame->payload_length);
+        frame->checksum = rx_buf[frame->payload_length + 1];
+    }
+
+    return receiving;
 }
 
 static void handle_sample_timer()
@@ -118,6 +140,7 @@ static void handle_sample_timer()
 
 static void handle_timeout_timer()
 {
+    Serial.println("timeout");
     sample_timer.stop();
     listening = false;
 }
@@ -125,14 +148,34 @@ static void handle_timeout_timer()
 static void reset()
 {
     sample_buf_index = 0;
+    rx_bit_index = 0;
+    receiving = 0;
+    receiving_sync_hi = 0;
+    receiving_sync_lo = 0;
 
-    memset((void *)sample_buf, 0, sizeof(float) * sizeof(sample_buf_length));
+    fast_bit_avg = 0;
+    slow_bit_avg = 0;
+
+    bit_count = 0;
+    bit_sample_count = 0;
+
+    uint32_t time = micros() * (uint32_t)ONE_US_IN_NS.count();
+
+    current_bit_time = time;
+    sync_time = time;
+
+    memset((void *)rx_buf, 0, sizeof(rx_buf));
+    rx_buf_size = 0;
+
+    memset((void *)sample_buf, 0, sizeof(float) * sample_buf_length);
     memset((void *)s_lo_w, 0, sizeof(s_lo_w));
     memset((void *)s_hi_w, 0, sizeof(s_lo_w));
 }
 
 static void handle_sample_ready()
 {
+    uint32_t time = micros() * (uint32_t)ONE_US_IN_NS.count();
+
     uint8_t sample_raw = adc.adc0->readSingle();
 
     digitalWriteFast(PIN_RX_CLK, LOW);
@@ -161,27 +204,81 @@ static void handle_sample_ready()
 
     sample_buf_index = (sample_buf_index + 1) % sample_buf_length;
 
-    // TODO: Add some sort of hysterisis here
-    bool bit = mag_hi > mag_lo;
+    bool raw_bit = mag_hi > mag_lo;
 
-    if (bit == current_bit)
+    slow_bit_avg = config->slow_bit_coeff * (float)(raw_bit ? 1.0 : 0.0) + (1 - config->slow_bit_coeff) * slow_bit_avg;
+    fast_bit_avg = config->fast_bit_coeff * (float)(raw_bit ? 1.0 : 0.0) + (1 - config->fast_bit_coeff) * fast_bit_avg;
+
+    bool bit = slow_bit_avg > 0.5;
+
+    if (bit != current_bit)
     {
-        ++current_bit_duration;
+        current_bit = bit;
+        current_bit_time = time;
+    }
+
+    if (!receiving)
+    {
+        if (!receiving_sync_hi && !receiving_sync_lo && current_bit && (time - current_bit_time) > (uint32_t)config->period_sync_bit_min_ns().count())
+        {
+            // Caught sync high
+            receiving_sync_hi = true;
+
+            Serial.println("syncing");
+        }
+        else if (receiving_sync_hi && !receiving_sync_lo && (fast_bit_avg - slow_bit_avg) < config->edge_threshold)
+        {
+            Serial.println("synced");
+            // Caught sync falling edge
+            sync_time = time;
+            receiving_sync_hi = false;
+            receiving_sync_lo = true;
+        }
+        else if (!receiving_sync_hi && receiving_sync_lo && time > (sync_time + (uint32_t)config->period_sync_bit_ns().count()))
+        {
+            // Finished sync low
+            receiving = true;
+            receiving_sync_hi = false;
+            receiving_sync_lo = false;
+
+            next_bit_time = time + (uint32_t)config->period_bit_ns().count();
+
+            Serial.println("start receiving");
+        }
     }
     else
     {
-        current_bit = bit;
-        current_bit_duration = 0;
-    }
+        if (time > next_bit_time)
+        {
+            digitalWriteFast(PIN_RX_DEMOD_BIT_CLOCK, !digitalReadFast(PIN_RX_DEMOD_BIT_CLOCK));
 
-    if (!receiving && !receiving_sync && bit && current_bit_duration > config->sync_bit_duration)
-    {
-    }
+            bool out_bit = bit_count > (bit_sample_count / 2);
+            // bool out_bit = current_bit;
 
-    // After high for sync bit duration, set receiving sync
-    // On falling edge, set receiving sync off and set receiving
-    // Then take majority over each bit window for next 8 bits
-    // Repeat to get multiple bytes of received data (expect sync pulses between bytes)
+            rx_buf[rx_bit_index / 8] |= (out_bit << (rx_bit_index % 8));
+            rx_bit_index++;
+
+            if (rx_bit_index >= 8 && rx_bit_index >= 8 * (rx_buf[0] + 1))
+            {
+                listening = false;
+            }
+
+            if (rx_bit_index % 8 == 0)
+            {
+                rx_buf_size++;
+            }
+
+            next_bit_time = next_bit_time + (uint32_t)config->period_bit_ns().count();
+            bit_count = 0;
+            bit_sample_count = 0;
+        }
+
+        bit_sample_count++;
+
+        if (current_bit)
+            bit_count++;
+    }
 
     digitalWriteFast(PIN_RX_DEMOD_DATA, bit);
+    digitalWriteFast(PIN_RX_DEMOD_DATA_RAW, raw_bit);
 }
