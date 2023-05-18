@@ -4,6 +4,7 @@
 #include <complex.h>
 
 #include "rx.h"
+#include "CRC8.h"
 
 #define PIN_RX 14
 #define PIN_RX_CLK 4
@@ -124,15 +125,19 @@ bool rx::receive(Frame *frame, std::chrono::nanoseconds timeout)
     while (listening)
         ;
 
-    if (rx_bit_index) // todo: check for length
-    {
-        frame->payload_length = rx_buf[0];
-        memcpy(frame->payload, &rx_buf[1], frame->payload_length);
-        frame->checksum = rx_buf[frame->payload_length + 1];
+    int rx_buf_size = rx_bit_index / 8;
 
+    frame->payload_length = rx_buf[0];
+    memcpy(frame->payload, &rx_buf[1], frame->payload_length);
+
+    CRC8 crc{};
+    crc.add(frame->payload, frame->payload_length);
+
+    if (crc.getCRC() != rx_buf[rx_buf_size - 1]) {
+        return false; // todo: add return status
     }
 
-    return rx_bit_index;
+    return true;
 }
 
 static void handle_sample_timer()
@@ -261,7 +266,7 @@ static void handle_sample_ready()
                 rx_buf[rx_bit_index / 8] |= (out_bit << (rx_bit_index % 8));
                 rx_bit_index++;
 
-                if (rx_bit_index >= 8 && rx_bit_index >= 8 * (rx_buf[0] + 1))
+                if (rx_bit_index >= 8 && rx_bit_index >= 8 * (rx_buf[0] + FRAME_META_LENGTH))
                 {
                     listening = false;
                     frame_state = NO_FRAME;
@@ -287,68 +292,11 @@ static void handle_sample_ready()
 
     }
 
-    // if (!receiving)
-    // {
-    //     if (!receiving_sync_hi && !receiving_sync_lo && current_bit && (time - current_bit_time) > (uint32_t)config->period_sync_bit_min_ns().count())
-    //     {
-    //         // Caught sync high
-    //         receiving_sync_hi = true;
-
-    //         Serial.println("syncing");
-    //     }
-    //     else if (receiving_sync_hi && !receiving_sync_lo && (fast_bit_avg - slow_bit_avg) < config->edge_threshold)
-    //     {
-    //         Serial.println("synced");
-    //         // Caught sync falling edge
-    //         sync_time = time;
-    //         receiving_sync_hi = false;
-    //         receiving_sync_lo = true;
-    //     }
-    //     else if (!receiving_sync_hi && receiving_sync_lo && time > (sync_time + (uint32_t)config->period_sync_bit_ns().count()))
-    //     {
-    //         // Finished sync low
-    //         receiving = true;
-    //         receiving_sync_hi = false;
-    //         receiving_sync_lo = false;
-
-    //         next_bit_time = time + (uint32_t)config->period_bit_ns().count();
-
-    //         Serial.println("start receiving");
-    //     }
-    // }
-    // else
-    // {
-    //     if (time > next_bit_time)
-    //     {
-    //         digitalWriteFast(PIN_RX_DEMOD_BIT_CLOCK, !digitalReadFast(PIN_RX_DEMOD_BIT_CLOCK));
-
-    //         bool out_bit = bit_count > (bit_sample_count / 2);
-    //         // bool out_bit = current_bit;
-
-    //         rx_buf[rx_bit_index / 8] |= (out_bit << (rx_bit_index % 8));
-    //         rx_bit_index++;
-
-    //         if (rx_bit_index >= 8 && rx_bit_index >= 8 * (rx_buf[0] + 1))
-    //         {
-    //             listening = false;
-    //         }
-
-    //         if (rx_bit_index % 8 == 0)
-    //         {
-    //             rx_buf_size++;
-    //         }
-
-    //         next_bit_time = next_bit_time + (uint32_t)config->period_bit_ns().count();
-    //         bit_count = 0;
-    //         bit_sample_count = 0;
-    //     }
-
-    //     bit_sample_count++;
-
-    //     if (current_bit)
-    //         bit_count++;
-    // }
-
     digitalWriteFast(PIN_RX_DEMOD_DATA, bit);
     digitalWriteFast(PIN_RX_DEMOD_DATA_RAW, raw_bit);
+}
+
+bool verify_checksum(uint8_t* buf, size_t length)
+{
+
 }

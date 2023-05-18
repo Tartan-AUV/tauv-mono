@@ -5,7 +5,7 @@
 #include "tx.h"
 #include "rx.h"
 
-#define TX_MODE
+#define RX_MODE
 
 static Config config;
 static Frame tx_frame;
@@ -74,15 +74,15 @@ void loop()
 
   #ifdef RX_MODE
   // Serial.println("Receiving");
-  volatile bool received = rx::receive(&rx_frame, 30 * ONE_S_IN_NS);
-  // Serial.println("receive finished");
-  Serial.println(rx_frame.payload_length);
-  if (rx_frame.check_checksum() && received)
+  volatile bool received = rx::receive(&rx_frame, 3 * ONE_S_IN_NS);
+  if (received)
   {
     // Serial.println("Received message!");
     Serial.print(rx_frame.payload_length);
     Serial.print("   |   ");
     printBuffer(rx_frame.payload, rx_frame.payload_length);
+  } else {
+    Serial.println("Error");
   }
   #endif
 }

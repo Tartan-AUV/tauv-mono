@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <CRC8.h>
 
 #include "tx.h"
 
@@ -52,11 +53,12 @@ void tx::transmit(Frame *frame)
 
     transmitting_frame = true;
 
-    frame->update_checksum();
-
     buf[0] = frame->payload_length;
     memcpy(buf+1, frame->payload, frame->payload_length);
-    buf[frame->payload_length + 1] = frame->checksum;
+
+    CRC8 crc{};
+    crc.add(frame->payload, frame->payload_length);
+    buf[frame->payload_length + 1] = crc.getCRC();
 
     buf_length = frame->payload_length + FRAME_META_LENGTH;
     buf_bit_index = 0;

@@ -10,7 +10,6 @@
 
 namespace tx
 {
-
     void setup(Config *config);
     void transmit(Frame *frame);
 }
