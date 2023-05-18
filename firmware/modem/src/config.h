@@ -7,6 +7,19 @@
 #define ONE_MS_IN_NS std::chrono::nanoseconds(1'000'000)
 #define ONE_US_IN_NS std::chrono::nanoseconds(1'000)
 
+// Parameter codes
+#define FREQ_LO 0x00
+#define FREQ_HI 0x01
+#define FREQ_SAMPLE 0x02
+#define FREQ_BIT 0x03
+#define FREQ_SYNC_BIT 0x04
+#define SDFT_N 0x05
+#define SDFT_R 0x06
+#define MAX_PAYLOAD_LENGTH 0x07
+#define FILTER_COEFF 0x09
+#define EDGE_THRESHOLD 0x0A
+#define RECEIVE_TIMEOUT 0x0B
+
 struct Config
 {
     uint32_t freq_lo;
@@ -14,6 +27,8 @@ struct Config
     uint32_t freq_sample;
     uint32_t freq_bit;
     uint32_t freq_sync_bit;
+
+    std::chrono::milliseconds receive_timeout;
 
     size_t sdft_N;
     float sdft_r;
