@@ -5,9 +5,22 @@
 #include "tx.h"
 #include "rx.h"
 
+#define TX_MODE
+
 static Config config;
 static Frame tx_frame;
 static Frame rx_frame;
+
+void printBuffer(uint8_t* buffer, size_t size) {
+  for (size_t i = 0; i < size; i++) {
+    if (buffer[i] < 0x10) {
+      Serial.print("0");
+    }
+    Serial.print(buffer[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
+}
 
 void setup()
 {
@@ -17,13 +30,13 @@ void setup()
   config.freq_lo = 50000;
   config.freq_hi = 55000;
   config.freq_sample = 200000;
-  config.freq_bit = 10;
-  config.freq_sync_bit = 2;
+  config.freq_bit = 100;
+  config.freq_sync_bit = 20;
   config.sdft_N = 500;
   config.sdft_r = 0.99;
   config.max_payload_length = 16;
 
-  config.fast_bit_coeff = 0.01;
+  config.fast_bit_coeff = 0.0; // not used
   config.slow_bit_coeff = 0.001;
   config.edge_threshold = -0.5;
 
@@ -46,23 +59,30 @@ void loop()
   //   char t = Serial.read();
   // }
 
-  tx_frame.payload_length = 1;
+  #ifdef TX_MODE
+  tx_frame.payload_length = 4;
+  // tx_frame.payload[0] = 0xFF;
   ++tx_frame.payload[0];
-  // memcpy(tx_frame.payload, &line[1], sizeof(line) - 1);
-
-  tx_frame.update_checksum();
+  tx_frame.payload[1] = 0x42;
+  tx_frame.payload[2] = 0x42;
+  tx_frame.payload[3] = 0x43;
 
   tx::transmit(&tx_frame);
 
-  Serial.println("done tx, start receive");
+  delay(100);
+  #endif
 
-  bool received = rx::receive(&rx_frame, 30 * ONE_S_IN_NS);
-
+  #ifdef RX_MODE
+  // Serial.println("Receiving");
+  volatile bool received = rx::receive(&rx_frame, 30 * ONE_S_IN_NS);
+  // Serial.println("receive finished");
+  Serial.println(rx_frame.payload_length);
   if (rx_frame.check_checksum() && received)
   {
-    Serial.println("Received message!");
-    Serial.write(rx_frame.payload_length);
-    Serial.write(rx_frame.payload, rx_frame.payload_length);
-    Serial.print('\r\n');
+    // Serial.println("Received message!");
+    Serial.print(rx_frame.payload_length);
+    Serial.print("   |   ");
+    printBuffer(rx_frame.payload, rx_frame.payload_length);
   }
+  #endif
 }

@@ -4,7 +4,6 @@
 
 #define PIN_TX 3
 #define PIN_TX_EN 2
-#define PIN_TX_LOGIC 40
 
 static Config *config;
 
@@ -42,7 +41,6 @@ void tx::setup(Config *new_config)
 
     pinMode(PIN_TX, OUTPUT);
     pinMode(PIN_TX_EN, OUTPUT);
-    pinMode(PIN_TX_LOGIC, OUTPUT);
 }
 
 void tx::transmit(Frame *frame)
@@ -55,7 +53,7 @@ void tx::transmit(Frame *frame)
     frame->update_checksum();
 
     buf[0] = frame->payload_length;
-    memcpy(buf+1, frame->payload, frame->payload_length);
+    memcpy(buf, frame->payload, frame->payload_length);
     buf[frame->payload_length + 1] = frame->checksum;
 
     buf_length = frame->payload_length + FRAME_META_LENGTH;
@@ -83,12 +81,8 @@ static void transmit_sync()
     while (transmitting_sync)
         ;
 
-    digitalWriteFast(PIN_TX_LOGIC, HIGH);
-    delayMicroseconds(100);
-    digitalWriteFast(PIN_TX_LOGIC, LOW);
-
-    // digitalWriteFast(PIN_TX_EN, LOW);
-    // digitalWriteFast(PIN_TX, LOW);
+    digitalWriteFast(PIN_TX_EN, LOW);
+    digitalWriteFast(PIN_TX, LOW);
 }
 
 static void transmit_buf()
@@ -96,16 +90,16 @@ static void transmit_buf()
     transmitting_buf = true;
     buf_bit_index = 0;
 
-    // digitalWriteFast(PIN_TX_EN, HIGH);
-    // digitalWriteFast(PIN_TX, LOW);
+    digitalWriteFast(PIN_TX_EN, HIGH);
+    digitalWriteFast(PIN_TX, LOW);
 
-    // carrier_timer.begin(handle_carrier_timer, config->half_period_hi_ns(), false);
+    carrier_timer.begin(handle_carrier_timer, config->half_period_hi_ns(), false);
     bit_timer.begin(handle_buf_bit_timer, config->period_bit_ns());
-
     handle_buf_bit_timer();
 
     while (transmitting_buf)
-        ;
+    {
+    }
 
     digitalWriteFast(PIN_TX_EN, LOW);
     digitalWriteFast(PIN_TX, LOW);
@@ -123,7 +117,7 @@ static void handle_buf_bit_timer()
         carrier_timer.stop();
         bit_timer.stop();
         transmitting_buf = false;
-        digitalWriteFast(PIN_TX_LOGIC, LOW);
+        Serial.println("done tx");
         return;
     }
 
@@ -131,8 +125,6 @@ static void handle_buf_bit_timer()
     bool bit = byte & (1 << (buf_bit_index % 8));
 
     std::chrono::nanoseconds period = bit ? config->half_period_hi_ns() : config->half_period_lo_ns();
-    
-    digitalWriteFast(PIN_TX_LOGIC, bit ? HIGH : LOW);
 
     carrier_timer.setPeriod(period);
 
@@ -149,20 +141,18 @@ static void handle_sync_bit_timer()
     if (sync_bit_index == 0)
     {
         carrier_timer.setPeriod(config->half_period_hi_ns());
-        digitalWriteFast(PIN_TX_LOGIC, HIGH);
         carrier_timer.start();
     }
     else if (sync_bit_index == 1)
     {
         carrier_timer.setPeriod(config->half_period_lo_ns());
-        digitalWriteFast(PIN_TX_LOGIC, LOW);
     }
     else
     {
-        // carrier_timer.stop();
+        carrier_timer.stop();
         bit_timer.stop();
         transmitting_sync = false;
-        // Serial.println("done sync");
+        Serial.println("done sync");
     }
 
     ++sync_bit_index;
