@@ -21,7 +21,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
     packages=['depth_sensor', 'thrusters', 'battery', 'sonar', 'xsens_imu_sync', 'teledyne_dvl', 'arduino', 'oakd',
-              'modem'],
+              'modem', 'pinger_localizer'],
     package_dir={'': 'src'},
     requires=['rospy'],
     scripts=['scripts/depth_sensor',
@@ -32,7 +32,9 @@ setup_args = generate_distutils_setup(
              'scripts/teledyne_dvl',
              'scripts/arduino',
              'scripts/oakd',
-             'scripts/modem']
+             'scripts/pinger_localizer',
+             'scripts/modem'
+             ]
 )
 
 setup(**setup_args)

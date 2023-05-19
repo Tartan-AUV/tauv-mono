@@ -75,7 +75,7 @@ class OAKDNode:
         self._device = None
         while self._device is None and not rospy.is_shutdown():
             try:
-                device_info = depthai.DeviceInfo(self._ip)
+                device_info = depthai.DeviceInfo(self._id)
 
                 self._device = depthai.Device(self._pipeline, device_info)
             except Exception as e:
@@ -88,7 +88,7 @@ class OAKDNode:
         self._depth_info.distortion_model = 'rational_polynomial'
         self._depth_info.D = np.array(self._calibration.getDistortionCoefficients(depthai.CameraBoardSocket.LEFT))
         self._color_info = CameraInfo()
-        self._color_info.K = np.ndarray.flatten(np.array(self._calibration.getCameraIntrinsics(depthai.CameraBoardSocket.RGB)))
+        self._color_info.K = np.ndarray.flatten(np.array(self._calibration.getCameraIntrinsics(depthai.CameraBoardSocket.RGB, resizeWidth=1280, resizeHeight=720)))
         self._color_info.distortion_model = 'rational_polynomial'
         self._color_info.D = np.array(self._calibration.getDistortionCoefficients(depthai.CameraBoardSocket.RGB))
 
@@ -138,7 +138,7 @@ class OAKDNode:
     def _load_config(self):
         self._tf_namespace = rospy.get_param('tf_namespace')
         self._frame = rospy.get_param('~frame')
-        self._ip = rospy.get_param('~ip')
+        self._id = rospy.get_param('~id')
         self._fps = 10
         self._queue_size = 10
 

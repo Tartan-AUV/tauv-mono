@@ -11,15 +11,15 @@
           output="screen"
     >
         <param name="frame" value="oakd_front" />
-        <param name="ip" value="10.0.0.12" />
+        <param name="id" value="10.0.0.12" />
     </node>
 
-<!--    <node pkg="tauv_vehicle"-->
-<!--          type="oakd"-->
-<!--          name="oakd_bottom"-->
-<!--          output="screen"-->
-<!--    >-->
-<!--        <param name="frame" value="oakd_bottom" />-->
-<!--        <param name="ip" value="10.0.0.13" />-->
-<!--    </node>-->
+    <node pkg="tauv_vehicle"
+          type="oakd"
+          name="oakd_bottom"
+          output="screen"
+    >
+        <param name="frame" value="oakd_bottom" />
+        <param name="id" value="10.0.0.13" />
+    </node>
 </launch>

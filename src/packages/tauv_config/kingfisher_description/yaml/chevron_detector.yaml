@@ -9,5 +9,5 @@ border_mask_width: 10
 contour_approximation_factor: 0.02
 angle_threshold: 0.1
 depth_window_size: 200
-table_depth: 2.7
+table_depth: 2.5
 estimate_table_depth: false

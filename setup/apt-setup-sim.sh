@@ -4,5 +4,6 @@ sudo apt update && sudo apt install -y \
     ros-noetic-gazebo-plugins \
     protobuf-compiler \
     protobuf-c-compiler \
-    libignition-rendering3
+    libignition-rendering3 \
+
 

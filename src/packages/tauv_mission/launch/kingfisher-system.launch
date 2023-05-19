@@ -51,6 +51,6 @@
 
     <!-- Start the vision system: -->
     <!-- Launch mission system -->
-    <!-- <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
+<!--     <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
   </group>
 </launch>

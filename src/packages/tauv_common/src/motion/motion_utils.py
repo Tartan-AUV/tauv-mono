@@ -18,7 +18,7 @@ import numpy as np
 from geometry_msgs.msg import PoseArray, Pose, PoseStamped, Twist, Quaternion, Vector3
 from tauv_msgs.srv import GetTrajectory, GetTrajectoryRequest, GetTrajectoryResponse
 from std_srvs.srv import SetBool, SetBoolRequest, Trigger
-from tauv_util.transforms import twist_body_to_world
+from tauv_util.transforms import twist_body_to_world, quat_to_rpy
 from nav_msgs.msg import Path, Odometry as OdometryMsg
 from motion.trajectories import Trajectory, TrajectoryStatus
 from tauv_util.types import tl, tm
@@ -68,6 +68,9 @@ class MotionUtils:
 
     def get_position(self):
         return np.array([self.pose.position.x, self.pose.position.y, self.pose.position.z])
+
+    def get_orientation(self):
+        return quat_to_rpy(self.pose.orientation)
 
     def get_motion_status(self):
         if self.traj is None:
@@ -143,6 +146,9 @@ class MotionUtils:
         self.set_trajectory(newtraj)
         while self.get_motion_status().value < block.value:
             rospy.sleep(0.1)
+
+    def reset(self):
+        self.traj = None
 
     def get_target(self) -> typing.Tuple[Pose, Twist]:
         if self.get_motion_status() == TrajectoryStatus.PENDING:

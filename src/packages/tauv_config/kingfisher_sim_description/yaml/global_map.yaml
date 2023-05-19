@@ -20,6 +20,10 @@ tracker_params: {
   phone: {
     mahalanobis_threshold: 5,
     expected_count: 1
+  },
+  chevron: {
+    mahalanobis_threshold: 5,
+    expected_count: 1
   }
 }
 

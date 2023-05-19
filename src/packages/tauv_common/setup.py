@@ -42,7 +42,8 @@ setup_args = generate_distutils_setup(
               'tauv_alarms',
               'tauv_util',
               'motion',
-              'tauv_messages'],
+              'tauv_messages',
+              'albatross_state_estimation'],
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
@@ -63,7 +64,8 @@ setup_args = generate_distutils_setup(
              'scripts/watchdogs',
              'scripts/darknet_transformer',
              'scripts/bucket_to_tf',
-             'scripts/shape_detector'],
+             'scripts/shape_detector',
+             'scripts/albatross_state_estimation'],
 
 )
 setup(**setup_args)
