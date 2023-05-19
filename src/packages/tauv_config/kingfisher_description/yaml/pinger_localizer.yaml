@@ -1,0 +1,20 @@
+channel_mappings: [2, 0, 3, 1]
+interpolation_factor: 1
+channel_positions:
+    - [0.006, 0.006, 0.0]
+    - [0.006, -0.006, 0.012]
+    - [-0.006, -0.006, 0.0]
+    - [-0.006, 0.006, 0.012]
+max_delay: 2.5e-5
+min_ping_frequency: 10.0e+3
+max_ping_frequency: 50.0e+3
+frontend:
+    gain_pins: [17, 27, 22]
+backend:
+    sample_frequency: 1.0e+6
+    sample_size: 1.0e+3
+    timeout: 1.0
+    source_id: '104473b62007000d1a00080047cfc5979a'
+    sink_id: '104473b6200700061b002600ef4bc52a58'
+    source_trig_level: 2.0
+    sink_trig_level: 0.5
