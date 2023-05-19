@@ -13,7 +13,7 @@
 
   <!-- ROS and network parameter files -->
   <arg name="ros_param_file"             default="$(arg config_pkg)/darknet_config/ros.yaml"/>
-  <arg name="network_param_file"         default="$(arg config_pkg)/darknet_config/yolov3-tiny.yaml"/>
+  <arg name="network_param_file"         default="$(arg config_pkg)/darknet_config/yolov4.yaml"/>
 
   <!-- Load parameters -->
   <rosparam command="load" ns="darknet_ros" file="$(arg ros_param_file)"/>

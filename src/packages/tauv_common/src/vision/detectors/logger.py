@@ -29,6 +29,9 @@ def getColor(tag, trans=False):
     if (tag == "circle"):
         color = [0, 1, 1, 1]
 
+    if (tag == "chevron"):
+        color = [0, 0.5, 1, 1]
+
     if(not trans):
         color[3] = 0.75
 
@@ -129,6 +132,7 @@ class Logger():
         buckets3 = self.find("notebook").detections
         buckets4 = self.find("gate").detections
         buckets5 = self.find("circle").detections
+        buckets6 = self.find("chevron").detections
 
         markers = []
         for ind in range(len(buckets1)):
@@ -151,6 +155,10 @@ class Logger():
             det = buckets5[ind]
             markers.append(makeCircleMarker(ind+len(buckets1)+len(buckets2)+len(buckets3)+len(buckets4), det))
 
+        for ind in range(len(buckets6)):
+            det = buckets6[ind]
+            markers.append(makeCircleMarker(ind+len(buckets1)+len(buckets2)+len(buckets3)+len(buckets4)+len(buckets5), det))
+
         OBJ = MarkerArray()
         OBJ.markers = markers
 
@@ -160,7 +168,7 @@ class Logger():
         detections = objects.detections
         markers = []
         for detection in detections:
-            markers.append(makeMarker(detection.tag, self.ind, detection, getColor(detection.tag, True)))
+            markers.append(makeMarker(detection.tag, self.ind, detection, getColor(detection.tag, True), scale=0.05))
             self.ind += 1
 
         markersPub = MarkerArray()
