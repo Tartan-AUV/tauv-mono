@@ -20,6 +20,6 @@
         output="screen"
   >
     <param name="frame" value="oakd_front" />
-    <param name="ip" value="" />
+    <param name="id" value="" />
   </node>
 </launch>

@@ -37,12 +37,11 @@
     <!-- =======================  -->
 
     <!-- Launch the alarm server:  -->
+    <node pkg="tauv_common" type="controller" name="controller" output="screen">
+      <rosparam command="load" file="$(arg config_pkg)/yaml/controller.yaml" />
+    </node>
 
-<!--    <node pkg="tauv_common" type="controller" name="controller" output="screen">-->
-<!--      <rosparam command="load" file="$(arg config_pkg)/yaml/controller.yaml" />-->
-<!--    </node>-->
-
-    <node pkg="tauv_common" type="acoustic_state_estimation" name="acoustic_state_estimation" output="screen">
+    <node pkg="tauv_common" type="albatross_state_estimation" name="albatross_state_estimation" output="screen">
     </node>
 
     <node pkg="tauv_common" type="thruster_manager" name="thruster_manager" output="screen">
@@ -60,19 +59,6 @@
       </node>
     </group>
 
-<!--     Launch the message printer -->
-<!--    <node pkg="tauv_common" type="message_printer" name="message_printer" output="log"/>-->
-
-<!--    &lt;!&ndash; Start the GNC system: &ndash;&gt;-->
-<!--    <include file="$(find tauv_common)/launch/gnc/gnc.launch">-->
-<!--      <arg name="model_name" value="$(arg model_name)"/>-->
-<!--      <arg name="teleop" value="$(arg teleop)" />-->
-<!--    </include>-->
-
-<!--    <include file="$(find tauv_common)/launch/vision/vision.launch"/>-->
-
-    <!-- Start the vision system: -->
-    <!-- Launch mission system -->
-    <!-- <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
+    <node pkg="tauv_common" type="message_printer" name="message_printer" output="log"/>
   </group>
 </launch>
