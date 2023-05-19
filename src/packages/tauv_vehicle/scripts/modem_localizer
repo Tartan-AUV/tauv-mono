@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from modem_localizer import modem_localizer
+
+if __name__ == "__main__":
+    modem_localizer.main()

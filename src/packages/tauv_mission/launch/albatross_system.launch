@@ -59,6 +59,10 @@
       </node>
     </group>
 
+    <node pkg="tauv_vehicle" type="modem_localizer" name="modem_localizer" output="screen">
+      <rosparam command="load" file="$(arg config_pkg)/yaml/modem_localizer.yaml" />
+    </node>
+
     <node pkg="tauv_common" type="message_printer" name="message_printer" output="log"/>
   </group>
 </launch>

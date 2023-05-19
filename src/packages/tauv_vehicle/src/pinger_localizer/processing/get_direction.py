@@ -4,7 +4,8 @@ from math import atan2, sqrt
 def get_direction(delays, positions):
     relative_positions = positions[1:, :] - positions[0, :]
 
-    direction = np.linalg.inv(relative_positions) @ delays
+    # direction = np.linalg.inv(relative_positions) @ delays
+    direction = np.linalg.lstsq(relative_positions, delays)[0]
 
     direction = direction / np.linalg.norm(direction)
 

@@ -1,0 +1,10 @@
+update_frequency: 50
+port: /dev/zybo
+baud: 115200
+max_delay: 0.000287
+stamp_frequency: 100000000
+positions:
+  - [0.1525, 0.1525, 0]
+  - [0.1525, -0.1525, 0]
+  - [-0.1525, -0.1525, 0]
+  - [-0.1525, 0.1525, 0]
