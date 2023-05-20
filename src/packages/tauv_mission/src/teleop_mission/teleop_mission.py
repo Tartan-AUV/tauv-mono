@@ -49,14 +49,18 @@ class TeleopMission:
         self._suction_servo_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/5/target_position', Float64, queue_size=10)
 
         self._goto_circle_timer: rospy.Timer = None
+        self._last_circle_position = None
+        self._goto_circle_args = None
         self._goto_circle_v = 0.1
         self._goto_circle_a = 0.1
         self._goto_circle_j = 0.4
+        self._goto_circle_state = None
 
         self._find_srv = rospy.ServiceProxy("global_map/find", MapFind)
         self._find_closest_srv = rospy.ServiceProxy("global_map/find_closest", MapFindClosest)
         self._map_reset_srv = rospy.ServiceProxy("global_map/reset", Trigger)
 
+        self._pick_chevron_args = None
         self._pick_chevron_timer = None
         self._last_chevron_position = None
 
@@ -282,55 +286,85 @@ class TeleopMission:
         self._goto_circle_a = a
         self._goto_circle_j = j
 
-        self._goto_circle_timer = rospy.Timer(rospy.Duration(5.0), self._update_goto_circle)
+        self._goto_circle_args = args
+
+        self._last_circle_position = None
+
+        if self._goto_circle_timer is not None:
+            self._goto_circle_timer.shutdown()
+
+        self._goto_circle_state = 0
+
+        self._motion.reset()
+
+        self._goto_circle_timer = rospy.Timer(rospy.Duration(0.1), self._update_goto_circle)
 
     def _handle_stop_goto_circle(self, args):
         if self._goto_circle_timer is not None:
             self._goto_circle_timer.shutdown()
 
     def _update_goto_circle(self, timer_event):
-        req = MapFindRequest()
-        req.tag = 'circle'
-        # detections, success = self._find_srv.call()
-        resp = self._find_srv.call(req)
+        args = self._goto_circle_args
 
-        if not resp.success or len(resp.detections) == 0:
+        sub_position = self._motion.get_position()
+        sub_yaw = self._motion.get_orientation()[2]
+
+        req = MapFindClosestRequest()
+        req.tag = 'circle'
+
+        if self._last_circle_position is None:
+            req.point = Point(sub_position[0], sub_position[1], sub_position[2])
+        else:
+            req.point = Point(self._last_circle_position[0], self._last_circle_position[1], self._last_circle_position[2])
+        # detections, success = self._find_srv.call()
+        resp = self._find_closest_srv.call(req)
+
+        if not resp.success:
             print('no circle')
             return
 
-        detection = resp.detections[0]
+        detection = resp.detection
 
         # Use detection
         circle_position = np.array([detection.position.x, detection.position.y, detection.position.z])
-        sub_position = self._motion.get_position()
+        circle_yaw = detection.orientation.z
 
-        delta_position = circle_position - sub_position
-        circle_yaw = atan2(delta_position[1], delta_position[0])
-
-        # self._motion.goto(
-        #     (sub_position[0], sub_position[1], sub_position[2]),
-        #     circle_yaw,
-        #     v=self._goto_circle_v,
-        #     a=self._goto_circle_a,
-        #     j=self._goto_circle_j,
-        #     block=TrajectoryStatus.FINISHED
-        # )
-
-        target_position = circle_position + np.array([
-            -0.7 * cos(circle_yaw),
-            -0.7 * sin(circle_yaw),
-            0.2
+        approach_offset = -np.array([
+            args.ax, args.ay, args.az
         ])
-        target_yaw = circle_yaw
 
-        self._motion.goto(
-            (target_position[0], target_position[1], target_position[2]),
-            target_yaw,
-            v=self._goto_circle_v,
-            a=self._goto_circle_a,
-            j=self._goto_circle_j,
-            block=TrajectoryStatus.EXECUTING
-        )
+        shoot_offset = -np.array([
+            args.bx, args.by, args.bz
+        ])
+
+        approach_yaw = atan2(circle_position[1] - sub_position[1], circle_position[0] - sub_position[0])
+
+        approach_position = circle_position + np.array([
+            approach_offset[0] * cos(approach_yaw) + approach_offset[1] * -sin(approach_yaw),
+            approach_offset[0] * sin(approach_yaw) + approach_offset[1] * cos(approach_yaw),
+            approach_offset[2]
+        ])
+
+        shoot_position = circle_position + np.array([
+            shoot_offset[0] * cos(circle_yaw) + shoot_offset[1] * -sin(circle_yaw),
+            shoot_offset[0] * sin(circle_yaw) + shoot_offset[1] * cos(circle_yaw),
+            shoot_offset[2]
+        ])
+
+        shoot_decay_position = sub_position + 0.1 * circle_position - sub_position
+
+        if self._goto_circle_state == 0 and np.linalg.norm(sub_position - approach_position) < 0.05:
+            self._goto_circle_state = 1
+
+        if self._goto_circle_state == 1 and np.linalg.norm(sub_position - shoot_position) < 0.05:
+            rospy.sleep(1.0)
+            self._motion.shoot_torpedo(0)
+
+        if self._goto_circle_state == 0:
+            self._motion.goto(approach_position, approach_yaw, v=self._goto_circle_v, a=self._goto_circle_a, j=self._goto_circle_j, block=TrajectoryStatus.EXECUTING)
+
+        if self._goto_circle_state == 1:
+            self._motion.goto(shoot_position, approach_yaw, v=self._goto_circle_v, a=self._goto_circle_a, j=self._goto_circle_j, block=TrajectoryStatus.EXECUTING)
 
     def _handle_pick_chevron(self, args):
         v = args.v if args.v is not None else .1
@@ -426,16 +460,18 @@ class TeleopMission:
     def _handle_shoot_torpedo(self, args):
         print(f'shoot torpedo {args.torpedo}')
 
-        if args.torpedo == 0:
-            self._torpedo_servo_pub.publish(90)
-            rospy.sleep(1.0)
-            self._torpedo_servo_pub.publish(0)
-        elif args.torpedo == 1:
-            self._torpedo_servo_pub.publish(-90)
-            rospy.sleep(1.0)
-            self._torpedo_servo_pub.publish(0)
-        else:
-            self._torpedo_servo_pub.publish(0)
+        self._motion.shoot_torpedo(args.torpedo)
+
+        # if args.torpedo == 0:
+        #     self._torpedo_servo_pub.publish(90)
+        #     rospy.sleep(1.0)
+        #     self._torpedo_servo_pub.publish(0)
+        # elif args.torpedo == 1:
+        #     self._torpedo_servo_pub.publish(-90)
+        #     rospy.sleep(1.0)
+        #     self._torpedo_servo_pub.publish(0)
+        # else:
+        #     self._torpedo_servo_pub.publish(0)
 
     def _handle_move_arm(self, args):
         print(f'move arm {args.position}')
@@ -586,6 +622,12 @@ class TeleopMission:
         goto_circle.add_argument('--v', type=float)
         goto_circle.add_argument('--a', type=float)
         goto_circle.add_argument('--j', type=float)
+        goto_circle.add_argument('--ax', type=float)
+        goto_circle.add_argument('--ay', type=float)
+        goto_circle.add_argument('--az', type=float)
+        goto_circle.add_argument('--bx', type=float)
+        goto_circle.add_argument('--by', type=float)
+        goto_circle.add_argument('--bz', type=float)
         goto_circle.set_defaults(func=self._handle_goto_circle)
 
         stop_goto_circle = subparsers.add_parser('stop_goto_circle')

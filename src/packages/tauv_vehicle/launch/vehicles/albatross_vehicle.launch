@@ -21,5 +21,6 @@
   >
     <param name="frame" value="oakd_front" />
     <param name="id" value="" />
+    <param name="postprocess_depth" value="false" />
   </node>
 </launch>

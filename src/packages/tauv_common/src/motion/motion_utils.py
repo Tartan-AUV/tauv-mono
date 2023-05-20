@@ -27,6 +27,7 @@ from motion.trajectories.fixed_linear_trajectory import LinearTrajectory
 import typing
 from tauv_msgs.msg import TrajPoint
 from tauv_msgs.srv import SetPose, SetPoseRequest, SetPoseResponse
+from std_msgs.msg import Float64
 from motion.trajectories.pyscurve.pyscurve.trajectory import PlanningError
 from motion.trajectories.hold_pos import HoldPos
 
@@ -48,6 +49,8 @@ class MotionUtils:
         self._path_pub = rospy.Publisher('gnc/path', Path, queue_size=10)
         self._target_pub = rospy.Publisher("gnc/traj_target", TrajPoint, queue_size=10)
         self._target_pose_stamped_pub = rospy.Publisher("gnc/traj_target_pose_stamped", PoseStamped, queue_size=10)
+
+        self._torpedo_pub = rospy.Publisher('vehicle/servos/0/target_position', Float64, queue_size=10)
 
         self._odom_sub = rospy.Subscriber('gnc/odom', OdometryMsg, self._handle_odom)
         while not self.initialized:
@@ -199,3 +202,16 @@ class MotionUtils:
         self.pose = msg.pose.pose
         self.twist = twist_body_to_world(msg.pose.pose, msg.twist.twist)
         self.initialized = True
+
+    def shoot_torpedo(self, torpedo: int):
+        if torpedo not in [0, 1]:
+            raise ValueError(f'Invalid torpedo: {torpedo}')
+
+        if torpedo == 0:
+            self._torpedo_pub.publish(-90)
+            rospy.sleep(1.0)
+            self._torpedo_pub.publish(0)
+        elif torpedo == 1:
+            self._torpedo_pub.publish(90)
+            rospy.sleep(1.0)
+            self._torpedo_pub.publish(0)
