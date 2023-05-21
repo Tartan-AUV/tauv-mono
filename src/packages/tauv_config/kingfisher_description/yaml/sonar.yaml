@@ -1,0 +1,30 @@
+device: {
+  frequency: 100,
+
+  #port: /dev/ping360_sonar
+  port: /dev/ttyUSB0,
+  baudrate: 2000000,
+
+  gain: 0,
+  transmit_duration: 32,
+  range: 10,
+  transmit_frequency: 740,
+  num_samples: 200,
+
+  sonar_link: sonar_link,
+  ignore_radius: 15
+}
+map: {
+  degrees: 400,
+  global_range: 21.0,
+  map_dimension: 500,
+
+  residue_factor: 0.75, #some averaging factor <1 for retaining old signals
+  confidence_increment: 0.25, #strengthens new detections
+
+  #image processing
+  blur_sigma: 3,
+  filter_thresh: 40,
+  closing_size: 5,
+  min_object_size: 150
+}

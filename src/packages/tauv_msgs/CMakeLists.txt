@@ -33,6 +33,7 @@ add_message_files(
 add_service_files(
   FILES
   MapFind.srv
+  FeatureDetectionsSync.srv
   MapFindClosest.srv
   SyncAlarms.srv
   TuneDynamics.srv
@@ -41,6 +42,7 @@ add_service_files(
   SetTargetPose.srv
   SetPose.srv
   RunBasicMission.srv
+  SonarControl.srv
 )
 
 

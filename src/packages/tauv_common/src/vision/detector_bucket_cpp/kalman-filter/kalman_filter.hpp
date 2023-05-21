@@ -16,9 +16,13 @@ class KalmanFilter
     public:
         KalmanFilter(string tag, Eigen::VectorXd initial_estimate);
         virtual ~KalmanFilter(){};
-        virtual void updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk); //state dependent
-        virtual void updateEstimate(Eigen::VectorXd zk); //state independent
+
+        virtual void updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk, double confidence = 1.0); //state dependent
+        virtual void updateEstimate(Eigen::VectorXd zk, double confidence = 1.0); //state independent
+        double getEstimateConfidence(double confidence);
+
         Eigen::VectorXd getEstimate();
+        double getConfidence();
         
         void reset(Eigen::VectorXd zk);
         
@@ -34,8 +38,9 @@ class KalmanFilter
 
     private:
         string tag;
+        double max_confidence;
         Eigen::MatrixXd getParam(string property);
-        void makeUpdates(Eigen::VectorXd newEstimate, Eigen::VectorXd zk);
+        void makeUpdates(Eigen::VectorXd newEstimate, Eigen::VectorXd zk, double confidence);
 };
 
 /**
@@ -46,6 +51,6 @@ class ConstantKalmanFilter : public KalmanFilter
 {
     public:
         ConstantKalmanFilter(string tag, Eigen::VectorXd initial_estimate);
-        void updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk);
-        void updateEstimate(Eigen::VectorXd zk);
+        void updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk, double confidence = 1.0);
+        void updateEstimate(Eigen::VectorXd zk, double confidence = 1.0);
 };

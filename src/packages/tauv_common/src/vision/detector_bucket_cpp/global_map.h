@@ -3,8 +3,10 @@
 #include <tauv_msgs/FeatureDetection.h>
 #include <tauv_msgs/FeatureDetections.h>
 #include <std_srvs/Trigger.h>
+#include <tauv_msgs/FeatureDetectionsSync.h>
 #include <tauv_msgs/MapFind.h>
 #include <tauv_msgs/MapFindClosest.h>
+#include <tauv_msgs/MapFindOne.h>
 #include <unordered_map>
 #include <string>
 #include <utility>
@@ -33,6 +35,10 @@ struct FeatureDetection {
     Eigen::Vector3d position;
     Eigen::Vector3d orientation;
     string tag;
+    /**
+     * Survey detections are detections whose tag is unknown. These will match with any tracker
+    **/
+    bool survey_point;
 };
 
 //struct conversion helper functions
@@ -46,7 +52,8 @@ geometry_msgs::Point vec_to_point(Eigen::Vector3d vec);
  **/
 enum TrackerState {
     ACTIVE = 0,
-    ZOMBIE = 1 //(retired)
+    ZOMBIE = 1, //retired
+    POTENTIAL_ZOMBIE = 2 //tracker has gone over min decay time and no longer is obligated to be present 
 };
 
 /**
@@ -57,17 +64,21 @@ enum TrackerState {
 class Feature
 {
     public:
-        Feature(FeatureDetection &initial_detection);
+        Feature(FeatureDetection &initial_detection, double min_decay_time, ros::NodeHandle& handler);
 
         //convenience functions, coordinates need retrieval from Kalman filter
         Eigen::Vector3d getPosition();
         Eigen::Vector3d getOrientation();
 
+        //accomodation functions for survey detections
+        static bool isSurveyDet(FeatureDetection& detection) {return detection.survey_point;};
+        static double getSurveyRotation (FeatureDetection& detection) {return 0;};
+        double getSurveyDistance (FeatureDetection& detection);
+
         double getDistance(FeatureDetection &det);
         double getRotation(FeatureDetection& detection);
-        bool diffTag(FeatureDetection &det);
 
-        void addDetection(FeatureDetection &detection);
+        void addDetection(FeatureDetection &detection, double new_decay_time);
         size_t getNumDetections();
 
         double getRecency();
@@ -79,7 +90,8 @@ class Feature
          * same as deleting and making a new tracker but slightly more efficient with regards to FeatureTracker that owns the Feature
         **/
         void reset();
-        void reinit(FeatureDetection &initial_detection);
+        void reinit(FeatureDetection &initial_detection, double min_decay_time);
+        void setPotentialZombie(const ros::TimerEvent& event);
 
         TrackerState State;
         
@@ -91,9 +103,11 @@ class Feature
         unique_ptr<ConstantKalmanFilter> kPosition;
         unique_ptr<ConstantKalmanFilter> kOrientation;
 
-        string tag;
         size_t numDetections;
         double recency;
+
+        ros::Timer decayTimer; //tracks elapsed time between detections and creates a potential zombie if overtime
+        ros::NodeHandle nodeHandler;
 };
 
 
@@ -111,7 +125,7 @@ class Feature
 class FeatureTracker : public enable_shared_from_this<FeatureTracker>
 {
     public:
-        FeatureTracker(FeatureDetection &initial_detection);
+        FeatureTracker(FeatureDetection &initial_detection, ros::NodeHandle& handler);
 
         //for interfacing with Features
         void addDetection(FeatureDetection &detection, int featureIdx);
@@ -123,6 +137,7 @@ class FeatureTracker : public enable_shared_from_this<FeatureTracker>
         * Global Map commands updates to Feature List only prior to assignment and matching.
         **/
         void deleteFeature(int featureIdx);
+        double getDecay(shared_ptr<Feature> F, int totalDetections);
         double decay(int featureIdx, int totalDetections);
         //for deleting Features when there are too many Zombies
         void makeUpdates();
@@ -135,6 +150,17 @@ class FeatureTracker : public enable_shared_from_this<FeatureTracker>
         vector<shared_ptr<Feature>> getFeatures();
         size_t getNumFeatures();
 
+        //make private
+        string tag;
+
+        /**
+         * Survey trackers never match with non-survey points so that corresponding non-survey points generate a new, dominating concrete
+         * tracker once the object has been "surveyed" by a concrete detection device. 
+         * Survey trackers are given a survey bias that makes matching with potential survey points more difficult than for concrete trackers,
+         * encouraging the decay of survey trackers after a corresponding concrete tracker has been discovered.
+        **/
+        bool survey_point; //will match with only other survey points
+
     private:
         double getParam(string property, double def=0);
         double getSimilarityCost(shared_ptr<Feature> F, FeatureDetection &det);
@@ -142,6 +168,7 @@ class FeatureTracker : public enable_shared_from_this<FeatureTracker>
 
         double frequencyCalc(double frequency, double totalDet);
         double recencyCalc(double recency);
+        bool diffTag(FeatureDetection &det); //managed by FeatureTracker and not Feature since concerns tag matching
 
         int predictedFeatureNum;
         int numDetections;
@@ -150,6 +177,7 @@ class FeatureTracker : public enable_shared_from_this<FeatureTracker>
         double recency_weight;
         double frequency_weight;
         double DECAY_THRESHOLD;
+        double min_decay_time;
 
         //matching weights
         double mahalanobisThreshold;
@@ -159,14 +187,16 @@ class FeatureTracker : public enable_shared_from_this<FeatureTracker>
         double recency_matching_weight;
         double frequency_matching_weight;
         double oversaturation_penalty;
-        
-        string tag;
+        double tracker_bias;
+        double total_weight; //used to approximately normalize total weights between tracker types
 
         vector<shared_ptr<Feature>> FeatureList;
         priority_queue<size_t, vector<size_t>, std::greater<size_t>> Zombies;
 
         //new zombies in queue!!!
         bool needsUpdating;
+
+        ros::NodeHandle nodeHandler;
 };
 
 
@@ -181,14 +211,21 @@ class GlobalMap
     public:
         GlobalMap(ros::NodeHandle& handler);
 
-        void updateTrackers(const tauv_msgs::FeatureDetections::ConstPtr& detections);
+        void updateTrackersInterface(const tauv_msgs::FeatureDetections::ConstPtr& detectionObjects);
+        bool updateTrackers(vector<tauv_msgs::FeatureDetection> objdets);
         void addTracker(FeatureDetection &detection);
 
         //service callback functions
+        //returns all detections matching selected tag
         bool find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Response &res);
+        //returns the most recent/highest count object with a certain tag
+        bool findOne(tauv_msgs::MapFindOne::Request &req, tauv_msgs::MapFindOne::Response &res);
+        //returns the tracker closest to the passed point estimate with a matching tag
         bool findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::MapFindClosest::Response &res);
-        bool reset(std_srvs::Trigger::Request &req, 
-                                std_srvs::Trigger::Response &res);
+        bool reset(std_srvs::Trigger::Request &req, std_srvs::Trigger::Response &res);
+
+        //for synchronous interactions w map
+        bool syncAddDetections(tauv_msgs::FeatureDetectionsSync::Request &req, tauv_msgs::FeatureDetectionsSync::Response &res); 
 
     private:
         void assignDetections(vector<FeatureDetection> &detections);
@@ -200,8 +237,11 @@ class GlobalMap
 
         ros::Subscriber listener;
         ros::ServiceServer resetService;
+        ros::ServiceServer syncDetectionsService;
         ros::ServiceServer findService;
+        ros::ServiceServer findOneService;
         ros::ServiceServer findClosestService;
+        ros::NodeHandle nodeHandler;
         mutex mtx;
 
         size_t featureCount;

@@ -1,14 +1,16 @@
 tracker_params: {
   default: {
     mahalanobis_threshold: 10,
-    DECAY_THRESHOLD: 0.25, #in practice should probably be around .25 but ~.6 for testing
-    matching_weights: {
+    DECAY_THRESHOLD: 0.6, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
+    min_decay_time: 1, #lower limit on decay time, resets w every new detection (>=0 seconds)
+    tracker_bias: 0, #larger decreases the odds of matches w assigned tracker
+    matching_weights: { #these correspond to the impact of each characteristic distance on the similarity score between trackers
       tag_weight: 100,
       distance_weight: 1,
       orientation_weight: 0.2,
       recency_weight: 0.2,
       frequency_weight: 0.1,
-      oversaturation_penalty: 100
+      oversaturation_penalty: 5
     },
     recency_weight: 0.7,
     frequency_weight: 0.5,
@@ -18,8 +20,17 @@ tracker_params: {
     expected_count: 1
   },
   phone: {
-    mahalanobis_threshold: 5,
+    mahalanobis_threshold: 10,
     expected_count: 1
+  },
+  survey: {
+    mahalnobis_threshold: 1000,
+    min_decay_time: 1, #at least 30 seconds between sonar detections decay
+    matching_weights: {
+      tag_weight: 0,
+      distance_weight: 1,
+      frequency_weight: 5
+    }
   }
 }
 

@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+
+import rospy
+from tauv_msgs.msg import SonarPulse, FeatureDetection, FeatureDetections
+from tauv_msgs.srv import SonarControl, FeatureDetectionsSync
+from geometry_msgs.msg import Point
+import numpy as np
+from scipy.ndimage import gaussian_filter
+import skimage
+from tauv_util.transforms import tf2_transform_to_homogeneous
+import tf2_ros as tf2
+import cv2 as cv
+
+#for testing
+import matplotlib
+import matplotlib.pyplot as plt
+
+#rosparamify :p
+HEAT_MAP_DIM = rospy.get_param('sonar_map/map/map_dimension') 
+
+class SonarGraph:
+    def __init__(self):
+        rospy.init_node('sonar_map',anonymous=True)
+
+        self._load_config()
+   
+        x = rospy.wait_for_message("/sonar/pulse",SonarPulse)
+
+        self.cur_angle = x.angle
+        self.data_len = x.data_length
+
+        #map used for cluster processing
+        self.heat_map = np.zeros((HEAT_MAP_DIM, HEAT_MAP_DIM), dtype=np.uint8)
+        self.heat = np.zeros_like(self.heat_map)
+
+        self.global_origin = [self.global_range/2.0, self.global_range/2.0] #yx origin
+        self.square_size = self.global_range/HEAT_MAP_DIM
+
+        #self._tf_buffer: tf2.Buffer = tf2.Buffer()
+        #self._tf_listener: tf2.TransformListener = tf2.TransformListener(self._tf_buffer)
+
+        #for to-world transform operations
+        self.RELATIVE_POINT_MAP = np.linspace(0, self.range, num=self.num_distances, endpoint=True)
+        self.rot = np.zeros((3,3))
+        self.positions = np.empty((self.num_distances, 3, 4))
+        self.positions[:,:,3] = 1
+
+        #subscribes to driver publishings
+        self.pulse_reader = rospy.Subscriber("/sonar/pulse",SonarPulse, self.read)
+        self.survey_mode = True #change to false initially
+
+        #communicates directly w global map to create survey points
+        rospy.wait_for_service("/global_map/sync_detections")
+        self.global_map_com = rospy.ServiceProxy("/global_map/sync_detections", FeatureDetectionsSync)
+
+        #survey/start/stop/reset service for mission communications
+        self.serve = rospy.Service("/sonar/map/", SonarControl, self.handle_sig)
+
+        print("setup")
+
+    def _load_config(self):
+        self.range = rospy.get_param('sonar_map/device/range')
+        self.gradians = rospy.get_param('sonar_map/map/degrees') #not rad OR degrees
+        self.num_distances=rospy.get_param('sonar_map/device/num_samples') 
+        self.global_range = rospy.get_param('sonar_map/map/global_range') 
+        self.residue_factor = rospy.get_param('sonar_map/map/residue_factor') 
+        self.confidence_increment = rospy.get_param('sonar_map/map/confidence_increment') 
+        self.ignore_radius = rospy.get_param('sonar_map/device/ignore_radius') 
+
+        #heat map processing
+        self.blur_sigma = rospy.get_param('sonar_map/map/blur_sigma')
+        self.filter_thresh = rospy.get_param('sonar_map/map/filter_thresh')
+        self.closing_size = rospy.get_param('sonar_map/map/closing_size')
+        self.min_object_size = rospy.get_param('sonar_map/map/min_object_size')
+
+        #self._tf_namespace: str = rospy.get_param('tf_namespace')
+        #self.line_of_sight = rospy.get_param('sonar_map/device/line_of_sight')
+
+    def handle_sig(self, req):
+        print("here!!")
+        if(req.op==0): #stop
+            self.survey_mode = False
+            return True
+        elif(req.op==1): #start
+            self.survey_mode = True
+            return True
+        elif(req.op==2): #survey
+            res = self.survey ()
+            return res
+        elif(req.op==3): #reset
+            return (self.reset ())
+        return False
+
+    #add reset service
+    def reset(self):
+        self.heat_map = np.zeros((HEAT_MAP_DIM, HEAT_MAP_DIM), dtype=np.uint8)
+        return True
+
+    def to_rad(self,angle):
+        return (angle/400.0)*2*np.pi
+
+    def get_map_square(self, point): #y x z
+        row = np.round((point[0]+self.global_origin[0])/self.square_size)
+        col = np.round((point[1]+self.global_origin[1])/self.square_size)
+        if(row>=0 and row<HEAT_MAP_DIM and col>=0 and col<HEAT_MAP_DIM):
+            return [(int)(row), (int)(col)]
+        return [~1, ~1] #make a better safeguard
+
+    def survey(self):
+        print("surveying")
+        #blur
+        processed = np.rint(gaussian_filter(self.heat_map, sigma = self.blur_sigma)).astype(np.uint8)
+
+        #filter
+        filtered = (processed>self.filter_thresh).astype(np.uint8)*255
+        connected = cv.morphologyEx(filtered, cv.MORPH_CLOSE, cv.getStructuringElement(cv.MORPH_RECT,(self.closing_size, self.closing_size)))
+
+        #connected = skimage.morphology.binary_closing(filtered,skimage.morphology.square(self.closing_size))
+        #filtered = skimage.morphology.remove_small_objects(connected, min_size=self.min_object_size, connectivity=4)
+
+        #cv.imshow("CCs", connected) WHY ISNT THIS WORKING?
+        #cv.waitKey(1)
+
+        #find contours
+        numDets, labels, stats, centroids = cv.connectedComponentsWithStats(connected)
+
+        #create a feature detections message to pass to map
+        detections = FeatureDetections()
+        detections.detector_tag = "sonar"
+        detections.detections = []
+        status = True
+
+        self.heat = np.copy(connected)
+
+        #img = np.empty_like(self.heat_map)
+
+        #add center point to buckets
+        for contour in range(numDets):
+            if(stats[contour,cv.CC_STAT_AREA]>self.min_object_size):
+                #add centroid translated by global origin to bucket
+                detection = FeatureDetection()
+                detection.position = Point(self.square_size*(centroids[contour][0] - self.global_origin[0]),self.square_size*(centroids[contour][1] - self.global_origin[1]),0)
+                detection.tag = "survey"
+                detection.survey_point = True
+
+                self.heat = cv.circle(self.heat, (np.round(centroids[contour][0]).astype(int), np.round(centroids[contour][1]).astype(int)), 10, 155, thickness=5)
+
+                #add all detections at once (sonar does clustering)
+                detections.detections.append(detection)
+
+                #OR
+
+                #add detections individually (leave it up to map to cluster)
+                #detections.detections = [detection]
+                #status = status and self.global_map_com(detections).success
+                
+                
+        status = self.global_map_com(detections).success #for sonar clustering
+
+        #cv.imshow("Rectangle", img) #idk why this shows binary, map is correct.
+
+        #cv.imshow("CCs", filtered.astype(np.uint8))
+        #cv.waitKey(500)
+        return status
+
+    def read(self, data):
+        if not self.survey_mode:
+            return
+
+        #transform data to world coordinates
+        coords = self.transform_to_world(self.to_rad(data.angle-1), self.to_rad(data.angle), self.to_rad(data.angle+1))
+        
+        #find map square of each coord
+        pts = np.apply_along_axis(self.get_map_square, 2, coords)
+
+        #fit hexagon to point trios to approximate sonar ray arc on new map
+        #can this silly guy be optimized
+        new_map = self.heat_map*(1-self.residue_factor)
+        for i in range(self.ignore_radius, self.data_len-1):
+            hex = np.concatenate((pts[i,:], pts[i+1,:]))
+            new_map = cv.fillPoly(new_map, [hex], data.data[i]*(1-self.residue_factor+self.confidence_increment))
+
+        self.heat_map = new_map+(self.heat_map*self.residue_factor)
+
+        show = cv.applyColorMap(np.round(self.heat).astype(np.uint8), cv.COLORMAP_JET)
+        cv.imshow("Colormap", show) #idk why this shows binary, map is correct.
+        cv.waitKey(1)
+
+        #print(np.rint(self.heat_map)[(int)(HEAT_MAP_DIM/2)][(int)(HEAT_MAP_DIM/2-5):(int)(HEAT_MAP_DIM/2+5)])
+        #self.survey()
+
+    def transform_to_world(self, low, mid, high):
+        #assuming northwards 0 degrees and NED
+        self.rot[:,0:2] = [[np.cos(low), -np.sin(low)],[np.cos(mid), -np.sin(mid)],[np.cos(high), -np.sin(high)]]
+        self.positions[:,:,0:3] = np.multiply.outer(self.RELATIVE_POINT_MAP,self.rot)
+        #print(self.positions)
+
+        #FIX
+        #world_frame = f'{self._tf_namespace}/vehicle' #change to world
+        #sonar_frame = f'{self._tf_namespace}/sonar'
+
+        try:
+            #transform = self._tf_buffer.lookup_transform(
+            #world_frame,
+            #sonar_frame,
+            #rospy.Time.now())
+
+            #H = tf2_transform_to_homogeneous(transform)
+            H = np.eye(4,4)
+
+            return ((np.matmul (self.positions, H))[:,:,0:3])
+
+        except (tf2.LookupException, tf2.ConnectivityException, tf2.ExtrapolationException) as e:
+            rospy.logwarn(f'Could not get transform from {world_frame} to {sonar_frame}: {e}')
+
+
+def sonar_listen():
+    s = SonarGraph()
+    rospy.spin()
+
+if __name__ == '__main__':
+    sonar_listen()

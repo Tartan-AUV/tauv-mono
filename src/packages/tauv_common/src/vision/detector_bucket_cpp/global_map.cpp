@@ -24,11 +24,13 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
     DUMMY_FILL=0;
     MAP = {};
 
-    listener = handler.subscribe("/register_object_detection", 100, &GlobalMap::updateTrackers, this);
+    listener = handler.subscribe("/feature_detections", 100, &GlobalMap::updateTrackersInterface, this);
     resetService = handler.advertiseService("/global_map/reset", &GlobalMap::reset, this);
     findService = handler.advertiseService("/global_map/find", &GlobalMap::find, this);
+    findOneService = handler.advertiseService("/global_map/find_one", &GlobalMap::findOne, this);
     findClosestService = handler.advertiseService("/global_map/find_closest", &GlobalMap::findClosest, this);
-
+    syncDetectionsService = handler.advertiseService("/global_map/sync_detections", &GlobalMap::syncAddDetections, this);
+    nodeHandler = handler;
 }
 
 vector<FeatureDetection> GlobalMap::convertToStruct(vector<tauv_msgs::FeatureDetection> &detections)
@@ -38,22 +40,28 @@ vector<FeatureDetection> GlobalMap::convertToStruct(vector<tauv_msgs::FeatureDet
     for(size_t i=0;i<detections.size();i++)
     {
         tauv_msgs::FeatureDetection detection = detections[i];
-        trueDets[i] = FeatureDetection{point_to_vec(detection.position), point_to_vec(detection.orientation), detection.tag};
+        trueDets[i] = FeatureDetection{point_to_vec(detection.position), point_to_vec(detection.orientation), detection.tag, (bool)(detection.survey_point)};
     }
 
     return trueDets;
 }
 
-void GlobalMap::updateTrackers(const tauv_msgs::FeatureDetections::ConstPtr& detectionObjects)
+//for interfacing w publisher
+void GlobalMap::updateTrackersInterface(const tauv_msgs::FeatureDetections::ConstPtr& detectionObjects)
 {
     //convert trackers into readable cpp format to save later repeated computation
     vector<tauv_msgs::FeatureDetection> objdets = detectionObjects->detections;
+    updateTrackers(objdets);
+}
+
+bool GlobalMap::updateTrackers(vector<tauv_msgs::FeatureDetection> objdets)
+{
     vector<FeatureDetection> detections = convertToStruct(objdets);
 
     size_t len = detections.size();
     
     if(len==0){
-        return;
+        return false;
     }
 
     totalDetections+=len;
@@ -63,6 +71,8 @@ void GlobalMap::updateTrackers(const tauv_msgs::FeatureDetections::ConstPtr& det
     assignDetections(detections);
 
     mtx.unlock();
+
+    return true;
 }
 
 vector<pair<shared_ptr<FeatureTracker>, int>> GlobalMap::generateSimilarityMatrix(vector<FeatureDetection> &detections, vector<vector<double>> &costMatrix, size_t costMatSize)
@@ -148,7 +158,7 @@ void GlobalMap::addTracker(FeatureDetection &detection)
 
     if(NEW == MAP.end())
     {
-        shared_ptr<FeatureTracker> F (new FeatureTracker(detection));
+        shared_ptr<FeatureTracker> F (new FeatureTracker(detection, nodeHandler));
         MAP.insert({detection.tag, F});
         DUMMY_FILL = max(DUMMY_FILL, F->getMaxThreshold());
     }
@@ -158,11 +168,18 @@ void GlobalMap::addTracker(FeatureDetection &detection)
     }
 }
 
+bool GlobalMap::syncAddDetections(tauv_msgs::FeatureDetectionsSync::Request &req, tauv_msgs::FeatureDetectionsSync::Response &res)
+{
+    vector<tauv_msgs::FeatureDetection> objdets = req.detections.detections;
+    res.success = updateTrackers(objdets);
+    return true;
+}
+
 bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Response &res)
 {
     unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
 
-    if(Tracker == MAP.end()){res.success=false; return false;}
+    if(Tracker == MAP.end()){res.success=false; res.detections = {}; return true;}
 
     vector<shared_ptr<Feature>> detections = (Tracker->second)->getFeatures();
     vector<tauv_msgs::FeatureDetection> returnDetections((Tracker->second)->getNumFeatures());
@@ -175,7 +192,8 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
         tauv_msgs::FeatureDetection returnDetection{};
         returnDetection.position = vec_to_point(detection->getPosition());
         returnDetection.orientation = vec_to_point(detection->getOrientation());
-        returnDetection.tag = req.tag;
+        returnDetection.tag = (Tracker->second)->tag;
+        returnDetection.survey_point = (Tracker->second)->survey_point;
 
         returnDetections[count] = returnDetection;
         count++;
@@ -187,12 +205,47 @@ bool GlobalMap::find(tauv_msgs::MapFind::Request &req, tauv_msgs::MapFind::Respo
     return true;
 }
 
+bool GlobalMap::findOne(tauv_msgs::MapFindOne::Request &req, tauv_msgs::MapFindOne::Response &res)
+{
+    unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
+
+    if(Tracker == MAP.end()){res.success=false; res.detection = {}; return false;}
+
+    vector<shared_ptr<Feature>> detections = (Tracker->second)->getFeatures();
+
+    int minInd = 0;
+    double maxDecay = -1;
+    for(size_t i = 0; i<detections.size(); i++)
+    {
+        shared_ptr<Feature> detection = detections[i];
+        if(detection->State==TrackerState::ZOMBIE){continue;}
+
+        double decay = (Tracker->second)->getDecay(detection, totalDetections);
+
+        if(decay>maxDecay)
+        {
+            minInd = i;
+            maxDecay = decay;
+        }
+    }
+
+    tauv_msgs::FeatureDetection returnDetection{};
+    returnDetection.position = vec_to_point(detections[minInd]->getPosition());
+    returnDetection.orientation = vec_to_point(detections[minInd]->getOrientation());
+    returnDetection.tag = req.tag;
+
+    res.detection = returnDetection;
+    res.success = true;
+
+    return true;
+}
+
 bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::MapFindClosest::Response &res)
 {
     unordered_map<string,shared_ptr<FeatureTracker>>::iterator Tracker = MAP.find(req.tag);
     Eigen::Vector3d position = point_to_vec(req.point);
 
-    if(Tracker == MAP.end()){res.success=false; return false;}
+    if(Tracker == MAP.end()){res.success=false; res.detection = {}; return false;}
 
     vector<shared_ptr<Feature>> detections = (Tracker->second)->getFeatures();
 

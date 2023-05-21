@@ -3,17 +3,20 @@
 
 #define NO_PREDICTED_NUM -1
 #define MIN_DETECTIONS 5
+#define MAX_SIM_SCORE 1000.0 //make max mahalanobis distance
 
 using namespace std;
 
-FeatureTracker::FeatureTracker(FeatureDetection &initial_detection)
+FeatureTracker::FeatureTracker(FeatureDetection &initial_detection, ros::NodeHandle& handler)
 {
+    nodeHandler = handler;
+
     FeatureList= {};
     Zombies = {};
     needsUpdating = false;
     numDetections = 1;
 
-    addFeature(initial_detection);
+    survey_point = initial_detection.survey_point;
     tag = initial_detection.tag;
 
     //init params
@@ -26,9 +29,18 @@ FeatureTracker::FeatureTracker(FeatureDetection &initial_detection)
     recency_weight = getParam("recency_weight");
     frequency_weight = getParam("frequency_weight");
     oversaturation_penalty = getParam("matching_weights/oversaturation_penalty");
+    min_decay_time = getParam("min_decay_time");
+    tracker_bias = getParam("matching_weights/tracker_bias");
     DECAY_THRESHOLD = getParam("DECAY_THRESHOLD", 100);
 
+    //cout<<"min_decay_time "<<min_decay_time<<"\n";
+    //cout<<"mahal "<<mahalanobisThreshold<<"\n";
+
     predictedFeatureNum = getParam("expected_count", NO_PREDICTED_NUM);
+
+    total_weight = distance_weight+orientation_weight+tag_weight+frequency_weight+recency_weight;
+
+    addFeature(initial_detection);
 }
 
 vector<shared_ptr<Feature>> FeatureTracker::getFeatures(){return FeatureList;}
@@ -97,10 +109,10 @@ void FeatureTracker::addFeature(FeatureDetection &detection)
         int featureIdx = Zombies.top();
         Zombies.pop();
 
-        FeatureList[featureIdx]->reinit(detection);
+        FeatureList[featureIdx]->reinit(detection, min_decay_time);
         return;
     }
-    shared_ptr<Feature> NEW (new Feature(detection));
+    shared_ptr<Feature> NEW (new Feature(detection, min_decay_time, nodeHandler));
     FeatureList.push_back(NEW);
 }
 
@@ -123,38 +135,59 @@ double FeatureTracker::frequencyCalc(double frequency, double totalDet)
     return log(frequency)/log(totalDet);
 }
 
-double FeatureTracker::decay(int featureIdx, int totalDetections)
+double FeatureTracker::getDecay(shared_ptr<Feature> F, int totalDetections)
 {
-    shared_ptr<Feature> F= FeatureList[featureIdx];
-    F->incrementRecency();
-
     double recDecay = recency_weight*recencyCalc(F->getRecency());
     double freqDecay = frequency_weight*frequencyCalc(F->getNumDetections(), totalDetections);
     double decay = (recDecay+freqDecay)/(frequency_weight+recency_weight);
 
+    return decay;
+}
+
+double FeatureTracker::decay(int featureIdx, int totalDetections)
+{
+    shared_ptr<Feature> F = FeatureList[featureIdx];
+    F->incrementRecency();
+
+    double decay = getDecay(F, totalDetections);
+
     //cout<<"DECAY: "<<decay<<"\n";
 
-    return totalDetections>MIN_DETECTIONS && decay<DECAY_THRESHOLD;
+    return totalDetections>MIN_DETECTIONS && (F->State==POTENTIAL_ZOMBIE) && decay<DECAY_THRESHOLD;
 }
 
 void FeatureTracker::addDetection(FeatureDetection &detection, int featureIdx)
 {
     numDetections+=1;
-    FeatureList[featureIdx]->addDetection(detection);
+    FeatureList[featureIdx]->addDetection(detection, min_decay_time);
+}
+
+//true if tags are different, false if same
+bool FeatureTracker::diffTag(FeatureDetection& detection)
+{
+    //survey detections match with any non-survey tracker, survey trackers must also match tag of survey points
+    return detection.tag.compare(tag)!=0 || detection.survey_point!=survey_point;
 }
 
 double FeatureTracker::getSimilarityCost(shared_ptr<Feature> F, FeatureDetection &det)
 {
+    //survey trackers only accept survey detections
+    if(survey_point && !det.survey_point){return MAX_SIM_SCORE;}
+
     //feature-based similarity costs
     double distance = distance_weight*(F->getDistance(det));
     double orientation = orientation_weight*(F->getRotation(det));
-    double tagDist = tag_weight*(F->diffTag(det));
+    double tagDist = tag_weight*(diffTag(det));
 
     //tracker-bias similarity costs
     double freqDist = frequency_matching_weight*(1-(F->getNumDetections()/(numDetections)));
     double recDist = recency_matching_weight*(F->getRecency()/numDetections);
 
-    return distance+orientation+tagDist+freqDist+recDist;
+    //cout<<tag<<"\n";
+
+    //cout<<(distance+orientation+tagDist+freqDist+recDist)<<"\n";
+
+    return distance+orientation+tagDist+freqDist+recDist+tracker_bias;//total_weight;
 }
 
 //finish similarity cost
@@ -163,9 +196,6 @@ vector<double> FeatureTracker::getSimilarityRow(vector<FeatureDetection> &detect
     shared_ptr<Feature> Feat = FeatureList[featureIdx];
 
     vector<double> featureSimMatrix(detections.size());
-
-    cout<<"tag: "<<tag<<"\n";
-    cout<<"Position: "<<Feat->getPosition()<<"\n";
 
     for(size_t i=0; i<detections.size(); i++)
     {
@@ -201,24 +231,28 @@ bool FeatureTracker::validCost(double cost)
     return cost<(mahalanobisThreshold+(oversaturation_penalty*oversaturated));
 }
 
-Feature::Feature(FeatureDetection &initial_detection) :
+Feature::Feature(FeatureDetection &initial_detection, double min_decay_time, ros::NodeHandle& handler) :
     kPosition (new ConstantKalmanFilter((initial_detection.tag+"/position"), initial_detection.position)),
     kOrientation (new ConstantKalmanFilter((initial_detection.tag+"/orientation"), initial_detection.orientation))
 {
-    tag = initial_detection.tag;
+    //tag = initial_detection.tag;
     State = ACTIVE;
 
     numDetections = 1;
     recency = 1;
+
+    nodeHandler = handler;
+    decayTimer = handler.createTimer(ros::Duration(min_decay_time), &Feature::setPotentialZombie, this, true);
 }
 
 void Feature::reset()
 {
     State = ZOMBIE;
     numDetections = 0;
+    decayTimer.stop();
 }
 
-void Feature::reinit(FeatureDetection &initial_detection)
+void Feature::reinit(FeatureDetection &initial_detection, double min_decay_time)
 {
     State = ACTIVE;
 
@@ -226,6 +260,16 @@ void Feature::reinit(FeatureDetection &initial_detection)
     kOrientation->reset(initial_detection.orientation);
 
     numDetections = 1;
+
+    decayTimer.setPeriod(ros::Duration(min_decay_time), true);
+    decayTimer.start();
+}
+
+void Feature::setPotentialZombie(const ros::TimerEvent& event)
+{
+    //cout<<"POTENTIAL ZOMB\n";
+    State = POTENTIAL_ZOMBIE;
+    decayTimer.stop();
 }
 
 Eigen::Vector3d Feature::getPosition()
@@ -244,31 +288,40 @@ double Feature::getRecency(){return recency;}
 
 void Feature::incrementRecency(){recency++;}
 
-void Feature::addDetection(FeatureDetection& detection)
+void Feature::addDetection(FeatureDetection& detection, double new_decay_time)
 {
     if(State==ZOMBIE){
-        reinit(detection);
-        return;
+        reinit(detection, new_decay_time);
     }
+    else{
+        State = ACTIVE; //could be POTENTIAL_ZOMBIE
 
-    numDetections++;
+        numDetections++;
 
-    kPosition->updateEstimate(detection.position);
-    kOrientation->updateEstimate(detection.orientation);
+        kPosition->updateEstimate(detection.position);
+        kOrientation->updateEstimate(detection.orientation);
+
+        //is this right or do I need to call timer stop even if not fired yet !TAG
+        decayTimer.setPeriod(ros::Duration(new_decay_time), true);
+        decayTimer.start();
+    }
+}
+
+double Feature::getSurveyDistance (FeatureDetection& detection)
+{
+    //ignore vertical distance
+    detection.position[2] = getPosition()[2];
+    return (getPosition()-detection.position).norm();
 }
 
 double Feature::getDistance(FeatureDetection& detection)
 {
+    if(isSurveyDet(detection)){return getSurveyDistance(detection);}
     return (getPosition()-detection.position).norm();
 }
 
 double Feature::getRotation(FeatureDetection& detection)
 {
+    if(isSurveyDet(detection)){return getSurveyRotation(detection);}
     return (getOrientation()-detection.orientation).norm();
-}
-
-//true if tags are different, false if same
-bool Feature::diffTag(FeatureDetection& detection)
-{
-    return (detection.tag.compare(tag)!=0 && detection.tag.compare("unknown")!=0);
 }

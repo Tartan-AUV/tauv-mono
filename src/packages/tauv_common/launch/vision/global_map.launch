@@ -12,5 +12,11 @@
         launch-prefix="$(eval 'gdb -ex \'break main\' -ex run --args' if arg('debug') == 'gdb' else 'valgrind --leak-check=full --track-origins=yes' if arg('debug') == 'valgrind' else 'valgrind --tool=callgrind --callgrind-out-file=/home/theo/catkin_ws/callgrind-out' if arg('debug') == 'callgrind' else '')"
     >
     </node>
+
+    <node pkg="tauv_common" type="logger" name="logger" output ="screen" /> 
+
+    <node pkg="tauv_common" type="sonar_map" name="sonar_map" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/yaml/sonar.yaml" />
+    </node>
 <!--     </group>-->
 </launch>

@@ -2,7 +2,8 @@
 
 import rospy
 from tauv_msgs.msg import FeatureDetections, FeatureDetection
-from tauv_msgs.srv import MapFind, MapFindClosest
+from tauv_msgs.srv import MapFind, MapFindClosest, SonarControl
+from std_msgs.msg import Int8
 from visualization_msgs.msg import MarkerArray, Marker
 from geometry_msgs.msg import Point
 import numpy as np
@@ -18,6 +19,9 @@ def getColor(tag, trans=False):
 
     if(tag=="notebook"):
         color = [0,0,1,1]
+
+    if(tag=="survey"):
+        color = [0,1,1,1]
 
     if(not trans):
         color[3] = 0.75
@@ -54,7 +58,7 @@ def makeMarker(id, detection, color, scale = 0.5, shape = Marker.SPHERE, time = 
 class Logger():
     def __init__(self):
         rospy.init_node('logger')
-        rospy.Subscriber("/register_object_detection", FeatureDetections,
+        rospy.Subscriber("/feature_detections", FeatureDetections,
                                                 self.callback)
 
         rospy.Subscriber("/global_map/find", FeatureDetections,
@@ -63,9 +67,12 @@ class Logger():
         rospy.wait_for_service("/global_map/find")
         self.find = rospy.ServiceProxy("/global_map/find", MapFind)
 
-        self.pub = rospy.Publisher("/register_object_detection", FeatureDetections,
+        self.pub = rospy.Publisher("/feature_detections", FeatureDetections,
                                                 queue_size=10)
         self.viz = rospy.Publisher("/visualization_marker_array", MarkerArray, queue_size=100)
+
+        rospy.wait_for_service("/sonar/map/")
+        self.findSonar = rospy.ServiceProxy("/sonar/map/", SonarControl)
         
         
         self.arr = [self.getObj1, self.getObj2, self.getObj3, self.getObj4, self.getObj5]
@@ -78,10 +85,27 @@ class Logger():
         self.var2 = 1
 
         rospy.Timer(rospy.Duration(1.0/10.0), self.publish)
-        rospy.Timer(rospy.Duration(0.5), self.visualize)
-        rospy.Timer(rospy.Duration(30), self.publish6)
-        rospy.Timer(rospy.Duration(30.1), self.publish6)
-        rospy.Timer(rospy.Duration(30.2), self.publish6)
+        #rospy.Timer(rospy.Duration(30), self.publish6)
+        #rospy.Timer(rospy.Duration(30.1), self.publish6)
+        #rospy.Timer(rospy.Duration(30.2), self.publish6)
+
+        rospy.Timer(rospy.Duration(1), self.publishS)
+        rospy.Timer(rospy.Duration(3), self.visualize, False)
+
+    def publishS(self, t):
+        res = self.findSonar(2)
+        #print(res)
+        buckets1 = self.find("survey").detections
+        markers = []
+        for ind in range(len(buckets1)):
+            det = buckets1[ind]
+            markers.append(makeMarker(ind, det, getColor(det.tag), 1, Marker.SPHERE, rospy.Duration(1.0)))
+        OBJ = MarkerArray()
+        OBJ.markers = markers
+
+        print("NUM DETS = " + str(len(markers)))
+
+        self.viz.publish(OBJ)
 
     def callback(self, data):
         pass
@@ -89,28 +113,39 @@ class Logger():
         #print(data)
 
     def visualize(self, time):
+        print("VISUALIZE")
         #buckets = bucketList.bucket_list
         buckets1 = self.find("badge").detections
         buckets2 = self.find("phone").detections
         buckets3 = self.find("notebook").detections
+        buckets4 = self.find("survey").detections
+
+        print(buckets1)
+        print(buckets2)
+        print(buckets3)
+        print(buckets4)
 
         markers = []
         for ind in range(len(buckets1)):
             det = buckets1[ind]
-            markers.append(makeMarker(ind, det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+            markers.append(makeMarker(ind, det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(3.0)))
 
         for ind in range(len(buckets2)):
             det = buckets2[ind]
-            markers.append(makeMarker(ind+len(buckets1), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+            markers.append(makeMarker(ind+len(buckets1), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(3.0)))
 
         for ind in range(len(buckets3)):
             det = buckets3[ind]
-            markers.append(makeMarker(ind+len(buckets1)+len(buckets2), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(5.0)))
+            markers.append(makeMarker(ind+len(buckets1)+len(buckets2), det, getColor(det.tag), 1, Marker.CUBE, rospy.Duration(3.0)))
+
+        for ind in range(len(buckets4)):
+            det = buckets4[ind]
+            markers.append(makeMarker(ind+len(buckets1)+len(buckets2)+len(buckets3), det, getColor(det.tag),1, Marker.CUBE, rospy.Duration(3.0)))
 
         OBJ = MarkerArray()
         OBJ.markers = markers
 
-        print(markers)
+        #print(markers)
 
         self.viz.publish(OBJ)
 
