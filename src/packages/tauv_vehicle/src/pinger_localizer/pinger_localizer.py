@@ -4,7 +4,8 @@ import uuid
 import time
 
 from std_msgs.msg import Float64, Float64MultiArray
-from geometry_msgs.msg import Vector3Stamped
+from geometry_msgs.msg import PoseStamped
+from tauv_util.transforms import rpy_to_quat
 
 from .backends.adalm_chained import ADALMChainedBackend
 from .frontends.as1_rev_4 import AS1Rev4Frontend
@@ -42,7 +43,7 @@ class PingerLocalizer:
             self._sample_pubs.append(sample_pub)
 
         self._ping_frequency_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/ping_frequency', Float64, queue_size=10)
-        self._direction_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/direction', Vector3Stamped, queue_size=10)
+        self._direction_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/direction', PoseStamped, queue_size=10)
 
     def start(self):
         self._frontend.open()
@@ -60,6 +61,7 @@ class PingerLocalizer:
 
         while not rospy.is_shutdown():
             self._run()
+            rospy.sleep(1.0)
 
         self._frontend.close()
         self._backend.close()
@@ -76,8 +78,8 @@ class PingerLocalizer:
         sample_times, samples = remap_channels(self._channel_mappings, sample_times, samples)
 
         file_id = time.strftime("%Y%m%d-%H%M%S")
-        np.save(f'/data/pinger_localizer/{file_id}-times.npy', sample_times)
-        np.save(f'/data/pinger_localizer/{file_id}-samples.npy', samples)
+        np.save(f'/data/pinger_localizer/right/{file_id}-times.npy', sample_times)
+        np.save(f'/data/pinger_localizer/right/{file_id}-samples.npy', samples)
 
         amplitudes = np.abs(samples)
         max_amplitudes = np.max(amplitudes, axis=1)
@@ -89,12 +91,15 @@ class PingerLocalizer:
 
         self._ping_frequency_pub.publish(ping_frequency)
 
-        sample_times, samples = filter_samples(sample_times, samples, self._backend_sample_frequency, ping_frequency)
-
         for i in range(self._n_channels):
             msg = Float64MultiArray()
             msg.data = samples[i]
             self._sample_pubs[i].publish(msg)
+
+        if ping_frequency != 30000:
+            return
+
+        sample_times, samples = filter_samples(sample_times, samples, self._backend_sample_frequency, ping_frequency)
 
         delays = get_delays_xcorr(sample_times, samples, self._backend_sample_frequency, max_delay=self._max_delay)
         # delays = get_delays_fft(sample_times, samples, self._backend_sample_frequency, self._max_delay, self._interpolation_factor)
@@ -106,11 +111,14 @@ class PingerLocalizer:
         rospy.loginfo(f'Direction: {direction}')
         rospy.loginfo(f'Psi: {direction_psi}, Theta: {direction_theta}')
 
-        direction_msg = Vector3Stamped()
+        direction_msg = PoseStamped()
         direction_msg.header.frame_id = 'kf/vehicle'
-        direction_msg.vector.x = direction[0]
-        direction_msg.vector.y = direction[1]
-        direction_msg.vector.z = direction[2]
+        direction_rpy = np.array([0, direction_theta, direction_psi])
+        direction_quat = rpy_to_quat(direction_rpy)
+        direction_msg.pose.orientation = direction_quat
+        # direction_msg.vector.x = direction[0]
+        # direction_msg.vector.y = direction[1]
+        # direction_msg.vector.z = direction[2]
         self._direction_pub.publish(direction_msg)
 
     def _load_config(self):

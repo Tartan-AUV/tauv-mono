@@ -1,7 +1,7 @@
 hsv_ranges:
   # H low, H high, S low, S high, V low, V high
-  - [0, 30, 10, 255, 10, 255]
-  - [150, 180, 10, 255, 10, 255]
+  - [0, 20, 30, 255, 30, 255]
+  - [160, 180, 30, 255, 30, 255]
 contour_area_threshold: 1000
 ellipse_defects_threshold: 0.01
 circle_width: 0.29

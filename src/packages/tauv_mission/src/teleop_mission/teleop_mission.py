@@ -351,20 +351,34 @@ class TeleopMission:
             shoot_offset[2]
         ])
 
-        shoot_decay_position = sub_position + 0.1 * circle_position - sub_position
+        shoot_error = shoot_position - sub_position
 
-        if self._goto_circle_state == 0 and np.linalg.norm(sub_position - approach_position) < 0.05:
+        circle_direction = np.array([
+            cos(approach_yaw),
+            sin(approach_yaw),
+            0
+        ])
+
+        planar_error = shoot_error - np.dot(shoot_error, circle_direction) * circle_direction
+
+        shoot_decay_position = sub_position + planar_error + (e ** (-args.w * np.linalg.norm(planar_error))) * np.dot(shoot_error, circle_direction) * circle_direction
+
+        if self._goto_circle_state == 0 and np.linalg.norm(sub_position - approach_position) < 0.05 and np.abs(sub_yaw - approach_yaw) < 0.05:
+            print('lined up')
             self._goto_circle_state = 1
 
-        if self._goto_circle_state == 1 and np.linalg.norm(sub_position - shoot_position) < 0.05:
-            rospy.sleep(1.0)
-            self._motion.shoot_torpedo(0)
+        if self._goto_circle_state == 1 and np.linalg.norm(sub_position - shoot_position) < 0.05 and np.abs(sub_yaw - approach_yaw) < 0.05:
+            print('shoot!')
+            # rospy.sleep(1.0)
+            # self._motion.shoot_torpedo(0)
+            # rospy.sleep(1)
+            self._motion.shoot_torpedo(1)
 
         if self._goto_circle_state == 0:
             self._motion.goto(approach_position, approach_yaw, v=self._goto_circle_v, a=self._goto_circle_a, j=self._goto_circle_j, block=TrajectoryStatus.EXECUTING)
 
         if self._goto_circle_state == 1:
-            self._motion.goto(shoot_position, approach_yaw, v=self._goto_circle_v, a=self._goto_circle_a, j=self._goto_circle_j, block=TrajectoryStatus.EXECUTING)
+            self._motion.goto(shoot_decay_position, approach_yaw, v=self._goto_circle_v, a=self._goto_circle_a, j=self._goto_circle_j, block=TrajectoryStatus.EXECUTING)
 
     def _handle_pick_chevron(self, args):
         v = args.v if args.v is not None else .1
@@ -472,6 +486,11 @@ class TeleopMission:
         #     self._torpedo_servo_pub.publish(0)
         # else:
         #     self._torpedo_servo_pub.publish(0)
+
+    def _handle_drop_marker(self, args):
+        print(f'drop marker {args.marker}')
+
+        self._motion.drop_marker(args.marker)
 
     def _handle_move_arm(self, args):
         print(f'move arm {args.position}')
@@ -628,6 +647,7 @@ class TeleopMission:
         goto_circle.add_argument('--bx', type=float)
         goto_circle.add_argument('--by', type=float)
         goto_circle.add_argument('--bz', type=float)
+        goto_circle.add_argument('--w', type=float)
         goto_circle.set_defaults(func=self._handle_goto_circle)
 
         stop_goto_circle = subparsers.add_parser('stop_goto_circle')
@@ -653,6 +673,10 @@ class TeleopMission:
         shoot_torpedo = subparsers.add_parser('shoot_torpedo')
         shoot_torpedo.add_argument('torpedo', type=int)
         shoot_torpedo.set_defaults(func=self._handle_shoot_torpedo)
+
+        drop_marker = subparsers.add_parser('drop_marker')
+        drop_marker.add_argument('marker', type=int)
+        drop_marker.set_defaults(func=self._handle_drop_marker)
 
         move_arm = subparsers.add_parser('move_arm')
         move_arm.add_argument('position', type=float)

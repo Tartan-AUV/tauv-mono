@@ -167,6 +167,7 @@ class ShapeDetector:
 
             if yaw_cam < -0.4 or yaw_cam > 0.4:
                 yaw_cam = 0
+                # continue
 
             yaw_odom = yaw_cam + Rotation.from_matrix(tf_cam_odom_rotm).as_euler('ZYX')[0] - pi / 2
 
