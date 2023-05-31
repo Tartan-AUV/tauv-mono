@@ -33,6 +33,7 @@ add_message_files(
 add_service_files(
   FILES
   MapFind.srv
+  MapFindOne.srv
   FeatureDetectionsSync.srv
   MapFindClosest.srv
   SyncAlarms.srv
