@@ -56,7 +56,8 @@ class SonarGraph:
         #survey/start/stop/reset service for mission communications
         self.serve = rospy.Service("/sonar/map/", SonarControl, self.handle_sig)
 
-        print("setup")
+        #FOR TESTING
+        self.pub = rospy.Publisher("/feature_detectionsS", FeatureDetections, queue_size=10)
 
     def _load_config(self):
         self.range = rospy.get_param('sonar_map/device/range')
@@ -77,7 +78,6 @@ class SonarGraph:
         #self.line_of_sight = rospy.get_param('sonar_map/device/line_of_sight')
 
     def handle_sig(self, req):
-        print("here!!")
         if(req.op==0): #stop
             self.survey_mode = False
             return True
@@ -107,7 +107,6 @@ class SonarGraph:
         return [~1, ~1] #make a better safeguard
 
     def survey(self):
-        print("surveying")
         #blur
         processed = np.rint(gaussian_filter(self.heat_map, sigma = self.blur_sigma)).astype(np.uint8)
 
@@ -139,23 +138,23 @@ class SonarGraph:
             if(stats[contour,cv.CC_STAT_AREA]>self.min_object_size):
                 #add centroid translated by global origin to bucket
                 detection = FeatureDetection()
-                detection.position = Point(self.square_size*(centroids[contour][0] - self.global_origin[0]),self.square_size*(centroids[contour][1] - self.global_origin[1]),0)
-                detection.tag = "survey"
-                detection.survey_point = True
+                detection.position = Point(self.square_size*(centroids[contour][0] - self.global_origin[0]),self.square_size*(centroids[contour][1] - self.global_origin[1]),5)
+                detection.orientation = Point(0,0,0)
+                detection.tag = "unknown"
+                detection.confidence = 0.0
 
                 self.heat = cv.circle(self.heat, (np.round(centroids[contour][0]).astype(int), np.round(centroids[contour][1]).astype(int)), 10, 155, thickness=5)
 
                 #add all detections at once (sonar does clustering)
-                detections.detections.append(detection)
-
+                #detections.detections.append(detection)
                 #OR
 
                 #add detections individually (leave it up to map to cluster)
-                #detections.detections = [detection]
-                #status = status and self.global_map_com(detections).success
-                
-                
-        status = self.global_map_com(detections).success #for sonar clustering
+                detections.detections = [detection]
+                status = status and self.global_map_com(detections).success
+                self.pub.publish(detections)
+         
+        #status = self.global_map_com(detections).success #for sonar clustering
 
         #cv.imshow("Rectangle", img) #idk why this shows binary, map is correct.
 
