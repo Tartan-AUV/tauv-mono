@@ -1,0 +1,184 @@
+#!/usr/bin/env python3
+
+import rospy
+from tauv_msgs.msg import FeatureDetections, FeatureDetection
+from tauv_msgs.srv import MapFind, SonarControl
+from visualization_msgs.msg import MarkerArray, Marker
+from geometry_msgs.msg import Point
+import numpy as np
+
+# time between global map visualization calls
+TIME_TO_VISUALIZE = 1
+
+# will publish simulated detections of objects created by add_sim_obj
+SIM_MODE = True
+# (geometrically decaying) unit time between randomly timed calls 
+# of simulated objects 
+TIME_TO_SIM = 1.0/2.0
+
+# do not make SimObjs manually, this is for private use by
+# MapListener instances
+class SimObj():
+    def __init__(self, tag, posXYZ, varXYZ):
+        self.tag = tag
+        self.pos = posXYZ
+        self.var = varXYZ
+
+
+# ROS node for visualization of the global map
+# There are 4 public functions of a MapListener instance:
+
+# add_tags(self, tags : string list) -> Any tags sent to the MapListener by this method
+# will be found in the global map and published consistently to RVIZ.
+# params: tags : list of tags
+
+# add_sim_obj(self, tag : string, posXYZ : Point(double, double, double), varXYZ : Point(double, double, double)) 
+# -> Adds a "simulated" object to the map. If in SIM_MODE, MapListener will publish a detection within a guassian
+# variance of varXYZ (respectively, for each dimension) near posXYZ of tag possibly TIME_TO_SIM (time is geometric random var).
+
+# add_visualizer(self, topic : string) -> Topic must be a FeatureDetections msg stream. Any recieved detection on the topic
+# will be visualized in RVIZ
+
+# add_incremental_service_call(self, service : ROS ServiceProxy, fun : ROS ServiceProxy -> ROS Duration -> alpha, time : double)
+# -> takes a ServiceProxy and instantiates it as a long-lived proxy that gets curried by fun, with the returned function
+# called every time seconds.
+class MapListener():
+    def __init__(self):
+        rospy.init_node("map_tester")
+
+        self.id_counter = 0
+        self.tags = []
+        self.sim_objs = []
+        self.colors = {}
+
+        self.viz = rospy.Publisher("/visualization_marker_array", MarkerArray, queue_size=10)
+        self.pub = rospy.Publisher("/feature_detections", FeatureDetections, queue_size=10)
+        self.subs = []
+        self.serve = []
+        self.timers = []
+
+        rospy.wait_for_service("/global_map/find")
+        self.find = rospy.ServiceProxy("/global_map/find", MapFind)
+
+        self.timers.append(rospy.Timer(rospy.Duration(TIME_TO_VISUALIZE), self.__visualize_map, False))
+
+        if(SIM_MODE):
+            self.timers.append(rospy.Timer(rospy.Duration(TIME_TO_SIM), self.__pub_random_objects))
+
+
+    def __make_detection(self, tag, pos, confidence, orientation):
+        detection = FeatureDetection()
+        detection.position = pos
+        detection.orientation = orientation
+        detection.tag = tag
+        detection.confidence = confidence
+        return detection
+
+    #publishes a random selection of detections of the added sim objects
+    def __pub_random_objects(self, time=0.0, detector_tag="yolo", confidence = 0.85, orientation = Point(0,0,0)):
+        choices = np.random.choice(self.sim_objs, min(len(self.sim_objs), np.random.randint(1, high=5)), replace=False)
+        dets = FeatureDetections()
+        dets.detector_tag = detector_tag
+        for choice in choices:
+            point = Point(np.random.normal(loc=choice.pos.x, scale=choice.var.x),np.random.normal(loc=choice.pos.y, scale=choice.var.y),np.random.normal(loc=choice.pos.z, scale=choice.var.z))
+            dets.detections.append(self.__make_detection(choice.tag, point, confidence, orientation))
+        self.pub.publish(dets)
+        self.__show(dets)
+            
+    def __make_marker(self, detection, tag, scale, shape, time, transparent):
+        color = self.colors[tag]
+
+        marker = Marker()
+        marker.header.frame_id = "map"
+        marker.header.stamp = rospy.Time()
+        marker.ns = "my_namespace"
+        marker.text = tag
+        marker.id = self.id_counter
+        marker.type = shape
+        marker.action = Marker.ADD
+        marker.pose.position.x = detection.position.x
+        marker.pose.position.y = detection.position.y
+        marker.pose.position.z = detection.position.z
+        marker.pose.orientation.x = 0.0
+        marker.pose.orientation.y = 0.0
+        marker.pose.orientation.z = 0.0
+        marker.pose.orientation.w = 1.0
+        marker.scale.x = scale
+        marker.scale.y = scale
+        marker.scale.z = scale
+        marker.color.a =  0.5 if transparent else 1
+        marker.color.r = color[0]
+        marker.color.g = color[1]
+        marker.color.b = color[2]
+        marker.lifetime = time
+
+        self.id_counter+=1
+        
+        return marker
+
+    def __make_color(self, tag, transparent=False):
+        self.colors[tag] = [np.random.random(), np.random.random(), np.random.random()]
+
+    def __visualize_map(self, time):
+        for tag in self.tags:
+            dets = self.find(tag)
+            self.__show(dets, scale = 1, shape = Marker.CUBE, time = rospy.Duration(TIME_TO_VISUALIZE))
+
+    def __show(self, data, scale = 0.5, shape = Marker.SPHERE, time = rospy.Duration(TIME_TO_SIM), transparent = False):
+        markers = []
+        for det in data.detections:
+            markers.append(self.__make_marker(det, det.tag, scale, shape, time, transparent))
+        
+        markersPub = MarkerArray()
+        markersPub.markers = markers
+        self.viz.publish(markersPub)
+
+    #adds tags that the visualizer will track in the map and publish 
+    #if any cases exist
+    def add_tags(self, tags):
+        self.tags+=tags
+        for tag in tags:
+            self.__make_color(tag)
+
+    #if in sim mode (default), will at random geometric (p=TIME_TO_SIM) intervals 
+    #publish guassian detections centered around posXYZ (truple) with variance varXYZ (truple)
+    def add_sim_obj(self, tag, posXYZ, varXYZ):
+        self.sim_objs.append(SimObj(tag,posXYZ,varXYZ))
+
+    #can add any detector (publisher publishing FeatureDetection msgs) by passing topic name,
+    #and MapListener will show any published messages on that topic
+    def add_visualizer(self, topic):
+        self.subs.append(rospy.Subscriber(topic, FeatureDetections,
+                                                self.__show))
+
+    #can add any rospy service, which will be incrementally passed as an argument to 
+    #fun : rospy.Service -> time -> alpha (its a curried function taking the passed service as its initial argument)
+    #used to incrementally call any needed services.
+    #this is kinda lolz random in the map viz class but i threw it in cause sonar is prompted and if we ever have any other
+    #call-by detectors later on this could be used to test
+    def add_incremental_service_call(self, service, fun, time):
+        self.serve.append(service)
+        self.timers.append(rospy.Timer(rospy.Duration(time), fun (service)))
+
+def main():
+    #EXAMPLES OF MAPLISTENER INTERACTIONS
+    simulator = MapListener()
+    simulator.add_tags(["unknown", "badge", "phone", "notebook"])
+
+    simulator.add_sim_obj("badge", Point(15.5, 15.5, 15.5), Point(1,2,1))
+    simulator.add_sim_obj("notebook", Point(10.5, 5.5, 0.5), Point(2,2,1))
+
+    simulator.add_visualizer("/feature_detectionsS")
+
+    rospy.wait_for_service("/sonar/map/")
+    findSonar = rospy.ServiceProxy("/sonar/map/", SonarControl)
+    def publishWrapper(service):
+        def publish(time):
+            service(2)
+        return publish
+    
+    simulator.add_incremental_service_call(findSonar, publishWrapper, 1.0)
+
+    rospy.spin()
+
+main()
