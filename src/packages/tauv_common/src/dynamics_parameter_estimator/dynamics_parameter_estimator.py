@@ -21,15 +21,16 @@ from .parameter_spkf import ParameterSPKF
 
 class ParameterConfig:
 
-    def __init__(self, initial_value: float, fixed: bool, initial_covariance: float, process_covariance: float, limits: (float, float)):
+    def __init__(self, initial_value: float, truth_value: float, fixed: bool, initial_covariance: float, process_covariance: float, limits: (float, float)):
         self.initial_value = initial_value
+        self.truth_value = truth_value
         self.fixed = fixed
         self.initial_covariance = initial_covariance
         self.process_covariance = process_covariance
         self.limits = limits
 
     def __str__(self) -> str:
-        return f'initial_value: {self.initial_value}, fixed: {self.fixed}, initial_covariance: {self.initial_covariance}, process_covariance: {self.process_covariance}, limits: {self.limits}'
+        return f'initial_value: {self.initial_value}, truth_value: {self.truth_value}, fixed: {self.fixed}, initial_covariance: {self.initial_covariance}, process_covariance: {self.process_covariance}, limits: {self.limits}'
 
 class DynamicsParameterEstimator:
 
@@ -51,6 +52,9 @@ class DynamicsParameterEstimator:
         )
         self._parameters_pub: rospy.Publisher = rospy.Publisher(
            'gnc/dynamics_parameters', DynamicsParametersEstimate, queue_size=10
+        )
+        self._truth_pub: rospy.Publisher = rospy.Publisher(
+            'gnc/dynamics_parameters_truth', DynamicsParametersEstimate, queue_size=10
         )
         self._config_srv: rospy.Service = rospy.Service(
             'gnc/update_dynamics_parameter_configs', UpdateDynamicsParameterConfigs, self._handle_update_configs
@@ -120,6 +124,42 @@ class DynamicsParameterEstimator:
         params_msg.cov_dq = cov[20:26].tolist()
         params_msg.cov_am = cov[26:32].tolist()
         self._parameters_pub.publish(params_msg)
+
+        truth_msg = DynamicsParametersEstimate()
+        truth_msg.stamp = rospy.Time.now()
+        truth_msg.m = self._param_configs['m'].truth_value
+        truth_msg.v = self._param_configs['v'].truth_value
+        truth_msg.g[0] = self._param_configs['gx'].truth_value
+        truth_msg.g[1] = self._param_configs['gy'].truth_value
+        truth_msg.g[2] = self._param_configs['gz'].truth_value
+        truth_msg.b[0] = self._param_configs['bx'].truth_value
+        truth_msg.b[0] = self._param_configs['by'].truth_value
+        truth_msg.b[0] = self._param_configs['bz'].truth_value
+        truth_msg.I[0] = self._param_configs['Ixx'].truth_value
+        truth_msg.I[1] = self._param_configs['Ixy'].truth_value
+        truth_msg.I[2] = self._param_configs['Ixz'].truth_value
+        truth_msg.I[3] = self._param_configs['Iyy'].truth_value
+        truth_msg.I[4] = self._param_configs['Iyz'].truth_value
+        truth_msg.I[5] = self._param_configs['Izz'].truth_value
+        truth_msg.dl[0] = self._param_configs['dlu'].truth_value
+        truth_msg.dl[1] = self._param_configs['dlv'].truth_value
+        truth_msg.dl[2] = self._param_configs['dlw'].truth_value
+        truth_msg.dl[3] = self._param_configs['dlp'].truth_value
+        truth_msg.dl[4] = self._param_configs['dlq'].truth_value
+        truth_msg.dl[5] = self._param_configs['dlr'].truth_value
+        truth_msg.dq[0] = self._param_configs['dqu'].truth_value
+        truth_msg.dq[1] = self._param_configs['dqv'].truth_value
+        truth_msg.dq[2] = self._param_configs['dqw'].truth_value
+        truth_msg.dq[3] = self._param_configs['dqp'].truth_value
+        truth_msg.dq[4] = self._param_configs['dqq'].truth_value
+        truth_msg.dq[5] = self._param_configs['dqr'].truth_value
+        truth_msg.am[0] = self._param_configs['amu'].truth_value
+        truth_msg.am[1] = self._param_configs['amv'].truth_value
+        truth_msg.am[2] = self._param_configs['amw'].truth_value
+        truth_msg.am[3] = self._param_configs['amp'].truth_value
+        truth_msg.am[4] = self._param_configs['amq'].truth_value
+        truth_msg.am[5] = self._param_configs['amr'].truth_value
+        self._truth_pub.publish(truth_msg)
 
         self._config_lock.release()
 
@@ -206,6 +246,7 @@ class DynamicsParameterEstimator:
 
             self._param_configs[name] = ParameterConfig(
                 initial_value=float(config.get('initial_value')),
+                truth_value=float(config.get('truth_value')),
                 fixed=bool(config.get('fixed')),
                 initial_covariance=float(config.get('initial_covariance')),
                 process_covariance=float(config.get('process_covariance')),
