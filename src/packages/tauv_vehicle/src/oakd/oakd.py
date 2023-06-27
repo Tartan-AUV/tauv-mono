@@ -54,17 +54,18 @@ class OAKDNode:
         self._depth.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         self._depth.initialConfig.setMedianFilter(depthai.MedianFilter.KERNEL_7x7)
 
-        config = self._depth.initialConfig.get()
-        config.postProcessing.speckleFilter.enable = True
-        config.postProcessing.speckleFilter.speckleRange = 50
-        config.postProcessing.temporalFilter.enable = True
-        config.postProcessing.spatialFilter.enable = True
-        config.postProcessing.spatialFilter.holeFillingRadius = 2
-        config.postProcessing.spatialFilter.numIterations = 1
-        config.postProcessing.thresholdFilter.minRange = 400
-        config.postProcessing.thresholdFilter.maxRange = 15000
-        config.postProcessing.decimationFilter.decimationFactor = 1
-        self._depth.initialConfig.set(config)
+        if self._postprocess_depth:
+            config = self._depth.initialConfig.get()
+            config.postProcessing.speckleFilter.enable = True
+            config.postProcessing.speckleFilter.speckleRange = 50
+            config.postProcessing.temporalFilter.enable = True
+            config.postProcessing.spatialFilter.enable = True
+            config.postProcessing.spatialFilter.holeFillingRadius = 2
+            config.postProcessing.spatialFilter.numIterations = 1
+            config.postProcessing.thresholdFilter.minRange = 400
+            config.postProcessing.thresholdFilter.maxRange = 15000
+            config.postProcessing.decimationFilter.decimationFactor = 1
+            self._depth.initialConfig.set(config)
 
         self._left.out.link(self._depth.left)
         self._right.out.link(self._depth.right)
@@ -139,6 +140,7 @@ class OAKDNode:
         self._tf_namespace = rospy.get_param('tf_namespace')
         self._frame = rospy.get_param('~frame')
         self._id = rospy.get_param('~id')
+        self._postprocess_depth = rospy.get_param('~postprocess_depth')
         self._fps = 10
         self._queue_size = 10
 

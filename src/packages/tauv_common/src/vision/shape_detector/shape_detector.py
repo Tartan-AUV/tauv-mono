@@ -8,7 +8,7 @@ from tauv_msgs.msg import FeatureDetections, FeatureDetection
 from tauv_util.transforms import tf2_transform_to_homogeneous, tf2_transform_to_quat, multiply_quat, quat_to_rpy
 from geometry_msgs.msg import Point, Quaternion
 import cv2
-from math import cos, sin, pi
+from math import cos, sin, pi, atan2
 from scipy.spatial.transform import Rotation
 
 class ShapeDetector:
@@ -127,7 +127,7 @@ class ShapeDetector:
                 max_x,
                 max_y,
                 min_x,
-                center
+                # center
             ]).astype(np.float64)
 
             c_w = self._circle_width
@@ -136,10 +136,10 @@ class ShapeDetector:
                 [c_w / 2, 0, 0],
                 [0, c_w / 2, 0],
                 [-c_w / 2, 0, 0],
-                [0, 0, 0]
+                # [0, 0, 0]
             ], dtype=np.float64)
 
-            res, rvec, tvec = cv2.solvePnP(points_world, points_image, self._intrinsics, self._distortion, flags=0)
+            res, rvec, tvec = cv2.solvePnP(points_world, points_image, self._intrinsics, self._distortion, flags=cv2.SOLVEPNP_IPPE)
 
             axes_world = np.array([
                 [0, 0, 0],
@@ -148,6 +148,7 @@ class ShapeDetector:
                 [0, 0, 0.1],
             ], dtype="double")
             axes_image, _ = cv2.projectPoints(axes_world, rvec, tvec, self._intrinsics, self._distortion)
+            # axes_image, _ = cv2.projectPoints(axes_world, rvec, tvec, self._intrinsics, self._distortion, cv2.SOLVEPNP_IPPE)
             axes_image = np.array(axes_image).astype(int)
 
             cv2.line(img_contours, tuple(axes_image[0,0,:]), tuple(axes_image[1,0,:]), color=(0, 0, 255), thickness=3)
@@ -155,15 +156,20 @@ class ShapeDetector:
             cv2.line(img_contours, tuple(axes_image[0,0,:]), tuple(axes_image[3,0,:]), color=(255, 0, 0), thickness=3)
 
             position_cam_h = np.array([tvec[0, 0], tvec[1, 0], tvec[2, 0], 1])
-            rotm_cam, _ = cv2.Rodrigues(rvec)
-            cam_rpy = Rotation.from_matrix(rotm_cam).as_euler('ZYX')
-            if cam_rpy[1] < -pi / 2 or cam_rpy[1] > pi / 2:
-                cam_rpy[1] = cam_rpy[1] + pi
-            rotm_cam = Rotation.from_euler('ZYX', cam_rpy).as_matrix()
-            rotm_odom = tf_cam_odom_rotm @ rotm_cam
             position_odom_h = tf_cam_odom_H @ position_cam_h
             position_odom = position_odom_h[0:3] / position_odom_h[3]
-            yaw_odom = Rotation.from_matrix(rotm_odom).as_euler('ZYX')[0] - (pi / 2)
+
+            rotm_cam, _ = cv2.Rodrigues(rvec)
+
+            yaw_cam = Rotation.from_matrix(rotm_cam).as_euler('ZYX')[1]
+
+            yaw_cam = (yaw_cam + pi) % (2 * pi) - pi
+
+            if yaw_cam < -0.4 or yaw_cam > 0.4:
+                yaw_cam = 0
+                # continue
+
+            yaw_odom = yaw_cam + Rotation.from_matrix(tf_cam_odom_rotm).as_euler('ZYX')[0] - pi / 2
 
             detection = FeatureDetection()
             detection.position = Point(position_odom[0], position_odom[1], position_odom[2])
