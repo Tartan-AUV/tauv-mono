@@ -22,6 +22,9 @@ catkin_package(
   LIBRARIES
     tauv_thruster_plugin
     tauv_navigation_state_plugin
+    tauv_teledyne_dvl_plugin
+    tauv_xsens_imu_plugin
+    tauv_depth_plugin
   CATKIN_DEPENDS
     roscpp
     std_msgs
@@ -43,7 +46,19 @@ add_library(tauv_navigation_state_plugin SHARED src/navigation_state_plugin.cpp)
 target_link_libraries(tauv_navigation_state_plugin ${catkin_LIBRARIES})
 add_dependencies(tauv_navigation_state_plugin ${catkin_EXPORTED_TARGETS})
 
-install(TARGETS tauv_thruster_plugin tauv_navigation_state_plugin
+add_library(tauv_teledyne_dvl_plugin SHARED src/teledyne_dvl_plugin.cpp)
+target_link_libraries(tauv_teledyne_dvl_plugin ${catkin_LIBRARIES})
+add_dependencies(tauv_teledyne_dvl_plugin ${catkin_EXPORTED_TARGETS})
+
+add_library(tauv_xsens_imu_plugin SHARED src/xsens_imu_plugin.cpp)
+target_link_libraries(tauv_xsens_imu_plugin ${catkin_LIBRARIES})
+add_dependencies(tauv_xsens_imu_plugin ${catkin_EXPORTED_TARGETS})
+
+add_library(tauv_depth_plugin SHARED src/depth_plugin.cpp)
+target_link_libraries(tauv_depth_plugin ${catkin_LIBRARIES})
+add_dependencies(tauv_depth_plugin ${catkin_EXPORTED_TARGETS})
+
+install(TARGETS tauv_thruster_plugin tauv_navigation_state_plugin tauv_teledyne_dvl_plugin tauv_xsens_imu_plugin
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
