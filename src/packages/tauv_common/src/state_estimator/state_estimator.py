@@ -26,7 +26,7 @@ class StateEstimator:
 
         self._load_config()
 
-        self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/navigation_state', NavigationState, queue_size=10)
+        self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/estimated_state', NavigationState, queue_size=10)
 
         self._imu_sub: rospy.Subscriber = rospy.Subscriber('vehicle/xsens_imu/data_raw', XsensImuData, self._handle_imu)
         self._depth_sub: rospy.Subscriber = rospy.Subscriber('vehicle/arduino/depth', FluidDepth, self._handle_depth)
@@ -74,7 +74,7 @@ class StateEstimator:
             np.flip(tl(msg.orientation)),
             np.flip(tl(msg.rate_of_turn)),
             tl(msg.free_acceleration)
-        ))
+        )) + np.random.normal(scale=0.01, size=9)
 
         self._ekf.handle_measurement(time.to_sec(), fields, measurement, self._imu_covariance)
 
@@ -122,9 +122,9 @@ class StateEstimator:
 
     def _load_config(self):
         self._process_covariance = 1e-12 * np.ones((15,), dtype=np.float32)
-        self._imu_covariance = 1e-12 * np.ones((9,), dtype=np.float32)
-        self._depth_covariance = 1e-12 * np.ones((1,), dtype=np.float32)
-        self._wrench_covariance = 1e-12 * np.ones((3,), dtype=np.float32)
+        self._imu_covariance = 1e-4 * np.ones((9,), dtype=np.float32)
+        self._depth_covariance = 1e-4 * np.ones((1,), dtype=np.float32)
+        self._wrench_covariance = 1e-4 * np.ones((3,), dtype=np.float32)
 
         self._dynamics_parameters = np.concatenate((
             (

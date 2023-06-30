@@ -63,7 +63,7 @@ class EKF:
         y = innovation
         R = np.diag(covariance)
         S = (H @ self._covariance) @ np.transpose(H) + R
-        K = (self._covariance @ np.transpose(H)) @ np.linalg.pinv(S)
+        K = (self._covariance @ np.transpose(H)) @ np.linalg.inv(S)
         I = np.identity(N_FIELDS, np.float32)
 
         self._state = self._state + K @ y
