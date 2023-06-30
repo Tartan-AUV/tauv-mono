@@ -1,0 +1,9 @@
+<launch>
+    <arg name="config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
+
+    <group ns="kf">
+        <node pkg="tauv_common" type="state_estimator" name="state_estimator" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/yaml/state_estimator.yaml" />
+        </node>
+    </group>
+</launch>
