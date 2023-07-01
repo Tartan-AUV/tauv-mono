@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/utils.xacro"/>
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/thruster_plugin.xacro"/>
+
     <!--front right-->
     <xacro:t200_thruster namespace="${ns}" thruster_id="0">
         <origin xyz="0.43852 -0.22093 0" rpy="1.5707963267949 0 0.785398163397449"/>

@@ -3,10 +3,6 @@
     <xacro:arg name="namespace" default="ns" />
     <xacro:property name="ns" value="$(arg namespace)" />
 
-    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/utils.xacro"/>
-    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/thruster_plugin.xacro"/>
-    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/navigation_state_plugin.xacro"/>
-
     <link name="${ns}/base_link">
         <inertial>
             <mass value="30"/>

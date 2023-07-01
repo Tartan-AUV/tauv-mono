@@ -1,6 +1,24 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/utils.xacro"/>
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/navigation_state_plugin.xacro"/>
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/teledyne_dvl_plugin.xacro"/>
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/xsens_imu_plugin.xacro"/>
+    <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/depth_plugin.xacro"/>
+
     <xacro:navigation_state_sensor namespace="${ns}">
         <origin xyz="0 0 0" rpy="0 0 0"/>
     </xacro:navigation_state_sensor>
+
+    <xacro:teledyne_dvl namespace="${ns}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:teledyne_dvl>
+
+    <xacro:xsens_imu namespace="${ns}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:xsens_imu>
+
+    <xacro:depth_sensor namespace="${ns}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:depth_sensor>
 </robot>

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="depth_sensor"
+        params="namespace *origin">
+        <joint name="${namespace}/depth_sensor_joint" type="revolute">
+            <xacro:insert_block name="origin"/>
+            <parent link="${namespace}/base_link"/>
+            <child link="${namespace}/depth_sensor"/>
+            <limit upper="0" lower="0" effort="0" velocity="0"/>
+            <axis xyz="1 0 0"/>
+        </joint>
+
+        <link name="${namespace}/depth_sensor">
+            <xacro:no_inertial/>
+            <xacro:no_visual/>
+            <xacro:no_collision/>
+        </link>
+
+        <gazebo>
+            <plugin name="${namespace}_depth" filename="libtauv_depth_plugin.so">
+                <linkName>${namespace}/depth_sensor</linkName>
+                <nodeName>${namespace}_depth_plugin</nodeName>
+                <publishRate>10</publishRate>
+                <depthTopic>/${namespace}/vehicle/arduino/depth</depthTopic>
+            </plugin>
+        </gazebo>
+
+        <gazebo reference="${namespace}/depth_sensor">
+            <selfCollide>false</selfCollide>
+        </gazebo>
+    </xacro:macro>
+</robot>
