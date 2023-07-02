@@ -26,9 +26,11 @@ class StateEstimator:
 
         self._load_config()
 
-        self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/estimated_navigation_state', NavigationState, queue_size=10)
+        self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/navigation_state',
+                                                                      NavigationState, queue_size=10)
 
-        self._imu_sub: rospy.Subscriber = rospy.Subscriber('vehicle/xsens_imu/data_raw', XsensImuData, self._handle_imu)
+        self._imu_sub: rospy.Subscriber = rospy.Subscriber('vehicle/xsens_imu/raw_data',
+                                                           XsensImuData, self._handle_imu)
         self._depth_sub: rospy.Subscriber = rospy.Subscriber('vehicle/arduino/depth', FluidDepth, self._handle_depth)
         self._wrench_sub: rospy.Subscriber = rospy.Subscriber('gnc/target_wrench', WrenchStamped, self._handle_wrench)
 
@@ -51,7 +53,8 @@ class StateEstimator:
         nav_state.position = tm(state[[StateIndex.X, StateIndex.Y, StateIndex.Z]], Vector3)
         nav_state.linear_velocity = tm(state[[StateIndex.VX, StateIndex.VY, StateIndex.VZ]], Vector3)
         nav_state.linear_acceleration = tm(state[[StateIndex.AX, StateIndex.AY, StateIndex.AZ]], Vector3)
-        nav_state.orientation = tm(state[[StateIndex.ROLL, StateIndex.PITCH, StateIndex.YAW]], Vector3)
+        nav_state.orientation = tm(state[[StateIndex.ROLL, StateIndex.PITCH, StateIndex.YAW]],
+                                    Vector3)
         nav_state.euler_velocity = tm(state[[StateIndex.VROLL, StateIndex.VPITCH, StateIndex.VYAW]], Vector3)
         self._navigation_state_pub.publish(nav_state)
 
@@ -70,7 +73,7 @@ class StateEstimator:
 
         # time = msg.header.stamp
         time = rospy.Time.now()
-
+        msg.orientation.x *= -1 # Todo move somewhere else
         measurement = np.concatenate((
             np.flip(tl(msg.orientation)),
             np.flip(tl(msg.rate_of_turn)),
@@ -125,10 +128,9 @@ class StateEstimator:
 
     def _load_config(self):
         self._process_covariance = 1e-9 * np.ones((15,), dtype=np.float32)
-        self._imu_covariance = np.array([1e-9, 1e-9, 1e-9, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3, 1e-3])
+        self._imu_covariance = np.array([1e-12, 1e-12, 1e-12, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 1e-2])
         self._depth_covariance = 1e-9 * np.ones((1,), dtype=np.float32)
-        self._wrench_covariance = 1e-12 * np.ones((3,), dtype=np.float32)
-
+        self._wrench_covariance = np.array([1e-12, 1e-12, 1e-12])# 1e-12 * np.ones((3,), dtype=np.float32)
         self._dynamics_parameters = np.concatenate((
             (
                 rospy.get_param('~dynamics/mass'),
@@ -141,6 +143,7 @@ class StateEstimator:
             rospy.get_param('~dynamics/quadratic_damping'),
             rospy.get_param('~dynamics/added_mass'),
         ))
+        print("State estimator config loaded")
 
 
 def main():

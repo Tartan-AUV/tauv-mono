@@ -41,8 +41,12 @@
       <rosparam command="load" file="$(arg config_pkg)/yaml/controller.yaml" />
     </node>
 
-    <node pkg="tauv_common" type="albatross_state_estimation" name="albatross_state_estimation" output="screen">
-    </node>
+<!--    <node pkg="tauv_common" type="state_estimator"-->
+<!--          name="state_estimator"-->
+<!--          output="screen">-->
+<!--    </node>-->
+    <include
+            file="$(find tauv_common)/launch/state_estimator/state_estimator.launch"/>
 
     <node pkg="tauv_common" type="thruster_manager" name="thruster_manager" output="screen">
       <rosparam command="load" file="$(arg config_pkg)/yaml/thruster_manager.yaml" />
