@@ -52,6 +52,9 @@ class EKF:
         if self._time is None:
             self._time = time
 
+        if time < self._time:
+            raise ValueError("time < self._time")
+
         dt = time - self._time
         self._time = time
 
@@ -69,8 +72,9 @@ class EKF:
         self._state = self._state + K @ y
         self._wrap_angles(self._state, [StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL])
 
-        self._covariance = ((I - (K @ H)) @ self._covariance) @ np.transpose(I - (K @ H))
-        self._covariance = self._covariance + (K @ R) @ np.transpose(K)
+        self._covariance = (I - (K @ H)) @ self._covariance
+        # self._covariance = ((I - (K @ H)) @ self._covariance) @ np.transpose(I - (K @ H))
+        # self._covariance = self._covariance + (K @ R) @ np.transpose(K)
         self._covariance = np.maximum(np.abs(self._covariance), 1e-9 * np.identity(N_FIELDS, np.float32))
 
     def _extrapolate_state(self, dt: float) -> np.array:
@@ -82,7 +86,6 @@ class EKF:
     def _extrapolate_covariance(self, dt: float) -> np.array:
         J = self._get_J(dt)
         extrapolated_covariance = J @ (self._covariance @ np.transpose(J)) + dt * self._process_covariance
-        print(extrapolated_covariance)
         return extrapolated_covariance
 
     def _wrap_angles(self, state: np.array, fields: [int]) -> None:
