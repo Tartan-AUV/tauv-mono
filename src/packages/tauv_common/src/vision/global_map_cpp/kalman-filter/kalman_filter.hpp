@@ -18,9 +18,8 @@ class KalmanFilter
         virtual ~KalmanFilter(){};
         shared_ptr<KalmanFilter> copy(string new_tag);
 
-        virtual void updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk, double confidence = 1.0); //state dependent
-        virtual void updateEstimate(Eigen::VectorXd zk, double confidence = 1.0); //state independent
-        double getEstimateConfidence(double confidence);
+        virtual void updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk, size_t data_dim, double confidence = 1.0); //state dependent
+        virtual void updateEstimate(Eigen::VectorXd zk, size_t data_dim, double confidence = 1.0); //state independent
 
         Eigen::VectorXd getEstimate();
         double getConfidence();
@@ -34,28 +33,17 @@ class KalmanFilter
         Eigen::MatrixXd A;
         Eigen::MatrixXd B;
         Eigen::MatrixXd H;
+        Eigen::MatrixXd inf_mat;
 
         size_t dataDim;
 
     private:
         void readParams();
 
+        double inf;
         string tag;
         double max_confidence; //if max confidence is 0 will be completely overwritten with any non-zero estimate!
         Eigen::MatrixXd getParam(string property);
-        void makeUpdates(Eigen::VectorXd newEstimate, Eigen::VectorXd zk, double confidence);
-};
-
-/**
- * Kalman filter based on constant-direct-measurement assumption of position.
- * Used in mapping static objects.
-**/
-class ConstantKalmanFilter : public KalmanFilter
-{
-    public:
-        ConstantKalmanFilter(string tag, Eigen::VectorXd initial_estimate, double confidence = 1.0);
-        shared_ptr<ConstantKalmanFilter> copy(string new_tag);
-
-        void updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk, double confidence = 1.0);
-        void updateEstimate(Eigen::VectorXd zk, double confidence = 1.0);
+        void makeMatrixUpdates(Eigen::VectorXd newEstimate, Eigen::VectorXd zk, Eigen::MatrixXd R_cur);
+        void makeUpdates(Eigen::VectorXd newEstimate, Eigen::VectorXd zk, size_t data_dim, double confidence);
 };

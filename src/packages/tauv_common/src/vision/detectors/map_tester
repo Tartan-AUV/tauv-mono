@@ -6,6 +6,7 @@ from tauv_msgs.srv import MapFind, SonarControl
 from visualization_msgs.msg import MarkerArray, Marker
 from geometry_msgs.msg import Point
 import numpy as np
+import time
 
 # time between global map visualization calls
 TIME_TO_VISUALIZE = 1
@@ -165,9 +166,6 @@ def main():
     simulator = MapListener()
     simulator.add_tags(["unknown", "badge", "phone", "notebook"])
 
-    simulator.add_sim_obj("badge", Point(15.5, 15.5, 15.5), Point(1,2,1))
-    simulator.add_sim_obj("notebook", Point(10.5, 5.5, 0.5), Point(2,2,1))
-
     simulator.add_visualizer("/feature_detectionsS")
 
     rospy.wait_for_service("/sonar/map/")
@@ -177,7 +175,12 @@ def main():
             service(2)
         return publish
     
-    simulator.add_incremental_service_call(findSonar, publishWrapper, 1.0)
+    simulator.add_incremental_service_call(findSonar, publishWrapper, 5.0)
+
+    time.sleep(20)
+
+    simulator.add_sim_obj("badge", Point(11.5, 10.5, 15.5), Point(1,2,1))
+    simulator.add_sim_obj("notebook", Point(7.5, 9.5, 0.5), Point(2,2,1))
 
     rospy.spin()
 

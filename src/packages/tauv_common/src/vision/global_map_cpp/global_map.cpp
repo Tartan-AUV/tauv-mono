@@ -24,6 +24,7 @@ tauv_msgs::FeatureDetection makeRosDetection(shared_ptr<Tracker> det)
     returnDetection.orientation = vec_to_point(det->getOrientation());
     returnDetection.tag = det->getTag();
     returnDetection.confidence = det->getConfidence();
+    returnDetection.SE2 = det->is_SE2();
     return returnDetection;
  }
 
@@ -50,7 +51,7 @@ vector<Detection> GlobalMap::convertToStruct(vector<tauv_msgs::FeatureDetection>
     for(size_t i=0;i<detections.size();i++)
     {
         tauv_msgs::FeatureDetection detection = detections[i];
-        trueDets[i] = Detection{point_to_vec(detection.position), point_to_vec(detection.orientation), detection.tag, tracker_type, detection.confidence};
+        trueDets[i] = Detection{point_to_vec(detection.position), point_to_vec(detection.orientation), detection.tag, tracker_type, detection.confidence, (bool)detection.SE2};
     }
 
     return trueDets;
@@ -112,21 +113,16 @@ vector<pair<shared_ptr<TrackerMaster>, int>> GlobalMap::generateSimilarityMatrix
 
 void GlobalMap::assignDetections(vector<Detection> &detections)
 {
-    // cout<<"here\n";
     size_t initTrackerNum = featureCount; //will change during iterations if new trackers added
 
     size_t costMatSize = max(featureCount,detections.size());
     vector<vector<double>> costMatrix(costMatSize);
     vector<pair<shared_ptr<TrackerMaster>, int>> trackerList = generateSimilarityMatrix(detections, costMatrix, costMatSize);
 
-    // cout<<"cost mat \n";
-
     //find best assignment
     vector<int> assignment;
     HungarianAlgorithm Matcher;
     Matcher.Solve(costMatrix, assignment);
-
-    // cout<<"solved\n";
 
     //if valid match, assign detection to tracker,
     //otherwise, create a new tracker
@@ -149,16 +145,12 @@ void GlobalMap::assignDetections(vector<Detection> &detections)
         }
     }
 
-    // cout<<"matched\n";
-
     //make new trackers for unmatched detections
     for(size_t unmatched=initTrackerNum; unmatched<costMatSize; unmatched++)
     {
         int detectionIdx = assignment[unmatched];
         addTracker(detections[detectionIdx]);
     }
-
-    // cout<<"new tracks\n";
 }
 
 void GlobalMap::updateDecay(shared_ptr<TrackerMaster> F, size_t featureIdx)

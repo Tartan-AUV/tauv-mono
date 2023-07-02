@@ -141,8 +141,8 @@ double TrackerMaster::getDecay(size_t featureIdx, int totalDetections)
     double freqDecay = frequency_weight*getTracker(featureIdx)->frequencyCalc(totalDetections);
     double decay = (recDecay+freqDecay)/(frequency_weight+recency_weight);
 
-    cout<<feature_tag<<"\n";
-    cout<<"decay: "<<decay<<"\n\n";
+    // cout<<feature_tag<<"\n";
+    // cout<<"decay: "<<decay<<"\n\n";
 
     return decay;
 }
@@ -161,7 +161,6 @@ void TrackerMaster::addDetection(size_t featureIdx, Detection &detection)
     getTracker(featureIdx)->addDetection(detection);
 }
 
-//finish similarity cost
 vector<double> TrackerMaster::getSimilarityRow(shared_ptr<Tracker> F, vector<Detection> &detections)
 {
     vector<double> featureSimMatrix(detections.size());
@@ -202,40 +201,35 @@ bool TrackerMaster::validCost(size_t featureIdx, double cost)
     return getTracker(featureIdx)->validCost(cost, oversaturated);
 }
 
-//i think this can just call extended feature
-Tracker::Tracker(Detection &initial_detection, ros::NodeHandle& handler) : 
-    kPosition (new ConstantKalmanFilter((initial_detection.tag+"/position"), initial_detection.position, initial_detection.confidence)),
-    kOrientation (new ConstantKalmanFilter((initial_detection.tag+"/orientation"), initial_detection.orientation, initial_detection.confidence))
+Tracker::Tracker(Detection &initial_detection, ros::NodeHandle& handler, shared_ptr<KalmanFilter> position, shared_ptr<KalmanFilter> orientation)
 {
-    feature_tag = initial_detection.tag;
-    tracker_type = initial_detection.tracker_type;
-    State = ACTIVE;
-
-    num_detections = 1;
-    recency = 1;
-
-    readParams();
-
-    nodeHandler = handler;
-    decayTimer = handler.createTimer(ros::Duration(min_decay_time), &Tracker::setPotentialZombie, this, true);
-}
-
-Tracker::Tracker(Detection &initial_detection, ros::NodeHandle& handler, shared_ptr<ConstantKalmanFilter> position, shared_ptr<ConstantKalmanFilter> orientation)
-{
-    feature_tag = initial_detection.tag;
-    tracker_type = initial_detection.tracker_type;
-    State = ACTIVE;
-
-    num_detections = 1;
-    recency = 1;
-
-    readParams();
-
-    nodeHandler = handler;
-    decayTimer = handler.createTimer(ros::Duration(min_decay_time), &Tracker::setPotentialZombie, this, true);
+    initialize(initial_detection, handler);
 
     kPosition = position;
     kOrientation = orientation;
+}
+
+Tracker::Tracker(Detection &initial_detection, ros::NodeHandle& handler) :
+kPosition (new KalmanFilter((initial_detection.tag+"/position"), initial_detection.position, initial_detection.confidence)),
+kOrientation (new KalmanFilter((initial_detection.tag+"/orientation"), initial_detection.orientation, initial_detection.confidence))
+{
+    initialize(initial_detection, handler);
+}
+
+void Tracker::initialize(Detection &initial_detection, ros::NodeHandle& handler)
+{
+    feature_tag = initial_detection.tag;
+    tracker_type = initial_detection.tracker_type;
+    State = ACTIVE;
+
+    num_detections = 1;
+    recency = 1;
+    SE2 = initial_detection.SE2;
+
+    readParams();
+
+    nodeHandler = handler;
+    decayTimer = handler.createTimer(ros::Duration(min_decay_time), &Tracker::setPotentialZombie, this, true);
 }
 
 bool Tracker::reassignable(Detection& det)
@@ -246,8 +240,8 @@ bool Tracker::reassignable(Detection& det)
 //were essentially copying ourselves
 shared_ptr<Tracker> Tracker::makeReassignment(Detection &detection)
 {
-    shared_ptr<ConstantKalmanFilter> POS = kPosition->copy(detection.tag);
-    shared_ptr<ConstantKalmanFilter> OR = kOrientation->copy(detection.tag);
+    shared_ptr<KalmanFilter> POS = kPosition->copy(detection.tag);
+    shared_ptr<KalmanFilter> OR = kOrientation->copy(detection.tag);
     shared_ptr<Tracker> F (new Tracker (detection, nodeHandler, POS, OR));
 
     F->setNumDetections(num_detections);
@@ -378,6 +372,8 @@ size_t Tracker::getNumDetections()
     return num_detections;
 }
 
+bool Tracker::is_SE2(){return SE2;}
+
 void Tracker::incrementRecency(){recency++;}
 
 void Tracker::setNumDetections(int num){num_detections = num;}
@@ -393,8 +389,13 @@ void Tracker::addDetection(Detection& detection)
         num_detections++;
         recency = 1;
 
-        kPosition->updateEstimate(detection.position, detection.confidence);
-        kOrientation->updateEstimate(detection.orientation, detection.confidence);
+        //dimensionality of data
+        size_t dim_pos = detection.SE2 ? 2 : 3;
+        size_t dim_or = detection.SE2 ? 1 : 3;
+
+        kPosition->updateEstimate(detection.position, dim_pos, detection.confidence);
+        kOrientation->updateEstimate(detection.orientation, dim_or, detection.confidence);
+        SE2 = detection.SE2 && SE2;
     }
 
     resetTimer();
@@ -402,12 +403,15 @@ void Tracker::addDetection(Detection& detection)
 
 double Tracker::getDistance(Detection& detection)
 {
-    detection.position[2] = getPosition()[2];
+    //if either the tracker is 2D or detection is 2D, we ignore the last distance
+    if(SE2 || detection.SE2){detection.position[2] = getPosition()[2];}
     return (getPosition()-detection.position).norm();
 }
 
 double Tracker::getRotation(Detection& detection)
 {
+    //only compare yaw if SE2!
+    if(SE2 || detection.SE2){detection.orientation[2] = getOrientation()[2]; detection.orientation[1] = getOrientation()[1];}
     return (getOrientation()-detection.orientation).norm();
 }
 
@@ -440,7 +444,7 @@ double Tracker::getSimilarityCost(Detection &det, size_t total_num_detections)
     double recDist = recency_matching_weight*(recency/total_num_detections);
     //trackers we are less confident in are less likely to be matched to
     double confidence_bias = confidence_weight*(DOUBLE_ONE-getConfidence());
-    //cout<<tag<<"\n";
+    // cout<<tag<<"\n";
 
     // cout<<"dist: "<<distance+orientation+tagDist+freqDist+recDist+confidence_bias<<"\n\n";
 

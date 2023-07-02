@@ -33,7 +33,9 @@ tracker_params: {
   },
   sonar: {
     mahalnobis_threshold: 5,
-    min_decay_time: 2, #>=20 seconds
+    #to maintain permanence, min_decay_time should be the amount of seconds between sonar survey calls
+    #otherwise, the trackers will live only as many seconds as we give
+    min_decay_time: 6, 
     tracker_bias: 1,
     reassignable: true,
     matching_weights: {
@@ -44,6 +46,8 @@ tracker_params: {
 
 #object-specific map tuning
 tag_params: {
+  #params not specified within a tagged scope are default parameters for any tag but can be
+  #respecified within a specific tag scope
   DECAY_THRESHOLD: 0.7, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
   recency_weight: 0.7,
   frequency_weight: 0.5,
@@ -61,7 +65,7 @@ kalman_params: {
     B: [1, 0, 0, 0, 1, 0, 0, 0, 1],
     H: [1, 0, 0, 0, 1, 0, 0, 0, 1],
     P: [1, 0, 0, 0, 1, 0, 0, 0, 1],
-    R: [0.001, 0, 0, 0, 0.001, 0, 0, 0, 0.001],
+    R: [0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01],
     Q: [0.000001, 0, 0, 0, 0.000001, 0, 0, 0, 0.000001]
   }
 }

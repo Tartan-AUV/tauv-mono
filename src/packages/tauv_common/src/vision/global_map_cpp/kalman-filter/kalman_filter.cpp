@@ -1,4 +1,6 @@
 #include "./kalman_filter.hpp"
+#include <limits>
+#include <cmath>
 
 using namespace std;
 
@@ -8,6 +10,11 @@ KalmanFilter::KalmanFilter(string det_tag, Eigen::VectorXd initial_estimate, dou
     tag = det_tag;
     dataDim = initial_estimate.size();
     max_confidence = confidence;
+
+    inf = std::numeric_limits<double>::infinity();
+    //used to represent huge variance in measurements
+    inf_mat = Eigen::MatrixXd::Identity(dataDim, dataDim);
+    for(size_t i=0; i<dataDim; i++){inf_mat(i,i)=inf;}
 
     readParams();
 }
@@ -53,32 +60,38 @@ Eigen::MatrixXd KalmanFilter::getParam(string property)
     return MAT;
 }
 
-double KalmanFilter::getEstimateConfidence(double confidence)
-{
-    max_confidence = max(max_confidence, confidence);
-    return (max_confidence==0.0 ? 1.0 : confidence/max_confidence);
-}
-
-void KalmanFilter::makeUpdates(Eigen::VectorXd newEstimate, Eigen::VectorXd zk, double confidence)
+void KalmanFilter::makeMatrixUpdates(Eigen::VectorXd newEstimate, Eigen::VectorXd zk, Eigen::MatrixXd R_cur)
 {
     Eigen::MatrixXd PkEstimate = (A*Pk * A.transpose()) + Q;
 
-    Eigen::MatrixXd kGain = (PkEstimate*H.transpose())*((H*PkEstimate*H.transpose())+R).inverse();
+    Eigen::MatrixXd kGain = (PkEstimate*H.transpose())*((H*PkEstimate*H.transpose())+R_cur).inverse();
 
-    estimate = newEstimate+confidence*kGain*(zk-(H*newEstimate));
+    estimate = newEstimate+kGain*(zk-(H*newEstimate));
     Pk = (Eigen::MatrixXd::Identity(dataDim, dataDim) - (kGain*H))*PkEstimate;
 }
 
-void KalmanFilter::updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk, double confidence)
+void KalmanFilter::makeUpdates(Eigen::VectorXd newEstimate, Eigen::VectorXd zk, size_t data_dim, double confidence)
 {
-    Eigen::VectorXd newEstimate = (A * estimate) + (B*uk);
-    makeUpdates(newEstimate, zk, getEstimateConfidence(confidence));
+    max_confidence = max(max_confidence, confidence);
+
+    double cov_scale = 1.0/confidence;
+    Eigen::MatrixXd R_cur = isnan(cov_scale) || isinf(cov_scale) ? inf_mat : (cov_scale)*R;
+    R_cur.bottomRows(dataDim-data_dim)=inf_mat.bottomRows(dataDim-data_dim);
+    
+    makeMatrixUpdates(newEstimate, zk, R_cur);
 }
 
-void KalmanFilter::updateEstimate(Eigen::VectorXd zk, double confidence)
+void KalmanFilter::updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk, size_t data_dim, double confidence)
+{
+    
+    Eigen::VectorXd newEstimate = (A * estimate) + (B*uk);
+    makeUpdates(newEstimate, zk, data_dim, confidence);
+}
+
+void KalmanFilter::updateEstimate(Eigen::VectorXd zk, size_t data_dim, double confidence)
 {
     Eigen::VectorXd newEstimate = A * estimate; //independent of state B = 0
-    makeUpdates(newEstimate, zk, getEstimateConfidence(confidence));
+    makeUpdates(newEstimate, zk, data_dim, confidence);
 }
 
 void KalmanFilter::reset(Eigen::VectorXd zk, double confidence)
@@ -90,23 +103,3 @@ void KalmanFilter::reset(Eigen::VectorXd zk, double confidence)
 
 Eigen::VectorXd KalmanFilter::getEstimate(){return estimate;}
 double KalmanFilter::getConfidence(){return max_confidence;}
-
-ConstantKalmanFilter::ConstantKalmanFilter(string tag, Eigen::VectorXd initial_estimate, double confidence) : KalmanFilter(tag, initial_estimate, confidence) {}
-
-shared_ptr<ConstantKalmanFilter> ConstantKalmanFilter::copy(string new_tag)
-{
-    return static_pointer_cast<ConstantKalmanFilter>(KalmanFilter::copy(new_tag));
-}
-
-void ConstantKalmanFilter::updateEstimate(Eigen::VectorXd zk, double confidence)
-{
-    Eigen::VectorXd newEstimate = estimate;
-    Eigen::MatrixXd PkEstimate = Pk + Q;
-
-    Eigen::MatrixXd kGain = PkEstimate*(PkEstimate+R).inverse();
-
-    estimate = newEstimate+getEstimateConfidence(confidence)*kGain*(zk-newEstimate);
-    Pk = (Eigen::MatrixXd::Identity(dataDim,dataDim) - kGain)*PkEstimate;
-}
-
-void ConstantKalmanFilter::updateEstimate(Eigen::VectorXd zk, Eigen::VectorXd uk, double confidence){updateEstimate(zk, confidence);}

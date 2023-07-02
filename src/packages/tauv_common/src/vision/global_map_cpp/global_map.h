@@ -45,10 +45,13 @@ struct Detection {
     **/
     string tracker_type;
     /**
-     * Detection position confidence. Used in adjusting the rate of tracker position estimates based on new detections.
-     * A confidence of 0.0 will be used only as an an initial estimate and be disregarded otherwise.
+     * Detection position confidence [0.0,1.0]. Used in adjusting the rate of tracker position estimates based on new detections.
+     * A confidence of 0.0 will be essentially overwritten by any nonzero confidence detection
     **/
     double confidence;
+
+    //detection position is two_dimensional (uses SE2 simlarity comparisons, Kalman filter only tracks SE2 dimensions)
+    bool SE2;
 };
 
 //struct conversion helper functions
@@ -56,7 +59,6 @@ Eigen::Vector3d point_to_vec(geometry_msgs::Point point);
 geometry_msgs::Point vec_to_point(Eigen::Vector3d vec);
 
 /**
- * Creds to advaith the zombie naming is pretty sick
  * Used to represent Trackers that have been retired from taking any additional input because of a lack of recency
  * and frequency of detections, which when low enough are assumed to mean the Tracker's detections were false positives
  * A Tracker can only be retired after it becomes a potential zombie, which happens when no new matches have been made 
@@ -78,8 +80,8 @@ class Tracker : public enable_shared_from_this<Tracker>
 {
     public:
         Tracker(Detection &initial_detection, ros::NodeHandle& handler);
+        Tracker(Detection &initial_detection, ros::NodeHandle& handler, shared_ptr<KalmanFilter> position, shared_ptr<KalmanFilter> orientation);
         
-        Tracker(Detection &initial_detection, ros::NodeHandle& handler, shared_ptr<ConstantKalmanFilter> position, shared_ptr<ConstantKalmanFilter> orientation);
         shared_ptr<Tracker> makeReassignment(Detection &detection);
         bool reassignable(Detection &detection);
 
@@ -89,7 +91,6 @@ class Tracker : public enable_shared_from_this<Tracker>
         double getConfidence();
         size_t getNumDetections();
         
-        double getDecay(int totalDetections);
         bool validCost(double cost, bool oversaturated);
 
         void addDetection(Detection &detection);
@@ -100,6 +101,7 @@ class Tracker : public enable_shared_from_this<Tracker>
         void setNumDetections(int num);
         string getTag();
         string getTrackerType();
+        bool is_SE2();
 
         double frequencyCalc(double totalDet);
         double recencyCalc(double totalDet);
@@ -116,6 +118,7 @@ class Tracker : public enable_shared_from_this<Tracker>
         TrackerState State;
 
     private:
+        void initialize(Detection &initial_detection, ros::NodeHandle& handler);
         double getParam(string property, double def=0);
         bool getParam(string property, bool def);
         void readParams();
@@ -130,8 +133,8 @@ class Tracker : public enable_shared_from_this<Tracker>
         * more computationally efficient to separate position and orientation predictions
         * for the matrix inversion required in Kalman filtering
         **/
-        shared_ptr<ConstantKalmanFilter> kPosition;
-        shared_ptr<ConstantKalmanFilter> kOrientation;
+        shared_ptr<KalmanFilter> kPosition;
+        shared_ptr<KalmanFilter> kOrientation;
 
         size_t num_detections;
         double recency;
@@ -139,6 +142,7 @@ class Tracker : public enable_shared_from_this<Tracker>
         string feature_tag;
         string tracker_type;
         bool reassignable_tracker;
+        bool SE2;
 
         //decay weight
         double min_decay_time;
