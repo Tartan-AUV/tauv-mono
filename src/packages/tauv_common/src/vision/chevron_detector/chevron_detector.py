@@ -164,9 +164,10 @@ class ChevronDetector:
                     detection = FeatureDetection()
                     detection.header.stamp = rospy.Time()
                     detection.tag = 'chevron'
-                    detection.count = 1
                     detection.position = Point(world_point[0], world_point[1], world_point[2])
                     detection.orientation = Point(0, 0, world_yaw)
+                    detection.confidence = 1.0
+                    detection.SE2 = False
                     detections.detections.append(detection)
             else:
                 print('bad detection')

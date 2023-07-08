@@ -174,7 +174,8 @@ class ShapeDetector:
             detection = FeatureDetection()
             detection.position = Point(position_odom[0], position_odom[1], position_odom[2])
             detection.orientation = Point(0, 0, yaw_odom)
-            detection.count = 1
+            detection.confidence = 1
+            detection.SE2 = False
             detection.tag = 'circle'
             detections.detections.append(detection)
 
