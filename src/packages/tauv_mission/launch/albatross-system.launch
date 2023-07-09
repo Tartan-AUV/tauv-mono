@@ -46,7 +46,9 @@
 <!--          output="screen">-->
 <!--    </node>-->
     <include
-            file="$(find tauv_common)/launch/state_estimator/state_estimator.launch"/>
+            file="$(find tauv_common)/launch/state_estimator/state_estimator.launch">
+            <arg name="config_pkg" value="$(arg config_pkg)"/>
+    </include>
 
     <node pkg="tauv_common" type="thruster_manager" name="thruster_manager" output="screen">
       <rosparam command="load" file="$(arg config_pkg)/yaml/thruster_manager.yaml" />

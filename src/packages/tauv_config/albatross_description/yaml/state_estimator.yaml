@@ -1,9 +1,9 @@
 dynamics:
   # kg
-  mass: 30.0
+  mass: 15.0
 
   # m^3
-  volume: 0.03
+  volume: 0.015
 
   # kg / m^3
   water_density: 1028.0
@@ -16,6 +16,6 @@ dynamics:
   moments: [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
 
   # x, y, z, roll, pitch, yaw
-  linear_damping: [100.0, 83.1339, 44.2445, 7.69374, 5.65474, 44]
+  linear_damping: [1.0, 10.0, 10.0, 10.0, 10.0, 10.0]
   quadratic_damping: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   added_mass: [10.0, 10.0, 10.0, 0.0, 0.0, 10.0]

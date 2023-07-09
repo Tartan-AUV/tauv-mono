@@ -11,6 +11,7 @@
             output="screen"
         >
             <rosparam param="autorepeat_rate">20</rosparam>
+            <rosparam param="dev">/dev/input/js1</rosparam>
         </node>
     </group>
 </launch>

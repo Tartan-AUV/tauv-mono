@@ -39,7 +39,6 @@ def get_acceleration(params: np.array, state: np.array, wrench: np.array) -> np.
     assert wrench.shape == (6,)
 
     M = get_M_body(params) + get_M_added(params)
-    print(M)
     C = get_C_body(params, state) + get_C_added(params, state)
     D = get_D(params, state)
     G = get_G(params, state)

@@ -34,6 +34,8 @@ class StateEstimator:
         self._depth_sub: rospy.Subscriber = rospy.Subscriber('vehicle/arduino/depth', FluidDepth, self._handle_depth)
         self._wrench_sub: rospy.Subscriber = rospy.Subscriber('gnc/target_wrench', WrenchStamped, self._handle_wrench)
 
+        self._measured_acceleration_pub = rospy.Publisher('gnc/measurement', Vector3, queue_size=10)
+
         self._ekf: EKF = EKF(process_covariance=self._process_covariance)
 
         self._lock.release()
@@ -51,8 +53,11 @@ class StateEstimator:
         nav_state = NavigationState()
         nav_state.header.stamp = current_time
         nav_state.position = tm(state[[StateIndex.X, StateIndex.Y, StateIndex.Z]], Vector3)
-        nav_state.linear_velocity = tm(state[[StateIndex.VX, StateIndex.VY, StateIndex.VZ]], Vector3)
+        nav_state.linear_velocity = tm(state[[StateIndex.VX, StateIndex.VY, StateIndex.VZ]],
+                                       Vector3)
+        nav_state.linear_velocity.z = 0.0
         nav_state.linear_acceleration = tm(state[[StateIndex.AX, StateIndex.AY, StateIndex.AZ]], Vector3)
+        nav_state.linear_acceleration.z = 0.0
         nav_state.orientation = tm(state[[StateIndex.ROLL, StateIndex.PITCH, StateIndex.YAW]],
                                     Vector3)
         nav_state.euler_velocity = tm(state[[StateIndex.VROLL, StateIndex.VPITCH, StateIndex.VYAW]], Vector3)
@@ -115,6 +120,8 @@ class StateEstimator:
                                 StateIndex.VX, StateIndex.VY, StateIndex.VZ,
                                 StateIndex.VROLL, StateIndex.VPITCH, StateIndex.VYAW]]
 
+        dynamics_state[3:6] = 0.0
+
         wrench = np.concatenate((
             tl(msg.wrench.force),
             tl(msg.wrench.torque),
@@ -122,15 +129,24 @@ class StateEstimator:
 
         measurement = get_acceleration(self._dynamics_parameters, dynamics_state, wrench)[0:3]
 
+        a = Vector3()
+        a.x = measurement[0]
+        a.y = measurement[1]
+        a.z = measurement[2]
+        self._measured_acceleration_pub.publish(a)
+
         self._ekf.handle_measurement(time.to_sec(), fields, measurement, self._wrench_covariance)
 
         self._lock.release()
 
     def _load_config(self):
         self._process_covariance = 1e-9 * np.ones((15,), dtype=np.float32)
-        self._imu_covariance = np.array([1e-12, 1e-12, 1e-12, 1e-3, 1e-3, 1e-3, 1e-2, 1e-2, 1e-2])
+        self._process_covariance[6:9] = 1e-6
+        self._imu_covariance = np.array([1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-3, 1e-3,
+                                         1e-3])
         self._depth_covariance = 1e-9 * np.ones((1,), dtype=np.float32)
-        self._wrench_covariance = np.array([1e-12, 1e-12, 1e-12])# 1e-12 * np.ones((3,), dtype=np.float32)
+        self._wrench_covariance = np.array([1e-1, 1e-1, 1e-1])# 1e-12 * np.ones((3,), 4
+        # dtype=np.float32)
         self._dynamics_parameters = np.concatenate((
             (
                 rospy.get_param('~dynamics/mass'),
