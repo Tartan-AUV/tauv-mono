@@ -102,9 +102,7 @@ class DarknetTransformer():
 
     def _transform(self, frame_id, bboxes, depth):
         detections = FeatureDetections()
-        detections.header.frame_id = frame_id
-        detections.header.stamp = depth.header.stamp
-        detections.header.seq = depth.header.seq
+        detections.detector_tag = 'darknet'
 
         depth_img = self._cv_bridge.imgmsg_to_cv2(depth, desired_encoding='mono16')
 
@@ -133,6 +131,8 @@ class DarknetTransformer():
                 detection = FeatureDetection()
                 detection.tag = bbox.Class
                 detection.position = Vector3(world_point[0], world_point[1], world_point[2])
+                detection.confidence = 1
+                detection.SE2 = False
                 detections.detections.append(detection)
             except (tf2.LookupException, tf2.ConnectivityException, tf2.ExtrapolationException) as e:
                 rospy.logwarn(f'Could not get transform from {world_frame} to {camera_frame}: {e}')

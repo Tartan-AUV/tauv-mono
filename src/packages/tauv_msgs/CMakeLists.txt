@@ -10,6 +10,7 @@ add_message_files(
   ControllerCommand.msg
   ControllerDebug.msg
   FeatureDetection.msg
+  FeatureDetections.msg
   FluidDepth.msg
   DynamicsTuning.msg
   DynamicsParametersEstimate.msg
@@ -19,7 +20,6 @@ add_message_files(
   SonarPulse.msg
   Servos.msg
   RegisterMeasurement.msg
-  FeatureDetections.msg
   PoseGraphMeasurement.msg
   ReadableAlarmReport.msg
   Thrust.msg
@@ -36,6 +36,8 @@ add_message_files(
 
 add_service_files(
   FILES
+  FeatureDetectionsSync.srv
+  SonarControl.srv
   MapFind.srv
   MapFindOne.srv
   MapFindClosest.srv
