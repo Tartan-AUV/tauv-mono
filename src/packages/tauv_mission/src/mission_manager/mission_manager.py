@@ -111,9 +111,10 @@ class MissionManager:
     def _run_task(self):
         rospy.logdebug(f'_run_task running self._task {type(self._task)}')
         task_result = self._task.run(self._task_resources)
-        rospy.logdebug(f'_run_task acquiring lock')
+        rospy.logdebug(f'_run_task done running self._task {type(self._task)}')
+        rospy.logdebug('_run_task acquiring lock')
         with self._lock:
-            rospy.logdebug(f'_run_task acquired lock')
+            rospy.logdebug('_run_task acquired lock')
             self._task_result = task_result
         self._task_done_event.set()
         self._task_update_event.set()
@@ -153,7 +154,7 @@ class MissionManager:
             res = TriggerResponse()
 
             if self._mission is None:
-                rospy.logdebug('_handle_cancel_mission mission is None, short-circuiting')
+                rospy.logdebug('_handle_cancel_mission self._mission is None, short-circuiting')
                 res.success = False
                 res.message = 'no mission in progress'
                 return res

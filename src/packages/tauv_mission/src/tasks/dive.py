@@ -22,11 +22,9 @@ class Dive(Task):
         self._depth: float = depth
 
     def run(self, resources: TaskResources) -> DiveResult:
-        print("Running Dive...")
         time.sleep(5.0)
         if self._check_cancel(resources): return DiveResult(DiveStatus.FAILURE)
         return DiveResult(DiveStatus.SUCCESS)
 
     def _handle_cancel(self, resources: TaskResources):
-        print("Cancelling Dive...")
         time.sleep(1.0)

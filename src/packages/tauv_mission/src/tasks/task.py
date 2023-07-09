@@ -1,3 +1,4 @@
+import rospy
 from abc import ABC, abstractmethod
 from enum import IntEnum
 from dataclasses import dataclass
@@ -31,10 +32,13 @@ class Task(ABC):
         pass
 
     def cancel(self):
+        rospy.logdebug('cancel setting cancel_event')
         self._cancel_event.set()
 
     def _check_cancel(self, resources: TaskResources):
+        rospy.logdebug('_check_cancel checking cancel_event')
         if self._cancel_event.is_set():
+            rospy.logdebug('_check_cancel cancel_event is set, running _handle_cancel')
             self._cancel_event.clear()
 
             self._handle_cancel(resources)
