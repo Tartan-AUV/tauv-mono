@@ -44,6 +44,7 @@ class MissionManager:
 
     def _spin_mission(self):
         while True:
+            rospy.logdebug("_spin_mission waiting")
             self._mission_update_event.wait()
 
             if self._mission_start_event.is_set():
@@ -55,6 +56,7 @@ class MissionManager:
 
     def _spin_task(self):
         while True:
+            rospy.logdebug("_spin_task waiting")
             self._task_update_event.wait()
 
             if self._task_done_event.is_set():
@@ -64,7 +66,9 @@ class MissionManager:
             self._task_update_event.clear()
 
     def _start_mission(self):
+        rospy.logdebug("_start_mission acquiring lock")
         with self._lock:
+            rospy.logdebug("_start_mission acquired lock")
             self._task = self._mission.entrypoint()
             self._task_thread = Thread(target=self._run_task, daemon=True)
             self._task_thread.start()
@@ -72,40 +76,52 @@ class MissionManager:
             self._mission_start_event.clear()
 
     def _cancel_mission(self):
+        rospy.logdebug('_cancel_mission acquiring lock')
         with self._lock:
+            rospy.logdebug('_cancel_mission acquired lock')
             self._mission = None
 
             if self._task is not None:
                 self._task.cancel()
 
     def _transition_task(self):
+        rospy.logdebug('_transition_task acquiring lock')
         with self._lock:
+            rospy.logdebug('_transition_task acquired lock')
             if self._mission_cancel_event.is_set():
+                rospy.logdebug('_transition_task _mission_cancel_event set, short-circuiting')
                 self._mission_cancel_event.clear()
                 return
 
             new_task = self._mission.transition(self._task, self._task_result)
 
             if new_task is None:
+                rospy.logdebug('_transition_task new_task is None, mission complete')
                 self._mission = None
                 self._task = None
                 self._task_result = None
                 return
 
+            rospy.logdebug(f'_transition_task running new_task {type(new_task)}')
             self._task = self._mission.transition(self._task, self._task_result)
             self._task_result = None
             self._task_thread = Thread(target=self._run_task, daemon=True)
             self._task_thread.start()
 
     def _run_task(self):
+        rospy.logdebug(f'_run_task running self._task {type(self._task)}')
         task_result = self._task.run(self._task_resources)
+        rospy.logdebug(f'_run_task acquiring lock')
         with self._lock:
+            rospy.logdebug(f'_run_task acquired lock')
             self._task_result = task_result
         self._task_done_event.set()
         self._task_update_event.set()
 
     def _handle_run_mission(self, req: RunMissionRequest) -> RunMissionResponse:
+        rospy.logdebug('_handle_run_mission acquiring lock')
         with self._lock:
+            rospy.logdebug('_handle_run_mission acquired lock')
             res = RunMissionResponse()
 
             if self._mission is not None:
@@ -116,12 +132,14 @@ class MissionManager:
             mission = get_mission_by_name(req.mission_name)
 
             if mission is None:
+                rospy.logdebug('_handle_run_mission mission is None, short-circuiting')
                 res.success = False
                 res.message = f'could not find mission named {req.mission_name}'
                 return res
 
             self._mission = mission()
 
+            rospy.logdebug('_handle_run_mission setting mission_start_event')
             self._mission_start_event.set()
             self._mission_update_event.set()
 
@@ -129,14 +147,18 @@ class MissionManager:
             return res
 
     def _handle_cancel_mission(self, req: TriggerRequest) -> TriggerResponse:
+        rospy.logdebug('_handle_cancel_mission acquiring lock')
         with self._lock:
+            rospy.logdebug('_handle_cancel_mission acquired lock')
             res = TriggerResponse()
 
             if self._mission is None:
+                rospy.logdebug('_handle_cancel_mission mission is None, short-circuiting')
                 res.success = False
                 res.message = 'no mission in progress'
                 return res
 
+            rospy.logdebug('_handle_cancel_mission setting mission cancel event')
             self._mission_cancel_event.set()
             self._mission_update_event.set()
 
@@ -145,6 +167,7 @@ class MissionManager:
 
 
 def main():
-    rospy.init_node('mission_manager')
+    rospy.init_node('mission_manager', log_level=rospy.DEBUG)
+
     node = MissionManager()
     node.run()
