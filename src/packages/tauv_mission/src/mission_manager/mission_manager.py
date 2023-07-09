@@ -4,7 +4,9 @@ from threading import Lock, Event, Thread
 from tasks.task import Task, TaskResources, TaskStatus, TaskResult
 import missions
 from missions.mission import Mission
+from missions.manifest import get_mission_by_name
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
+from tauv_msgs.srv import RunMission, RunMissionRequest, RunMissionResponse
 
 
 class MissionManager:
@@ -26,7 +28,7 @@ class MissionManager:
         self._task_done_event: Event = Event()
         self._task_update_event: Event = Event()
 
-        self._run_mission_service: rospy.Service = rospy.Service("mission/run", Trigger, self._handle_run_mission)
+        self._run_mission_service: rospy.Service = rospy.Service("mission/run", RunMission, self._handle_run_mission)
         self._cancel_mission_service: rospy.Service = rospy.Service("mission/cancel", Trigger, self._handle_cancel_mission)
 
         self._spin_mission_thread: Optional[Thread] = None
@@ -102,19 +104,28 @@ class MissionManager:
         self._task_done_event.set()
         self._task_update_event.set()
 
-    def _handle_run_mission(self, req: TriggerRequest) -> TriggerResponse:
+    def _handle_run_mission(self, req: RunMissionRequest) -> RunMissionResponse:
         with self._lock:
-            res = TriggerResponse()
+            res = RunMissionResponse()
 
             if self._mission is not None:
-                print("mission in progress")
+                res.success = False
+                res.message = 'mission in progress'
                 return res
 
-            self._mission = missions.kf_transdec_23.KFTransdec23()
+            mission = get_mission_by_name(req.mission_name)
+
+            if mission is None:
+                res.success = False
+                res.message = f'could not find mission named {req.mission_name}'
+                return res
+
+            self._mission = mission()
 
             self._mission_start_event.set()
             self._mission_update_event.set()
 
+            res.success = True
             return res
 
     def _handle_cancel_mission(self, req: TriggerRequest) -> TriggerResponse:
@@ -122,12 +133,14 @@ class MissionManager:
             res = TriggerResponse()
 
             if self._mission is None:
-                print("no mission to cancel")
+                res.success = False
+                res.message = 'no mission in progress'
                 return res
 
             self._mission_cancel_event.set()
             self._mission_update_event.set()
 
+            res.success = True
             return res
 
 

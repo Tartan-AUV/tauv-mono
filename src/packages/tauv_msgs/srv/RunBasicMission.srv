@@ -1,5 +1,0 @@
-float32 delay
-string yaml_filename
----
-bool success
-string message
