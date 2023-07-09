@@ -1,17 +1,12 @@
 from abc import ABC, abstractmethod
 from enum import IntEnum
 from dataclasses import dataclass
-from typing import Callable
 from threading import Event
-
-from motion_client.motion_client import MotionClient
-from map_client.map_client import MapClient
 
 
 @dataclass
 class TaskResources:
-    motion: MotionClient
-    map: MapClient
+    pass
 
 
 TaskStatus = IntEnum
@@ -25,12 +20,21 @@ class TaskResult:
 class Task(ABC):
 
     def __init__(self) -> None:
-        pass
+        self._cancel_event: Event = Event()
 
     @abstractmethod
     def run(self, resources: TaskResources) -> TaskResult:
         pass
 
     @abstractmethod
-    def cancel(self, resources: TaskResources):
+    def _handle_cancel(self, resources: TaskResources):
         pass
+
+    def cancel(self):
+        self._cancel_event.set()
+
+    def _check_cancel(self, resources: TaskResources):
+        if self._cancel_event.is_set():
+            self._cancel_event.clear()
+
+            self._handle_cancel(resources)

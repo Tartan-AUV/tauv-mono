@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Dict, Optional
-from mission_manager.task import Task, TaskStatus, TaskResult
+from tasks.task import Task, TaskStatus, TaskResult
 
 
 class Mission(ABC):
