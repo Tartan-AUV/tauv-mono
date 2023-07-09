@@ -41,7 +41,7 @@ setup_args = generate_distutils_setup(
               'dynamics',
               'tauv_alarms',
               'tauv_util',
-              'motion',
+              'motion_client',
               'tauv_messages',
               'albatross_state_estimation'],
     # packages=find_packages(),

@@ -5,7 +5,7 @@
     <arg name="ab_config_pkg" default="$(eval find('albatross_sim_description'))"/>
 
     <arg name="launch_vision" default="true" />
-    <arg name="teleop" default="true" />
+    <arg name="teleop" default="false" />
 
     <include file="$(find tauv_sim_worlds)/launch/umd.launch" />
 
