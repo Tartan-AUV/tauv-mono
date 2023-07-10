@@ -16,13 +16,13 @@
                 </clouds>
             </sky>
             <shadows>1</shadows>
-<!--            <fog>-->
-<!--                <color>0.1 0.2 0.3 1.0</color>-->
-<!--                <type>linear</type>-->
-<!--                <density>0.1</density>-->
-<!--                <start>1</start>-->
-<!--                <end>40</end>-->
-<!--            </fog>-->
+            <fog>
+                <color>0.1 0.2 0.3 1.0</color>
+                <type>linear</type>
+                <density>0.05</density>
+                <start>1</start>
+                <end>40</end>
+            </fog>
         </scene>
 
         <spherical_coordinates>
@@ -54,6 +54,77 @@
         <include>
             <uri>model://water</uri>
             <pose>0 0 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>model://whirlpool_table</uri>
+            <pose>21 18 -2.85 0 0 0.2</pose>
+        </include>
+
+        <include>
+            <uri>model://chevron</uri>
+            <pose>21 18 -2.7 0 0 0</pose>
+            <name>chevron_1</name>
+        </include>
+
+        <include>
+            <uri>model://chevron</uri>
+            <pose>21 18.3 -2.7 0 0 0.5</pose>
+            <name>chevron_2</name>
+        </include>
+
+        <include>
+            <uri>model://chevron</uri>
+            <pose>21.3 18 -2.7 0 0 1</pose>
+            <name>chevron_3</name>
+        </include>
+
+        <include>
+            <uri>model://chevron</uri>
+            <pose>21.3 18.3 -2.7 0 0 1.5</pose>
+            <name>chevron_4</name>
+        </include>
+
+        <include>
+            <uri>model://whirlpool_torpedo_target</uri>
+            <pose>26 7 -2.15 0 0 -1</pose>
+        </include>
+
+        <include>
+            <uri>model://whirlpool_buoy</uri>
+            <pose>32 -10 -2.15 0 0 -2.3</pose>
+        </include>
+
+        <include>
+            <uri>model://gate</uri>
+            <pose>17 -21 -2.15 0 0 -1</pose>
+        </include>
+
+        <include>
+            <uri>model://path_marker</uri>
+            <pose>20 -20 -4.2 0 0 0.6</pose>
+            <name>path_marker_1</name>
+        </include>
+
+        <include>
+            <uri>model://path_marker</uri>
+            <pose>32 -9 -4.2 0 0 1.6</pose>
+            <name>path_marker_2</name>
+        </include>
+
+        <include>
+            <uri>model://whirlpool_bin_earth_1</uri>
+            <pose>30 -2 -4 0 0 1.4</pose>
+        </include>
+
+        <include>
+            <uri>model://whirlpool_bin_abydos_2</uri>
+            <pose>30 -2 -4 0 0 1.4</pose>
+        </include>
+
+        <include>
+            <uri>model://whirlpool_bin_lid</uri>
+            <pose>31.4 -2.2 -3.9 0 0 1.4</pose>
         </include>
 
         <plugin name="sc_interface" filename="libuuv_sc_ros_interface_plugin.so"/>

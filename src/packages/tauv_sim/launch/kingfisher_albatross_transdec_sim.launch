@@ -13,8 +13,9 @@
         <param name="tf_namespace" value="$(arg kf_namespace)" />
 
         <include file="$(arg kf_config_pkg)/launch/upload.launch">
-            <arg name="x" value="10" />
-            <arg name="y" value="5" />
+            <arg name="x" value="8" />
+            <arg name="y" value="-26" />
+            <arg name="z" value="0" />
             <arg name="namespace" value="$(arg kf_namespace)" />
         </include>
 
@@ -32,8 +33,9 @@
         <param name="tf_namespace" value="$(arg ab_namespace)" />
 
         <include file="$(arg ab_config_pkg)/launch/upload.launch">
-            <arg name="x" value="10" />
-            <arg name="y" value="7" />
+            <arg name="x" value="6" />
+            <arg name="y" value="-26" />
+            <arg name="z" value="0" />
             <arg name="namespace" value="$(arg ab_namespace)" />
         </include>
 
