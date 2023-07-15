@@ -11,10 +11,6 @@ from tauv_util.transforms import tf2_transform_to_homogeneous
 import tf2_ros as tf2
 import cv2 as cv
 
-#for testing
-import matplotlib
-import matplotlib.pyplot as plt
-
 POINT_DIM = 3
 
 class SonarGraph:
@@ -22,8 +18,8 @@ class SonarGraph:
         rospy.init_node('sonar_map',anonymous=True)
 
         self._load_config()
-   
-        x = rospy.wait_for_message("/sonar/pulse",SonarPulse)
+
+        x = rospy.wait_for_message("vehicle/sonar/pulse",SonarPulse)
 
         self.cur_angle = x.angle
         self.data_len = x.data_length
@@ -47,7 +43,7 @@ class SonarGraph:
         self.positions[:,:,3] = 1
 
         #subscribes to sonar driver publishings
-        self.pulse_reader = rospy.Subscriber("/sonar/pulse",SonarPulse, self.read)
+        self.pulse_reader = rospy.Subscriber("vehicle/sonar/pulse",SonarPulse, self.read)
         #starts scanning immediately, might wanna start from false
         self.survey_mode = True
 
@@ -65,7 +61,7 @@ class SonarGraph:
         #params for data reading
         self.range = rospy.get_param('sonar_map/device/range')
         self.gradians = rospy.get_param('sonar_map/map/degrees') #not rad OR degrees
-        self.num_distances=rospy.get_param('sonar_map/device/num_samples') 
+        self.num_distances=rospy.get_param('sonar_map/device/num_samples')
         self.global_range = rospy.get_param('sonar_map/map/global_range') 
         self.residue_factor = rospy.get_param('sonar_map/map/residue_factor') 
         self.confidence_increment = rospy.get_param('sonar_map/map/confidence_increment') 

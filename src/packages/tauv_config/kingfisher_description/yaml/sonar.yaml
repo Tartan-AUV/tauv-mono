@@ -1,8 +1,8 @@
 device: {
   frequency: 100,
 
-  #port: /dev/ping360_sonar
-  port: /dev/ttyUSB0,
+  port: /dev/ping360_sonar,
+#  port: /dev/ttyUSB0,
   baudrate: 2000000,
 
   gain: 0,

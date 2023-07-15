@@ -1,9 +1,10 @@
 <launch>
     <arg name="model_name" default="kingfisher"/>
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+    <arg name="namespace" default="kf"/>
 
     <node pkg="tauv_vehicle" type="sonar" name="sonar" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/yaml/sonar.yaml" />
-        <remap from="pulse" to="/sonar/pulse" />
+        <remap from="pulse" to="vehicle/sonar/pulse" />
     </node>
 </launch>

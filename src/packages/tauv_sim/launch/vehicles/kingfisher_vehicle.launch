@@ -95,4 +95,5 @@
             <remap from="image" to="/kf/vehicle/oakd_bottom/color/image_raw"/>
         </node>
     </group>
+
 </launch>
