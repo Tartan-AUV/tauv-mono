@@ -80,12 +80,6 @@ class StateEstimator:
         rospy.Timer(rospy.Duration(self._dt), self._update)
         rospy.spin()
 
-    def _get_gravity_vector(self, q: np.array):
-        rotm = quat_to_rotm(q)
-        world_gravity = np.array([0.0,0.0,-9.810])
-        vehicle_gravity = rotm.dot(world_gravity)
-        return vehicle_gravity
-
     def _handle_imu(self, msg: XsensImuData):
         self._lock.acquire()
 
@@ -93,12 +87,19 @@ class StateEstimator:
                   StateIndex.VYAW, StateIndex.VPITCH, StateIndex.VROLL,
                   StateIndex.AX, StateIndex.AY, StateIndex.AZ]
 
-        imu_q = tl(rpy_to_quat(tl(msg.orientation)))
-        imu_q[3] = -imu_q[3]
-        imu_gravity = self._get_gravity_vector(imu_q)
-        imu_free_acceleration = tl(msg.linear_acceleration) + imu_gravity
+        rotm = quat_to_rotm(tl(rpy_to_quat(tl(msg.orientation))))
+        world_gravity = np.array([0.0, 0.0, 9.81])
+        body_gravity = np.linalg.inv(rotm) @ world_gravity
+
+        linear_acceleration = tl(msg.linear_acceleration)
+        free_acceleration = linear_acceleration - body_gravity
+
+        #imu_q = tl(rpy_to_quat(tl(msg.orientation)))
+        #imu_q[3] = -imu_q[3]
+        #imu_gravity = self._get_gravity_vector(imu_q)
+        #imu_free_acceleration = tl(msg.linear_acceleration) + imu_gravity
         # print(f'{tl(msg.linear_acceleration)=} {imu_gravity=}')
-        free_acceleration = quat_to_rotm(self._imu_transform_quat).dot(imu_free_acceleration)
+        #free_acceleration = quat_to_rotm(self._imu_transform_quat) @ imu_free_acceleration
 
         self._free_acceleration_pub.publish(tm(free_acceleration, Vector3))
 
