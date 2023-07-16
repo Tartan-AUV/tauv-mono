@@ -68,7 +68,7 @@ class Maestro:
             else:
                 self.usb.write(bytes(cmdStr, 'latin-1'))
         except serial.SerialException:
-            print("fuck!")
+            print("fuck! (maestro serial)")
             try:
                 self.__init__(self.ttyStr, self.device)
             except serial.SerialException:

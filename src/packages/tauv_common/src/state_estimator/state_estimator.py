@@ -27,7 +27,7 @@ class StateEstimator:
 
         self._load_config()
 
-        self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/estimated_navigation_state',
+        self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/navigation_state',
                                                                       NavigationState, queue_size=10)
 
         self._imu_sub: rospy.Subscriber = rospy.Subscriber('vehicle/xsens_imu/raw_data',
@@ -65,6 +65,7 @@ class StateEstimator:
         nav_state.orientation = tm(state[[StateIndex.ROLL, StateIndex.PITCH, StateIndex.YAW]],
                                     Vector3)
         nav_state.euler_velocity = tm(state[[StateIndex.VROLL, StateIndex.VPITCH, StateIndex.VYAW]], Vector3)
+        nav_state.linear_velocity.z = 0.0
         self._navigation_state_pub.publish(nav_state)
 
         self._lock.release()
