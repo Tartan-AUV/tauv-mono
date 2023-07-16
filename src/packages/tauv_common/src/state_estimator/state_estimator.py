@@ -8,7 +8,9 @@ from tauv_util.types import tl, tm
 
 from state_estimator.ekf import StateIndex, EKF
 from dynamics_parameter_estimator.dynamics import get_acceleration
-
+from tauv_util.transforms import quat_to_rotm, rpy_to_quat
+from geometry_msgs.msg import Quaternion
+from tf.transformations import *
 
 class StateEstimator:
 
@@ -24,6 +26,11 @@ class StateEstimator:
         self._wrench_covariance: np.array = np.array([])
         self._dynamics_parameters: np.array = np.array([])
 
+        self._imu_orientation_rotm = numpy.array([[-1.0, 0.0, 0.0],
+                                                  [0.0, 1.0, 0.0],
+                                                  [0.0, 0.0, 1.0]])
+        self._imu_transform_quat = np.array([0.0, 1.0, 0.0, 0.0])
+
         self._load_config()
 
         self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/navigation_state',
@@ -35,6 +42,9 @@ class StateEstimator:
         self._wrench_sub: rospy.Subscriber = rospy.Subscriber('gnc/target_wrench', WrenchStamped, self._handle_wrench)
 
         self._measured_acceleration_pub = rospy.Publisher('gnc/measurement', Vector3, queue_size=10)
+
+        self._free_acceleration_pub = rospy.Publisher('gnc/imu_free_acceleration', Vector3,
+                                                      queue_size=10)
 
         self._ekf: EKF = EKF(process_covariance=self._process_covariance)
 
@@ -69,6 +79,12 @@ class StateEstimator:
         rospy.Timer(rospy.Duration(self._dt), self._update)
         rospy.spin()
 
+    def _get_gravity_vector(self, q: np.array):
+        rotm = quat_to_rotm(q)
+        world_gravity = np.array([0.0,0.0,-9.810])
+        vehicle_gravity = rotm.dot(world_gravity)
+        return vehicle_gravity
+
     def _handle_imu(self, msg: XsensImuData):
         self._lock.acquire()
 
@@ -76,13 +92,22 @@ class StateEstimator:
                   StateIndex.VYAW, StateIndex.VPITCH, StateIndex.VROLL,
                   StateIndex.AX, StateIndex.AY, StateIndex.AZ]
 
+        imu_q = tl(rpy_to_quat(tl(msg.orientation)))
+        imu_q[3] = -imu_q[3]
+        imu_gravity = self._get_gravity_vector(imu_q)
+        imu_free_acceleration = tl(msg.linear_acceleration) + imu_gravity
+        # print(f'{tl(msg.linear_acceleration)=} {imu_gravity=}')
+        free_acceleration = quat_to_rotm(self._imu_transform_quat).dot(imu_free_acceleration)
+
+        self._free_acceleration_pub.publish(tm(free_acceleration, Vector3))
+
         # time = msg.header.stamp
         time = rospy.Time.now()
         msg.orientation.x *= -1 # Todo move somewhere else
         measurement = np.concatenate((
             np.flip(tl(msg.orientation)),
             np.flip(tl(msg.rate_of_turn)),
-            tl(msg.free_acceleration)
+            free_acceleration
         ))
 
         self._ekf.handle_measurement(time.to_sec(), fields, measurement, self._imu_covariance)
@@ -120,7 +145,7 @@ class StateEstimator:
                                 StateIndex.VX, StateIndex.VY, StateIndex.VZ,
                                 StateIndex.VROLL, StateIndex.VPITCH, StateIndex.VYAW]]
 
-        dynamics_state[3:6] = 0.0
+        # dynamics_state[3:6] = 0.0
 
         wrench = np.concatenate((
             tl(msg.wrench.force),
@@ -140,13 +165,12 @@ class StateEstimator:
         self._lock.release()
 
     def _load_config(self):
-        self._process_covariance = 1e-9 * np.ones((15,), dtype=np.float32)
+        self._process_covariance = 1e-12 * np.ones((15,), dtype=np.float32)
         self._process_covariance[6:9] = 1e-6
-        self._imu_covariance = np.array([1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-3, 1e-3,
-                                         1e-3])
+        self._imu_covariance = np.array([1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-1, 1e-1,
+                                         1e-1])
         self._depth_covariance = 1e-9 * np.ones((1,), dtype=np.float32)
-        self._wrench_covariance = np.array([1e-1, 1e-1, 1e-1])# 1e-12 * np.ones((3,), 4
-        # dtype=np.float32)
+        self._wrench_covariance = 1e-3 * np.ones((3,), dtype=np.float32)
         self._dynamics_parameters = np.concatenate((
             (
                 rospy.get_param('~dynamics/mass'),
@@ -159,6 +183,7 @@ class StateEstimator:
             rospy.get_param('~dynamics/quadratic_damping'),
             rospy.get_param('~dynamics/added_mass'),
         ))
+
         print("State estimator config loaded")
 
 
