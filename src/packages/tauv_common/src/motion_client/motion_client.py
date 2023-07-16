@@ -6,9 +6,6 @@ from std_msgs.srv import SetBool
 
 class MotionClient:
 
-    class GotoResult(IntEnum):
-        pass
-
     def __init__(self):
         self._get_trajectory_server: rospy.Service = rospy.Service('gnc/get_trajectory', GetTrajectory, self._handle_get_trajectory)
 
@@ -17,8 +14,15 @@ class MotionClient:
     def _handle_get_trajectory(self, req: GetTrajectory.Request) -> GetTrajectory.Response:
         pass
 
+    def arm(self, arm: bool):
+        self._arm_srv(arm)
+
     def goto(self):
         pass
 
+    def goto_relative(self):
+        pass
+
     def cancel(self):
+        # Reset target to current position
         pass
