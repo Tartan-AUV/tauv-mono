@@ -160,9 +160,9 @@ class StateEstimator:
         self._process_covariance = np.diag([
             1e-1, 1e-1, 1e-1,
             1e-1, 1e-1, 1e-1,
-            1e-4, 1e-4, 1e-4,
-            1e-9, 1e-9, 1e-9,
-            1e-9, 1e-9, 1e-9,
+            1e-5, 1e-5, 1e-5,
+            1e-1, 1e-1, 1e-1,
+            1e-1, 1e-1, 1e-1,
         ])
         self._imu_covariance = np.array([1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-3, 1e-3, 1e-3])
         self._depth_covariance = np.array([1e-9])
