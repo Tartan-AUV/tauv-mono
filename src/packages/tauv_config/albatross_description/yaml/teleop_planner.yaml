@@ -14,8 +14,8 @@ axis_ids:
   pitch: 7
   yaw: 3
 axis_force_scales:
-  x: 500.0
-  y: -500.0
+  x: 60.0
+  y: -60.0
   z: 60.0
   roll: -10.0
   pitch: -10.0
