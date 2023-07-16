@@ -21,7 +21,7 @@
                 <linkName>${namespace}/xsens_imu</linkName>
                 <nodeName>${namespace}_xsens_imu_plugin</nodeName>
                 <publishRate>50</publishRate>
-                <dataTopic>/${namespace}/vehicle/xsens_imu/data_raw</dataTopic>
+                <dataTopic>/${namespace}/vehicle/xsens_imu/raw_data</dataTopic>
             </plugin>
         </gazebo>
 

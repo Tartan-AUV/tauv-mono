@@ -7,7 +7,7 @@
     <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
 
     <arg name="launch_vision" default="true" />
-    <arg name="teleop" default="true" />
+    <arg name="teleop" default="false" />
 
     <include file="$(find tauv_sim_worlds)/launch/umd.launch" />
 

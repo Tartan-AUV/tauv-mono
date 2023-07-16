@@ -5,6 +5,7 @@ from threading import Lock
 from geometry_msgs.msg import WrenchStamped, Vector3
 from tauv_msgs.msg import XsensImuData, FluidDepth, NavigationState
 from tauv_util.types import tl, tm
+from tauv_util.transforms import euler_velocity_to_axis_velocity
 
 from state_estimator.ekf import StateIndex, EKF
 from dynamics_parameter_estimator.dynamics import get_acceleration
@@ -33,7 +34,7 @@ class StateEstimator:
 
         self._load_config()
 
-        self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/navigation_state',
+        self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/estimated_navigation_state',
                                                                       NavigationState, queue_size=10)
 
         self._imu_sub: rospy.Subscriber = rospy.Subscriber('vehicle/xsens_imu/raw_data',
@@ -65,9 +66,9 @@ class StateEstimator:
         nav_state.position = tm(state[[StateIndex.X, StateIndex.Y, StateIndex.Z]], Vector3)
         nav_state.linear_velocity = tm(state[[StateIndex.VX, StateIndex.VY, StateIndex.VZ]],
                                        Vector3)
-        nav_state.linear_velocity.z = 0.0
+        # nav_state.linear_velocity.z = 0.0
         nav_state.linear_acceleration = tm(state[[StateIndex.AX, StateIndex.AY, StateIndex.AZ]], Vector3)
-        nav_state.linear_acceleration.z = 0.0
+        # nav_state.linear_acceleration.z = 0.0
         nav_state.orientation = tm(state[[StateIndex.ROLL, StateIndex.PITCH, StateIndex.YAW]],
                                     Vector3)
         nav_state.euler_velocity = tm(state[[StateIndex.VROLL, StateIndex.VPITCH, StateIndex.VYAW]], Vector3)
@@ -103,12 +104,12 @@ class StateEstimator:
 
         # time = msg.header.stamp
         time = rospy.Time.now()
-        msg.orientation.x *= -1 # Todo move somewhere else
         measurement = np.concatenate((
             np.flip(tl(msg.orientation)),
             np.flip(tl(msg.rate_of_turn)),
             free_acceleration
         ))
+        # Do not want free acceleration here
 
         self._ekf.handle_measurement(time.to_sec(), fields, measurement, self._imu_covariance)
 
@@ -141,9 +142,16 @@ class StateEstimator:
             self._lock.release()
             return
 
-        dynamics_state = state[[StateIndex.ROLL, StateIndex.PITCH, StateIndex.YAW,
-                                StateIndex.VX, StateIndex.VY, StateIndex.VZ,
-                                StateIndex.VROLL, StateIndex.VPITCH, StateIndex.VYAW]]
+        orientation = state[[StateIndex.ROLL, StateIndex.PITCH, StateIndex.YAW]]
+        velocity = state[[StateIndex.VX, StateIndex.VY, StateIndex.VZ]]
+        euler_velocity = state[[StateIndex.VROLL, StateIndex.VPITCH, StateIndex.VYAW]]
+        axis_velocity = euler_velocity_to_axis_velocity(orientation, euler_velocity)
+
+        dynamics_state = np.concatenate((
+            orientation,
+            velocity,
+            axis_velocity
+        ))
 
         # dynamics_state[3:6] = 0.0
 
@@ -165,12 +173,16 @@ class StateEstimator:
         self._lock.release()
 
     def _load_config(self):
-        self._process_covariance = 1e-12 * np.ones((15,), dtype=np.float32)
-        self._process_covariance[6:9] = 1e-6
-        self._imu_covariance = np.array([1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-12, 1e-1, 1e-1,
-                                         1e-1])
-        self._depth_covariance = 1e-9 * np.ones((1,), dtype=np.float32)
-        self._wrench_covariance = 1e-3 * np.ones((3,), dtype=np.float32)
+        self._process_covariance = np.diag([
+            1e-9, 1e-9, 1e-9,
+            1e-9, 1e-9, 1e-9,
+            1e-9, 1e-9, 1e-9,
+            1e-9, 1e-9, 1e-9,
+            1e-9, 1e-9, 1e-9,
+        ])
+        self._imu_covariance = np.array([1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-6, 1e-6, 1e-6])
+        self._depth_covariance = np.array([1e-9])
+        self._wrench_covariance = np.array([1e-9, 1e-9, 1e-9])
         self._dynamics_parameters = np.concatenate((
             (
                 rospy.get_param('~dynamics/mass'),

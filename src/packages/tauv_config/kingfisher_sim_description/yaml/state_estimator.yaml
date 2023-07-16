@@ -6,7 +6,7 @@ dynamics:
   volume: 0.03
 
   # kg / m^3
-  water_density: 1028.0
+  water_density: 1000.0
 
   # x, y, z in body NED
   center_of_gravity: [0.0, 0.0, 0.0]

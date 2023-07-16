@@ -57,6 +57,7 @@ class EKF:
 
         dt = time - self._time
         self._time = time
+        print(dt)
 
         self._state = self._extrapolate_state(dt)
         self._covariance = self._extrapolate_covariance(dt)
@@ -85,7 +86,8 @@ class EKF:
 
     def _extrapolate_covariance(self, dt: float) -> np.array:
         J = self._get_J(dt)
-        extrapolated_covariance = J @ (self._covariance @ np.transpose(J)) + dt * self._process_covariance
+        # extrapolated_covariance = J @ (self._covariance @ np.transpose(J)) + dt * self._process_covariance
+        extrapolated_covariance = J @ (self._covariance @ np.transpose(J)) + self._process_covariance
         return extrapolated_covariance
 
     def _wrap_angles(self, state: np.array, fields: [int]) -> None:
