@@ -57,7 +57,6 @@ class EKF:
 
         dt = time - self._time
         self._time = time
-        print(dt)
 
         self._state = self._extrapolate_state(dt)
         self._covariance = self._extrapolate_covariance(dt)

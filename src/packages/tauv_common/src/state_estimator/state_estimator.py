@@ -10,8 +10,6 @@ from tauv_util.transforms import euler_velocity_to_axis_velocity
 from state_estimator.ekf import StateIndex, EKF
 from dynamics_parameter_estimator.dynamics import get_acceleration
 from tauv_util.transforms import quat_to_rotm, rpy_to_quat
-from geometry_msgs.msg import Quaternion
-from tf.transformations import *
 
 class StateEstimator:
 
@@ -26,11 +24,6 @@ class StateEstimator:
         self._depth_covariance: np.array = np.array([])
         self._wrench_covariance: np.array = np.array([])
         self._dynamics_parameters: np.array = np.array([])
-
-        self._imu_orientation_rotm = numpy.array([[-1.0, 0.0, 0.0],
-                                                  [0.0, 1.0, 0.0],
-                                                  [0.0, 0.0, 1.0]])
-        self._imu_transform_quat = np.array([0.0, 1.0, 0.0, 0.0])
 
         self._load_config()
 
@@ -88,18 +81,11 @@ class StateEstimator:
                   StateIndex.AX, StateIndex.AY, StateIndex.AZ]
 
         rotm = quat_to_rotm(tl(rpy_to_quat(tl(msg.orientation))))
-        world_gravity = np.array([0.0, 0.0, 9.81])
+        world_gravity = np.array([0.0, 0.0, -9.81])
         body_gravity = np.linalg.inv(rotm) @ world_gravity
 
         linear_acceleration = tl(msg.linear_acceleration)
         free_acceleration = linear_acceleration - body_gravity
-
-        #imu_q = tl(rpy_to_quat(tl(msg.orientation)))
-        #imu_q[3] = -imu_q[3]
-        #imu_gravity = self._get_gravity_vector(imu_q)
-        #imu_free_acceleration = tl(msg.linear_acceleration) + imu_gravity
-        # print(f'{tl(msg.linear_acceleration)=} {imu_gravity=}')
-        #free_acceleration = quat_to_rotm(self._imu_transform_quat) @ imu_free_acceleration
 
         self._free_acceleration_pub.publish(tm(free_acceleration, Vector3))
 
@@ -110,7 +96,6 @@ class StateEstimator:
             np.flip(tl(msg.rate_of_turn)),
             free_acceleration
         ))
-        # Do not want free acceleration here
 
         self._ekf.handle_measurement(time.to_sec(), fields, measurement, self._imu_covariance)
 
@@ -154,8 +139,6 @@ class StateEstimator:
             axis_velocity
         ))
 
-        # dynamics_state[3:6] = 0.0
-
         wrench = np.concatenate((
             tl(msg.wrench.force),
             tl(msg.wrench.torque),
@@ -181,9 +164,9 @@ class StateEstimator:
             1e-9, 1e-9, 1e-9,
             1e-9, 1e-9, 1e-9,
         ])
-        self._imu_covariance = np.array([1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-6, 1e-6, 1e-6])
+        self._imu_covariance = np.array([1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-9, 1e-2, 1e-2, 1e-2])
         self._depth_covariance = np.array([1e-9])
-        self._wrench_covariance = np.array([1e-9, 1e-9, 1e-9])
+        self._wrench_covariance = np.array([1e-6, 1e-6, 1e-6])
         self._dynamics_parameters = np.concatenate((
             (
                 rospy.get_param('~dynamics/mass'),
@@ -191,7 +174,7 @@ class StateEstimator:
             ),
             rospy.get_param('~dynamics/center_of_gravity'),
             rospy.get_param('~dynamics/center_of_buoyancy'),
-            rospy.get_param('~dynamics/moments'),
+            np.array(rospy.get_param('~dynamics/moments'))[[0, 3, 4, 1, 5, 2]],
             rospy.get_param('~dynamics/linear_damping'),
             rospy.get_param('~dynamics/quadratic_damping'),
             rospy.get_param('~dynamics/added_mass'),

@@ -24,7 +24,7 @@ geometry_msgs::Vector3 FromIgnitionVector3(ignition::math::Vector3<double> vec) 
 
 inline ignition::math::Vector3<double> AddGravity(ignition::math::Vector3d relativeAccel, ignition::math::Quaternion<double> rot) {
     //make sure this points the right way
-    return relativeAccel + rot.RotateVector(ignition::math::Vector3d(0,0,9.81));
+    return relativeAccel + rot.RotateVector(ignition::math::Vector3d(0,0,-9.81));
 }
 
 void XsensImuPlugin::Load(physics::ModelPtr model, sdf::ElementPtr sdf)
