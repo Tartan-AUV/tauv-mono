@@ -165,7 +165,6 @@ class StateEstimator:
 
         state = self._ekf.get_state(time.to_sec())
         if state is None:
-            self._lock.release()
             return
 
         orientation = state[[StateIndex.ROLL, StateIndex.PITCH, StateIndex.YAW]]
@@ -196,8 +195,8 @@ class StateEstimator:
 
     def _load_config(self):
         self._process_covariance = np.diag([
-            1e-1, 1e-1, 1e-1,
-            1e-1, 1e-1, 1e-1,
+            1e-9, 1e-9, 1e-9,
+            1e-9, 1e-9, 1e-9,
             1e-5, 1e-5, 1e-5,
             1e-1, 1e-1, 1e-1,
             1e-1, 1e-1, 1e-1,
