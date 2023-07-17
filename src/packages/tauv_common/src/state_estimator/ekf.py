@@ -75,6 +75,7 @@ class EKF:
         I = np.identity(N_FIELDS, np.float32)
 
         self._state = self._state + K @ y
+        self._state[[StateIndex.VZ, StateIndex.AZ]] = 0
         self._wrap_angles(self._state, [StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL])
 
         self._covariance = (I - (K @ H)) @ self._covariance
