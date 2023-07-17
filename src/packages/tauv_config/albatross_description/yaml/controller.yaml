@@ -1,9 +1,9 @@
 frequency: 50
 
 # z, roll, pitch
-kp: [0.5, 0.5, 0.5]
-ki: [0.0, 0.0, 0.0]
-kd: [0.1, 0.1, 0.1]
+kp: [4.0, 0.5, 0.5]
+ki: [0.7, 0.0, 0.0]
+kd: [15.0, 0.1, 0.1]
 tau: [0.1, 0.1, 0.1]
 limits: [[-1.0, 1.0], [-1.0, 1.0], [-1.0, 1.0]]
 
@@ -15,14 +15,14 @@ dynamics:
   mass: 15.0
 
   # m^3
-  volume: 0.021
+  volume: 0.0195
 
   # kg / m^3
   water_density: 1000.0
 
   # x, y, z in body NED
   center_of_gravity: [0.0, 0.0, 0.0]
-  center_of_buoyancy: [0.0, 0.0, 0.0]
+  center_of_buoyancy: [-0.0025, 0.0, 0.0]
 
   # Ixx, Iyy, Izz, Ixy, Ixz, Iyz
   moments: [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
