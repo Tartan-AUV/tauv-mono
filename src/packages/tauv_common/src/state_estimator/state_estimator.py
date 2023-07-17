@@ -202,7 +202,7 @@ class StateEstimator:
             1e-9, 1e-9, 1e-9,
         ])
         self._imu_covariance = np.array([1e-8, 1e-8, 1e-8, 1e-8, 1e-8, 1e-8, 1e-3, 1e-3, 1e-3])
-        self._depth_covariance = np.array([1e-9])
+        self._depth_covariance = np.array([1e-8])
         self._wrench_covariance = np.array([1e-4, 1e-4, 1e-4])
         self._dynamics_parameters = np.concatenate((
             (
