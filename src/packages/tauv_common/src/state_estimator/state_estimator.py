@@ -1,6 +1,9 @@
 import rospy
 import numpy as np
 from threading import Lock
+from queue import PriorityQueue
+from dataclasses import dataclass, field
+from typing import Union, Optional, Callable
 
 from geometry_msgs.msg import WrenchStamped, Vector3
 from tauv_msgs.msg import XsensImuData, FluidDepth, NavigationState
@@ -10,6 +13,13 @@ from tauv_util.transforms import euler_velocity_to_axis_velocity
 from state_estimator.ekf import StateIndex, EKF
 from dynamics_parameter_estimator.dynamics import get_acceleration
 from tauv_util.transforms import quat_to_rotm, rpy_to_quat
+
+
+@dataclass(order=True)
+class StampedMsg:
+    time: float
+    msg: Union[XsensImuData, FluidDepth, WrenchStamped] = field(compare=False)
+
 
 class StateEstimator:
 
@@ -27,13 +37,15 @@ class StateEstimator:
 
         self._load_config()
 
+        self._queue: PriorityQueue[StampedMsg] = PriorityQueue()
+        
         self._navigation_state_pub: rospy.Publisher = rospy.Publisher('gnc/navigation_state',
                                                                       NavigationState, queue_size=10)
 
         self._imu_sub: rospy.Subscriber = rospy.Subscriber('vehicle/xsens_imu/raw_data',
-                                                           XsensImuData, self._handle_imu)
-        self._depth_sub: rospy.Subscriber = rospy.Subscriber('vehicle/arduino/depth', FluidDepth, self._handle_depth)
-        self._wrench_sub: rospy.Subscriber = rospy.Subscriber('gnc/target_wrench', WrenchStamped, self._handle_wrench)
+                                                           XsensImuData, self._handle_msg)
+        self._depth_sub: rospy.Subscriber = rospy.Subscriber('vehicle/arduino/depth', FluidDepth, self._handle_msg)
+        self._wrench_sub: rospy.Subscriber = rospy.Subscriber('gnc/target_wrench', WrenchStamped, self._handle_msg)
 
         self._measured_acceleration_pub = rospy.Publisher('gnc/measurement', Vector3, queue_size=10)
 
@@ -44,12 +56,34 @@ class StateEstimator:
 
         self._lock.release()
 
+    def _sweep_queue(self, time: float, func: Optional[Callable[[Union[XsensImuData, FluidDepth, WrenchStamped]], None]] = None):
+        while True:
+            if self._queue.empty():
+                break
+
+            msg = self._queue.get_nowait()
+            if msg.time >= time:
+                self._queue.put_nowait(msg)
+                break
+
+            if func is not None:
+                func(msg.msg)
+
     def _update(self, timer_event):
         self._lock.acquire()
 
         current_time = rospy.Time.now()
+        horizon_time = current_time - rospy.Duration.from_sec(0.1)
 
-        state = self._ekf.get_state(current_time.to_sec())
+        # Wipe all messages before ekf time
+        ekf_time = self._ekf.get_time()
+        if ekf_time is not None:
+            self._sweep_queue(ekf_time, lambda msg: print(f"dropping {type(msg)}"))
+
+        # Apply all messages before horizon time
+        self._sweep_queue(horizon_time.to_sec(), self._apply_msg)
+
+        state = self._ekf.get_state(horizon_time.to_sec())
         if state is None:
             self._lock.release()
             return
@@ -74,9 +108,23 @@ class StateEstimator:
         rospy.Timer(rospy.Duration(self._dt), self._update)
         rospy.spin()
 
-    def _handle_imu(self, msg: XsensImuData):
+    def _handle_msg(self, msg: Union[XsensImuData, FluidDepth, WrenchStamped]):
         self._lock.acquire()
 
+        stamped_msg = StampedMsg(msg.header.stamp.to_sec(), msg)
+        self._queue.put(stamped_msg)
+
+        self._lock.release()
+
+    def _apply_msg(self, msg: Union[XsensImuData, FluidDepth, WrenchStamped]):
+        if isinstance(msg, XsensImuData):
+            self._apply_imu(msg)
+        elif isinstance(msg, FluidDepth):
+            self._apply_depth(msg)
+        elif isinstance(msg, WrenchStamped):
+            self._apply_wrench(msg)
+
+    def _apply_imu(self, msg: XsensImuData):
         fields = [StateIndex.YAW, StateIndex.PITCH, StateIndex.ROLL,
                   StateIndex.VYAW, StateIndex.VPITCH, StateIndex.VROLL,
                   StateIndex.AX, StateIndex.AY, StateIndex.AZ]
@@ -90,8 +138,8 @@ class StateEstimator:
 
         self._free_acceleration_pub.publish(tm(free_acceleration, Vector3))
 
-        # time = msg.header.stamp
-        time = rospy.Time.now()
+        time = msg.header.stamp
+        # time = rospy.Time.now()
         measurement = np.concatenate((
             np.flip(tl(msg.orientation)),
             np.flip(tl(msg.rate_of_turn)),
@@ -100,29 +148,21 @@ class StateEstimator:
 
         self._ekf.handle_measurement(time.to_sec(), fields, measurement, self._imu_covariance)
 
-        self._lock.release()
-
-    def _handle_depth(self, msg: FluidDepth):
-        self._lock.acquire()
-
+    def _apply_depth(self, msg: FluidDepth):
         fields = [StateIndex.Z]
 
-        # time = msg.header.stamp
-        time = rospy.Time.now()
+        time = msg.header.stamp
+        # time = rospy.Time.now()
 
         measurement = np.array([msg.depth])
 
         self._ekf.handle_measurement(time.to_sec(), fields, measurement, self._depth_covariance)
 
-        self._lock.release()
-
-    def _handle_wrench(self, msg: WrenchStamped):
-        self._lock.acquire()
-
+    def _apply_wrench(self, msg: WrenchStamped):
         fields = [StateIndex.AX, StateIndex.AY, StateIndex.AZ]
 
-        # time = msg.header.stamp
-        time = rospy.Time.now()
+        time = msg.header.stamp
+        # time = rospy.Time.now()
 
         state = self._ekf.get_state(time.to_sec())
         if state is None:
@@ -154,8 +194,6 @@ class StateEstimator:
         self._measured_acceleration_pub.publish(a)
 
         self._ekf.handle_measurement(time.to_sec(), fields, measurement, self._wrench_covariance)
-
-        self._lock.release()
 
     def _load_config(self):
         self._process_covariance = np.diag([

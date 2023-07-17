@@ -38,8 +38,12 @@ class EKF:
             return None
 
         dt = time - self._time
+        print("get_state dt:", dt)
 
         return self._extrapolate_state(dt)
+
+    def get_time(self) -> Optional[float]:
+        return self._time
 
     def handle_measurement(self, time: float, fields: [int], measurement: np.array, covariance: np.array):
         self._predict(time)
@@ -57,6 +61,7 @@ class EKF:
 
         dt = time - self._time
         self._time = time
+        print(dt)
 
         self._state = self._extrapolate_state(dt)
         self._covariance = self._extrapolate_covariance(dt)
