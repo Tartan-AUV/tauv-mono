@@ -126,12 +126,12 @@ class Thrusters:
             return pwm_speed
 
         if thrust < 0 and -self._negative_max_thrust < thrust < -self._negative_min_thrust:
-            lower_quadratic = self._rev_thrust_coefficients[str(lower_v)]
-            upper_quadratic = self._rev_thrust_coefficients[str(upper_v)]
+            lower_quadratic = self._rev_thrust_coefficients[lower_v]
+            upper_quadratic = self._rev_thrust_coefficients[upper_v]
             selector = min
         elif thrust > 0 and self._positive_min_thrust < thrust < self._positive_max_thrust:
-            lower_quadratic = self._fwd_thrust_coefficients[str(lower_v)]
-            upper_quadratic = self._fwd_thrust_coefficients[str(upper_v)]
+            lower_quadratic = self._fwd_thrust_coefficients[lower_v]
+            upper_quadratic = self._fwd_thrust_coefficients[upper_v]
             selector = max
         else:
             return pwm_speed
@@ -161,8 +161,12 @@ class Thrusters:
         self._negative_max_thrust: float = rospy.get_param('~negative_max_thrust')
         self._positive_min_thrust: float = rospy.get_param('~positive_min_thrust')
         self._positive_max_thrust: float = rospy.get_param('~positive_max_thrust')
-        self._fwd_thrust_coefficients: dict[str, List[float]] = np.array(rospy.get_param('~fwd_thrust_coefficients'))
-        self._rev_thrust_coefficients: dict[str, List[float]] = np.array(rospy.get_param('~rev_thrust_coefficients'))
+        self._fwd_thrust_coefficients: dict[int, np.array] = {
+            int(k): np.array(v) for (k, v) in rospy.get_param('~fwd_thrust_coefficients').items()
+        }
+        self._rev_thrust_coefficients: dict[int, np.array] = {
+            int(k): np.array(v) for (k, v) in rospy.get_param('~rev_thrust_coefficients').items()
+        }
         self._thrust_inversions: List[float] = rospy.get_param('~thrust_inversions')
 
 def clamp(x, x_min, x_max):
