@@ -1,7 +1,8 @@
 import rospy
 import numpy as np
 from numpy.polynomial.polynomial import Polynomial
-from math import floor
+from math import floor, ceil
+from typing import List
 
 from .maestro import Maestro
 from tauv_util.types import tl
@@ -12,10 +13,9 @@ from geometry_msgs.msg import Wrench, WrenchStamped
 from std_msgs.msg import Bool
 
 from tauv_alarms import Alarm, AlarmClient
-
+from tauv_common.src.tauv_util.math import quadratic_roots
 
 class Thrusters:
-
     def __init__(self):
         self._ac: AlarmClient = AlarmClient()
 
@@ -109,46 +109,50 @@ class Thrusters:
         self._maestro.setTarget(pwm_speed * 4, self._servo_channels[servo])
 
     def _get_pwm_speed(self, thruster: int, thrust: float) -> int:
-        pwm_speed = 1500
+        def select_voltage_bounds(v):
+            if v < 10 or v > 20:
+                raise LookupError
+            
+            ub = ceil(v / 2) * 2
+            return ub - 2, ub
 
+        pwm_speed = 1500
         thrust = thrust * self._thrust_inversions[thruster]
+        
+        try:
+            lower_v, upper_v = select_voltage_bounds(self._battery_voltage)
+        except LookupError:
+            rospy.logwarn(f"Requested thruster PWMs beyond voltage bounds (at {self._battery_voltage}V)")
+            return pwm_speed
 
         if thrust < 0 and -self._negative_max_thrust < thrust < -self._negative_min_thrust:
-            thrust_curve = Polynomial(
-                (self._negative_thrust_coefficients[0]
-                    + self._negative_thrust_coefficients[1] * self._battery_voltage
-                    + self._negative_thrust_coefficients[2] * self._battery_voltage ** 2
-                    - thrust,
-                 self._negative_thrust_coefficients[3],
-                 self._negative_thrust_coefficients[4]),
-            )
-
-            target_pwm_speed = floor(thrust_curve.roots()[0])
-
-            if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
-                pwm_speed = target_pwm_speed
-
+            lower_quadratic = self._rev_thrust_coefficients[lower_v]
+            upper_quadratic = self._rev_thrust_coefficients[upper_v]
+            selector = min
         elif thrust > 0 and self._positive_min_thrust < thrust < self._positive_max_thrust:
-            thrust_curve = Polynomial(
-                (self._positive_thrust_coefficients[0]
-                    + self._positive_thrust_coefficients[1] * self._battery_voltage
-                    + self._positive_thrust_coefficients[2] * self._battery_voltage ** 2
-                    - thrust,
-                 self._positive_thrust_coefficients[3],
-                 self._positive_thrust_coefficients[4]),
-            )
+            lower_quadratic = self._fwd_thrust_coefficients[lower_v]
+            upper_quadratic = self._fwd_thrust_coefficients[upper_v]
+            selector = max
+        else:
+            return pwm_speed
 
-            target_pwm_speed = floor(thrust_curve.roots()[1])
+        scale = (self._battery_voltage - lower_v) / 2.0
+        a, b, c = (1 - scale) * lower_quadratic + scale * upper_quadratic
 
-            if self._minimum_pwm_speed < target_pwm_speed < self._maximum_pwm_speed:
-                pwm_speed = target_pwm_speed
+        try: 
+            target_pwm = floor(selector(quadratic_roots(a, b, c - thrust)))
 
+            if self._minimum_pwm_speed < target_pwm < self._maximum_pwm_speed:
+                pwm_speed = target_pwm
+        except ArithmeticError:
+            rospy.logwarn(f"Requested thruster PWMs with no solution (at {thrust} kg F)")
+        
         return pwm_speed
 
     def _load_config(self):
         self._maestro_port: str = rospy.get_param('~maestro_port')
-        self._thruster_channels: [int] = rospy.get_param('~thruster_channels')
-        self._servo_channels: [int] = rospy.get_param('~servo_channels')
+        self._thruster_channels: List[int] = rospy.get_param('~thruster_channels')
+        self._servo_channels: List[int] = rospy.get_param('~servo_channels')
         self._default_battery_voltage: float = rospy.get_param('~default_battery_voltage')
         self._minimum_pwm_speed: float = rospy.get_param('~minimum_pwm_speed')
         self._maximum_pwm_speed: float = rospy.get_param('~maximum_pwm_speed')
@@ -156,9 +160,13 @@ class Thrusters:
         self._negative_max_thrust: float = rospy.get_param('~negative_max_thrust')
         self._positive_min_thrust: float = rospy.get_param('~positive_min_thrust')
         self._positive_max_thrust: float = rospy.get_param('~positive_max_thrust')
-        self._positive_thrust_coefficients: np.array = np.array(rospy.get_param('~positive_thrust_coefficients'))
-        self._negative_thrust_coefficients: np.array = np.array(rospy.get_param('~negative_thrust_coefficients'))
-        self._thrust_inversions: [float] = rospy.get_param('~thrust_inversions')
+        self._fwd_thrust_coefficients: dict[int, np.array] = {
+            int(k): np.array(v) for (k, v) in rospy.get_param('~fwd_thrust_coefficients').items()
+        }
+        self._rev_thrust_coefficients: dict[int, np.array] = {
+            int(k): np.array(v) for (k, v) in rospy.get_param('~rev_thrust_coefficients').items()
+        }
+        self._thrust_inversions: List[float] = rospy.get_param('~thrust_inversions')
 
 def clamp(x, x_min, x_max):
     return min(max(x, x_min), x_max)

@@ -12,6 +12,26 @@ positive_min_thrust: 1
 positive_max_thrust: 60
 thrust_inversions: [1, 1, 1, 1, -1, 1, -1, 1]
 
-# constant, voltage, voltage^2, pwm, pwm^2
-positive_thrust_coefficients: [2.179239e+02, 2.997305e+00, -4.674627e-02, -3.968255e-01, 1.520276e-04]
-negative_thrust_coefficients: [-2.946548e+02, -2.425470e+00, 3.983119e-02, 3.807154e-01, -1.103201e-04]
+# 12 sets of thrust coefficients total: 
+#   6 sets for voltage levels [10, 12, 14, 16, 18, 20] for forward thrust
+#   6 sets for voltage levels [10, 12, 14, 16, 18, 20] for reverse thrust
+# each direction contains a (voltage level, quadratic coefficients) pair
+# parameters are in a, b, c order for a(pwm)^2 + b(pwm) + c
+
+fwd_thrust_coefficients: {
+  "10": [1.16144783e-05 -3.15952327e-02  2.11490226e+01],
+  "12": [1.47815669e-05 -4.02962851e-02  2.70604288e+01],
+  "14": [1.80984112e-05 -4.94310799e-02  3.32862079e+01],
+  "16": [2.06423783e-05 -5.61673450e-02  3.76499826e+01],
+  "18": [2.87506426e-05 -8.20550266e-02  5.83067530e+01],
+  "20": [3.78181081e-05 -1.11400271e-01  8.20078160e+01]
+}
+
+rev_thrust_coefficients: [
+  "10": [-8.83590912e-06  2.92128353e-02 -2.38423767e+01],
+  "12": [-1.07079189e-05  3.56604304e-02 -2.92812685e+01],
+  "14": [-1.29181068e-05  4.30525764e-02 -3.53804955e+01],
+  "16": [-1.52230980e-05  5.05389202e-02 -4.14171280e+01],
+  "18": [-1.88937903e-05  6.13312121e-02 -4.93678568e+01],
+  "20": [-2.44892435e-05  7.67425133e-02 -5.99557017e+01]
+]
