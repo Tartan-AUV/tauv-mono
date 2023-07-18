@@ -144,7 +144,6 @@ class Thrusters:
 
             if self._minimum_pwm_speed < target_pwm < self._maximum_pwm_speed:
                 pwm_speed = target_pwm
-            
         except ArithmeticError:
             rospy.logwarn(f"Requested thruster PWMs with no solution (at {thrust} kg F)")
         
