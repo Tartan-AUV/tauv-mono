@@ -16,8 +16,8 @@ thrust_inversions: [1, 1, 1, 1, -1, 1, -1, -1]
 # 12 sets of thrust coefficients total: 
 #   6 sets for voltage levels [10, 12, 14, 16, 18, 20] for forward thrust
 #   6 sets for voltage levels [10, 12, 14, 16, 18, 20] for reverse thrust
-# parameters are named as fwd_{X}v_thrust_coefficients
-# parameters are in a, b, c order a(pwm)^2 + b(pwm) + c
+# each direction contains a (voltage level, quadratic coefficients) pair
+# parameters are in a, b, c order for a(pwm)^2 + b(pwm) + c
 
 fwd_thrust_coefficients: {
   "10": [1.16144783e-05 -3.15952327e-02  2.11490226e+01],
