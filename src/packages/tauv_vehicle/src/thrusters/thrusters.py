@@ -117,7 +117,6 @@ class Thrusters:
             return ub - 2, ub
 
         pwm_speed = 1500
-
         thrust = thrust * self._thrust_inversions[thruster]
         
         try:
@@ -134,8 +133,8 @@ class Thrusters:
             lower_quadratic = self._fwd_thrust_coefficients[str(lower_v)]
             upper_quadratic = self._fwd_thrust_coefficients[str(upper_v)]
             selector = max
-
-        else: return pwm_speed
+        else:
+            return pwm_speed
 
         scale = (self._battery_voltage - lower_v) / 2.0
         a, b, c = (1 - scale) * lower_quadratic + scale * upper_quadratic
@@ -144,10 +143,12 @@ class Thrusters:
             target_pwm = floor(selector(quadratic_roots(a, b, c - thrust)))
 
             if self._minimum_pwm_speed < target_pwm < self._maximum_pwm_speed:
-                return target_pwm
+                pwm_speed = target_pwm
+            
         except ArithmeticError:
             rospy.logwarn(f"Requested thruster PWMs with no solution (at {thrust} kg F)")
-            return pwm_speed
+        
+        return pwm_speed
 
     def _load_config(self):
         self._maestro_port: str = rospy.get_param('~maestro_port')
