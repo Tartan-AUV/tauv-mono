@@ -31,11 +31,12 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "modem.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
+extern gsfk_demod_t modem;
 
 /* USER CODE END ET */
 
@@ -50,13 +51,15 @@ extern "C" {
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/
-_Noreturn void Error_Handler(void);
+void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LED_Pin GPIO_PIN_13
+#define LED_GPIO_Port GPIOC
 #define RX_Pin GPIO_PIN_0
 #define RX_GPIO_Port GPIOA
 #define TX_EN_Pin GPIO_PIN_1
