@@ -36,7 +36,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-extern demod_t demod;
+//extern demod_t demod;
 
 /* USER CODE END ET */
 

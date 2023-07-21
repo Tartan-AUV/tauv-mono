@@ -31,7 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define RAW_BUF_SIZE 2000
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -45,6 +45,7 @@ DMA_HandleTypeDef hdma_adc1;
 
 /* USER CODE BEGIN PV */
 demod_t demod;
+d_raw_t combined_raw_buf[RAW_BUF_SIZE * 3];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -55,8 +56,13 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 
 static void MX_ADC1_Init(void);
-/* USER CODE BEGIN PFP */
 
+/* USER CODE BEGIN PFP */
+void adc_dma_m0_cplt_it(DMA_HandleTypeDef *hdma);
+
+void adc_dma_m1_cplt_it(DMA_HandleTypeDef *hdma);
+
+void adc_dma_error_handler(DMA_HandleTypeDef *hdma);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -100,14 +106,19 @@ int main(void) {
     modem_config.chip_rate = 2500;
 
     demodulator_config_t demod_config;
+    demod_config.modem_config = modem_config;
     demod_config.chip_buf_size = 1000;
     demod_config.chip_buf_margin = 100;
     demod_config.hadc = &hadc1;
     demod_config.sdft_r = 0.99f;
+    demod_config.chip_sdft_N = 200;
+    demod_config.max_raw = 255.0f;
+    demod_config.combined_raw_buf = combined_raw_buf;
 
     demodulator_init(&demod, &demod_config);
-
     demodulator_start(&demod);
+
+    d_sdft_t freq_buf[RAW_BUF_SIZE];
     /* USER CODE END 2 */
 
     /* Infinite loop */
@@ -116,7 +127,7 @@ int main(void) {
         //blink LED
         HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 //      HAL_Delay(300);
-        demodulator_update(&demod);
+        demod_sdft(&demod, freq_buf, RAW_BUF_SIZE);
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -210,7 +221,9 @@ static void MX_ADC1_Init(void) {
         Error_Handler();
     }
     /* USER CODE BEGIN ADC1_Init 2 */
-
+    hadc1.DMA_Handle->XferCpltCallback = adc_dma_m0_cplt_it;
+    hadc1.DMA_Handle->XferM1CpltCallback = adc_dma_m1_cplt_it;
+    hadc1.DMA_Handle->XferErrorCallback = adc_dma_error_handler;
     /* USER CODE END ADC1_Init 2 */
 
 }
@@ -260,13 +273,20 @@ static void MX_GPIO_Init(void) {
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef *hadc) {
-    demod_adc_conv_half_cplt_cb(&demod);
+void adc_dma_m0_cplt_it(DMA_HandleTypeDef *hdma) {
+    demod_adc_dma_m0_cplt_it(&demod);
 }
 
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-    demod_adc_conv_cplt_cb(&demod);
+void adc_dma_m1_cplt_it(DMA_HandleTypeDef *hdma) {
+    demod_adc_dma_m1_cplt_it(&demod);
 }
+
+void adc_dma_error_handler(DMA_HandleTypeDef *hdma) {
+    while (1) {
+
+    }
+}
+
 /* USER CODE END 4 */
 
 /**
