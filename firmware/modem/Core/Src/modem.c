@@ -15,6 +15,7 @@ status_t demodulator_init(gsfk_demod_t* m, const demodulator_config_t* c)
 {
 	m->c = *c;
 	m->raw_buf = malloc(sizeof(d_raw_t) * c->chip_buf_size * 2);
+	m->sdft_buf = malloc(sizeof(d_sdft_t) * c->chip_buf_size * 2);
 
 	return MDM_OK;
 }
@@ -87,5 +88,8 @@ status_t modem_sdft(gsfk_demod_t* m)
 		m->mag_lo = cabs(m->s_lo);
 		m->mag_hi = cabs(m->s_hi);
 
+		m->sdft_buf[i] = m->mag_hi - m->mag_lo;
 	}
 }
+
+status_t seq_decode()
