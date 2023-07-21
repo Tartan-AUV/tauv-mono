@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="modem-stlink" type="com.jetbrains.cidr.embedded.customgdbserver.type" factoryName="com.jetbrains.cidr.embedded.customgdbserver.factory" PROGRAM_PARAMS="-p 65256 -cp &quot;/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.cubeprogrammer.macos64_2.0.600.202301161003/tools/bin&quot; --frequency 240 --swd" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="modem" TARGET_NAME="modem.elf" CONFIG_NAME="Debug" version="1" RUN_TARGET_PROJECT_NAME="modem" RUN_TARGET_NAME="modem.elf">
+    <custom-gdb-server version="1" gdb-connect="tcp::65256" executable="/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.stlink-gdb-server.macos64_2.0.500.202301161003/tools/bin/ST-LINK_gdbserver" warmup-ms="0" download-type="ALWAYS" reset-cmd="monitor reset" reset-type="AFTER_DOWNLOAD">
+      <debugger toolchainName="Embedded" />
+    </custom-gdb-server>
+    <method v="2">
+      <option name="RunConfigurationTask" enabled="true" run_configuration_name="modem.elf" run_configuration_type="CMakeRunConfiguration" run_configuration_target="CMakeBuildProfile:Debug" />
+    </method>
+  </configuration>
+</component>

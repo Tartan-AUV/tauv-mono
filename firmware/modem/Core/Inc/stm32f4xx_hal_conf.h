@@ -40,7 +40,7 @@ extern "C" {
 /* #define HAL_CRYP_MODULE_ENABLED */
 #define HAL_ADC_MODULE_ENABLED
 /* #define HAL_CAN_MODULE_ENABLED */
-#define HAL_CRC_MODULE_ENABLED
+/* #define HAL_CRC_MODULE_ENABLED */
 /* #define HAL_CAN_LEGACY_MODULE_ENABLED */
 /* #define HAL_DAC_MODULE_ENABLED */
 /* #define HAL_DCMI_MODULE_ENABLED */
@@ -70,7 +70,7 @@ extern "C" {
 /* #define HAL_SMARTCARD_MODULE_ENABLED */
 /* #define HAL_SMBUS_MODULE_ENABLED */
 /* #define HAL_WWDG_MODULE_ENABLED */
-#define HAL_PCD_MODULE_ENABLED
+/* #define HAL_PCD_MODULE_ENABLED */
 /* #define HAL_HCD_MODULE_ENABLED */
 /* #define HAL_DSI_MODULE_ENABLED */
 /* #define HAL_QSPI_MODULE_ENABLED */
@@ -222,7 +222,7 @@ extern "C" {
 /* Section 2: PHY configuration section */
 
 /* DP83848_PHY_ADDRESS Address*/
-#define DP83848_PHY_ADDRESS
+#define DP83848_PHY_ADDRESS           0x01U
 /* PHY Reset delay these values are based on a 1 ms Systick interrupt*/
 #define PHY_RESET_DELAY                 0x000000FFU
 /* PHY Configuration delay */
@@ -252,10 +252,10 @@ extern "C" {
 #define PHY_JABBER_DETECTION            ((uint16_t)0x0002U)  /*!< Jabber condition detected            */
 
 /* Section 4: Extended PHY Registers */
-#define PHY_SR                          ((uint16_t))    /*!< PHY status register Offset                      */
+#define PHY_SR                          ((uint16_t)0x10U)    /*!< PHY status register Offset                      */
 
-#define PHY_SPEED_STATUS                ((uint16_t))  /*!< PHY Speed mask                                  */
-#define PHY_DUPLEX_STATUS               ((uint16_t))  /*!< PHY Duplex mask                                 */
+#define PHY_SPEED_STATUS                ((uint16_t)0x0002U)  /*!< PHY Speed mask                                  */
+#define PHY_DUPLEX_STATUS               ((uint16_t)0x0004U)  /*!< PHY Duplex mask                                 */
 
 /* ################## SPI peripheral configuration ########################## */
 
@@ -272,27 +272,39 @@ extern "C" {
   */
 
 #ifdef HAL_RCC_MODULE_ENABLED
+
 #include "stm32f4xx_hal_rcc.h"
+
 #endif /* HAL_RCC_MODULE_ENABLED */
 
 #ifdef HAL_GPIO_MODULE_ENABLED
+
 #include "stm32f4xx_hal_gpio.h"
+
 #endif /* HAL_GPIO_MODULE_ENABLED */
 
 #ifdef HAL_EXTI_MODULE_ENABLED
+
 #include "stm32f4xx_hal_exti.h"
+
 #endif /* HAL_EXTI_MODULE_ENABLED */
 
 #ifdef HAL_DMA_MODULE_ENABLED
+
 #include "stm32f4xx_hal_dma.h"
+
 #endif /* HAL_DMA_MODULE_ENABLED */
 
 #ifdef HAL_CORTEX_MODULE_ENABLED
+
 #include "stm32f4xx_hal_cortex.h"
+
 #endif /* HAL_CORTEX_MODULE_ENABLED */
 
 #ifdef HAL_ADC_MODULE_ENABLED
+
 #include "stm32f4xx_hal_adc.h"
+
 #endif /* HAL_ADC_MODULE_ENABLED */
 
 #ifdef HAL_CAN_MODULE_ENABLED
@@ -332,7 +344,9 @@ extern "C" {
 #endif /* HAL_ETH_LEGACY_MODULE_ENABLED */
 
 #ifdef HAL_FLASH_MODULE_ENABLED
+
 #include "stm32f4xx_hal_flash.h"
+
 #endif /* HAL_FLASH_MODULE_ENABLED */
 
 #ifdef HAL_SRAM_MODULE_ENABLED
@@ -380,7 +394,9 @@ extern "C" {
 #endif /* HAL_LTDC_MODULE_ENABLED */
 
 #ifdef HAL_PWR_MODULE_ENABLED
+
 #include "stm32f4xx_hal_pwr.h"
+
 #endif /* HAL_PWR_MODULE_ENABLED */
 
 #ifdef HAL_RNG_MODULE_ENABLED

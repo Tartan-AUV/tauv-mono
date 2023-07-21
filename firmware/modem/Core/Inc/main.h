@@ -36,7 +36,7 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-extern gsfk_demod_t modem;
+extern demod_t demod;
 
 /* USER CODE END ET */
 
@@ -60,20 +60,6 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED_Pin GPIO_PIN_13
 #define LED_GPIO_Port GPIOC
-#define RX_Pin GPIO_PIN_0
-#define RX_GPIO_Port GPIOA
-#define TX_EN_Pin GPIO_PIN_1
-#define TX_EN_GPIO_Port GPIOA
-#define TX_Pin GPIO_PIN_2
-#define TX_GPIO_Port GPIOA
-#define DBG_CHIP_SYNC_Pin GPIO_PIN_0
-#define DBG_CHIP_SYNC_GPIO_Port GPIOB
-#define DBG_SEQ_SYNC_Pin GPIO_PIN_1
-#define DBG_SEQ_SYNC_GPIO_Port GPIOB
-#define DBG_SEQ_DEC_Pin GPIO_PIN_2
-#define DBG_SEQ_DEC_GPIO_Port GPIOB
-#define DBG_CHIP_DEC_Pin GPIO_PIN_3
-#define DBG_CHIP_DEC_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
