@@ -43,6 +43,7 @@ setup_args = generate_distutils_setup(
               'tauv_util',
               'motion_client',
               'tauv_messages',
+              'trajectories',
               'albatross_state_estimation'],
     # packages=find_packages(),
     package_dir={'': 'src'},
