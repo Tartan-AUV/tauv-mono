@@ -63,13 +63,14 @@ void cycle_raw_bufs(demod_t *m) {
 
 void demod_adc_dma_m0_cplt_it(demod_t *m) {
     cycle_raw_bufs(m);
-    HAL_DMAEx_ChangeMemory(m->c.hadc->DMA_Handle, (uint32_t) m->raw_prev_buf, MEMORY0);
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//    HAL_DMAEx_ChangeMemory(m->c.hadc->DMA_Handle, (uint32_t) m->raw_prev_buf, MEMORY0);
     m->raw_buf_rdy = true;
 }
 
 void demod_adc_dma_m1_cplt_it(demod_t *m) {
     cycle_raw_bufs(m);
-    HAL_DMAEx_ChangeMemory(m->c.hadc->DMA_Handle, (uint32_t) m->raw_prev_buf, MEMORY1);
+//    HAL_DMAEx_ChangeMemory(m->c.hadc->DMA_Handle, (uint32_t) m->raw_prev_buf, MEMORY1);
     m->raw_buf_rdy = true;
 }
 

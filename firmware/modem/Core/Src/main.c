@@ -125,9 +125,12 @@ int main(void) {
     /* USER CODE BEGIN WHILE */
     while (1) {
         //blink LED
-        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 //      HAL_Delay(300);
-        demod_sdft(&demod, freq_buf, RAW_BUF_SIZE);
+//        if(demod.raw_buf_rdy) {
+//            demod_sdft(&demod, freq_buf, RAW_BUF_SIZE);
+//            demod.raw_buf_rdy = false;
+//        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -274,6 +277,7 @@ static void MX_GPIO_Init(void) {
 
 /* USER CODE BEGIN 4 */
 void adc_dma_m0_cplt_it(DMA_HandleTypeDef *hdma) {
+    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
     demod_adc_dma_m0_cplt_it(&demod);
 }
 
