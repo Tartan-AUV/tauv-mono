@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "modem.h"
+#include "fsk_modulator.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -43,8 +44,11 @@
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+TIM_HandleTypeDef htim2;
+
 /* USER CODE BEGIN PV */
 demod_t demod;
+fsk_modulator_t modulator;
 d_raw_t combined_raw_buf[RAW_BUF_SIZE * 3];
 /* USER CODE END PV */
 
@@ -53,6 +57,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 void adc_dma_m0_cplt_it(DMA_HandleTypeDef *hdma);
 
@@ -96,10 +101,11 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_ADC1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
     modem_config_t modem_config;
-    modem_config.freq_lo = 50000;
-    modem_config.freq_hi = 55000;
+    modem_config.freq_lo = 42000;
+    modem_config.freq_hi = 84000;
     modem_config.chip_rate = 2500;
 
     demodulator_config_t demod_config;
@@ -113,9 +119,19 @@ int main(void)
     demod_config.combined_raw_buf = combined_raw_buf;
 
     demodulator_init(&demod, &demod_config);
-    demodulator_start(&demod);
+//    demodulator_start(&demod);
+
+    fsk_modulator_config_t mod_conifg;
+    mod_conifg.pwm_tim = &htim2;
+    mod_conifg.modem_config = modem_config;
+    mod_conifg.sigma = 0.6f;
+
+    fsk_mod_init(&modulator, &mod_conifg);
 
     d_sdft_t freq_buf[RAW_BUF_SIZE];
+
+    uint8_t buf[] = {0b01010100, 0b01000001, 0b01010101, 0b01010110};
+//    uint8_t buf[] = {0b01010101};
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -123,11 +139,16 @@ int main(void)
     while (1) {
         //blink LED
 //        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-//      HAL_Delay(300);
-        if(demod.raw_buf_rdy) {
-            demod_sdft(&demod, freq_buf, RAW_BUF_SIZE);
-            demod.raw_buf_rdy = false;
+        while(fsk_mod_busy(&modulator)) {
+
         }
+        fsk_mod_transmit(&modulator, buf, 4);
+        HAL_Delay(100);
+//      HAL_Delay(300);
+//        if (demod.raw_buf_rdy) {
+//            demod_sdft(&demod, freq_buf, RAW_BUF_SIZE);
+//            demod.raw_buf_rdy = false;
+//        }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -235,6 +256,51 @@ static void MX_ADC1_Init(void)
 }
 
 /**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 4294967295;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -269,12 +335,22 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, TX_EN_Pin|TX_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : TX_EN_Pin TX_Pin */
+  GPIO_InitStruct.Pin = TX_EN_Pin|TX_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
@@ -293,6 +369,12 @@ void adc_dma_m1_cplt_it(DMA_HandleTypeDef *hdma) {
 void adc_dma_error_handler(DMA_HandleTypeDef *hdma) {
     while (1) {
 
+    }
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    if (htim == modulator.c.pwm_tim) {
+        fsk_mod_tim_it(&modulator);
     }
 }
 
