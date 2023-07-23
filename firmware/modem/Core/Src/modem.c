@@ -110,6 +110,8 @@ status_t demod_sdft(demod_t *m, d_sdft_t *dst, size_t dst_size) {
         m->mag_hi = cabsf(m->s_hi);
 
         dst[i] = m->mag_hi - m->mag_lo;
+
+        HAL_GPIO_WritePin(DBG1_GPIO_Port, DBG1_Pin, dst[i] > 0);
     }
 }
 

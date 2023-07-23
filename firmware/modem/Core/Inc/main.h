@@ -64,6 +64,14 @@ void Error_Handler(void);
 #define TX_EN_GPIO_Port GPIOA
 #define TX_Pin GPIO_PIN_5
 #define TX_GPIO_Port GPIOA
+#define DBG4_Pin GPIO_PIN_12
+#define DBG4_GPIO_Port GPIOB
+#define DBG3_Pin GPIO_PIN_13
+#define DBG3_GPIO_Port GPIOB
+#define DBG2_Pin GPIO_PIN_14
+#define DBG2_GPIO_Port GPIOB
+#define DBG1_Pin GPIO_PIN_15
+#define DBG1_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

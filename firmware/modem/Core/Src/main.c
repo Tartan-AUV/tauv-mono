@@ -104,9 +104,9 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
     modem_config_t modem_config;
-    modem_config.freq_lo = 42000;
-    modem_config.freq_hi = 84000;
-    modem_config.chip_rate = 2500;
+    modem_config.freq_lo = 50000;
+    modem_config.freq_hi = 55000;
+    modem_config.chip_rate = 500;
 
     demodulator_config_t demod_config;
     demod_config.modem_config = modem_config;
@@ -119,7 +119,7 @@ int main(void)
     demod_config.combined_raw_buf = combined_raw_buf;
 
     demodulator_init(&demod, &demod_config);
-//    demodulator_start(&demod);
+    demodulator_start(&demod);
 
     fsk_modulator_config_t mod_conifg;
     mod_conifg.pwm_tim = &htim2;
@@ -130,8 +130,8 @@ int main(void)
 
     d_sdft_t freq_buf[RAW_BUF_SIZE];
 
-    uint8_t buf[] = {0b01010100, 0b01000001, 0b01010101, 0b01010110};
-//    uint8_t buf[] = {0b01010101};
+//    uint8_t buf[] = {0b01010100, 0b01000001, 0b01010101, 0b01010110};
+    uint8_t buf[] = {0x0f};
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -139,16 +139,15 @@ int main(void)
     while (1) {
         //blink LED
 //        HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-        while(fsk_mod_busy(&modulator)) {
-
-        }
-        fsk_mod_transmit(&modulator, buf, 4);
-        HAL_Delay(100);
-//      HAL_Delay(300);
-//        if (demod.raw_buf_rdy) {
-//            demod_sdft(&demod, freq_buf, RAW_BUF_SIZE);
-//            demod.raw_buf_rdy = false;
+//        while(fsk_mod_busy(&modulator)) {
+//
 //        }
+//        fsk_mod_transmit(&modulator, buf, 1);
+//        HAL_Delay(100);
+        if (demod.raw_buf_rdy) {
+            demod_sdft(&demod, freq_buf, RAW_BUF_SIZE);
+            demod.raw_buf_rdy = false;
+        }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -331,12 +330,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, TX_EN_Pin|TX_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, DBG4_Pin|DBG3_Pin|DBG2_Pin|DBG1_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
@@ -351,6 +354,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : DBG4_Pin DBG3_Pin DBG2_Pin DBG1_Pin */
+  GPIO_InitStruct.Pin = DBG4_Pin|DBG3_Pin|DBG2_Pin|DBG1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
