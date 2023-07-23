@@ -52,17 +52,20 @@ class ConstantAccelerationTrajectory1D:
             else:
                 return
 
-        h = abs(q1 - q0)
+        h = q1 - q0
         self._sign = 1
         if q1 < q0:
             self._sign = -1
             q0, q1, v0, v1 = -q0, -q1, -v0, -v1
+            h = -h
 
         if abs(v0) > v_max or abs(v1) > v_max:
             if relax:
                 v_max = max(abs(v0), abs(v1))
             else:
                 raise ValueError("v0 and v1 cannot exceed v_max")
+
+        v_max = self._sign * v_max
 
         self._q0 = q0
         self._q1 = q1
@@ -89,6 +92,7 @@ class ConstantAccelerationTrajectory1D:
             else:
                 a = a_required
 
+        a = self._sign * a
         self._a = a
 
         reach_v_max = (h * a) > (v_max ** 2) - (((v0 ** 2) + (v1 ** 2)) / 2)
@@ -188,6 +192,8 @@ class ConstantAccelerationTrajectory(Trajectory):
 
         self._linear_direction = end_pose.t - start_pose.t
         linear_distance = np.linalg.norm(self._linear_direction)
+        if not np.isclose(linear_distance, 0):
+            self._linear_direction = self._linear_direction / linear_distance
 
         self._angular_distance = start_pose.angdist(end_pose)
         relative_rotation = SO3(start_pose).inv() * SO3(end_pose)

@@ -3,7 +3,7 @@ from spatialmath.base.types import R3
 from spatialmath import SO3, SE3, SE2, Twist3, Twist2, UnitQuaternion
 from math import cos, sin
 
-from geometry_msgs.msg import Vector3 as Vector3Msg, Point as PointMsg, Quaternion as QuaternionMsg, Transform as TransformMsg
+from geometry_msgs.msg import Vector3 as Vector3Msg, Point as PointMsg, Quaternion as QuaternionMsg, Transform as TransformMsg, Pose as PoseMsg, Twist as TwistMsg
 from tauv_msgs.msg import NavigationState as NavigationStateMsg
 
 
@@ -12,7 +12,7 @@ def r3_to_ros_vector3(x: R3) -> Vector3Msg:
 
 
 def ros_vector3_to_r3(x: Vector3Msg) -> R3:
-    return R3([x.x, x.y, x.z])
+    return np.array([x.x, x.y, x.z])
 
 
 def r3_to_ros_point(x: R3) -> PointMsg:
@@ -20,15 +20,15 @@ def r3_to_ros_point(x: R3) -> PointMsg:
 
 
 def ros_point_to_r3(x: PointMsg) -> R3:
-    return R3([x.x, x.y, x.z])
+    return np.array([x.x, x.y, x.z])
 
 
 def ros_quaternion_to_unit_quaternion(x: QuaternionMsg) -> UnitQuaternion:
-    return UnitQuaternion(s=x.w, v=R3([x.x, x.y, x.z]))
+    return UnitQuaternion(s=x.w, v=np.array([x.x, x.y, x.z]))
 
 
 def unit_quaternion_to_ros_quaternion(x: UnitQuaternion) -> QuaternionMsg:
-    return QuaternionMsg(w=x.s, x=x.v.x, y=x.v.y, z=x.v.z)
+    return QuaternionMsg(w=x.s, x=x.v[0], y=x.v[1], z=x.v[2])
 
 
 def ros_transform_to_se3(x: TransformMsg) -> SE3:
@@ -42,6 +42,20 @@ def se3_to_ros_transform(x: SE3) -> TransformMsg:
     )
 
 
+def se3_to_ros_pose(x: SE3) -> PoseMsg:
+    return PoseMsg(
+        r3_to_ros_vector3(x.t),
+        unit_quaternion_to_ros_quaternion(UnitQuaternion(x)),
+    )
+
+
+def twist3_to_ros_twist(x: Twist3) -> TwistMsg:
+    return TwistMsg(
+        r3_to_ros_vector3(x.v),
+        r3_to_ros_vector3(x.w)
+    )
+
+
 def ros_nav_state_to_se3(x: NavigationStateMsg) -> SE3:
     orientation = SO3.RPY(ros_vector3_to_r3(x.orientation), order='zyx')
     position = ros_vector3_to_r3(x.position)
@@ -50,7 +64,8 @@ def ros_nav_state_to_se3(x: NavigationStateMsg) -> SE3:
 
 
 def ros_nav_state_to_body_twist3(x: NavigationStateMsg) -> Twist3:
-    angular_twist = euler_velocity_to_body_twist3(ros_vector3_to_r3(x.euler_velocity))
+    orientation = SO3.RPY(ros_vector3_to_r3(x.orientation), order='zyx')
+    angular_twist = euler_velocity_to_body_twist3(orientation, ros_vector3_to_r3(x.euler_velocity))
     linear_twist = Twist3(ros_vector3_to_r3(x.linear_velocity), np.zeros(3))
     twist = linear_twist + angular_twist
     return twist

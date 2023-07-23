@@ -1,0 +1,31 @@
+<launch>
+    <arg name="kf_namespace" default="kf"/>
+    <arg name="kf_config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
+
+    <arg name="launch_vision" default="true" />
+    <arg name="teleop" default="false" />
+
+    <rosparam param="use_sim_time">true</rosparam>
+
+    <include file="$(find tauv_sim_worlds)/launch/transdec.launch" />
+
+    <group ns="$(arg kf_namespace)">
+        <param name="tf_namespace" value="$(arg kf_namespace)" />
+
+        <include file="$(arg kf_config_pkg)/launch/upload.launch">
+            <arg name="x" value="8" />
+            <arg name="y" value="-26" />
+            <arg name="z" value="0" />
+            <arg name="namespace" value="$(arg kf_namespace)" />
+        </include>
+
+        <include file="$(arg kf_config_pkg)/launch/vehicle.launch"/>
+
+        <include file="$(arg kf_config_pkg)/launch/system.launch">
+            <arg name="config_pkg" value="$(arg kf_config_pkg)"/>
+            <arg name="namespace" value="$(arg kf_namespace)" />
+            <arg name="teleop" value="$(arg teleop)" />
+            <arg name="launch_vision" value="$(arg launch_vision)" />
+        </include>
+    </group>
+</launch>

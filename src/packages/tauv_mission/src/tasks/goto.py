@@ -1,7 +1,8 @@
 import time
+import rospy
 from dataclasses import dataclass
-from typing import Tuple
-from mission_manager.task import Task, TaskResources, TaskStatus, TaskResult
+from spatialmath import SE3
+from tasks.task import Task, TaskResources, TaskStatus, TaskResult
 
 
 class GotoStatus(TaskStatus):
@@ -16,15 +17,21 @@ class GotoResult(TaskResult):
 
 class Goto(Task):
 
-    def __init__(self, position: Tuple[float, float, float]):
+    def __init__(self, pose: SE3):
         super().__init__()
 
-        self._position: Tuple[float, float, float] = position
+        self._pose: SE3 = pose
 
     def run(self, resources: TaskResources) -> GotoResult:
-        time.sleep(5.0)
-        if self._check_cancel(resources): return GotoResult(GotoStatus.FAILURE)
+        resources.motion.goto(self._pose)
+
+        while True:
+            if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
+                break
+
+            if self._check_cancel(resources): return GotoResult(GotoStatus.FAILURE)
+
         return GotoResult(GotoStatus.SUCCESS)
 
     def _handle_cancel(self, resources: TaskResources):
-        time.sleep(1.0)
+        resources.motion.cancel()

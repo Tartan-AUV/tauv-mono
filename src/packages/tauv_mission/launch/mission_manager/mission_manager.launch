@@ -4,5 +4,7 @@
 
     <group ns="$(arg namespace)">
         <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen" />
+
+        <rosparam command="load" ns="motion" file="$(arg config_pkg)/yaml/motion.yaml" />
     </group>
 </launch>

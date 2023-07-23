@@ -9,7 +9,7 @@ from trajectories.trajectory import Trajectory
 def plot_trajectory(traj: Trajectory, name: str):
     n_points = 100
 
-    times = np.linspace(0, traj.duration, n_points)
+    times = np.linspace(-1, traj.duration + 1, n_points)
 
     poses = []
     twists = []
@@ -56,7 +56,7 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
 
     def test_positive_displacement_null_velocity(self):
         start_pose = SE3()
-        end_pose = SE3.RPY(0, 0, 1.57)
+        end_pose = SE3.RPY(0, 0, 1.57) @ SE3.Tx(1.0)
         start_twist = Twist3()
         end_twist = Twist3()
 
@@ -65,7 +65,6 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
             a_linear=1.0,
             v_max_angular=1.0,
             a_angular=1.0,
-            relax=False,
         )
 
         traj = ConstantAccelerationTrajectory(
@@ -87,7 +86,6 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
             a_linear=1.0,
             v_max_angular=1.0,
             a_angular=1.0,
-            relax=False,
         )
 
         traj = ConstantAccelerationTrajectory(
@@ -98,9 +96,30 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
 
         plot_trajectory(traj, 'negative_displacement_null_velocity')
 
+    def test_positive_positive(self):
+        start_pose = SE3.Tz(3.081)
+        end_pose = SE3.Tz(1)
+        start_twist = Twist3(np.array([-5.0586e-05, -0.0002554, 0.00069794]), np.array([0, 0, 0]))
+        end_twist = Twist3()
+
+        params = ConstantAccelerationTrajectoryParams(
+            v_max_linear=1.0,
+            a_linear=1.0,
+            v_max_angular=1.0,
+            a_angular=1.0,
+        )
+
+        traj = ConstantAccelerationTrajectory(
+            start_pose, start_twist,
+            end_pose, end_twist,
+            params
+        )
+
+        plot_trajectory(traj, 'positive_positive')
+
     def test_orthogonal_linear_velocity(self):
-        start_pose = SE3()
-        end_pose = SE3.Tx(1.0)
+        start_pose = SE3.Tx(-1.0) @ SE3.Ty(1e-4)
+        end_pose = SE3.Tx(1.0) @ SE3.Ty(2e-4)
         start_twist = Twist3.Ty(1.0) + Twist3.Tz(1.0)
         end_twist = Twist3()
 
@@ -109,7 +128,6 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
             a_linear=1.0,
             v_max_angular=1.0,
             a_angular=1.0,
-            relax=False,
         )
 
         traj = ConstantAccelerationTrajectory(
@@ -131,7 +149,6 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
             a_linear=1.0,
             v_max_angular=1.0,
             a_angular=1.0,
-            relax=False,
         )
 
         traj = ConstantAccelerationTrajectory(
@@ -153,7 +170,6 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
             a_linear=1.0,
             v_max_angular=1.0,
             a_angular=1.0,
-            relax=False,
         )
 
         traj = ConstantAccelerationTrajectory(
@@ -175,7 +191,6 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
             a_linear=1.0,
             v_max_angular=1.0,
             a_angular=1.0,
-            relax=False,
         )
 
         traj = ConstantAccelerationTrajectory(
@@ -197,7 +212,6 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
             a_linear=1.0,
             v_max_angular=1.0,
             a_angular=1.0,
-            relax=True,
         )
 
         traj = ConstantAccelerationTrajectory(
@@ -219,7 +233,6 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
             a_linear=1.0,
             v_max_angular=1.0,
             a_angular=1.0,
-            relax=True
         )
 
         traj = ConstantAccelerationTrajectory(

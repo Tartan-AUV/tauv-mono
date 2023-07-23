@@ -7,6 +7,7 @@ from missions.mission import Mission
 from missions.manifest import get_mission_by_name
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 from tauv_msgs.srv import RunMission, RunMissionRequest, RunMissionResponse
+from motion_client.motion_client import MotionClient
 
 
 class MissionManager:
@@ -19,7 +20,9 @@ class MissionManager:
         self._task: Optional[Task] = None
         self._task_result: Optional[TaskResult] = None
 
-        self._task_resources: TaskResources = TaskResources()
+        self._task_resources: TaskResources = TaskResources(
+            motion=MotionClient()
+        )
 
         self._mission_start_event: Event = Event()
         self._mission_cancel_event: Event = Event()

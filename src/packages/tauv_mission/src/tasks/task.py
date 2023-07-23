@@ -3,11 +3,12 @@ from abc import ABC, abstractmethod
 from enum import IntEnum
 from dataclasses import dataclass
 from threading import Event
+from motion_client.motion_client import MotionClient
 
 
 @dataclass
 class TaskResources:
-    pass
+    motion: MotionClient
 
 
 TaskStatus = IntEnum
