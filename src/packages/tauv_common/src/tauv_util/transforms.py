@@ -161,6 +161,7 @@ def euler_velocity_to_axis_velocity(orientation: np.array, euler_velocity: np.ar
 
     return axis_velocity
 
+# TODO: is this used?
 def axis_velocity_to_euler_velocity(axis_velocity: np.array) -> np.array:
     return axis_velocity
 
@@ -188,5 +189,7 @@ def euler_acceleration_to_axis_acceleration(orientation: np.array, euler_velocit
 
     return axis_acceleration
 
+
+# TODO: Is this used?
 def axis_acceleration_to_euler_acceleration(axis_acceleration: np.array) -> np.array:
     return axis_acceleration

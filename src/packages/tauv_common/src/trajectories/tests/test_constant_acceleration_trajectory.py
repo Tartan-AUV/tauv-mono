@@ -231,6 +231,5 @@ class TestContantAccelerationTrajectory(unittest.TestCase):
         plot_trajectory(traj, 'excessive_angular_velocity')
 
 
-
 if __name__ == "__main__":
     unittest.main()

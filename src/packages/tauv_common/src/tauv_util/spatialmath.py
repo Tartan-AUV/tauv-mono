@@ -1,7 +1,10 @@
+import numpy as np
 from spatialmath.base.types import R3
-from spatialmath import SO3, SE3, UnitQuaternion
+from spatialmath import SO3, SE3, SE2, Twist3, Twist2, UnitQuaternion
+from math import cos, sin
 
 from geometry_msgs.msg import Vector3 as Vector3Msg, Point as PointMsg, Quaternion as QuaternionMsg, Transform as TransformMsg
+from tauv_msgs.msg import NavigationState as NavigationStateMsg
 
 
 def r3_to_ros_vector3(x: R3) -> Vector3Msg:
@@ -37,3 +40,65 @@ def se3_to_ros_transform(x: SE3) -> TransformMsg:
         translation=r3_to_ros_vector3(x.t),
         rotation=unit_quaternion_to_ros_quaternion(UnitQuaternion(x)),
     )
+
+
+def ros_nav_state_to_se3(x: NavigationStateMsg) -> SE3:
+    orientation = SO3.RPY(ros_vector3_to_r3(x.orientation), order='zyx')
+    position = ros_vector3_to_r3(x.position)
+    pose = SE3.Rt(orientation, position)
+    return pose
+
+
+def ros_nav_state_to_body_twist3(x: NavigationStateMsg) -> Twist3:
+    angular_twist = euler_velocity_to_body_twist3(ros_vector3_to_r3(x.euler_velocity))
+    linear_twist = Twist3(ros_vector3_to_r3(x.linear_velocity), np.zeros(3))
+    twist = linear_twist + angular_twist
+    return twist
+
+
+def euler_velocity_to_body_twist3(pose: SO3, euler_velocity: R3) -> Twist3:
+    # Reference: https://aviation.stackexchange.com/a/84008from
+    r, p, y = pose.rpy(order='zyx')
+    cr = cos(r)
+    sr = sin(r)
+    cp = cos(p)
+    sp = sin(p)
+
+    T = np.array([
+        [1, 0, -sp],
+        [0, cr, cp * sr],
+        [0, -sr, cp * cr]
+    ])
+
+    body_velocity = T @ euler_velocity
+
+    return Twist3(np.zeros(3), body_velocity)
+
+
+def world_twist3_to_body_twist3(pose: SO3, twist: Twist3) -> Twist3:
+    body_twist = Twist3(pose.R @ twist.v, pose.R @ twist.w)
+    return body_twist
+
+
+def body_twist3_to_world_twist3(pose: SO3, twist: Twist3) -> Twist3:
+    pose_inv = pose.inv()
+    world_twist = Twist3(pose_inv.R @ twist.v, pose_inv.R @ twist.w)
+    return world_twist
+
+
+def flatten_se3(pose: SE3) -> SE3:
+    t = pose.t
+    yaw = pose.rpy(order='zyx')[2]
+    flat_pose = SE3.Rt(SO3.RPY((0, 0, yaw), order='zyx'), t)
+
+    return flat_pose
+
+
+def flatten_twist3(twist: Twist3) -> Twist3:
+    v = twist.v
+    w = twist.w
+    w[0:2] = 0
+    flat_twist = Twist3(v, w)
+
+    return flat_twist
+

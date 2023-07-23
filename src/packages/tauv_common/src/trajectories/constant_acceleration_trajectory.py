@@ -153,7 +153,6 @@ class ConstantAccelerationTrajectoryParams:
     a_linear: float
     v_max_angular: float
     a_angular: float
-    relax: bool = True
 
 
 class ConstantAccelerationTrajectory(Trajectory):
@@ -180,7 +179,8 @@ class ConstantAccelerationTrajectory(Trajectory):
     def __init__(self,
                  start_pose: SE3, start_twist: Twist3,
                  end_pose: SE3, end_twist: Twist3,
-                 params: ConstantAccelerationTrajectoryParams):
+                 params: ConstantAccelerationTrajectoryParams,
+                 relax: bool = True):
         self._start_pose = start_pose
         self._start_twist = start_twist
         self._end_pose = end_pose
@@ -202,27 +202,27 @@ class ConstantAccelerationTrajectory(Trajectory):
         linear_traj = ConstantAccelerationTrajectory1D(
             0, linear_start_velocity,
             linear_distance, linear_end_velocity,
-            params.v_max_linear, params.a_linear, params.relax,
+            params.v_max_linear, params.a_linear, relax,
         )
 
         angular_traj = ConstantAccelerationTrajectory1D(
             0, angular_start_velocity,
             self._angular_distance, angular_end_velocity,
-            params.v_max_angular, params.a_angular, params.relax
+            params.v_max_angular, params.a_angular, relax
         )
 
         if linear_traj.duration > angular_traj.duration:
             angular_traj = ConstantAccelerationTrajectory1D(
                 0, angular_start_velocity,
                 self._angular_distance, angular_end_velocity,
-                params.v_max_angular, params.a_angular, params.relax,
+                params.v_max_angular, params.a_angular, relax,
                 t=linear_traj.duration,
             )
         else:
             linear_traj = ConstantAccelerationTrajectory1D(
                 0, linear_start_velocity,
                 linear_distance, linear_end_velocity,
-                params.v_max_linear, params.a_linear, params.relax,
+                params.v_max_linear, params.a_linear, relax,
                 t=angular_traj.duration,
             )
 
@@ -236,8 +236,6 @@ class ConstantAccelerationTrajectory(Trajectory):
         position = self._start_pose.t + linear_q * self._linear_direction
         linear_velocity = linear_v * self._linear_direction
 
-        # TODO: don't use interp here, instead use trajectory as angular component of rotation around axis of relative rotation
-        # orientation = SO3(self._start_pose).interp(SO3(self._end_pose), angular_q / self._angular_distance)
         orientation = SO3(self._start_pose) * SO3.AngleAxis(angular_q, self._angular_direction)
         angular_velocity = angular_v * self._angular_direction
 
@@ -245,7 +243,6 @@ class ConstantAccelerationTrajectory(Trajectory):
         twist = Twist3(linear_velocity, angular_velocity)
 
         return pose, twist
-
 
     @property
     def duration(self) -> float:
