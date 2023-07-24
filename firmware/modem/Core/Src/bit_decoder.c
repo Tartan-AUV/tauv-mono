@@ -187,3 +187,15 @@ status_t bit_decode_seq(decoder_t *dec, uint32_t *raw_buf, size_t raw_buf_size) 
     return MDM_OK;
 }
 
+status_t bit_decoder_deinit(decoder_t *d) {
+    if (d == NULL) {
+        return MDM_OK;
+    }
+
+    if (d->prev_buf != NULL) {
+        free(d->prev_buf);
+    }
+
+    return MDM_OK;
+}
+
