@@ -11,6 +11,7 @@
 #include "modem.h"
 
 #define BSEQ_LEN 50
+#define BSEQ_AMPLITUDE 10
 #define SLIDE_STEP 1
 #define PEAKSIZE 100
 #define OUTPUT_BUF_SIZE 100
@@ -42,7 +43,7 @@ typedef struct {
  * @brief Initialize the bit decoder's barker sequence
  * @param d Pointer to the decoder_t struct
  */
-void bseq_init(decoder_t* d);
+status_t bseq_init(decoder_t* d);
 
 /**
  * @brief Initialize the bit decoder
@@ -80,5 +81,12 @@ uint32_t* find_alignment(decoder_t* dec, uint32_t* raw_buf, size_t raw_buf_size)
  * @return MDM_OK if successful, MDM_ERROR otherwise
  */
 status_t bit_decode_seq(decoder_t* dec, uint32_t* raw_buf, size_t raw_buf_size);
+
+/**
+ * @brief Deinitialize the bit decoder
+ * @param dec
+ * @return MDM_OK if successful, MDM_ERROR otherwise
+ */
+status_t bit_decoder_deinit(decoder_t* dec);
 
 #endif //MODEM_BIT_DECODER_H

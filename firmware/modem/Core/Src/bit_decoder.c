@@ -5,6 +5,7 @@
 #include <malloc.h>
 #include <memory.h>
 #include <stdbool.h>
+#include <math.h>
 #include "bit_decoder.h"
 
 /**
@@ -23,14 +24,62 @@ static uint32_t dot_product(uint32_t* a, uint32_t* b, size_t size) {
 }
 
 /**
+ * @brief A function that returns an array of length len that is a quadratic approximation of the input array
+ *
+ * The input array should consist of only 1s and -1s. We create a new array of length BSEQ_LEN that is a quadratic
+ * approximation of the input array. The quadratic approximation is a parabola that goes from 0 to BSEQ_AMPLITUDE and
+ * then back to 0. The quadratic approximation is used to create the barker sequence.
+ */
+static uint32_t *quad_approximation(int *seq, size_t seq_len, size_t output_len, uint32_t amplitude) {
+    uint32_t *output = malloc(output_len * sizeof(uint32_t));
+    if (output == NULL) {
+        return NULL;
+    }
+
+    // Find the indexes of 1s and -1s in the input sequence
+    size_t num_ones = 0, num_neg_ones = 0;
+    for (size_t i = 0; i < seq_len; i++) {
+        seq[i] == 1 ? num_ones++ : num_neg_ones++;
+    }
+
+    // Calculate the step size for each part of the quadratic approximation
+    double step_size = (double)(output_len - 1) / (num_ones + num_neg_ones);
+
+    // Create the quadratic approximation based on the number of 1s and -1s
+    size_t index = 0;
+    for (size_t i = 0; i < seq_len; i++) {
+        if (seq[i] == 1) {
+            for (size_t j = 0; j < step_size; j++) {
+                double x = (double)index / (output_len - 1);
+                double y = -4 * pow(x - 0.5, 2) + 1;
+                output[index++] = (uint32_t)(y * amplitude);
+            }
+        } else if (seq[i] == -1) {
+            for (size_t j = 0; j < step_size; j++) {
+                double x = (double)index / (output_len - 1);
+                double y = 4 * pow(x - 0.5, 2) - 1;
+                output[index++] = (uint32_t)(y * amplitude);
+            }
+        }
+    }
+
+    return output;
+}
+
+
+/**
  * @brief Initialize the bit decoder's barker sequence
  * @param d
  */
-void bseq_init(decoder_t *d) {
+status_t bseq_init(decoder_t *d) {
     uint32_t *b_seq = d->b_seq;
-    for (int i = 0; i < BSEQ_LEN; i++) {
-        b_seq[i] = 0;
-    }
+
+    // Barker sequence: +++--+- (length 7)
+    int barker_seq[7] = {1, 1, 1, -1, -1, 1, -1};
+
+    b_seq = quad_approximation(barker_seq, 7, BSEQ_LEN, BSEQ_AMPLITUDE);
+
+    return b_seq == NULL ? MDM_ERROR : MDM_OK;
 }
 
 /**
@@ -51,9 +100,8 @@ status_t bit_decoder_init(decoder_t *d) {
 
     d->c = config;
     d->prev_buf = NULL;
-    bseq_init(d);
 
-    return MDM_OK;
+    return bseq_init(d);
 }
 
 /**
