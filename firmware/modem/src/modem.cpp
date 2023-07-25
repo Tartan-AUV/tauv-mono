@@ -3,241 +3,107 @@
 ////
 //
 //#include <math.h>
-//
 //#include <complex.h>
-//#include <stdlib.h>
 //
-//#include "modem.h"
-//
-//
-//status_t demodulator_init(demod_t *m, const demodulator_config_t *c) {
-//    m->c = *c;
-//
-//    int freq_sample = 90000; // todo
-//    m->i = 0;
-//    m->curr_dst_buf = m->c.dst_buf1;
-//    m->dst_size = m->c.raw_size / m->c.undersampling_ratio;
-//    m->N = m->c.raw_size + 1;
-//    m->dst_i = 0;
-//
-//    m->c.sample_tim->Instance->ARR = SystemCoreClock / freq_sample;
-//
-//    float PI = 3.14159f;
-//    float N = (float) m->N;
-//    m->k_lo = ((float) m->c.modem_config.freq_lo * (float) N) / ((float) freq_sample);
-//    m->k_hi = ((float) m->c.modem_config.freq_hi * (float) N) / ((float) freq_sample);
-//
-//    m->coeff_w[0] = -0.25f;
-//    m->coeff_w[1] = 0.5f;
-//    m->coeff_w[2] = -0.25f;
-//
-//    float r = m->c.sdft_r;
-//    m->coeff_a = -powf(r, (float) N);
-//
-//    m->coeff_b_lo[0] = r * cexp((2.i * PI * (m->k_lo - 1.)) / (float) N);
-//    m->coeff_b_lo[1] = r * cexp((2.i * PI * m->k_lo) / (float) N);
-//    m->coeff_b_lo[2] = r * cexp((2.i * PI * (m->k_lo + 1.)) / (float) N);
-//    m->coeff_b_hi[0] = r * cexp((2.i * PI * (m->k_hi - 1.)) / (float) N);
-//    m->coeff_b_hi[1] = r * cexp((2.i * PI * m->k_hi) / (float) N);
-//    m->coeff_b_hi[2] = r * cexp((2.i * PI * (m->k_hi + 1.)) / (float) N);
-//
-//    return MDM_OK;
-//}
-//
-//status_t demodulator_start(demod_t *demod) {
-////    __HAL_ADC_ENABLE_IT(demod->c.hadc, ADC_IT_OVR);
-////    demod->c.hadc->Instance->CR2 |= ADC_CR2_DMA;
-////    HAL_ADC_Start(demod->c.hadc);
-////    HAL_DMAEx_MultiBufferStart_IT(demod->c.hadc->DMA_Handle, (uint32_t) &demod->c.hadc->Instance->DR,
-////                                  (uint32_t) demod->raw_writing_buf, (uint32_t) demod->raw_prev_buf,
-////                                  demod->c.chip_buf_size);
-////    adc_start_dma_dbm(demod->c.hadc, demod->raw_writing_buf, demod->raw_last_buf, demod->c.chip_buf_size);
-////    HAL_ADC_Start(demod->c.hadc);
-////    HAL_ADC_Start_DMA(demod->c.hadc, &demod->adc_data, 1);
-////    HAL_TIM_Base_Start_IT(demod->c.sample_tim);
-//    HAL_ADC_Start_IT(demod->c.hadc);
-//    HAL_TIM_PWM_Start(demod->c.sample_tim, TIM_CHANNEL_1);
-//}
-//
-//
-//float normalize_sample(demod_t *m, d_raw_t sample) {
-//    return ((float) sample) * (1.0 / 256.0);
-//}
-//
-//void demod_sample_it(demod_t *m) {
-//    demodulator_config_t *c = &m->c;
-//    // Wait for the end of conversion
-////    if (HAL_ADC_PollForConversion(&m->c.hadc, HAL_MAX_DELAY) != HAL_OK)
-////    {
-////        // ADC conversion error handling
-////        return; // Or any appropriate error value
-////    }
-//
-//    uint8_t val = (uint8_t) HAL_ADC_GetValue(m->c.hadc);
-//    float sample = normalize_sample(m, val);
-//    float sample_N = normalize_sample(m, c->raw_buf[m->i]);
-//
-//    float a = sample - m->coeff_a * sample_N;
-////    float a = 0.42f;
-//    m->s_lo_w[0] = a + m->coeff_b_lo[0] * m->s_lo_w[0];
-//    m->s_lo_w[1] = a + m->coeff_b_lo[1] * m->s_lo_w[1];
-//    m->s_lo_w[2] = a + m->coeff_b_lo[2] * m->s_lo_w[2];
-//
-//    m->s_hi_w[0] = a + m->coeff_b_hi[0] * m->s_hi_w[0];
-//    m->s_hi_w[1] = a + m->coeff_b_hi[1] * m->s_hi_w[1];
-//    m->s_hi_w[2] = a + m->coeff_b_hi[2] * m->s_hi_w[2];
-//
-//    m->s_lo = m->coeff_w[0] * m->s_lo_w[0] + m->coeff_w[1] * m->s_lo_w[1] + m->coeff_w[2] * m->s_lo_w[2];
-//    m->s_hi = m->coeff_w[0] * m->s_hi_w[0] + m->coeff_w[1] * m->s_hi_w[1] + m->coeff_w[2] * m->s_hi_w[2];
-//
-//    m->mag_lo = cabsf(m->s_lo);
-//    m->mag_hi = cabsf(m->s_hi);
-//
-//    if(m->i % c->undersampling_ratio) {
-//        m->curr_dst_buf[m->dst_i] = m->mag_hi - m->mag_lo;
-//        m->dst_i++;
-//        if(m->dst_i > m->dst_size) {
-//            if (m->curr_dst_buf == c->dst_buf1) {
-//                (*c->cplt1)();
-//                m->curr_dst_buf = c->dst_buf2;
-//            }
-//            else {
-//                (*c->cplt2)();
-//                m->curr_dst_buf = c->dst_buf1;
-//            }
-//            m->i = 0;
-//            m->dst_i = 0;
-//        }
-//    }
-//    c->raw_buf[m->i] = val;
-//    m->i = (m->i + 1) % c->raw_size;
-//
-//    HAL_GPIO_WritePin(DBG2_GPIO_Port, DBG2_Pin, m->mag_hi - m->mag_lo > 0.0);
-//}
-//
-////HAL_StatusTypeDef adc_start_dma_dbm(ADC_HandleTypeDef *hadc, uint32_t *dst0, uint32_t *dst1, uint32_t length) {
-////    __IO uint32_t counter = 0U;
-////    ADC_Common_TypeDef *tmpADC_Common;
-////
-////    /* Check the parameters */
-////    assert_param(IS_FUNCTIONAL_STATE(hadc->Init.ContinuousConvMode));
-////    assert_param(IS_ADC_EXT_TRIG_EDGE(hadc->Init.ExternalTrigConvEdge));
-////
-////    /* Process locked */
-////    __HAL_LOCK(hadc);
-////
-////    /* Enable the ADC peripheral */
-////    /* Check if ADC peripheral is disabled in order to enable it and wait during
-////    Tstab time the ADC's stabilization */
-////    if ((hadc->Instance->CR2 & ADC_CR2_ADON) != ADC_CR2_ADON) {
-////        /* Enable the Peripheral */
-////        __HAL_ADC_ENABLE(hadc);
-////
-////        /* Delay for ADC stabilization time */
-////        /* Compute number of CPU cycles to wait for */
-////        counter = (ADC_STAB_DELAY_US * (SystemCoreClock / 1000000U));
-////        while (counter != 0U) {
-////            counter--;
-////        }
-////    }
-////
-////    /* Check ADC DMA Mode                                                     */
-////    /* - disable the DMA Mode if it is already enabled                        */
-////    if ((hadc->Instance->CR2 & ADC_CR2_DMA) == ADC_CR2_DMA) {
-////        CLEAR_BIT(hadc->Instance->CR2, ADC_CR2_DMA);
-////    }
-////
-////    /* Start conversion if ADC is effectively enabled */
-////    if (HAL_IS_BIT_SET(hadc->Instance->CR2, ADC_CR2_ADON)) {
-////        /* Set ADC state                                                          */
-////        /* - Clear state bitfield related to regular group conversion results     */
-////        /* - Set state bitfield related to regular group operation                */
-////                ADC_STATE_CLR_SET(hadc->State,
-////                                  HAL_ADC_STATE_READY | HAL_ADC_STATE_REG_EOC | HAL_ADC_STATE_REG_OVR,
-////                                  HAL_ADC_STATE_REG_BUSY);
-////
-////        /* If conversions on group regular are also triggering group injected,    */
-////        /* update ADC state.                                                      */
-////        if (READ_BIT(hadc->Instance->CR1, ADC_CR1_JAUTO) != RESET) {
-////                    ADC_STATE_CLR_SET(hadc->State, HAL_ADC_STATE_INJ_EOC, HAL_ADC_STATE_INJ_BUSY);
-////        }
-////
-////        /* State machine update: Check if an injected conversion is ongoing */
-////        if (HAL_IS_BIT_SET(hadc->State, HAL_ADC_STATE_INJ_BUSY)) {
-////            /* Reset ADC error code fields related to conversions on group regular */
-////            CLEAR_BIT(hadc->ErrorCode, (HAL_ADC_ERROR_OVR | HAL_ADC_ERROR_DMA));
-////        } else {
-////            /* Reset ADC all error code fields */
-////            ADC_CLEAR_ERRORCODE(hadc);
-////        }
-////
-////        /* Process unlocked */
-////        /* Unlock before starting ADC conversions: in case of potential           */
-////        /* interruption, to let the process to ADC IRQ Handler.                   */
-////        __HAL_UNLOCK(hadc);
-////
-////        /* Pointer to the common control register to which is belonging hadc    */
-////        /* (Depending on STM32F4 product, there may be up to 3 ADCs and 1 common */
-////        /* control register)                                                    */
-////        tmpADC_Common = ADC_COMMON_REGISTER(hadc);
-////
-//////        /* Set the DMA transfer complete callback */
-//////        hadc->DMA_Handle->XferCpltCallback = ADC_DMAConvCplt;
-//////
-//////        /* Set the DMA half transfer complete callback */
-//////        hadc->DMA_Handle->XferHalfCpltCallback = ADC_DMAHalfConvCplt;
-//////
-//////        /* Set the DMA error callback */
-//////        hadc->DMA_Handle->XferErrorCallback = ADC_DMAError;
-//////
-////
-////        /* Manage ADC and DMA start: ADC overrun interruption, DMA start, ADC     */
-////        /* start (in case of SW start):                                           */
-////
-////        /* Clear regular group conversion flag and overrun flag */
-////        /* (To ensure of no unknown state from potential previous ADC operations) */
-////        __HAL_ADC_CLEAR_FLAG(hadc, ADC_FLAG_EOC | ADC_FLAG_OVR);
-////
-////        /* Enable ADC overrun interrupt */
-////        __HAL_ADC_ENABLE_IT(hadc, ADC_IT_OVR);
-////
-////        /* Enable ADC DMA mode */
-////        hadc->Instance->CR2 |= ADC_CR2_DMA;
-////
-////        /* Start the DMA channel */
-////        HAL_DMAEx_MultiBufferStart_IT(hadc->DMA_Handle, (uint32_t) &hadc->Instance->DR, (uint32_t) dst0,
-////                                      (uint32_t) dst1, length);
-////
-////        /* Check if Multimode enabled */
-////        if (HAL_IS_BIT_CLR(tmpADC_Common->CCR, ADC_CCR_MULTI)) {
-////#if defined(ADC2) && defined(ADC3)
-////            if((hadc->Instance == ADC1) || ((hadc->Instance == ADC2) && ((ADC->CCR & ADC_CCR_MULTI_Msk) < ADC_CCR_MULTI_0)) \
-////                                  || ((hadc->Instance == ADC3) && ((ADC->CCR & ADC_CCR_MULTI_Msk) < ADC_CCR_MULTI_4)))
-////      {
-////#endif /* ADC2 || ADC3 */
-////            /* if no external trigger present enable software conversion of regular channels */
-////            if ((hadc->Instance->CR2 & ADC_CR2_EXTEN) == RESET) {
-////                /* Enable the selected ADC software conversion for regular group */
-////                hadc->Instance->CR2 |= (uint32_t) ADC_CR2_SWSTART;
-////            }
-////#if defined(ADC2) && defined(ADC3)
-////            }
-////#endif /* ADC2 || ADC3 */
-////        } else {
-////            /* if instance of handle correspond to ADC1 and  no external trigger present enable software conversion of regular channels */
-////            if ((hadc->Instance == ADC1) && ((hadc->Instance->CR2 & ADC_CR2_EXTEN) == RESET)) {
-////                /* Enable the selected ADC software conversion for regular group */
-////                hadc->Instance->CR2 |= (uint32_t) ADC_CR2_SWSTART;
-////            }
-////        }
-////    } else {
-////        /* Update ADC state machine to error */
-////        SET_BIT(hadc->State, HAL_ADC_STATE_ERROR_INTERNAL);
-////
-////        /* Set ADC error code to ADC IP internal error */
-////        SET_BIT(hadc->ErrorCode, HAL_ADC_ERROR_INTERNAL);
-////    }
-////
-////    /* Return function status */
-////    return HAL_OK;
-////}
+#include "modem.h"
+#include "main.h"
+
+using namespace std::complex_literals;
+
+status_t FSKDemodulator::init() {
+    using namespace std;
+    int freq_sample = 200000; // todo
+    i = 0;
+    curr_dst_buf = dst_buf1;
+    dst_size = raw_size / undersampling_ratio;
+    N = raw_size + 1;
+    dst_i = 0;
+
+    float pi = 3.14159f;
+    float N = (float) N;
+    k_lo = ((float) modem_config->freq_lo * (float) N) / ((float) freq_sample);
+    k_hi = ((float) modem_config->freq_hi * (float) N) / ((float) freq_sample);
+
+    coeff_w[0] = -0.25f;
+    coeff_w[1] = 0.5f;
+    coeff_w[2] = -0.25f;
+
+    float r = sdft_r;
+    coeff_a = -pow(r, (float) N);
+
+    coeff_b_lo[0] = r * exp((2.if * pi * (k_lo - 1.0f)) / (float) N);
+    coeff_b_lo[1] = r * exp((2.if * pi * k_lo) / (float) N);
+    coeff_b_lo[2] = r * exp((2.if * pi * (k_lo + 1.0f)) / (float) N);
+    coeff_b_hi[0] = r * exp((2.if * pi * (k_hi - 1.0f)) / (float) N);
+    coeff_b_hi[1] = r * exp((2.if * pi * k_hi) / (float) N);
+    coeff_b_hi[2] = r * exp((2.if * pi * (k_hi + 1.0f)) / (float) N);
+
+    adc.adc0->setAveraging(0);
+    adc.adc0->setResolution(8);
+    adc.adc0->setConversionSpeed(ADC_CONVERSION_SPEED::VERY_HIGH_SPEED);
+    adc.adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::VERY_HIGH_SPEED);
+    adc.adc0->enableInterrupts(adc_it);
+
+    return MDM_OK;
+}
+
+status_t FSKDemodulator::start()  {
+    sampleTimer->begin([this] {FSKDemodulator::handle_sample(); },
+                       std::chrono::nanoseconds (sample_period), true);
+}
+
+
+float FSKDemodulator::normalize_sample(d_raw_t sample) {
+    return ((float) sample) * (1.0 / 256.0);
+}
+
+void FSKDemodulator::handle_sample() {
+    uint8_t val = (uint8_t) adc.adc0->readSingle();
+    float sample = normalize_sample(val);
+    float sample_N = normalize_sample(raw_buf[i]);
+
+    float a = sample - coeff_a * sample_N;
+
+    s_lo_w[0] = a + coeff_b_lo[0] * s_lo_w[0];
+    s_lo_w[1] = a + coeff_b_lo[1] * s_lo_w[1];
+    s_lo_w[2] = a + coeff_b_lo[2] * s_lo_w[2];
+
+    s_hi_w[0] = a + coeff_b_hi[0] * s_hi_w[0];
+    s_hi_w[1] = a + coeff_b_hi[1] * s_hi_w[1];
+    s_hi_w[2] = a + coeff_b_hi[2] * s_hi_w[2];
+
+    s_lo = coeff_w[0] * s_lo_w[0] + coeff_w[1] * s_lo_w[1] + coeff_w[2] * s_lo_w[2];
+    s_hi = coeff_w[0] * s_hi_w[0] + coeff_w[1] * s_hi_w[1] + coeff_w[2] * s_hi_w[2];
+
+    mag_lo = std::abs(s_lo);
+    mag_hi = std::abs(s_hi);
+
+    if(i % undersampling_ratio) {
+        curr_dst_buf[dst_i] = mag_hi - mag_lo;
+        dst_i++;
+        if(dst_i > dst_size) {
+            if (curr_dst_buf == dst_buf1) {
+                (*cplt1)();
+                curr_dst_buf = dst_buf2;
+            }
+            else {
+                (*cplt2)();
+                curr_dst_buf = dst_buf1;
+            }
+            i = 0;
+            dst_i = 0;
+        }
+    }
+    raw_buf[i] = val;
+    i = (i + 1) % raw_size;
+
+    digitalWriteFast(PIN_DBG_1, curr_dst_buf[i] > 0.0f);
+//    HAL_GpiO_Writepin(, mag_hi - mag_lo > 0.0);
+}
+
+FSKDemodulator::FSKDemodulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *sampleTimer,
+                               unsigned int rawSize, unsigned char *rawBuf, float *dstBuf1, float *dstBuf2,
+                               adc_it_fn adc_it)
+        : modem_config(modemConfig), raw_size(rawSize),
+          raw_buf(rawBuf), dst_buf1(dstBuf1),
+          dst_buf2(dstBuf2), sampleTimer(sampleTimer) {}

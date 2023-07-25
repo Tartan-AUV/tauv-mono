@@ -5,8 +5,6 @@
 #ifndef MODEM_FSK_MODULATOR_H
 #define MODEM_FSK_MODULATOR_H
 
-#include <Arduino.h>
-#include <TeensyTimerTool.h>
 
 #include "modem.h"
 

@@ -55,9 +55,9 @@
 					<Add option="-DLAYOUT_US_ENGLISH"/>
 					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/include"/>
 					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ADC"/>
 					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src"/>
 					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/cores/teensy4"/>
-					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ADC"/>
 					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/AccelStepper/src"/>
 					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_NeoPixel"/>
 					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_STMPE610"/>
@@ -193,9 +193,9 @@
 					<Add option="-DLAYOUT_US_ENGLISH"/>
 					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/include"/>
 					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ADC"/>
 					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src"/>
 					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/cores/teensy4"/>
-					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ADC"/>
 					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/AccelStepper/src"/>
 					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_NeoPixel"/>
 					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_STMPE610"/>

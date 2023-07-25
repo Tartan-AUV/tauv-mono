@@ -1,18 +1,8 @@
 /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=teensy41 -G "CodeBlocks - Unix Makefiles" -S /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem -B /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41
--- The C compiler identification is AppleClang 14.0.3.14030022
--- The CXX compiler identification is AppleClang 14.0.3.14030022
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - failed
--- Detecting C compile features
--- Detecting C compile features - done
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - failed
--- Detecting CXX compile features
--- Detecting CXX compile features - done
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41
 
 Problems were encountered while collecting compiler information:
-	arm-none-eabi-gcc: error: unrecognized command-line option '-Wall;-ffunction-sections;-fdata-sections;-mthumb;-mcpu=cortex-m7;-nostdlib;-mfloat-abi=hard;-mfpu=fpv5-d16;-O2'
 	arm-none-eabi-g++: error: unrecognized command-line option '-fno-exceptions;-felide-constructors;-fno-rtti;-std=gnu++14;-Wno-error=narrowing;-fpermissive;-fno-threadsafe-statics;-Wall;-ffunction-sections;-fdata-sections;-mthumb;-mcpu=cortex-m7;-nostdlib;-mfloat-abi=hard;-mfpu=fpv5-d16;-O2'
+	arm-none-eabi-gcc: error: unrecognized command-line option '-Wall;-ffunction-sections;-fdata-sections;-mthumb;-mcpu=cortex-m7;-nostdlib;-mfloat-abi=hard;-mfpu=fpv5-d16;-O2'
