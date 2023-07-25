@@ -32,7 +32,9 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define RAW_BUF_SIZE 2000
+#define RAW_BUF_SIZE 1500
+#define SDFT_UNDERSAMPLING_RATIO 8
+#define SDFT_BUF_SIZE RAW_BUF_SIZE / SDFT_UNDERSAMPLING_RATIO;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -45,11 +47,14 @@ ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
 TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 demod_t demod;
 fsk_modulator_t modulator;
-d_raw_t combined_raw_buf[RAW_BUF_SIZE * 3];
+d_raw_t adc_raw_buf[RAW_BUF_SIZE];
+d_sdft_t sdft_buf_1[SDFT_UNDERSAMPLING_RATIO];
+d_sdft_t sdft_buf_2[SDFT_UNDERSAMPLING_RATIO];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,10 +63,9 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-void adc_dma_m0_cplt_it(DMA_HandleTypeDef *hdma);
-
-void adc_dma_m1_cplt_it(DMA_HandleTypeDef *hdma);
+void aintdoingshit() {}
 
 void adc_dma_error_handler(DMA_HandleTypeDef *hdma);
 /* USER CODE END PFP */
@@ -102,6 +106,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
     modem_config_t modem_config;
     modem_config.freq_lo = 50000;
@@ -110,13 +115,20 @@ int main(void)
 
     demodulator_config_t demod_config;
     demod_config.modem_config = modem_config;
-    demod_config.chip_buf_size = 1000;
-    demod_config.chip_buf_margin = 100;
-    demod_config.hadc = &hadc1;
+    demod_config.raw_size= RAW_BUF_SIZE;
+    demod_config.raw_buf = adc_raw_buf;
+    demod_config.dst_buf1 = sdft_buf_1;
+    demod_config.dst_buf2 = sdft_buf_2;
+    demod_config.undersampling_ratio = SDFT_UNDERSAMPLING_RATIO;
+
     demod_config.sdft_r = 0.99f;
-    demod_config.chip_sdft_N = 200;
     demod_config.max_raw = 255.0f;
-    demod_config.combined_raw_buf = combined_raw_buf;
+
+    demod_config.hadc = &hadc1;
+    demod_config.sample_tim = &htim3;
+
+    demod_config.cplt1 = aintdoingshit;
+    demod_config.cplt2 = aintdoingshit;
 
     demodulator_init(&demod, &demod_config);
     demodulator_start(&demod);
@@ -127,11 +139,11 @@ int main(void)
     mod_conifg.sigma = 0.6f;
 
     fsk_mod_init(&modulator, &mod_conifg);
-
+//
     d_sdft_t freq_buf[RAW_BUF_SIZE];
 
 //    uint8_t buf[] = {0b01010100, 0b01000001, 0b01010101, 0b01010110};
-    uint8_t buf[] = {0x0f};
+    uint8_t buf[] = {0b01010101};
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -143,11 +155,7 @@ int main(void)
 //
 //        }
 //        fsk_mod_transmit(&modulator, buf, 1);
-//        HAL_Delay(100);
-        if (demod.raw_buf_rdy) {
-            demod_sdft(&demod, freq_buf, RAW_BUF_SIZE);
-            demod.raw_buf_rdy = false;
-        }
+//        HAL_Delay(20);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -192,7 +200,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV4;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
@@ -221,7 +229,7 @@ static void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc1.Init.Resolution = ADC_RESOLUTION_8B;
   hadc1.Init.ScanConvMode = DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
@@ -230,7 +238,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 1;
-  hadc1.Init.DMAContinuousRequests = ENABLE;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
@@ -247,9 +255,6 @@ static void MX_ADC1_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN ADC1_Init 2 */
-    hadc1.DMA_Handle->XferCpltCallback = adc_dma_m0_cplt_it;
-    hadc1.DMA_Handle->XferM1CpltCallback = adc_dma_m1_cplt_it;
-    hadc1.DMA_Handle->XferErrorCallback = adc_dma_error_handler;
   /* USER CODE END ADC1_Init 2 */
 
 }
@@ -296,6 +301,51 @@ static void MX_TIM2_Init(void)
   /* USER CODE BEGIN TIM2_Init 2 */
 
   /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
 
 }
 
@@ -367,14 +417,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void adc_dma_m0_cplt_it(DMA_HandleTypeDef *hdma) {
-//    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    demod_adc_dma_m0_cplt_it(&demod);
-}
-
-void adc_dma_m1_cplt_it(DMA_HandleTypeDef *hdma) {
-    demod_adc_dma_m1_cplt_it(&demod);
-}
 
 void adc_dma_error_handler(DMA_HandleTypeDef *hdma) {
     while (1) {
@@ -385,6 +427,8 @@ void adc_dma_error_handler(DMA_HandleTypeDef *hdma) {
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim == modulator.c.pwm_tim) {
         fsk_mod_tim_it(&modulator);
+    } else if (htim == demod.c.sample_tim) {
+        demod_sample_it(&demod);
     }
 }
 
