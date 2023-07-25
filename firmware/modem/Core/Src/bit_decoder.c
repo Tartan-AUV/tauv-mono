@@ -207,11 +207,4 @@ dec_status_t bit_decode_seq(decoder_t *dec, uint32_t *raw_buf, size_t raw_buf_si
     return DEC_OK;
 }
 
-dec_status_t bit_decoder_deinit(decoder_t *d) {
-    if (d == NULL) {
-        return DEC_OK;
-    }
-
-    return DEC_OK;
-}
 

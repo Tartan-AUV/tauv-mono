@@ -99,11 +99,4 @@ uint32_t* find_alignment(decoder_t* dec, uint32_t* raw_buf, size_t raw_buf_size)
  */
 dec_status_t bit_decode_seq(decoder_t* dec, uint32_t* raw_buf, size_t raw_buf_size);
 
-/**
- * @brief Deinitialize the bit decoder
- * @param dec
- * @return MDM_OK if successful, MDM_ERROR otherwise
- */
-dec_status_t bit_decoder_deinit(decoder_t* dec);
-
 #endif //MODEM_BIT_DECODER_H
