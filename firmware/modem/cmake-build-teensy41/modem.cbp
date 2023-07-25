@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="modem"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Production">
+				<Option working_dir="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 Production"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Debug">
+				<Option working_dir="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 Debug"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Z_DUMMY_TARGET">
+				<Option output="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Z_DUMMY_TARGET" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DPLATFORMIO=60109"/>
+					<Add option="-D__IMXRT1062__"/>
+					<Add option="-DARDUINO_TEENSY41"/>
+					<Add option="-DUSB_SERIAL"/>
+					<Add option="-DARDUINO=10805"/>
+					<Add option="-DTEENSYDUINO=158"/>
+					<Add option="-DCORE_TEENSY"/>
+					<Add option="-DF_CPU=600000000"/>
+					<Add option="-DLAYOUT_US_ENGLISH"/>
+					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/include"/>
+					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ADC"/>
+					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/cores/teensy4"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/AccelStepper/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_NeoPixel"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_STMPE610"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_VS1053"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_nRF8001"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_nRF8001/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/AltSoftSerial"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Artnet"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Audio"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Audio/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Bounce"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Bounce2/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/CapacitiveSensor"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/CryptoAccel/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/DS1307RTC"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/DmxSimple"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/DogLcd"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/EEPROM"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/EasyTransfer/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/EasyTransferI2C/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Encoder"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Encoder/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Entropy"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Ethernet/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FNET/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FastCRC"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FastLED/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FlexCAN"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FlexCAN_T4"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FlexIO_t4/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FlexiTimer2"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FreqCount"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FreqMeasure"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FreqMeasureMulti"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FrequencyTimer2"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ILI9341_t3"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ILI9488_t3/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/IRremote/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Keypad/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LedControl/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LedDisplay"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LiquidCrystal/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LiquidCrystalFast"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LittleFS/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LowPower"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/MFRC522/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/MIDI/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Metro"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/MsTimer2"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/NXPMotionSense"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/NXPMotionSense/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/NativeEthernet/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/OSC"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/OctoWS2811"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/OneWire"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/PS2Keyboard"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/PS2Keyboard/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/PWMServo"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Ping"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/PulsePosition"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/QuadEncoder"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/RA8875/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/RadioHead"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ResponsiveAnalogRead/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SD/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SPI"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SPIFlash"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ST7735_t3/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SdFat/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SerialFlash"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Servo"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ShiftPWM"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Snooze/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SoftPWM"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SoftwareSerial"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TFT_ILI9163C"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Talkie"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TeensyThreads"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Time"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TimeAlarms"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TimerOne"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TimerThree"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TinyGPS"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Tlc5940"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TouchScreen"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/USBHost_t36"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/USBHost_t36/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/UTFT"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/VirtualWire"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/WS2812Serial"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Wire"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Wire/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/XBee"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/XPT2046_Touchscreen"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/i2c_t3"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ks0108"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ssd1351"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/x10"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/arm-none-eabi/include/c++/11.3.1"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/arm-none-eabi/include/c++/11.3.1/arm-none-eabi"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/lib/gcc/arm-none-eabi/11.3.1/include"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/lib/gcc/arm-none-eabi/11.3.1/include-fixed"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/arm-none-eabi/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/bin/../include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 Z_DUMMY_TARGET"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Z_DUMMY_TARGET/fast">
+				<Option output="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Z_DUMMY_TARGET" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DPLATFORMIO=60109"/>
+					<Add option="-D__IMXRT1062__"/>
+					<Add option="-DARDUINO_TEENSY41"/>
+					<Add option="-DUSB_SERIAL"/>
+					<Add option="-DARDUINO=10805"/>
+					<Add option="-DTEENSYDUINO=158"/>
+					<Add option="-DCORE_TEENSY"/>
+					<Add option="-DF_CPU=600000000"/>
+					<Add option="-DLAYOUT_US_ENGLISH"/>
+					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/include"/>
+					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ADC"/>
+					<Add directory="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/cores/teensy4"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/AccelStepper/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_NeoPixel"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_STMPE610"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_VS1053"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_nRF8001"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Adafruit_nRF8001/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/AltSoftSerial"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Artnet"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Audio"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Audio/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Bounce"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Bounce2/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/CapacitiveSensor"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/CryptoAccel/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/DS1307RTC"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/DmxSimple"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/DogLcd"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/EEPROM"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/EasyTransfer/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/EasyTransferI2C/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Encoder"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Encoder/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Entropy"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Ethernet/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FNET/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FastCRC"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FastLED/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FlexCAN"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FlexCAN_T4"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FlexIO_t4/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FlexiTimer2"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FreqCount"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FreqMeasure"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FreqMeasureMulti"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/FrequencyTimer2"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ILI9341_t3"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ILI9488_t3/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/IRremote/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Keypad/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LedControl/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LedDisplay"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LiquidCrystal/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LiquidCrystalFast"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LittleFS/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/LowPower"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/MFRC522/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/MIDI/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Metro"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/MsTimer2"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/NXPMotionSense"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/NXPMotionSense/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/NativeEthernet/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/OSC"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/OctoWS2811"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/OneWire"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/PS2Keyboard"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/PS2Keyboard/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/PWMServo"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Ping"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/PulsePosition"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/QuadEncoder"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/RA8875/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/RadioHead"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ResponsiveAnalogRead/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SD/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SPI"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SPIFlash"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ST7735_t3/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SdFat/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SerialFlash"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Servo"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ShiftPWM"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Snooze/src"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SoftPWM"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/SoftwareSerial"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TFT_ILI9163C"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Talkie"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TeensyThreads"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Time"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TimeAlarms"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TimerOne"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TimerThree"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TinyGPS"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Tlc5940"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/TouchScreen"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/USBHost_t36"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/USBHost_t36/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/UTFT"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/VirtualWire"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/WS2812Serial"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Wire"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/Wire/utility"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/XBee"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/XPT2046_Touchscreen"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/i2c_t3"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ks0108"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/ssd1351"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/framework-arduinoteensy/libraries/x10"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/arm-none-eabi/include/c++/11.3.1"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/arm-none-eabi/include/c++/11.3.1/arm-none-eabi"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/lib/gcc/arm-none-eabi/11.3.1/include"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/lib/gcc/arm-none-eabi/11.3.1/include-fixed"/>
+					<Add directory="/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/arm-none-eabi/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/bin/../include/c++/v1"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include"/>
+					<Add directory="/Library/Developer/CommandLineTools/usr/include"/>
+					<Add directory="/System/Library/Frameworks"/>
+					<Add directory="/Library/Frameworks"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 Z_DUMMY_TARGET/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/.clang-format">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/.gitignore">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/.piopm">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/README.md">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/.gitignore">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/01_Basic/ArrayOfTimers/ArrayOfTimers.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/01_Basic/ArrayOfTimers/README.md">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/01_Basic/HelloOneShot/HelloOneShot.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/01_Basic/HelloPeriodic/HelloPeriodic.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/01_Basic/MoreTimers/MoreTimers.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/01_Basic/RTC_Timer/RTC_Timer.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/01_Basic/UsingChronoDurations1/UsingChronoDurations1.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/01_Basic/UsingChronoDurations2/UsingChronoDurations2.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/02_Advanced/CallbackWithParams/CallbackWithParams.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/02_Advanced/CapturingLambdas/CapturingLambdas.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/02_Advanced/UsingLambdas/UsingLambdas.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/03_Applications/DoubleExposure/DoubleExposure.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/03_Applications/DoubleExposure/LaserController.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/03_Applications/DoubleExposure/PulseGenerator.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/03_Applications/DoubleExposure/README.md">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/03_Applications/DoubleExposure/SystemController.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/.clang-format">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/.gitignore">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/GPIO_Info.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PinInfo.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PinInformation.ino">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/boards.txt">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/library.properties">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/oneShotTimer.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/periodicTimer.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/timer.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_codes.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/ITimerChannel.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TeensyTimerTool.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/FTM/FTM.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/FTM/FTM_Channel.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/FTM/FTM_ChannelInfo.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/FTM/FTM_Info.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPT.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTmap.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PITChannel.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannel.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TMR/TMR.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TMR/TMRChannel.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/boardDef.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/config.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/defaultConfig.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/frequency.h.deactivated">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/helpers.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/inplace_function.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/types.h">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/integrity.dat">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/fsk_modulator.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/main.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/modem.cpp">
+			<Option target="Z_DUMMY_TARGET"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/CMakeListsPrivate.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
