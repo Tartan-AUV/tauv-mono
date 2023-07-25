@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 #include "modem.h"
+#include "bit_decoder.h"
 #include "stm32f4xx_hal.h"
 #include "main.h"
 

@@ -7,6 +7,7 @@
 #define MODEM_CORE_INC_MODEM_H_
 
 #include <stdbool.h>
+#include "bit_decoder.h"
 #include "stm32f4xx_hal.h"
 
 typedef enum {
@@ -25,8 +26,8 @@ typedef struct {
 
 typedef struct {
     modem_config_t modem_config;
-    size_t chip_buf_size;
 
+    size_t chip_buf_size;
     size_t chip_buf_margin;
     size_t chip_sdft_N;
 

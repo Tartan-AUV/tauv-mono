@@ -10,17 +10,24 @@
 #include "stm32f4xx_hal.h"
 #include "modem.h"
 
+#define BSEQ_REF_LEN 7
 #define BSEQ_LEN 50
 #define BSEQ_AMPLITUDE 10
 #define SLIDE_STEP 1
 #define PEAKSIZE 100
 #define OUTPUT_BUF_SIZE 100
+#define FIXED_POINT_SHIFT 16
 
 typedef enum {
     PEAK_0,
     PEAK_1,
     PEAK_NOTFOUND
 } decode_peak_t;
+
+typedef enum {
+    DEC_OK,
+    DEC_ERROR
+} dec_status_t;
 
 typedef struct {
     size_t alignment;
@@ -32,25 +39,35 @@ typedef struct {
     decoder_config_t c;
 
     size_t prev_bufsize;
-    uint32_t *prev_buf;
+    uint32_t prev_buf[BSEQ_LEN];
     uint32_t *output_buf;
     uint32_t b_seq[BSEQ_LEN];
+
+    bool using_prev_buf;
 } decoder_t;
 
 /* ------------------ Library functions ------------------ */
 
 /**
+ * @brief Create a waveform from a bit sequence
+ * @param bit_seq Pointer to the bit sequence
+ * @param bit_seq_len Length of the bit sequence
+ * @param outputArray Pointer to the output array
+ */
+void create_waveform(const int8_t* bit_seq, size_t bit_seq_len, uint32_t* outputArray);
+
+/**
  * @brief Initialize the bit decoder's barker sequence
  * @param d Pointer to the decoder_t struct
  */
-status_t bseq_init(decoder_t* d);
+void bseq_init(decoder_t* d);
 
 /**
  * @brief Initialize the bit decoder
  * @param d Pointer to the decoder_t struct
  * @return MDM_OK if successful, MDM_ERROR otherwise
  */
-status_t bit_decoder_init(decoder_t* d);
+dec_status_t bit_decoder_init(decoder_t *d, decoder_config_t *config);
 
 /**
  * @brief Find the peak in the signal segment by calculating the correlation with the Barker sequence
@@ -80,13 +97,13 @@ uint32_t* find_alignment(decoder_t* dec, uint32_t* raw_buf, size_t raw_buf_size)
  * @param raw_buf_size Size of the raw buffer
  * @return MDM_OK if successful, MDM_ERROR otherwise
  */
-status_t bit_decode_seq(decoder_t* dec, uint32_t* raw_buf, size_t raw_buf_size);
+dec_status_t bit_decode_seq(decoder_t* dec, uint32_t* raw_buf, size_t raw_buf_size);
 
 /**
  * @brief Deinitialize the bit decoder
  * @param dec
  * @return MDM_OK if successful, MDM_ERROR otherwise
  */
-status_t bit_decoder_deinit(decoder_t* dec);
+dec_status_t bit_decoder_deinit(decoder_t* dec);
 
 #endif //MODEM_BIT_DECODER_H
