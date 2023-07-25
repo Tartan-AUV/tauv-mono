@@ -44,8 +44,9 @@ _Min_Stack_Size = 0x400; /* required amount of stack */
 /* Memories definition */
 MEMORY
 {
-  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 64K
+  RAM    (xrw)    : ORIGIN = 0x20000000,   LENGTH = 32K
   FLASH    (rx)    : ORIGIN = 0x8000000,   LENGTH = 256K
+  CCMRAM (xrw) : ORIGIN = 0x10000000, LENGTH = 16K
 }
 
 /* Sections */
@@ -58,6 +59,20 @@ SECTIONS
     KEEP(*(.isr_vector)) /* Startup code */
     . = ALIGN(4);
   } >FLASH
+
+  /*--- New CCMRAM linker section definition ---*/
+    _siccmram = LOADADDR(.ccmram);
+    /* CCMRAM section */
+    .ccmram :
+  {
+    . = ALIGN(4);
+    _sccmram = .;
+    *(.ccmram)
+    *(.ccmram*)
+    . = ALIGN(4);
+    _eccmram = .;
+  } >CCMRAM AT> FLASH
+  /*--- End of CCMRAM linker section definition ---*/
 
   /* The program code and other data into "FLASH" Rom type memory */
   .text :

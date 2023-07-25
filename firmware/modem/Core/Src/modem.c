@@ -4,6 +4,7 @@
 
 #include <malloc.h>
 #include <math.h>
+
 #include <complex.h>
 #include <stdlib.h>
 
@@ -14,7 +15,7 @@
 status_t demodulator_init(demod_t *m, const demodulator_config_t *c) {
     m->c = *c;
 
-    int freq_sample = 250000; // todo
+    int freq_sample = 90000; // todo
     m->i = 0;
     m->curr_dst_buf = m->c.dst_buf1;
     m->dst_size = m->c.raw_size / m->c.undersampling_ratio;
@@ -53,29 +54,34 @@ status_t demodulator_start(demod_t *demod) {
 //                                  (uint32_t) demod->raw_writing_buf, (uint32_t) demod->raw_prev_buf,
 //                                  demod->c.chip_buf_size);
 //    adc_start_dma_dbm(demod->c.hadc, demod->raw_writing_buf, demod->raw_last_buf, demod->c.chip_buf_size);
-    HAL_ADC_Start(demod->c.hadc);
-    HAL_TIM_Base_Start_IT(demod->c.sample_tim);
+//    HAL_ADC_Start(demod->c.hadc);
+//    HAL_ADC_Start_DMA(demod->c.hadc, &demod->adc_data, 1);
+//    HAL_TIM_Base_Start_IT(demod->c.sample_tim);
+    HAL_ADC_Start_IT(demod->c.hadc);
+    HAL_TIM_PWM_Start(demod->c.sample_tim, TIM_CHANNEL_1);
 }
 
 
 float normalize_sample(demod_t *m, d_raw_t sample) {
-    return ((float) sample) / m->c.max_raw;
+    return ((float) sample) * (1.0 / 256.0);
 }
 
 void demod_sample_it(demod_t *m) {
     demodulator_config_t *c = &m->c;
     // Wait for the end of conversion
-    if (HAL_ADC_PollForConversion(&m->c.hadc, HAL_MAX_DELAY) != HAL_OK)
-    {
-        // ADC conversion error handling
-        return; // Or any appropriate error value
-    }
-    uint8_t val = (uint8_t) HAL_ADC_GetValue(c->hadc);
+//    if (HAL_ADC_PollForConversion(&m->c.hadc, HAL_MAX_DELAY) != HAL_OK)
+//    {
+//        // ADC conversion error handling
+//        return; // Or any appropriate error value
+//    }
+
+    HAL_GPIO_TogglePin(DBG1_GPIO_Port, DBG1_Pin);
+    uint8_t val = (uint8_t) HAL_ADC_GetValue(m->c.hadc);
     float sample = normalize_sample(m, val);
     float sample_N = normalize_sample(m, c->raw_buf[m->i]);
 
     float a = sample - m->coeff_a * sample_N;
-
+//    float a = 0.42f;
     m->s_lo_w[0] = a + m->coeff_b_lo[0] * m->s_lo_w[0];
     m->s_lo_w[1] = a + m->coeff_b_lo[1] * m->s_lo_w[1];
     m->s_lo_w[2] = a + m->coeff_b_lo[2] * m->s_lo_w[2];
@@ -109,7 +115,7 @@ void demod_sample_it(demod_t *m) {
     c->raw_buf[m->i] = val;
     m->i = (m->i + 1) % c->raw_size;
 
-    HAL_GPIO_WritePin(DBG1_GPIO_Port, DBG1_Pin, m->mag_hi - m->mag_lo > 0.0);
+    HAL_GPIO_WritePin(DBG2_GPIO_Port, DBG2_Pin, m->mag_hi - m->mag_lo > 0.0);
 }
 
 //HAL_StatusTypeDef adc_start_dma_dbm(ADC_HandleTypeDef *hadc, uint32_t *dst0, uint32_t *dst1, uint32_t length) {

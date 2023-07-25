@@ -48,16 +48,17 @@ typedef struct {
 typedef struct {
     demodulator_config_t c;
 
+    uint32_t adc_data;
 
-    size_t i, dst_i;
+    volatile size_t i, dst_i;
     size_t dst_size;
-    size_t N;
-    d_sdft_t *curr_dst_buf;
+    volatile size_t N;
+    volatile d_sdft_t *curr_dst_buf;
 
 
-    float k_lo, k_hi;
-    float coeff_w[3];
-    float coeff_a;
+    volatile float k_lo, k_hi;
+    volatile float coeff_w[3];
+    volatile float coeff_a;
     __complex__ float coeff_b_lo[3];
     __complex__ float coeff_b_hi[3];
 
@@ -77,7 +78,7 @@ typedef struct {
 status_t demodulator_init(demod_t *m, const demodulator_config_t *c);
 
 
-void demod_sample_it(demod_t *m);
+void demod_sample_it(demod_t *m);// __attribute__((section (".ccmram")));
 
 status_t demodulator_start(demod_t *demod);
 
