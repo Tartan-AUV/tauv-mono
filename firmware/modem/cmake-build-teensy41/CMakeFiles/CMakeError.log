@@ -1,0 +1,76 @@
+Detecting C compiler ABI info failed to compile with the following output:
+Change Dir: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/CMakeScratch/TryCompile-AuQXBL
+
+Run Build Command(s):/usr/bin/make -f Makefile cmTC_30ce0/fast && /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_30ce0.dir/build.make CMakeFiles/cmTC_30ce0.dir/build
+Building C object CMakeFiles/cmTC_30ce0.dir/CMakeCCompilerABI.c.obj
+/Library/Developer/CommandLineTools/usr/bin/cc   -fcolor-diagnostics   -v -MD -MT CMakeFiles/cmTC_30ce0.dir/CMakeCCompilerABI.c.obj -MF CMakeFiles/cmTC_30ce0.dir/CMakeCCompilerABI.c.obj.d -o CMakeFiles/cmTC_30ce0.dir/CMakeCCompilerABI.c.obj -c /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.25/Modules/CMakeCCompilerABI.c
+Apple clang version 14.0.3 (clang-1403.0.22.14.1)
+Target: arm64-apple-darwin22.5.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+ "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx13.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -mrelax-all --mrelax-relocations -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fcompatibility-qualified-id-block-type-checking -fvisibility-inlines-hidden-static-local-var -target-cpu apple-m1 -target-feature +v8.5a -target-feature +crc -target-feature +lse -target-feature +rdm -target-feature +crypto -target-feature +dotprod -target-feature +fp-armv8 -target-feature +neon -target-feature +fp16fml -target-feature +ras -target-feature +rcpc -target-feature +zcm -target-feature +zcz -target-feature +fullfp16 -target-feature +sm4 -target-feature +sha3 -target-feature +sha2 -target-feature +aes -target-abi darwinpcs -fallow-half-arguments-and-returns -mllvm -treat-scalable-fixed-error-as-warning -debugger-tuning=lldb -target-linker-version 857.1 -v -fcoverage-compilation-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/CMakeScratch/TryCompile-AuQXBL -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/14.0.3 -dependency-file CMakeFiles/cmTC_30ce0.dir/CMakeCCompilerABI.c.obj.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_30ce0.dir/CMakeCCompilerABI.c.obj -sys-header-deps -internal-isystem /usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include -internal-externc-isystem /usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdebug-compilation-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/CMakeScratch/TryCompile-AuQXBL -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -no-opaque-pointers -fmax-type-align=16 -fcommon -fcolor-diagnostics -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -mllvm -disable-aligned-alloc-awareness=1 -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_30ce0.dir/CMakeCCompilerABI.c.obj -x c /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.25/Modules/CMakeCCompilerABI.c
+clang -cc1 version 14.0.3 (clang-1403.0.22.14.1) default target arm64-apple-darwin22.5.0
+ignoring nonexistent directory "/usr/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/local/include
+ /Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include
+ /Library/Developer/CommandLineTools/usr/include
+ /System/Library/Frameworks (framework directory)
+ /Library/Frameworks (framework directory)
+End of search list.
+Linking C executable cmTC_30ce0
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E cmake_link_script CMakeFiles/cmTC_30ce0.dir/link.txt --verbose=1
+/Library/Developer/CommandLineTools/usr/bin/cc  -v CMakeFiles/cmTC_30ce0.dir/CMakeCCompilerABI.c.obj -o cmTC_30ce0 
+Apple clang version 14.0.3 (clang-1403.0.22.14.1)
+Target: arm64-apple-darwin22.5.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+ "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 13.0.0 13.0.0 -o cmTC_30ce0 CMakeFiles/cmTC_30ce0.dir/CMakeCCompilerABI.c.obj -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/lib/darwin/libclang_rt.osx.a
+ld: library not found for -lSystem
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+make[1]: *** [cmTC_30ce0] Error 1
+make: *** [cmTC_30ce0/fast] Error 2
+
+
+
+
+Detecting CXX compiler ABI info failed to compile with the following output:
+Change Dir: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/CMakeScratch/TryCompile-BsZDVP
+
+Run Build Command(s):/usr/bin/make -f Makefile cmTC_75e95/fast && /Library/Developer/CommandLineTools/usr/bin/make  -f CMakeFiles/cmTC_75e95.dir/build.make CMakeFiles/cmTC_75e95.dir/build
+Building CXX object CMakeFiles/cmTC_75e95.dir/CMakeCXXCompilerABI.cpp.obj
+/Library/Developer/CommandLineTools/usr/bin/CC   -fcolor-diagnostics   -v -MD -MT CMakeFiles/cmTC_75e95.dir/CMakeCXXCompilerABI.cpp.obj -MF CMakeFiles/cmTC_75e95.dir/CMakeCXXCompilerABI.cpp.obj.d -o CMakeFiles/cmTC_75e95.dir/CMakeCXXCompilerABI.cpp.obj -c /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.25/Modules/CMakeCXXCompilerABI.cpp
+Apple clang version 14.0.3 (clang-1403.0.22.14.1)
+Target: arm64-apple-darwin22.5.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+ignoring nonexistent directory "/usr/include/c++/v1"
+ "/Library/Developer/CommandLineTools/usr/bin/clang" -cc1 -triple arm64-apple-macosx13.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -mrelax-all --mrelax-relocations -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fcompatibility-qualified-id-block-type-checking -fvisibility-inlines-hidden-static-local-var -target-cpu apple-m1 -target-feature +v8.5a -target-feature +crc -target-feature +lse -target-feature +rdm -target-feature +crypto -target-feature +dotprod -target-feature +fp-armv8 -target-feature +neon -target-feature +fp16fml -target-feature +ras -target-feature +rcpc -target-feature +zcm -target-feature +zcz -target-feature +fullfp16 -target-feature +sm4 -target-feature +sha3 -target-feature +sha2 -target-feature +aes -target-abi darwinpcs -fallow-half-arguments-and-returns -mllvm -treat-scalable-fixed-error-as-warning -debugger-tuning=lldb -target-linker-version 857.1 -v -fcoverage-compilation-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/CMakeScratch/TryCompile-BsZDVP -resource-dir /Library/Developer/CommandLineTools/usr/lib/clang/14.0.3 -dependency-file CMakeFiles/cmTC_75e95.dir/CMakeCXXCompilerABI.cpp.obj.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_75e95.dir/CMakeCXXCompilerABI.cpp.obj -sys-header-deps -stdlib=libc++ -internal-isystem /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1 -internal-isystem /usr/local/include -internal-isystem /Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include -internal-externc-isystem /usr/include -internal-externc-isystem /Library/Developer/CommandLineTools/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdeprecated-macro -fdebug-compilation-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/CMakeScratch/TryCompile-BsZDVP -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -no-opaque-pointers -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -fcolor-diagnostics -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -mllvm -disable-aligned-alloc-awareness=1 -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_75e95.dir/CMakeCXXCompilerABI.cpp.obj -x c++ /Applications/CLion.app/Contents/bin/cmake/mac/share/cmake-3.25/Modules/CMakeCXXCompilerABI.cpp
+clang -cc1 version 14.0.3 (clang-1403.0.22.14.1) default target arm64-apple-darwin22.5.0
+ignoring nonexistent directory "/usr/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /Library/Developer/CommandLineTools/usr/bin/../include/c++/v1
+ /usr/local/include
+ /Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/include
+ /Library/Developer/CommandLineTools/usr/include
+ /System/Library/Frameworks (framework directory)
+ /Library/Frameworks (framework directory)
+End of search list.
+Linking CXX executable cmTC_75e95
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -E cmake_link_script CMakeFiles/cmTC_75e95.dir/link.txt --verbose=1
+/Library/Developer/CommandLineTools/usr/bin/CC  -v CMakeFiles/cmTC_75e95.dir/CMakeCXXCompilerABI.cpp.obj -o cmTC_75e95 
+Apple clang version 14.0.3 (clang-1403.0.22.14.1)
+Target: arm64-apple-darwin22.5.0
+Thread model: posix
+InstalledDir: /Library/Developer/CommandLineTools/usr/bin
+ "/Library/Developer/CommandLineTools/usr/bin/ld" -demangle -lto_library /Library/Developer/CommandLineTools/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 13.0.0 13.0.0 -o cmTC_75e95 CMakeFiles/cmTC_75e95.dir/CMakeCXXCompilerABI.cpp.obj -lSystem /Library/Developer/CommandLineTools/usr/lib/clang/14.0.3/lib/darwin/libclang_rt.osx.a
+ld: library not found for -lSystem
+clang: error: linker command failed with exit code 1 (use -v to see invocation)
+make[1]: *** [cmTC_75e95] Error 1
+make: *** [cmTC_75e95/fast] Error 2
+
+
+
+

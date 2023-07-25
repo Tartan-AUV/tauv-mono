@@ -1,0 +1,5 @@
+/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/Production.dir
+/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/Debug.dir
+/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/Z_DUMMY_TARGET.dir
+/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/edit_cache.dir
+/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/rebuild_cache.dir

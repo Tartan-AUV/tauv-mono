@@ -1,0 +1,28 @@
+The target system is: Generic -  - 
+The host system is: Darwin - 22.5.0 - arm64
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler: /Library/Developer/CommandLineTools/usr/bin/cc 
+Build flags: 
+Id flags: -c 
+
+The output was:
+0
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CMakeCCompilerId.o"
+
+The C compiler identification is AppleClang, found in "/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/3.25.2/CompilerIdC/CMakeCCompilerId.o"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler: /Library/Developer/CommandLineTools/usr/bin/CC 
+Build flags: 
+Id flags: -c 
+
+The output was:
+0
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CMakeCXXCompilerId.o"
+
+The CXX compiler identification is AppleClang, found in "/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles/3.25.2/CompilerIdCXX/CMakeCXXCompilerId.o"
+
