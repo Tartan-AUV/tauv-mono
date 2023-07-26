@@ -28,11 +28,18 @@ FSKDemodulator demod{&modemConfig, &demodTimer, RAW_BUF_SIZE, adc_raw_buf, sdft_
 FSKModulator::m_word_t buf[] = {0b01010101, };
 
 void setup() {
+    pinMode(2, OUTPUT); // Initialize LED
+    pinMode(3, OUTPUT);
+    pinMode(4, OUTPUT);
+
+    Serial.begin(115200);
+    Serial.println("Beginning setup...");
     mod.setSigma(0.6);
     mod.init();
+    Serial.println("FKS Mod init OK");
     demod.init();
+    Serial.println("Demod init OK");
     demod.start();
-    Serial.begin(115000);
     Serial.println("Setup completed!");
 }
 

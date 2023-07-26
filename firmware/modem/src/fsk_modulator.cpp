@@ -27,6 +27,7 @@ status_t FSKModulator::init() {
     pinMode(PIN_TX_EN, OUTPUT);
     /* Generate LUTs */
     // normalize and map to the half-periods
+    Serial.println(FREQ_LUT_SIZE);
     float k = 1.0f / gaussian_integral(1.0f, sigma);
     uint32_t hp_lo =  ONE_SECOND_NS / (modem_config->freq_lo * 2);
     uint32_t hp_hi = ONE_SECOND_NS / (modem_config->freq_hi * 2);

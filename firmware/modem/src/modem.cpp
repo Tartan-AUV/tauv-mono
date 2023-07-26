@@ -77,17 +77,16 @@ void FSKDemodulator::handle_sample() {
 
     mag_lo = std::abs(s_lo);
     mag_hi = std::abs(s_hi);
-
     if(i % undersampling_ratio) {
         curr_dst_buf[dst_i] = mag_hi - mag_lo;
         dst_i++;
         if(dst_i > dst_size) {
             if (curr_dst_buf == dst_buf1) {
-                (*cplt1)();
+                //(*cplt1)();
                 curr_dst_buf = dst_buf2;
             }
             else {
-                (*cplt2)();
+                //(*cplt2)();
                 curr_dst_buf = dst_buf1;
             }
             i = 0;
@@ -95,8 +94,9 @@ void FSKDemodulator::handle_sample() {
         }
     }
     raw_buf[i] = val;
+    Serial.print("Val is ");
+    Serial.println(val);
     i = (i + 1) % raw_size;
-
     digitalWriteFast(PIN_DBG_1, curr_dst_buf[i] > 0.0f);
 //    HAL_GpiO_Writepin(, mag_hi - mag_lo > 0.0);
 }
