@@ -19,24 +19,24 @@ status_t FSKDemodulator::init() {
     N = raw_size + 1;
     dst_i = 0;
 
-    float pi = 3.14159f;
-    float N = (float) N;
-    k_lo = ((float) modem_config->freq_lo * (float) N) / ((float) freq_sample);
-    k_hi = ((float) modem_config->freq_hi * (float) N) / ((float) freq_sample);
+    _Complex float pi = 3.14159f;
+    _Complex float N = (_Complex float) N;
+    k_lo = ((_Complex float) modem_config->freq_lo * (_Complex float) N) / ((_Complex float) freq_sample);
+    k_hi = ((_Complex float) modem_config->freq_hi * (_Complex float) N) / ((_Complex float) freq_sample);
 
     coeff_w[0] = -0.25f;
     coeff_w[1] = 0.5f;
     coeff_w[2] = -0.25f;
 
-    float r = sdft_r;
-    coeff_a = -pow(r, (float) N);
+    _Complex float r = sdft_r;
+    coeff_a = -cpowf(r, (_Complex float) N);
 
-    coeff_b_lo[0] = r * exp((2.if * pi * (k_lo - 1.0f)) / (float) N);
-    coeff_b_lo[1] = r * exp((2.if * pi * k_lo) / (float) N);
-    coeff_b_lo[2] = r * exp((2.if * pi * (k_lo + 1.0f)) / (float) N);
-    coeff_b_hi[0] = r * exp((2.if * pi * (k_hi - 1.0f)) / (float) N);
-    coeff_b_hi[1] = r * exp((2.if * pi * k_hi) / (float) N);
-    coeff_b_hi[2] = r * exp((2.if * pi * (k_hi + 1.0f)) / (float) N);
+    coeff_b_lo[0] = r * cexpf(((_Complex float) 2 * pi * (k_lo - (_Complex float) 1.0f)) / N);
+    coeff_b_lo[1] = r * cexpf(((_Complex float) 2 * pi * k_lo) /  N);
+    coeff_b_lo[2] = r * cexpf(((_Complex float) 2 * pi * (k_lo + 1.0f)) /  N);
+    coeff_b_hi[0] = r * cexpf(((_Complex float) 2 * pi * (k_hi - 1.0f)) / N);
+    coeff_b_hi[1] = r * cexpf(((_Complex float) 2 * pi * k_hi) /  N);
+    coeff_b_hi[2] = r * cexpf(((_Complex float) 2 * pi * (k_hi + 1.0f)) /  N);
 
     adc.adc0->setAveraging(0);
     adc.adc0->setResolution(8);
@@ -59,10 +59,10 @@ float FSKDemodulator::normalize_sample(d_raw_t sample) {
 
 void FSKDemodulator::handle_sample() {
     uint8_t val = (uint8_t) adc.adc0->readSingle();
-    float sample = normalize_sample(val);
-    float sample_N = normalize_sample(raw_buf[i]);
+    _Complex float sample = normalize_sample(val);
+    _Complex float sample_N = normalize_sample(raw_buf[i]);
 
-    float a = sample - coeff_a * sample_N;
+    _Complex float a = sample - coeff_a * sample_N;
 
     s_lo_w[0] = a + coeff_b_lo[0] * s_lo_w[0];
     s_lo_w[1] = a + coeff_b_lo[1] * s_lo_w[1];
@@ -75,8 +75,8 @@ void FSKDemodulator::handle_sample() {
     s_lo = coeff_w[0] * s_lo_w[0] + coeff_w[1] * s_lo_w[1] + coeff_w[2] * s_lo_w[2];
     s_hi = coeff_w[0] * s_hi_w[0] + coeff_w[1] * s_hi_w[1] + coeff_w[2] * s_hi_w[2];
 
-    mag_lo = std::abs(s_lo);
-    mag_hi = std::abs(s_hi);
+    mag_lo = cabsf(s_lo);
+    mag_hi = cabsf(s_hi);
     if(i % undersampling_ratio) {
         curr_dst_buf[dst_i] = mag_hi - mag_lo;
         dst_i++;

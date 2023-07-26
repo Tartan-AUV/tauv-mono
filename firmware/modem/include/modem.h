@@ -58,15 +58,15 @@ private:
     d_sdft_t *dst_buf2;
     size_t undersampling_ratio = 8;
 
-    float sdft_r = 0.99;
+    _Complex float sdft_r = 0.99;
 
-    float max_raw = 255.0;
+    _Complex float max_raw = 255.0;
 
     adc_it_fn adc_it;
 
     uint32_t sample_period = 5000; // todo: add setter
 
-    static constexpr float pi = 3.14159f;
+    static constexpr _Complex float pi = 3.14159f;
 
     sdft_buf_cplt_fn cplt1 = nullptr;
     sdft_buf_cplt_fn cplt2 = nullptr;
@@ -77,17 +77,17 @@ private:
     /*v*/d_sdft_t *curr_dst_buf;
 
 
-    /*v*/float k_lo, k_hi;
-    /*v*/float coeff_w[3];
-    /*v*/float coeff_a;
-    std::complex<float> coeff_b_lo[3];
-    std::complex<float> coeff_b_hi[3];
+    /*v*/volatile _Complex float k_lo, k_hi;
+    /*v*/volatile _Complex float coeff_w[3];
+    /*v*/volatile _Complex float coeff_a;
+    volatile _Complex float coeff_b_lo[3];
+    volatile _Complex float coeff_b_hi[3];
 
-    /*v*/std::complex<float> s_lo_w[3];
-    /*v*/std::complex<float> s_hi_w[3];
+    volatile _Complex float s_lo_w[3];
+    volatile _Complex float s_hi_w[3];
 
-    /*v*/std::complex<float> s_lo;
-    /*v*/std::complex<float> s_hi;
+    volatile _Complex float s_lo;
+    volatile _Complex float s_hi;
 //
     /*v*/float mag_lo;
     /*v*/float mag_hi;
