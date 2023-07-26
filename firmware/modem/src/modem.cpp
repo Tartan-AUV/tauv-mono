@@ -97,12 +97,12 @@ void FSKDemodulator::handle_sample() {
     Serial.print("Val is ");
     Serial.println(val);
     i = (i + 1) % raw_size;
-    digitalWriteFast(PIN_DBG_1, curr_dst_buf[i] > 0.0f);
+    digitalWriteFast(PIN_DBG_1, crealf(curr_dst_buf[i]) > 0.0f);
 //    HAL_GpiO_Writepin(, mag_hi - mag_lo > 0.0);
 }
 
 FSKDemodulator::FSKDemodulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *sampleTimer,
-                               unsigned int rawSize, unsigned char *rawBuf, float *dstBuf1, float *dstBuf2,
+                               unsigned int rawSize, unsigned char *rawBuf, d_sdft_t *dstBuf1, d_sdft_t *dstBuf2,
                                adc_it_fn adc_it)
         : modem_config(modemConfig), raw_size(rawSize),
           raw_buf(rawBuf), dst_buf1(dstBuf1),

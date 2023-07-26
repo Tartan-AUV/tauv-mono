@@ -19,7 +19,7 @@ typedef enum {
 } status_t;
 //
 typedef uint8_t d_raw_t;
-typedef float d_sdft_t;
+typedef _Complex float d_sdft_t;
 typedef void (*sdft_buf_cplt_fn)();
 typedef void (*adc_it_fn)();
 //
@@ -34,7 +34,7 @@ typedef struct {
 class FSKDemodulator {
 public:
     FSKDemodulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *sampleTimer,
-                   unsigned int rawSize, unsigned char *rawBuf, float *dstBuf1, float *dstBuf2,
+                   unsigned int rawSize, unsigned char *rawBuf, d_sdft_t *dstBuf1, d_sdft_t *dstBuf2,
                    adc_it_fn adc_it);
 
     status_t init();
@@ -71,15 +71,15 @@ private:
     sdft_buf_cplt_fn cplt1 = nullptr;
     sdft_buf_cplt_fn cplt2 = nullptr;
 
-    /*v*/size_t i, dst_i;
+    volatile size_t i, dst_i;
     size_t dst_size;
-    /*v*/size_t N;
-    /*v*/d_sdft_t *curr_dst_buf;
+    volatile size_t N;
+    volatile d_sdft_t *curr_dst_buf;
 
 
-    /*v*/volatile _Complex float k_lo, k_hi;
-    /*v*/volatile _Complex float coeff_w[3];
-    /*v*/volatile _Complex float coeff_a;
+    volatile _Complex float k_lo, k_hi;
+    volatile _Complex float coeff_w[3];
+    volatile _Complex float coeff_a;
     volatile _Complex float coeff_b_lo[3];
     volatile _Complex float coeff_b_hi[3];
 
@@ -89,6 +89,6 @@ private:
     volatile _Complex float s_lo;
     volatile _Complex float s_hi;
 //
-    /*v*/float mag_lo;
-    /*v*/float mag_hi;
+    volatile _Complex float mag_lo;
+    volatile _Complex float mag_hi;
 };
