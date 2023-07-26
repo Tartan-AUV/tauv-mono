@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "modem.h"
+#include "bit_decoder.h"
 #include "fsk_modulator.h"
 /* USER CODE END Includes */
 
@@ -48,6 +49,7 @@ TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
 demod_t demod;
+decoder_t decoder;
 fsk_modulator_t modulator;
 d_raw_t combined_raw_buf[RAW_BUF_SIZE * 3];
 /* USER CODE END PV */
@@ -103,6 +105,11 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+    decoder_config_t decoder_config;
+    decoder_config.min_peaksize = 10; //literal BS
+    decoder_config.expected_peaksize = 15;
+    decoder_config.alignment = 0;
+
     modem_config_t modem_config;
     modem_config.freq_lo = 50000;
     modem_config.freq_hi = 55000;
@@ -118,6 +125,7 @@ int main(void)
     demod_config.max_raw = 255.0f;
     demod_config.combined_raw_buf = combined_raw_buf;
 
+    bit_decoder_init(&decoder, &decoder_config);
     demodulator_init(&demod, &demod_config);
     demodulator_start(&demod);
 
@@ -146,6 +154,8 @@ int main(void)
 //        HAL_Delay(100);
         if (demod.raw_buf_rdy) {
             demod_sdft(&demod, freq_buf, RAW_BUF_SIZE);
+
+            bit_decode_seq(&decoder, &freq_buf, RAW_BUF_SIZE);
             demod.raw_buf_rdy = false;
         }
     /* USER CODE END WHILE */

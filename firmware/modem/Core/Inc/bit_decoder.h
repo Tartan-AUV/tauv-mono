@@ -18,6 +18,8 @@
 #define OUTPUT_BUF_SIZE 100
 #define FIXED_POINT_SHIFT 16
 
+typedef uint32_t seq_t;
+
 typedef enum {
     PEAK_0,
     PEAK_1,
