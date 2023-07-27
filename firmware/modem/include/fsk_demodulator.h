@@ -4,30 +4,18 @@
 //
 #pragma once
 
-#include <Arduino.h>
-#undef abs
-
 #include <math.h>
 #include <complex.h>
 
 #include <TeensyTimerTool.h>
 #include <ADC.h>
+#include "main.h"
 
-typedef enum {
-    MDM_OK,
-    MDM_ERROR
-} status_t;
 //
 typedef uint32_t d_raw_t;
 typedef float d_sdft_t;
 typedef void (*sdft_buf_cplt_fn)();
 typedef void (*adc_it_fn)();
-//
-typedef struct {
-    int freq_lo;
-    int freq_hi;
-    int chip_rate;
-} modem_config_t;
 
 //void aintdoingshit() {}
 

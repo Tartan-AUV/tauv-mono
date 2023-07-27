@@ -5,6 +5,14 @@
 #ifndef MODEM_MAIN_H
 #define MODEM_MAIN_H
 
+#include <Arduino.h>
+#undef abs
+
+#include <ADC.h>
+#include <TeensyTimerTool.h>
+#include <complex.h>
+#include <math.h>
+
 #define ONE_SECOND_NS 1'000'000'000
 
 #define PIN_TX_1 18
@@ -19,4 +27,14 @@
 #define SDFT_BUF_SIZE (RAW_BUF_SIZE / SDFT_UNDERSAMPLING_RATIO)
 
 
+typedef enum {
+    MDM_OK,
+    MDM_ERROR
+} status_t;
+//
+typedef struct {
+    int freq_lo;
+    int freq_hi;
+    int chip_rate;
+} modem_config_t;
 #endif //MODEM_MAIN_H

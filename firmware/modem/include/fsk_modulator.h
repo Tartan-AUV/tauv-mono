@@ -6,7 +6,8 @@
 #define MODEM_FSK_MODULATOR_H
 
 
-#include "modem.h"
+#include "fsk_demodulator.h"
+#include "main.h"
 
 #define FREQ_LUT_SIZE 20
 

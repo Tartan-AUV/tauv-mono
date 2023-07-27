@@ -2,8 +2,6 @@
 // Created by Gleb Ryabtsev on 7/25/23.
 //
 
-#include <Arduino.h>
-
 #include "main.h"
 #include "fsk_modulator.h"
 

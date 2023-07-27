@@ -5,7 +5,7 @@
 //#include <math.h>
 //#include <complex.h>
 //
-#include "modem.h"
+#include "fsk_demodulator.h"
 #include "main.h"
 
 static ADC adc;
