@@ -8,11 +8,16 @@
 #include "modem.h"
 #include "main.h"
 
+static ADC adc;
+
+float mi, ma;
+
+
 using namespace std::complex_literals;
 
 status_t FSKDemodulator::init() {
     using namespace std;
-    int freq_sample = 200000; // todo
+    int freq_sample = 100000; // todo
     i = 0;
     curr_dst_buf = dst_buf1;
     dst_size = raw_size / undersampling_ratio;
@@ -20,7 +25,7 @@ status_t FSKDemodulator::init() {
     dst_i = 0;
 
     float pi = 3.14159f;
-    float N = (float) N;
+    float N = (float) raw_size;
     k_lo = ((float) modem_config->freq_lo * (float) N) / ((float) freq_sample);
     k_hi = ((float) modem_config->freq_hi * (float) N) / ((float) freq_sample);
 
@@ -37,19 +42,26 @@ status_t FSKDemodulator::init() {
     coeff_b_hi[0] = r * exp((2.if * pi * (k_hi - 1.0f)) / (float) N);
     coeff_b_hi[1] = r * exp((2.if * pi * k_hi) / (float) N);
     coeff_b_hi[2] = r * exp((2.if * pi * (k_hi + 1.0f)) / (float) N);
-
-    adc.adc0->setAveraging(0);
+    pinMode(PIN_RX, INPUT_DISABLE);
+    adc.adc0->setAveraging(1);
     adc.adc0->setResolution(8);
     adc.adc0->setConversionSpeed(ADC_CONVERSION_SPEED::VERY_HIGH_SPEED);
     adc.adc0->setSamplingSpeed(ADC_SAMPLING_SPEED::VERY_HIGH_SPEED);
     adc.adc0->enableInterrupts(adc_it);
 
+//    adc.adc0->startContinuous(PIN_RX);
+    adc.adc0->startSingleRead(PIN_RX);
+
     return MDM_OK;
 }
 
 status_t FSKDemodulator::start()  {
-    sampleTimer->begin([this] {FSKDemodulator::handle_sample(); },
+    sampleTimer->begin([this] {
+        adc.adc0->startSingleRead(PIN_RX);
+        },
                        std::chrono::nanoseconds (sample_period), true);
+
+    return MDM_OK;
 }
 
 
@@ -58,7 +70,9 @@ float FSKDemodulator::normalize_sample(d_raw_t sample) {
 }
 
 void FSKDemodulator::handle_sample() {
-    uint8_t val = (uint8_t) adc.adc0->readSingle();
+    digitalWriteFast(PIN_DBG_2, 1);
+    auto val = adc.adc0->readSingle();
+
     float sample = normalize_sample(val);
     float sample_N = normalize_sample(raw_buf[i]);
 
@@ -83,6 +97,10 @@ void FSKDemodulator::handle_sample() {
         dst_i++;
         if(dst_i > dst_size) {
             if (curr_dst_buf == dst_buf1) {
+//                Serial.println();
+                Serial.println(mag_hi);
+                Serial.println(mag_lo);
+                Serial.println();
                 (*cplt1)();
                 curr_dst_buf = dst_buf2;
             }
@@ -97,13 +115,19 @@ void FSKDemodulator::handle_sample() {
     raw_buf[i] = val;
     i = (i + 1) % raw_size;
 
-    digitalWriteFast(PIN_DBG_1, curr_dst_buf[i] > 0.0f);
-//    HAL_GpiO_Writepin(, mag_hi - mag_lo > 0.0);
+    if (mag_hi > ma) {
+        ma = mag_hi;
+    }
+    if (mag_lo < mi) {
+        mi = mag_lo;
+    }
+    digitalWriteFast(PIN_DBG_2, 0);
+    digitalWriteFast(PIN_DBG_1, mag_hi - mag_lo > 0.0f);
 }
 
 FSKDemodulator::FSKDemodulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *sampleTimer,
-                               unsigned int rawSize, unsigned char *rawBuf, float *dstBuf1, float *dstBuf2,
+                               unsigned int rawSize, d_raw_t *rawBuf, float *dstBuf1, float *dstBuf2,
                                adc_it_fn adc_it)
         : modem_config(modemConfig), raw_size(rawSize),
           raw_buf(rawBuf), dst_buf1(dstBuf1),
-          dst_buf2(dstBuf2), sampleTimer(sampleTimer) {}
+          dst_buf2(dstBuf2), sampleTimer(sampleTimer), adc_it(adc_it) {}

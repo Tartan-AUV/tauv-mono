@@ -46,6 +46,10 @@ private:
 
     bool prev_bit, curr_bit, next_bit;
     size_t next_bit_index;
+
+    uint32_t period_hi, period_lo;
+
+    void fsk_mod_transmit_isr_no_g();
 };
 
 #endif //MODEM_FSK_MODULATOR_H

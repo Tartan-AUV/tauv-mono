@@ -7,12 +7,14 @@
 
 #define ONE_SECOND_NS 1'000'000'000
 
-#define PIN_TX 18
-#define PIN_TX_EN 20
+#define PIN_TX_1 18
+#define REF 20
+#define PIN_TX_2 23
+#define PIN_RX PIN_A2
 #define PIN_DBG_1 10
 #define PIN_DBG_2 11
 
-#define RAW_BUF_SIZE 100
+#define RAW_BUF_SIZE 200
 #define SDFT_UNDERSAMPLING_RATIO 8
 #define SDFT_BUF_SIZE (RAW_BUF_SIZE / SDFT_UNDERSAMPLING_RATIO)
 

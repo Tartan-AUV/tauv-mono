@@ -15,6 +15,7 @@ uint32_t min(uint32_t a, uint32_t b) {
     return (a < b) ? a : b;
 }
 
+
 float gaussian_integral(float x, float s) {
     return x
           - powf(x, 3) / (6 * powf(s, 2))
@@ -23,8 +24,10 @@ float gaussian_integral(float x, float s) {
 }
 
 status_t FSKModulator::init() {
-    pinMode(PIN_TX, OUTPUT);
-    pinMode(PIN_TX_EN, OUTPUT);
+    pinMode(PIN_TX_1, OUTPUT);
+    pinMode(PIN_TX_2, OUTPUT);
+    digitalWriteFast(PIN_TX_1, 0);
+    digitalWriteFast(PIN_TX_1, 1);
     /* Generate LUTs */
     // normalize and map to the half-periods
     float k = 1.0f / gaussian_integral(1.0f, sigma);
@@ -50,6 +53,11 @@ status_t FSKModulator::init() {
     buf_time_end = 0;
     buf_time = 0;
 
+    period_hi = (ONE_SECOND_NS / modem_config->freq_hi) / 2;
+    period_lo = (ONE_SECOND_NS / modem_config->freq_lo) / 2;
+
+    Serial.printf("%ld %ld\n", period_hi, period_lo);
+
     return MDM_OK;
 }
 
@@ -62,9 +70,12 @@ status_t FSKModulator::fsk_mod_transmit(m_word_t *buf, size_t size) {
     buf_time_end = bit_period * (size * 8);
     transmitting = true;
     next_bit_index = 1;
+    auto cb_gaussian = [this] { this->FSKModulator::fsk_mod_tim_it(); };
+    auto cb_non_gaussian = [this] {this->FSKModulator::fsk_mod_transmit_isr_no_g(); };
+    digitalWriteFast(PIN_TX_1, 1);
+    digitalWriteFast(PIN_TX_2, 0);
+    t->begin(cb_non_gaussian, std::chrono::nanoseconds(period_lo), true);
 
-    t->begin([this] { this->FSKModulator::fsk_mod_tim_it(); }, 1ms, true);
-    digitalWriteFast(PIN_TX_EN, 1);
 
     return MDM_OK;
 }
@@ -73,17 +84,54 @@ bool FSKModulator::fsk_mod_busy() {
     return transmitting;
 }
 
+void FSKModulator::fsk_mod_transmit_isr_no_g() {
+    if (buf_time >= buf_time_end) {
+        t->stop();
+        digitalWriteFast(PIN_TX_1, 0);
+        digitalWriteFast(PIN_TX_2, 0);
+        transmitting = false;
+        return;
+    }
+    digitalWriteFast(PIN_TX_1, !digitalReadFast(PIN_TX_1));
+    digitalWriteFast(PIN_TX_2, !digitalReadFast(PIN_TX_1));
+//    size_t next_bit_i = buf_time / bit_period + 1; // can go 1 bit past the buffer
+//
+//    if (next_bit_i != next_bit_index) {
+//
+//        next_bit_index = next_bit_i;
+//        prev_bit = curr_bit;
+//        curr_bit = next_bit;
+//
+//        next_bit_i = min(next_bit_i, buf_size * 8 - 1);
+//
+//        size_t next_byte_i = next_bit_i / 8;
+//        uint8_t msk = 0x1 << (next_bit_i % 8);
+//        next_bit = buf[next_byte_i] & msk;
+//
+//    }
+//
+//    uint32_t period;
+//    if (next_bit) {
+//        period = period_hi;
+//    } else {
+//        period = period_lo;
+//    }
+//    t->setPeriod(std::chrono::nanoseconds(period));
+    buf_time += period_lo;
+}
+
 void FSKModulator::fsk_mod_tim_it() {
     if (buf_time >= buf_time_end) {
         t->stop();
-        digitalWriteFast(PIN_TX, 0);
-        digitalWriteFast(PIN_TX_EN, 0);
+        digitalWriteFast(PIN_TX_1, 0);
+        digitalWriteFast(PIN_TX_2, 0);
         transmitting = false;
         return;
     }
 
 
-    digitalWriteFast(PIN_TX, !digitalReadFast(PIN_TX));
+    digitalWriteFast(PIN_TX_1, !digitalReadFast(PIN_TX_1));
+    digitalWriteFast(PIN_TX_2, !digitalReadFast(PIN_TX_1));
 
 
     size_t next_bit_i = buf_time / bit_period + 1; // can go 1 bit past the buffer

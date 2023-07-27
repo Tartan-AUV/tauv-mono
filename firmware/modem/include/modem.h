@@ -18,7 +18,7 @@ typedef enum {
     MDM_ERROR
 } status_t;
 //
-typedef uint8_t d_raw_t;
+typedef uint32_t d_raw_t;
 typedef float d_sdft_t;
 typedef void (*sdft_buf_cplt_fn)();
 typedef void (*adc_it_fn)();
@@ -34,7 +34,7 @@ typedef struct {
 class FSKDemodulator {
 public:
     FSKDemodulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *sampleTimer,
-                   unsigned int rawSize, unsigned char *rawBuf, float *dstBuf1, float *dstBuf2,
+                   unsigned int rawSize, d_raw_t *rawBuf, float *dstBuf1, float *dstBuf2,
                    adc_it_fn adc_it);
 
     status_t init();
@@ -47,7 +47,6 @@ public:
 private:
     float normalize_sample(d_raw_t sample);
 
-    ADC adc;
 
     TeensyTimerTool::PeriodicTimer *sampleTimer;
 
@@ -68,8 +67,8 @@ private:
 
     static constexpr float pi = 3.14159f;
 
-    sdft_buf_cplt_fn cplt1 = nullptr;
-    sdft_buf_cplt_fn cplt2 = nullptr;
+    sdft_buf_cplt_fn cplt1 = demod_nop;
+    sdft_buf_cplt_fn cplt2 = demod_nop;
 
     /*v*/size_t i, dst_i;
     size_t dst_size;
@@ -91,4 +90,6 @@ private:
 //
     /*v*/float mag_lo;
     /*v*/float mag_hi;
+
+    static void demod_nop() {};
 };
