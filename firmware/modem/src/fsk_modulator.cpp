@@ -61,9 +61,11 @@ status_t FSKModulator::init() {
     return MDM_OK;
 }
 
-status_t FSKModulator::fsk_mod_transmit(m_word_t *buf, size_t size) {
+status_t FSKModulator::transmit(m_word_t *buf, size_t size) {
     this->buf = buf;
     buf_size = size;
+
+    transmitting = true;
 //    prev_bit = buf[0] & 0x1;
 //    curr_bit = buf[0] & 0x1;
 //    buf_time = 0;
@@ -83,7 +85,7 @@ status_t FSKModulator::fsk_mod_transmit(m_word_t *buf, size_t size) {
     return MDM_OK;
 }
 
-bool FSKModulator::fsk_mod_busy() {
+bool FSKModulator::busy() {
     return transmitting;
 }
 
@@ -95,12 +97,13 @@ void FSKModulator::carrier_timer_isr() {
 void FSKModulator::bit_timer_isr() {
     size_t curr_byte_i = curr_bit_i / 8;
     uint8_t msk = 0x1 << (curr_bit_i % 8);
-    Serial.println("bit isr");
+//    Serial.println("bit isr");
     if (curr_byte_i >= buf_size) {
         carrier_timer->stop();
         bit_timer->stop();
         digitalWriteFast(PIN_TX_1, 0);
         digitalWriteFast(PIN_TX_2, 0);
+        transmitting = false;
         return;
     }
     bool curr_bit = buf[curr_byte_i] & msk;

@@ -21,11 +21,9 @@ public:
 
     status_t init();
 
-    status_t fsk_mod_transmit(m_word_t *buf, size_t size);
+    status_t transmit(m_word_t *buf, size_t size);
 
-    bool fsk_mod_busy();
-
-    void fsk_mod_tim_it();
+    bool busy();
 
 private:
     // Config

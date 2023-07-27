@@ -4,8 +4,9 @@
 
 #include "main.h"
 #include "fsk_modulator.h"
+#include "dsss_modulator.h"
 
-#define RX_DBG
+#define TX_DBG
 
 d_raw_t adc_raw_buf[RAW_BUF_SIZE];
 d_sdft_t sdft_buf_1[SDFT_BUF_SIZE];
@@ -25,8 +26,10 @@ modem_config_t modemConfig{
 
 FSKModulator mod{&modemConfig, &fskTimer, &bitTimer};
 FSKDemodulator demod{&modemConfig, &demodTimer, RAW_BUF_SIZE, adc_raw_buf, sdft_buf_1, sdft_buf_2, demod_adc_it};
+Barker7Sequence *code;
+DSSSModulator *dsss_mod;
 
-FSKModulator::m_word_t buf[] = {0x55};
+FSKModulator::m_word_t buf[] = {'T', 'A', 'U', 'V', '\0'};
 
 void setup() {
     mod.setSigma(0.5);
@@ -40,14 +43,22 @@ void setup() {
 
     pinMode(PIN_DBG_1, OUTPUT);
     pinMode(PIN_DBG_2, OUTPUT);
+
+    code = new Barker7Sequence(8);
+    Serial.println("Code generated");
+    dsss_mod = new DSSSModulator{&modemConfig, *code, &mod, 256};
+    Serial.println("DSSS modulator created");
 }
 
 void loop() {
 #ifdef TX_DBG
-    while(mod.fsk_mod_busy()) {
+    Serial.println("Running");
+    while(dsss_mod->busy()) {
+//        Serial.println("Waiting");
+//        delay(100);
     }
     delay(20);
-    mod.fsk_mod_transmit(buf, 1);
+    dsss_mod->transmit(buf, 5);
 //    Serial.println("Running");
 #endif
 #ifdef RX_DBG
