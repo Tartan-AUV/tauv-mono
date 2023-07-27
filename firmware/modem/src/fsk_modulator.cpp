@@ -50,8 +50,8 @@ status_t FSKModulator::init() {
     transmitting = false;
     buf = NULL;
     buf_size = 0;
-    buf_time_end = 0;
-    buf_time = 0;
+//    buf_time_end = 0;
+//    buf_time = 0;
 
     period_hi = (ONE_SECOND_NS / modem_config->freq_hi) / 2;
     period_lo = (ONE_SECOND_NS / modem_config->freq_lo) / 2;
@@ -64,18 +64,21 @@ status_t FSKModulator::init() {
 status_t FSKModulator::fsk_mod_transmit(m_word_t *buf, size_t size) {
     this->buf = buf;
     buf_size = size;
-    prev_bit = buf[0] & 0x1;
-    curr_bit = buf[0] & 0x1;
-    buf_time = 0;
-    buf_time_end = bit_period * (size * 8);
-    transmitting = true;
-    next_bit_index = 1;
-    auto cb_gaussian = [this] { this->FSKModulator::fsk_mod_tim_it(); };
-    auto cb_non_gaussian = [this] {this->FSKModulator::fsk_mod_transmit_isr_no_g(); };
+//    prev_bit = buf[0] & 0x1;
+//    curr_bit = buf[0] & 0x1;
+//    buf_time = 0;
+//    buf_time_end = bit_period * (size * 8);
+//    transmitting = true;
+//    next_bit_index = 1;
+    curr_bit_i = 0;
+//    auto cb_gaussian = [this] { this->FSKModulator::fsk_mod_tim_it(); };
+    auto carrier_cb = [this] {this->FSKModulator::carrier_timer_isr(); };
+    auto bit_cb = [this] {this->FSKModulator::bit_timer_isr(); };
+
     digitalWriteFast(PIN_TX_1, 1);
     digitalWriteFast(PIN_TX_2, 0);
-    t->begin(cb_non_gaussian, std::chrono::nanoseconds(period_lo), true);
-
+    carrier_timer->begin(carrier_cb, std::chrono::nanoseconds(period_lo), true);
+    bit_timer->begin(bit_cb, std::chrono::nanoseconds(bit_period), true);
 
     return MDM_OK;
 }
@@ -84,16 +87,41 @@ bool FSKModulator::fsk_mod_busy() {
     return transmitting;
 }
 
-void FSKModulator::fsk_mod_transmit_isr_no_g() {
-    if (buf_time >= buf_time_end) {
-        t->stop();
-        digitalWriteFast(PIN_TX_1, 0);
-        digitalWriteFast(PIN_TX_2, 0);
-        transmitting = false;
-        return;
-    }
+void FSKModulator::carrier_timer_isr() {
     digitalWriteFast(PIN_TX_1, !digitalReadFast(PIN_TX_1));
     digitalWriteFast(PIN_TX_2, !digitalReadFast(PIN_TX_1));
+}
+
+void FSKModulator::bit_timer_isr() {
+    size_t curr_byte_i = curr_bit_i / 8;
+    uint8_t msk = 0x1 << (curr_bit_i % 8);
+    Serial.println("bit isr");
+    if (curr_byte_i >= buf_size) {
+        carrier_timer->stop();
+        bit_timer->stop();
+        digitalWriteFast(PIN_TX_1, 0);
+        digitalWriteFast(PIN_TX_2, 0);
+        return;
+    }
+    bool curr_bit = buf[curr_byte_i] & msk;
+    carrier_timer->setPeriod(std::chrono::nanoseconds (curr_bit ? period_hi : period_lo));
+    curr_bit_i++;
+}
+
+//void FSKModulator::fsk_mod_tim_it() {
+//    if (buf_time >= buf_time_end) {
+//        carrier_timer->stop();
+//        digitalWriteFast(PIN_TX_1, 0);
+//        digitalWriteFast(PIN_TX_2, 0);
+//        transmitting = false;
+//        return;
+//    }
+//
+//
+//    digitalWriteFast(PIN_TX_1, !digitalReadFast(PIN_TX_1));
+//    digitalWriteFast(PIN_TX_2, !digitalReadFast(PIN_TX_1));
+//
+//
 //    size_t next_bit_i = buf_time / bit_period + 1; // can go 1 bit past the buffer
 //
 //    if (next_bit_i != next_bit_index) {
@@ -110,74 +138,36 @@ void FSKModulator::fsk_mod_transmit_isr_no_g() {
 //
 //    }
 //
+//    uint32_t T = (uint32_t) ((float) ( buf_time % bit_period) * lut_time_coeff); // TODO: replace with int div
+//
 //    uint32_t period;
-//    if (next_bit) {
-//        period = period_hi;
+//    if (T < FREQ_LUT_SIZE / 2) {
+//        if ( prev_bit && ! curr_bit) {
+//            period = period_lut[FREQ_LUT_SIZE / 2 - T - 1];
+//        } else if (! prev_bit && curr_bit){
+//            period = period_lut[FREQ_LUT_SIZE / 2 + T];
+//        } else {
+//            size_t idx = curr_bit ? FREQ_LUT_SIZE - 1 : 0;
+//            period = period_lut[idx];
+//        }
 //    } else {
-//        period = period_lo;
+//        if (! curr_bit && next_bit) {
+//            period = period_lut[T - FREQ_LUT_SIZE / 2];
+//        } else if ( curr_bit & ! next_bit) {
+//            period = period_lut[FREQ_LUT_SIZE * 3 / 2 - 1 - T];
+//        } else {
+//            size_t idx = curr_bit ? FREQ_LUT_SIZE - 1 : 0;
+//            period = period_lut[idx];
+//        }
 //    }
-//    t->setPeriod(std::chrono::nanoseconds(period));
-    buf_time += period_lo;
-}
+//    carrier_timer->setPeriod(std::chrono::nanoseconds(period));
+//    buf_time += period;
+//}
 
-void FSKModulator::fsk_mod_tim_it() {
-    if (buf_time >= buf_time_end) {
-        t->stop();
-        digitalWriteFast(PIN_TX_1, 0);
-        digitalWriteFast(PIN_TX_2, 0);
-        transmitting = false;
-        return;
-    }
-
-
-    digitalWriteFast(PIN_TX_1, !digitalReadFast(PIN_TX_1));
-    digitalWriteFast(PIN_TX_2, !digitalReadFast(PIN_TX_1));
-
-
-    size_t next_bit_i = buf_time / bit_period + 1; // can go 1 bit past the buffer
-
-    if (next_bit_i != next_bit_index) {
-
-        next_bit_index = next_bit_i;
-        prev_bit = curr_bit;
-        curr_bit = next_bit;
-
-        next_bit_i = min(next_bit_i, buf_size * 8 - 1);
-
-        size_t next_byte_i = next_bit_i / 8;
-        uint8_t msk = 0x1 << (next_bit_i % 8);
-        next_bit = buf[next_byte_i] & msk;
-
-    }
-
-    uint32_t T = (uint32_t) ((float) ( buf_time % bit_period) * lut_time_coeff); // TODO: replace with int div
-
-    uint32_t period;
-    if (T < FREQ_LUT_SIZE / 2) {
-        if ( prev_bit && ! curr_bit) {
-            period = period_lut[FREQ_LUT_SIZE / 2 - T - 1];
-        } else if (! prev_bit && curr_bit){
-            period = period_lut[FREQ_LUT_SIZE / 2 + T];
-        } else {
-            size_t idx = curr_bit ? FREQ_LUT_SIZE - 1 : 0;
-            period = period_lut[idx];
-        }
-    } else {
-        if (! curr_bit && next_bit) {
-            period = period_lut[T - FREQ_LUT_SIZE / 2];
-        } else if ( curr_bit & ! next_bit) {
-            period = period_lut[FREQ_LUT_SIZE * 3 / 2 - 1 - T];
-        } else {
-            size_t idx = curr_bit ? FREQ_LUT_SIZE - 1 : 0;
-            period = period_lut[idx];
-        }
-    }
-    t->setPeriod(std::chrono::nanoseconds(period));
-    buf_time += period;
-}
-
-FSKModulator::FSKModulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *t) : modem_config(modemConfig),
-                                                                                             t(t) {}
+FSKModulator::FSKModulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *t,
+                           TeensyTimerTool::PeriodicTimer *t2) : modem_config(modemConfig),
+                                                                 carrier_timer(t),
+                                                                 bit_timer(t2){}
 
 void FSKModulator::setSigma(float sigma) {
     FSKModulator::sigma = sigma;
