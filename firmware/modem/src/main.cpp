@@ -7,14 +7,15 @@
 #include "main.h"
 #include "fsk_modulator.h"
 
-#define TX_DBG
+#define RX_DBG
 
 d_raw_t adc_raw_buf[RAW_BUF_SIZE];
 d_sdft_t sdft_buf_1[SDFT_BUF_SIZE];
 d_sdft_t sdft_buf_2[SDFT_BUF_SIZE];
 
 TeensyTimerTool::PeriodicTimer fskTimer(TeensyTimerTool::GPT1);
-TeensyTimerTool::PeriodicTimer demodTimer(TeensyTimerTool::GPT2);
+TeensyTimerTool::PeriodicTimer demodTimer;
+TeensyTimerTool::PeriodicTimer bitTimer(TeensyTimerTool::GPT2);
 
 void demod_adc_it();
 
@@ -24,7 +25,7 @@ modem_config_t modemConfig{
     .chip_rate = 500,
 };
 
-FSKModulator mod{&modemConfig, &fskTimer};
+FSKModulator mod{&modemConfig, &fskTimer, &bitTimer};
 FSKDemodulator demod{&modemConfig, &demodTimer, RAW_BUF_SIZE, adc_raw_buf, sdft_buf_1, sdft_buf_2, demod_adc_it};
 
 FSKModulator::m_word_t buf[] = {0x55};
@@ -32,8 +33,8 @@ FSKModulator::m_word_t buf[] = {0x55};
 void setup() {
     mod.setSigma(0.5);
     mod.init();
-    demod.init();
 #ifdef RX_DBG
+    demod.init();
     demod.start();
 #endif
     Serial.begin(115000);

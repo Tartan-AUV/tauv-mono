@@ -12,7 +12,7 @@
 
 class FSKModulator {
 public:
-    FSKModulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *t);
+    FSKModulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *t, TeensyTimerTool::PeriodicTimer *t2);
 
     void setSigma(float sigma);
 
@@ -29,7 +29,8 @@ public:
 private:
     // Config
     modem_config_t *modem_config;
-    TeensyTimerTool::PeriodicTimer *t;
+    TeensyTimerTool::PeriodicTimer *carrier_timer;
+    TeensyTimerTool::PeriodicTimer *bit_timer;
     float sigma;
 
     // State / running
@@ -41,15 +42,22 @@ private:
     size_t buf_size;
     bool transmitting;
 
-    uint32_t buf_time_end;
-    uint32_t buf_time;
+//    uint32_t buf_time_end;
+//    uint32_t buf_time;
 
-    bool prev_bit, curr_bit, next_bit;
-    size_t next_bit_index;
+//    bool prev_bit, curr_bit, next_bit;
+//    size_t next_bit_index;
+
+    size_t curr_bit_i;
+
 
     uint32_t period_hi, period_lo;
 
     void fsk_mod_transmit_isr_no_g();
+
+    void bit_timer_isr();
+
+    void carrier_timer_isr();
 };
 
 #endif //MODEM_FSK_MODULATOR_H
