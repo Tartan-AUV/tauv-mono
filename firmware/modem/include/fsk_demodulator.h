@@ -13,7 +13,7 @@
 
 //
 typedef uint32_t d_raw_t;
-typedef float d_sdft_t;
+typedef int8_t d_sdft_t;
 typedef void (*sdft_buf_cplt_fn)();
 typedef void (*adc_it_fn)();
 
@@ -22,14 +22,14 @@ typedef void (*adc_it_fn)();
 class FSKDemodulator {
 public:
     FSKDemodulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *sampleTimer,
-                   unsigned int rawSize, d_raw_t *rawBuf, float *dstBuf1, float *dstBuf2,
-                   adc_it_fn adc_it);
+                   unsigned int rawSize, d_raw_t *rawBuf, d_sdft_t *dstBuf1, d_sdft_t *dstBuf2,
+                   adc_it_fn adc_it, size_t dstSize);
 
     status_t init();
 
     void handle_sample();// __attribute__((section (".ccmram")));
 
-    status_t start();
+    status_t start(sdft_buf_cplt_fn cplt1, sdft_buf_cplt_fn cplt2);
 
 //    status_t demodulator_deinit();
 private:
@@ -43,7 +43,7 @@ private:
     d_raw_t *raw_buf;
     d_sdft_t *dst_buf1;
     d_sdft_t *dst_buf2;
-    size_t undersampling_ratio = 8;
+    size_t undersampling_ratio = SDFT_UNDERSAMPLING_RATIO;
 
     float sdft_r = 0.99;
 

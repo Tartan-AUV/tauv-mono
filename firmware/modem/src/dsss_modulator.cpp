@@ -6,7 +6,7 @@
 
 Barker7Sequence::Barker7Sequence(size_t samples_per_chip) : DSSSCode() {
     nchips = 7;
-    chips = new uint8_t [nchips] {1, 1, 1, 0, 0, 0, 1};
+    chips = new uint8_t [nchips] {1, 1, 1, 0, 0, 1, 0};
     samples = new int8_t [nchips * samples_per_chip];
 
     for (int i = 0; i < nchips; i++) {

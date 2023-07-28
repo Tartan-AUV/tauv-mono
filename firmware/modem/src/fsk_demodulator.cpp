@@ -17,15 +17,14 @@ using namespace std::complex_literals;
 
 status_t FSKDemodulator::init() {
     using namespace std;
-    int freq_sample = 100000; // todo
+    int freq_sample = 200000; // todo
     i = 0;
     curr_dst_buf = dst_buf1;
-    dst_size = raw_size / undersampling_ratio;
-    N = raw_size + 1;
+//    dst_size = raw_size / undersampling_ratio;
     dst_i = 0;
 
     float pi = 3.14159f;
-    float N = (float) raw_size;
+    N = (float) (raw_size + 1);
     k_lo = ((float) modem_config->freq_lo * (float) N) / ((float) freq_sample);
     k_hi = ((float) modem_config->freq_hi * (float) N) / ((float) freq_sample);
 
@@ -55,7 +54,9 @@ status_t FSKDemodulator::init() {
     return MDM_OK;
 }
 
-status_t FSKDemodulator::start()  {
+status_t FSKDemodulator::start(sdft_buf_cplt_fn cplt1, sdft_buf_cplt_fn cplt2) {
+    this->cplt1 = cplt1;
+    this->cplt2 = cplt2;
     sampleTimer->begin([this] {
         adc.adc0->startSingleRead(PIN_RX);
         },
@@ -76,6 +77,7 @@ void FSKDemodulator::handle_sample() {
     float sample = normalize_sample(val);
     float sample_N = normalize_sample(raw_buf[i]);
 
+//    DBG_PRINT("sample: %f, sample_N: %f\n", sample, sample_N);
     float a = sample - coeff_a * sample_N;
 
     s_lo_w[0] = a + coeff_b_lo[0] * s_lo_w[0];
@@ -92,15 +94,13 @@ void FSKDemodulator::handle_sample() {
     mag_lo = std::abs(s_lo);
     mag_hi = std::abs(s_hi);
 
-    if(i % undersampling_ratio) {
-        curr_dst_buf[dst_i] = mag_hi - mag_lo;
+    if(i % undersampling_ratio == 0) {
+//        DBG_PRINT("dst_i: %d, dst_size: %d\n", dst_i, dst_size);
+        curr_dst_buf[dst_i] = (int8_t) ((mag_hi - mag_lo) * 30.0f);
+//        curr_dst_buf[dst_i] = mag_hi > mag_lo ? 1 : -1;
         dst_i++;
         if(dst_i > dst_size) {
             if (curr_dst_buf == dst_buf1) {
-//                Serial.println();
-                Serial.println(mag_hi);
-                Serial.println(mag_lo);
-                Serial.println();
                 (*cplt1)();
                 curr_dst_buf = dst_buf2;
             }
@@ -126,8 +126,8 @@ void FSKDemodulator::handle_sample() {
 }
 
 FSKDemodulator::FSKDemodulator(modem_config_t *modemConfig, TeensyTimerTool::PeriodicTimer *sampleTimer,
-                               unsigned int rawSize, d_raw_t *rawBuf, float *dstBuf1, float *dstBuf2,
-                               adc_it_fn adc_it)
+                               unsigned int rawSize, d_raw_t *rawBuf, d_sdft_t *dstBuf1, d_sdft_t *dstBuf2,
+                               adc_it_fn adc_it, size_t dstSize)
         : modem_config(modemConfig), raw_size(rawSize),
           raw_buf(rawBuf), dst_buf1(dstBuf1),
-          dst_buf2(dstBuf2), sampleTimer(sampleTimer), adc_it(adc_it) {}
+          dst_buf2(dstBuf2), sampleTimer(sampleTimer), adc_it(adc_it), dst_size(dstSize) {}

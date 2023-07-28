@@ -13,18 +13,26 @@
 #include <complex.h>
 #include <math.h>
 
+#define DBG
+
+#ifdef DBG
+#define DBG_PRINT(...) Serial.printf(__VA_ARGS__)
+#else
+#define DBG_PRINT(...)
+#endif
+
 #define ONE_SECOND_NS 1'000'000'000
 
 #define PIN_TX_1 18
 #define REF 20
 #define PIN_TX_2 23
 #define PIN_RX PIN_A2
-#define PIN_DBG_1 10
-#define PIN_DBG_2 11
+#define PIN_DBG_1 36
+#define PIN_DBG_2 37
 
 #define RAW_BUF_SIZE 200
-#define SDFT_UNDERSAMPLING_RATIO 8
-#define SDFT_BUF_SIZE (RAW_BUF_SIZE / SDFT_UNDERSAMPLING_RATIO)
+#define SDFT_UNDERSAMPLING_RATIO 50
+#define SDFT_BUF_SIZE 8960
 
 
 typedef enum {
