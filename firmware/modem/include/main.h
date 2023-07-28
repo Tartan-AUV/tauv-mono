@@ -34,6 +34,8 @@
 #define SDFT_UNDERSAMPLING_RATIO 50
 #define SDFT_BUF_SIZE 8960
 
+// todo: add bit_t
+
 
 typedef enum {
     MDM_OK,

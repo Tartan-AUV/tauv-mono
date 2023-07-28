@@ -6,6 +6,7 @@
 #include "fsk_modulator.h"
 #include "dsss_modulator.h"
 #include "dsss_demodulator.h"
+#include "packet_decoder.h"
 
 #define RX_DBG
 
@@ -15,7 +16,7 @@ bool sdft_buf_1_ready = false;
 d_sdft_t sdft_buf_2[SDFT_BUF_SIZE];
 bool sdft_buf_2_ready = false;
 
-uint8_t decoded_data[64];
+uint8_t decoded_data[200];
 
 TeensyTimerTool::PeriodicTimer fskTimer(TeensyTimerTool::GPT1);
 TeensyTimerTool::PeriodicTimer demodTimer;
@@ -34,6 +35,7 @@ FSKDemodulator fsk_demod{&modemConfig, &demodTimer, RAW_BUF_SIZE, adc_raw_buf, s
 Barker7Sequence *code;
 DSSSModulator *dsss_mod;
 DSSSDemodulator *dsss_demod;
+PacketDecoder *packetDecoder;
 
 FSKModulator::m_word_t buf[] = "\0\0TARTANAUV\0";
 //FSKModulator::m_word_t buf[] = {0b10101010};
@@ -62,6 +64,7 @@ void setup() {
     dsss_demod = new DSSSDemodulator(&modemConfig, *code, 8);
     fsk_demod.init();
     fsk_demod.start(fsk_dec_cplt1, fsk_dec_cplt2);
+    packetDecoder = new PacketDecoder(&modemConfig, 200);  // 200 bits!!!
 #endif
 
 #ifdef TX_DBG
@@ -85,27 +88,35 @@ void loop() {
 //    Serial.println("Running");
 #endif
 #ifdef RX_DBG
-    DSSSDemodulator::LockStatus ls;
+    DSSSDemodulator::DemodStatus s;
     bool triggered = false;
    if (sdft_buf_1_ready) {
        sdft_buf_1_ready = false;
-       dsss_demod->demodulate(sdft_buf_1, SDFT_BUF_SIZE, decoded_data, 64, true,
-                              &ls);
+       dsss_demod->demodulate(sdft_buf_1, SDFT_BUF_SIZE, decoded_data, 200, true,
+                              &s);
        triggered = true;
 //       digitalWriteFast(PIN_DBG_2, dsss_demod->isLocked());
    } else if (sdft_buf_2_ready) {
        sdft_buf_2_ready = false;
-       dsss_demod->demodulate(sdft_buf_2, SDFT_BUF_SIZE, decoded_data, 64, true,
-                              &ls);
+       dsss_demod->demodulate(sdft_buf_2, SDFT_BUF_SIZE, decoded_data, 200, true,
+                              &s);
        triggered = true;
 //       digitalWriteFast(PIN_DBG_2, dsss_demod->isLocked());
    }
 
-   if (triggered) {
+   if (triggered && s.read_length_bits > 0) {
        Serial.printf("Lock start: %d, lock end: %d, intermittent loss: %d\n",
-                     ls.lock_start, ls.lock_end,
-                     ls.intermittent_lock_loss);
-       print_buf((int8_t *) decoded_data, 64);
+                     s.lock_start, s.lock_end,
+                     s.intermittent_lock_loss);
+       packetDecoder->receive(decoded_data, s.read_length_bits,
+                              s.lock_start == 0 && !s.intermittent_lock_loss);
+       if(packetDecoder->available()) {
+           uint8_t packet[32];
+           packetDecoder->readPacket(packet, 32);
+           packet[31] = '\0';
+           Serial.printf("Packet received: %s\n", packet);
+       }
+//       print_buf((int8_t *) decoded_data, 64);
        memset(decoded_data, 0, 64);
    }
 
