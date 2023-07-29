@@ -13,10 +13,10 @@ RAD_PER_GRAD = math.pi / 200.0
 
 class Sonar:
     def __init__(self):
-        self._dt = 1.0 / rospy.get_param('~frequency')
+        self._dt = 1.0 / rospy.get_param('sonar/device/frequency')
 
-        port = rospy.get_param('~port')
-        baudrate = rospy.get_param('~baudrate')
+        port = rospy.get_param('sonar/device/port')
+        baudrate = rospy.get_param('sonar/device/baudrate')
 
         self._ping = Ping360()
         self._ping.connect_serial(port, baudrate)
@@ -25,12 +25,12 @@ class Sonar:
             print(f'[sonar] ping360 init failed')
             rospy.sleep(1.0)
 
-        self._gain_setting = rospy.get_param('~gain')
-        self._transmit_duration = rospy.get_param('~transmit_duration')
-        self._range = rospy.get_param('~range')
-        self._transmit_frequency = rospy.get_param('~transmit_frequency')
-        self._num_samples = rospy.get_param('~num_samples')
-        self._sonar_link = rospy.get_param('~sonar_link', 'sonar_link')
+        self._gain_setting = rospy.get_param('sonar/device/gain')
+        self._transmit_duration = rospy.get_param('sonar/device/transmit_duration')
+        self._range = rospy.get_param('sonar/device/range')
+        self._transmit_frequency = rospy.get_param('sonar/device/transmit_frequency')
+        self._num_samples = rospy.get_param('sonar/device/num_samples')
+        self._sonar_link = rospy.get_param('sonar/device/sonar_link', 'sonar_link')
 
         self._sample_period = self._calculate_sample_period(self._range, self._num_samples, 1500)
 

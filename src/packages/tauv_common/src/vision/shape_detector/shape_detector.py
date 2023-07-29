@@ -147,8 +147,9 @@ class ShapeDetector:
         for world_t_path_marker in world_t_path_markers:
             detection = FeatureDetection()
 
-            detection.count = 1
+            detection.confidence = 1
             detection.tag = 'path_marker'
+            detection.SE2 = False
             detection.position = r3_to_ros_point(world_t_path_marker.t)
             detection.orientation = r3_to_ros_point(world_t_path_marker.rpy())
 

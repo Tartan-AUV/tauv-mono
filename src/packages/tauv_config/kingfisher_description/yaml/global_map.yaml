@@ -1,40 +1,60 @@
+#for each new tracker, for every individual property,
+#the tracker will first try tracker-specific and tag-specific tuning, and if none exists,
+#will try tracker-specific default tuning (not under tag_params), and if none-exists, will try default tracker, default tag tuning.
+#tracker parameters are seen as device-specific map tuning
 tracker_params: {
   default: {
-    mahalanobis_threshold: 10,
-    DECAY_THRESHOLD: 0.25, #in practice should probably be around .25 but ~.6 for testing
-    matching_weights: {
-      tag_weight: 100,
-      distance_weight: 1,
-      orientation_weight: 0.2,
-      recency_weight: 0.2,
-      frequency_weight: 0.1,
-      oversaturation_penalty: 5
-    },
-    recency_weight: 0.7,
-    frequency_weight: 0.5,
-  },
-  badge: {
+    min_decay_time: 1, #lower limit on decay time, resets w every new detection (>=0 seconds)
     mahalanobis_threshold: 5,
+    tracker_bias: 0, #larger decreases the odds of matches w assigned tracker
+    reassignable: false,
+    matching_weights: { #these correspond to the impact of each characteristic distance on the similarity score between trackers
+          tag_weight: 100,
+          distance_weight: 1,
+          orientation_weight: 0,
+          recency_weight: 0.2,
+          frequency_weight: 0.8,
+          oversaturation_penalty: 100,
+          confidence_weight: 1
+    },
+    #paramaters specific to each individual object
+    tag_params: { 
+      badge: {
+        mahalanobis_threshold: 5
+      },
+      phone: {
+        mahalanobis_threshold: 7
+      },
+      notebook:
+      {
+        mahalanobis_threshold: 10
+      }
+    }
+  },
+  sonar: {
+    mahalnobis_threshold: 5,
+    #to maintain permanence, min_decay_time should be the amount of seconds between sonar survey calls
+    #otherwise, the trackers will live only as many seconds as we give
+    min_decay_time: 6, 
+    tracker_bias: 1,
+    reassignable: true,
+    matching_weights: {
+      tag_weight: 0
+    },
+  }
+}
+
+#object-specific map tuning
+tag_params: {
+  #params not specified within a tagged scope are default parameters for any tag but can be
+  #respecified within a specific tag scope
+  DECAY_THRESHOLD: 0.7, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
+  recency_weight: 0.7,
+  frequency_weight: 0.5,
+  badge: {
     expected_count: 1
   },
   phone: {
-    mahalanobis_threshold: 5,
-    expected_count: 1
-  },
-  chevron: {
-    mahalanobis_threshold: 100,
-    expected_count: 1
-  },
-  circle: {
-    mahalanobis_threshold: 100,
-    expected_count: 1
-  },
-  bin_earth_1: {
-    mahalanobis_threshold: 5,
-    expected_count: 1
-  },
-  bin_earth_2: {
-    mahalanobis_threshold: 5,
     expected_count: 1
   }
 }
@@ -45,7 +65,7 @@ kalman_params: {
     B: [1, 0, 0, 0, 1, 0, 0, 0, 1],
     H: [1, 0, 0, 0, 1, 0, 0, 0, 1],
     P: [1, 0, 0, 0, 1, 0, 0, 0, 1],
-    R: [0.001, 0, 0, 0, 0.001, 0, 0, 0, 0.001],
+    R: [0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01],
     Q: [0.000001, 0, 0, 0, 0.000001, 0, 0, 0, 0.000001]
   }
 }

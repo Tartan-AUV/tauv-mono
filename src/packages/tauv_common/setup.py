@@ -32,6 +32,7 @@ setup_args = generate_distutils_setup(
               'planners.pid_planner',
               'state_estimation',
               'depth_estimation',
+              'sonar',
               'vision',
               'vision.detectors',
               'teleop',
