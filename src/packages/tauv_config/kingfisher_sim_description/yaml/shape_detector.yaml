@@ -1,7 +1,20 @@
-hsv_ranges:
-  # H low, H high, S low, S high, V low, V high
-  - [0, 10, 100, 255, 50, 255]
-  - [170, 180, 100, 255, 50, 255]
-contour_area_threshold: 1000
-ellipse_defects_threshold: 0.01
-circle_width: 0.2
+frame_ids: ['oakd_front', 'oakd_bottom']
+synchronizer_queue_size: 10
+synchronizer_slop: 0.1
+
+circle:
+  threshold:
+    # H low, S low, V low, H high, S high, V high
+    global_thresholds:
+      - [0, 0, 50, 20, 255, 150]
+      - [160, 0, 0, 180, 255, 255]
+    # S low, V low, S high, V high
+    local_thresholds:
+      - [20, -255, 255, 255]
+    window_size: 35
+  pose:
+    min_size: [50, 50]
+    max_size: [500, 500]
+    min_aspect_ratio: 1.0
+    max_aspect_ratio: 1.5
+    depth_mask_scale: 2.0

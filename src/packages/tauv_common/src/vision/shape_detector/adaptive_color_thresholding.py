@@ -1,13 +1,19 @@
 import numpy as np
+from dataclasses import dataclass
 import sys
 import cv2
-import matplotlib.pyplot as plt
+
+@dataclass
+class GetAdaptiveColorThresholdingParams:
+    global_thresholds: np.array
+    local_thresholds: np.array
+    window_size: int
 
 
-def get_adaptive_color_thresholding(img: np.array,
-                                    global_thresholds: np.array,
-                                    local_thresholds: np.array,
-                                    window_size: int) -> np.array:
+def get_adaptive_color_thresholding(img: np.array, params: GetAdaptiveColorThresholdingParams) -> np.array:
+    global_thresholds = params.global_thresholds
+    local_thresholds = params.local_thresholds
+    window_size = params.window_size
 
     hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -41,6 +47,9 @@ def get_adaptive_color_thresholding(img: np.array,
 
 
 def main():
+    import sys
+    import matplotlib.pyplot as plt
+
     img_path = sys.argv[1]
 
     img = cv2.imread(img_path)

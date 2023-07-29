@@ -1,5 +1,6 @@
 import rospy
 import threading
+from functools import partial
 import numpy as np
 import tf2_ros as tf2
 from cv_bridge import CvBridge
@@ -10,6 +11,14 @@ from geometry_msgs.msg import Point, Quaternion
 import cv2
 from math import cos, sin, pi, atan2
 from scipy.spatial.transform import Rotation
+from tauv_util.spatialmath import r3_to_ros_point
+from tauv_util.cameras import CameraIntrinsics, CameraDistortion
+import message_filters
+from transform_client import TransformClient
+from spatialmath import SE3
+from .circle_detection import GetCirclePosesParams, get_circle_poses
+from .adaptive_color_thresholding import GetAdaptiveColorThresholdingParams, get_adaptive_color_thresholding
+
 
 class ShapeDetector:
 
@@ -19,179 +28,107 @@ class ShapeDetector:
 
         self._load_config()
 
-        self._tf_buffer: tf2.Buffer = tf2.Buffer()
-        self._tf_listener: tf2.TransformListener = tf2.TransformListener(self._tf_buffer)
+        self._tf_client: TransformClient = TransformClient()
 
         self._cv_bridge: CvBridge = CvBridge()
 
-        self._camera_info: CameraInfo = rospy.wait_for_message(f'vehicle/{self._frame_id}/color/camera_info', CameraInfo, 60)
-        self._intrinsics: np.array = np.array(self._camera_info.K).reshape((3, 3))
-        self._distortion: np.array = np.array(self._camera_info.D)
+        self._camera_infos: {str: CameraInfo} = {}
+        self._intrinsics: {str: CameraIntrinsics} = {}
+        self._distortions: {str: CameraDistortion} = {}
+        for frame_id in self._frame_ids:
+            info = rospy.wait_for_message(f'vehicle/{frame_id}/color/camera_info', CameraInfo, 60)
+            self._camera_infos[frame_id] = info
+            self._intrinsics[frame_id] = CameraIntrinsics.from_matrix(np.array(info.K))
+            self._distortions[frame_id] = CameraDistortion.from_matrix(np.array(info.D))
 
-        self._img_sub: rospy.Subscriber = rospy.Subscriber(f'vehicle/{self._frame_id}/color/image_raw', Image, self._handle_img)
-        self._detections_pub: rospy.Publisher = rospy.Publisher('global_map/feature_detections', FeatureDetections, queue_size=10)
-        self._contours_img_pub: rospy.Publisher = rospy.Publisher('vision/shape_detector/contours_image', Image, queue_size=10)
+        self._synchronizers: {str: message_filters.ApproximateTimeSynchronizer} = {}
+        self._circle_debug_img_pubs: {str: rospy.Publisher} = {}
+        for frame_id in self._frame_ids:
+            color_sub = message_filters.Subscriber(f'vehicle/{frame_id}/color/image_raw', Image)
+            depth_sub = message_filters.Subscriber(f'vehicle/{frame_id}/depth/image_raw', Image)
+
+            synchronizer = message_filters.ApproximateTimeSynchronizer(
+                [color_sub, depth_sub], queue_size=self._synchronizer_queue_size, slop=self._synchronizer_slop
+            )
+            synchronizer.registerCallback(partial(self._handle_imgs, frame_id=frame_id))
+            self._synchronizers[frame_id] = synchronizer
+
+            self._circle_debug_img_pubs[frame_id] =\
+                rospy.Publisher(f'vision/shape_detector/{frame_id}/circle_debug_image', Image, queue_size=10)
+
+        self._detections_pub: rospy.Publisher =\
+            rospy.Publisher('global_map/feature_detections', FeatureDetections, queue_size=10)
 
         self._lock.release()
 
     def start(self):
         rospy.spin()
 
-    def _handle_img(self, msg):
-        self._lock.acquire()
+    def _handle_imgs(self, color_msg: Image, depth_msg: Image, frame_id: str):
+        with self._lock:
+            color = self._cv_bridge.imgmsg_to_cv2(color_msg, desired_encoding='bgr8')
+            depth = self._cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='mono16')
+            depth = depth.astype(float) / 1000
 
-        img = self._cv_bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+            world_frame = f'{self._tf_namespace}/odom'
+            camera_frame = f'{self._tf_namespace}/{frame_id}'
 
-        detections = FeatureDetections()
-        detections.detector_tag = 'shape_detector'
+            world_t_cam = self._tf_client.get_a_to_b(world_frame, camera_frame, color_msg.header.stamp)
 
-        tf_cam_odom_H = None
-        tf_cam_odom_quat = None
-        world_frame = f'{self._tf_namespace}/odom'
-        camera_frame = f'{self._tf_namespace}/{self._frame_id}'
-        try:
-            tf_cam_odom = self._tf_buffer.lookup_transform(
-                world_frame,
-                camera_frame,
-                msg.header.stamp,
-                rospy.Duration(0.1)
-            )
-            tf_cam_odom_H = tf2_transform_to_homogeneous(tf_cam_odom)
-            tf_cam_odom_rotm = Rotation.from_quat(tf2_transform_to_quat(tf_cam_odom)).as_matrix()
-        except (tf2.LookupException, tf2.ConnectivityException, tf2.ExtrapolationException) as e:
-            rospy.logwarn(f'Could not get transform from {world_frame} to {camera_frame}: {e}')
-            self._lock.release()
-            return
+            detections = FeatureDetections()
+            detections.header.stamp = color_msg.header.stamp
+            detections.detector_tag = 'shape_detector'
 
-        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        h, w, _ = img_hsv.shape
+            circle_detections, circle_debug_img = self._get_circle_detections(color, depth, world_t_cam,
+                                                            self._intrinsics[frame_id])
+            detections.detections = detections.detections + circle_detections
+            circle_debug_msg = self._cv_bridge.cv2_to_imgmsg(circle_debug_img, encoding='bgr8')
+            self._circle_debug_img_pubs[frame_id].publish(circle_debug_msg)
 
-        img_thresh = np.zeros((h, w), dtype=np.uint8)
-        for hsv_range in self._hsv_ranges:
-            low = np.array([hsv_range[0], hsv_range[2], hsv_range[4]])
-            high = np.array([hsv_range[1], hsv_range[3], hsv_range[5]])
-            mask = cv2.inRange(img_hsv, low, high)
-            img_thresh = img_thresh | mask
+            self._detections_pub.publish(detections)
 
-        img_blur = cv2.GaussianBlur(img_thresh, (5, 5), 0)
+    def _get_circle_detections(self, color: np.array, depth: np.array, world_t_cam: SE3,
+                               intrinsics: CameraIntrinsics) -> ([FeatureDetection], np.array):
+        mask = get_adaptive_color_thresholding(color, self._circle_threshold_params)
 
-        contours, _ = cv2.findContours(img_blur, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        debug_img = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)
 
-        contours = [contour for contour in contours if cv2.contourArea(contour) >= self._contour_area_threshold]
+        cam_t_circles = get_circle_poses(mask, depth, intrinsics, self._circle_pose_params, debug_img)
 
-        img_contours = img.copy()
+        world_t_circles = [world_t_cam * cam_t_circle for cam_t_circle in cam_t_circles]
 
-        for contour in contours:
-            ellipse = cv2.fitEllipse(contour)
-
-            (e_y, e_x), (e_w, e_h), e_theta_deg = ellipse
-            e_theta = -np.deg2rad(e_theta_deg)
-
-            n_ellipse_contour_points = 32
-            ellipse_contour = np.zeros((n_ellipse_contour_points, 2))
-
-            alpha = np.linspace(0, 2 * pi, n_ellipse_contour_points)
-
-            ellipse_contour[:, 0] = e_y + (e_h / 2) * np.cos(alpha) * sin(e_theta) + (e_w / 2) * np.sin(alpha) * cos(e_theta)
-            ellipse_contour[:, 1] = e_x + (e_h / 2) * np.cos(alpha) * cos(e_theta) - (e_w / 2) * np.sin(alpha) * sin(e_theta)
-
-            ellipse_defects = np.zeros((n_ellipse_contour_points))
-            for i in range(n_ellipse_contour_points):
-                ellipse_point = (ellipse_contour[i, 0], ellipse_contour[i, 1])
-                ellipse_defects[i] = abs(cv2.pointPolygonTest(contour, ellipse_point, True))
-
-            ellipse_defects_mean = np.mean(ellipse_defects) / min(e_w, e_h)
-
-            cv2.ellipse(img_contours, ellipse, (255, 0, 0), 1)
-
-            cv2.drawContours(img_contours, [ellipse_contour.astype(int)], -1, (255, 255, 0), 1)
-
-            cv2.putText(img_contours, f'{ellipse_defects_mean:.4f}', (int(e_y), int(e_x)), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 0), 2, cv2.LINE_AA)
-
-            if ellipse_defects_mean > self._ellipse_defects_threshold:
-                continue
-
-            cv2.ellipse(img_contours, ellipse, (255, 0, 0), 1)
-
-            flat_contour = contour.reshape((contour.shape[0], contour.shape[2]))
-
-            max_idx = np.argmax(flat_contour, axis=0)
-            min_idx = np.argmin(flat_contour, axis=0)
-
-            center = np.array([ellipse[0][0], ellipse[0][1]])
-            max_x, max_y = flat_contour[max_idx]
-            min_x, min_y = flat_contour[min_idx]
-
-            points_image = np.array([
-                min_y,
-                max_x,
-                max_y,
-                min_x,
-                # center
-            ]).astype(np.float64)
-
-            c_w = self._circle_width
-            points_world = np.array([
-                [0, -c_w / 2, 0],
-                [c_w / 2, 0, 0],
-                [0, c_w / 2, 0],
-                [-c_w / 2, 0, 0],
-                # [0, 0, 0]
-            ], dtype=np.float64)
-
-            res, rvec, tvec = cv2.solvePnP(points_world, points_image, self._intrinsics, self._distortion, flags=cv2.SOLVEPNP_IPPE)
-
-            axes_world = np.array([
-                [0, 0, 0],
-                [0.1, 0, 0],
-                [0, 0.1, 0],
-                [0, 0, 0.1],
-            ], dtype="double")
-            axes_image, _ = cv2.projectPoints(axes_world, rvec, tvec, self._intrinsics, self._distortion)
-            # axes_image, _ = cv2.projectPoints(axes_world, rvec, tvec, self._intrinsics, self._distortion, cv2.SOLVEPNP_IPPE)
-            axes_image = np.array(axes_image).astype(int)
-
-            cv2.line(img_contours, tuple(axes_image[0,0,:]), tuple(axes_image[1,0,:]), color=(0, 0, 255), thickness=3)
-            cv2.line(img_contours, tuple(axes_image[0,0,:]), tuple(axes_image[2,0,:]), color=(0, 255, 0), thickness=3)
-            cv2.line(img_contours, tuple(axes_image[0,0,:]), tuple(axes_image[3,0,:]), color=(255, 0, 0), thickness=3)
-
-            position_cam_h = np.array([tvec[0, 0], tvec[1, 0], tvec[2, 0], 1])
-            position_odom_h = tf_cam_odom_H @ position_cam_h
-            position_odom = position_odom_h[0:3] / position_odom_h[3]
-
-            rotm_cam, _ = cv2.Rodrigues(rvec)
-
-            yaw_cam = Rotation.from_matrix(rotm_cam).as_euler('ZYX')[1]
-
-            yaw_cam = (yaw_cam + pi) % (2 * pi) - pi
-
-            if yaw_cam < -0.4 or yaw_cam > 0.4:
-                yaw_cam = 0
-                # continue
-
-            yaw_odom = yaw_cam + Rotation.from_matrix(tf_cam_odom_rotm).as_euler('ZYX')[0] - pi / 2
-
+        detections = []
+        for world_t_circle in world_t_circles:
             detection = FeatureDetection()
-            detection.position = Point(position_odom[0], position_odom[1], position_odom[2])
-            detection.orientation = Point(0, 0, yaw_odom)
+
+            # TODO: Do we need to set detection.header
             detection.count = 1
             detection.tag = 'circle'
-            detections.detections.append(detection)
+            detection.position = r3_to_ros_point(world_t_circle.t)
+            detection.orientation = r3_to_ros_point(world_t_circle.rpy())
 
-        contours_img_msg = self._cv_bridge.cv2_to_imgmsg(img_contours, encoding='bgr8')
-        self._contours_img_pub.publish(contours_img_msg)
+            detections.append(detection)
 
-        self._detections_pub.publish(detections)
-
-        self._lock.release()
+        return detections, debug_img
 
     def _load_config(self):
         self._tf_namespace = rospy.get_param('tf_namespace')
-        self._frame_id = rospy.get_param('~frame_id')
-        self._hsv_ranges = rospy.get_param('~hsv_ranges')
-        self._contour_area_threshold = rospy.get_param('~contour_area_threshold')
-        self._circle_width = rospy.get_param('~circle_width')
-        self._ellipse_defects_threshold = rospy.get_param('~ellipse_defects_threshold')
+        self._frame_ids = rospy.get_param('~frame_ids')
+        self._synchronizer_queue_size = rospy.get_param('~synchronizer_queue_size')
+        self._synchronizer_slop = rospy.get_param('~synchronizer_slop')
+
+        self._circle_threshold_params: GetAdaptiveColorThresholdingParams = GetAdaptiveColorThresholdingParams(
+            global_thresholds=np.array(rospy.get_param('~circle/threshold/global_thresholds')),
+            local_thresholds=np.array(rospy.get_param('~circle/threshold/local_thresholds')),
+            window_size=rospy.get_param('~circle/threshold/window_size'),
+        )
+        self._circle_pose_params: GetCirclePosesParams = GetCirclePosesParams(
+            min_size=tuple(rospy.get_param('~circle/pose/min_size')),
+            max_size=tuple(rospy.get_param('~circle/pose/max_size')),
+            min_aspect_ratio=rospy.get_param('~circle/pose/min_aspect_ratio'),
+            max_aspect_ratio=rospy.get_param('~circle/pose/max_aspect_ratio'),
+            depth_mask_scale=rospy.get_param('~circle/pose/depth_mask_scale'),
+        )
 
 
 def main():

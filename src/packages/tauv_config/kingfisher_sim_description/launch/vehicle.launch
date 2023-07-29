@@ -12,6 +12,7 @@
             output="screen"
     >
         <rosparam param="approximate_sync">true</rosparam>
+        <rosparam param="disparity_range">128</rosparam>
     </node>
 
     <node

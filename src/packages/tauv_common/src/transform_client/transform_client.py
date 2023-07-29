@@ -5,7 +5,7 @@ from spatialmath import SE3
 
 from geometry_msgs.msg import TransformStamped
 
-from tauv_util.spatialmath import transform_to_se3, se3_to_transform
+from tauv_util.spatialmath import ros_transform_to_se3, se3_to_ros_transform
 
 class TransformClient:
 
@@ -17,9 +17,9 @@ class TransformClient:
 
     def get_a_to_b(self, frame_a: str, frame_b: str,
                    time: rospy.Time = rospy.Time(0),
-                   timeout: Optional[rospy.Duration] = None) -> SE3:
+                   timeout: rospy.Duration = rospy.Duration(0)) -> SE3:
         tf_transform = self._tf_buffer.lookup_transform(frame_a, frame_b, time, timeout)
-        return transform_to_se3(tf_transform.transform)
+        return ros_transform_to_se3(tf_transform.transform)
 
     def set_a_to_b(self, frame_a: str, frame_b: str, tf_a_to_b: SE3, time: Optional[rospy.Time] = rospy.Time(0)):
         tf_transform = TransformStamped()
@@ -27,7 +27,7 @@ class TransformClient:
         if time is not None:
             tf_transform.header.stamp = time
         tf_transform.child_frame_id = frame_b
-        tf_transform.transform = se3_to_transform(tf_a_to_b)
+        tf_transform.transform = se3_to_ros_transform(tf_a_to_b)
 
         if time is None:
             self._tf_static_broadcaster.sendTransform(tf_transform)
