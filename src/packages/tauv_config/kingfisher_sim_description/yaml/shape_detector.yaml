@@ -6,7 +6,7 @@ circle:
   threshold:
     # H low, S low, V low, H high, S high, V high
     global_thresholds:
-      - [0, 0, 50, 20, 255, 150]
+      - [0, 0, 50, 5, 255, 150]
       - [160, 0, 0, 180, 255, 255]
     # S low, V low, S high, V high
     local_thresholds:
@@ -18,3 +18,18 @@ circle:
     min_aspect_ratio: 1.0
     max_aspect_ratio: 1.5
     depth_mask_scale: 2.0
+
+path_marker:
+  threshold:
+    # H low, S low, V low, H high, S high, V high
+    global_thresholds:
+      - [0, 0, 50, 20, 255, 255]
+    # S low, V low, S high, V high
+    local_thresholds:
+      - [10, -255, 255, 255]
+    window_size: 35
+  pose:
+    min_size: [25, 100]
+    max_size: [1000, 1000]
+    min_aspect_ratio: 3
+    max_aspect_ratio: 10
