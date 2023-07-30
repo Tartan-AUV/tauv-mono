@@ -88,26 +88,30 @@ class ShapeDetector:
             detections = FeatureDetections()
             detections.detector_tag = 'shape_detector'
 
-            circle_detections, circle_debug_img = self._get_circle_detections(color, depth, world_t_cam,
-                                                            self._intrinsics[frame_id])
-            detections.detections = detections.detections + circle_detections
-            circle_debug_msg = self._cv_bridge.cv2_to_imgmsg(circle_debug_img, encoding='bgr8')
-            self._circle_debug_img_pubs[frame_id].publish(circle_debug_msg)
+            if 'circle' in self._detectors[frame_id]:
+                circle_detections, circle_debug_img = self._get_circle_detections(color, depth, world_t_cam,
+                                                                self._intrinsics[frame_id])
+                detections.detections = detections.detections + circle_detections
+                circle_debug_msg = self._cv_bridge.cv2_to_imgmsg(circle_debug_img, encoding='bgr8')
+                self._circle_debug_img_pubs[frame_id].publish(circle_debug_msg)
 
-            path_marker_detections, path_marker_debug_img = self._get_path_marker_detections(color, depth, world_t_cam, self._intrinsics[frame_id])
-            detections.detections = detections.detections + path_marker_detections
-            path_marker_debug_msg = self._cv_bridge.cv2_to_imgmsg(path_marker_debug_img, encoding='bgr8')
-            self._path_marker_debug_img_pubs[frame_id].publish(path_marker_debug_msg)
+            if 'path_marker' in self._detectors[frame_id]:
+                path_marker_detections, path_marker_debug_img = self._get_path_marker_detections(color, depth, world_t_cam, self._intrinsics[frame_id])
+                detections.detections = detections.detections + path_marker_detections
+                path_marker_debug_msg = self._cv_bridge.cv2_to_imgmsg(path_marker_debug_img, encoding='bgr8')
+                self._path_marker_debug_img_pubs[frame_id].publish(path_marker_debug_msg)
 
-            chevron_detections, chevron_debug_img = self._get_chevron_detections(color, depth, world_t_cam, self._intrinsics[frame_id])
-            detections.detections = detections.detections + chevron_detections
-            chevron_debug_msg = self._cv_bridge.cv2_to_imgmsg(chevron_debug_img, encoding='bgr8')
-            self._chevron_debug_img_pubs[frame_id].publish(chevron_debug_msg)
+            if 'chevron' in self._detectors[frame_id]:
+                chevron_detections, chevron_debug_img = self._get_chevron_detections(color, depth, world_t_cam, self._intrinsics[frame_id])
+                detections.detections = detections.detections + chevron_detections
+                chevron_debug_msg = self._cv_bridge.cv2_to_imgmsg(chevron_debug_img, encoding='bgr8')
+                self._chevron_debug_img_pubs[frame_id].publish(chevron_debug_msg)
 
-            lid_detections, lid_debug_img = self._get_lid_detections(color, depth, world_t_cam, self._intrinsics[frame_id])
-            detections.detections = detections.detections + lid_detections
-            lid_debug_msg = self._cv_bridge.cv2_to_imgmsg(lid_debug_img, encoding='bgr8')
-            self._lid_debug_img_pubs[frame_id].publish(lid_debug_msg)
+            if 'lid' in self._detectors[frame_id]:
+                lid_detections, lid_debug_img = self._get_lid_detections(color, depth, world_t_cam, self._intrinsics[frame_id])
+                detections.detections = detections.detections + lid_detections
+                lid_debug_msg = self._cv_bridge.cv2_to_imgmsg(lid_debug_img, encoding='bgr8')
+                self._lid_debug_img_pubs[frame_id].publish(lid_debug_msg)
 
             self._detections_pub.publish(detections)
 
@@ -229,6 +233,9 @@ class ShapeDetector:
     def _load_config(self):
         self._tf_namespace = rospy.get_param('tf_namespace')
         self._frame_ids = rospy.get_param('~frame_ids')
+        self._detectors: {str: [str]} = {}
+        for frame_id in self._frame_ids:
+            self._detectors[frame_id] = rospy.get_param(f'~detectors/{frame_id}')
         self._synchronizer_queue_size = rospy.get_param('~synchronizer_queue_size')
         self._synchronizer_slop = rospy.get_param('~synchronizer_slop')
 

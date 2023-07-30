@@ -1,4 +1,7 @@
 frame_ids: ['oakd_front', 'oakd_bottom']
+detectors:
+  oakd_front: ['circle']
+  oakd_bottom: ['path_marker', 'chevron', 'lid']
 synchronizer_queue_size: 10
 synchronizer_slop: 0.1
 
