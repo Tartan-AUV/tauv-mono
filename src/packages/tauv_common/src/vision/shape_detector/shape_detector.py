@@ -2,15 +2,10 @@ import rospy
 import threading
 from functools import partial
 import numpy as np
-import tf2_ros as tf2
 from cv_bridge import CvBridge
 from sensor_msgs.msg import CameraInfo, Image
 from tauv_msgs.msg import FeatureDetections, FeatureDetection
-from tauv_util.transforms import tf2_transform_to_homogeneous, tf2_transform_to_quat, multiply_quat, quat_to_rpy
-from geometry_msgs.msg import Point, Quaternion
 import cv2
-from math import cos, sin, pi, atan2
-from scipy.spatial.transform import Rotation
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 from tauv_util.spatialmath import r3_to_ros_point
 from tauv_util.cameras import CameraIntrinsics, CameraDistortion
@@ -20,6 +15,7 @@ from spatialmath import SE3
 from .circle_detection import GetCirclePosesParams, get_circle_poses
 from .path_marker_detection import GetPathMarkerPosesParams, get_path_marker_poses
 from .chevron_detection import GetChevronPosesParams, get_chevron_poses
+from .lid_detection import GetLidPosesParams, get_lid_poses
 from .adaptive_color_thresholding import GetAdaptiveColorThresholdingParams, get_adaptive_color_thresholding
 
 
@@ -48,6 +44,7 @@ class ShapeDetector:
         self._circle_debug_img_pubs: {str: rospy.Publisher} = {}
         self._path_marker_debug_img_pubs: {str: rospy.Publisher} = {}
         self._chevron_debug_img_pubs: {str: rospy.Publisher} = {}
+        self._lid_debug_img_pubs: {str: rospy.Publisher} = {}
         for frame_id in self._frame_ids:
             color_sub = message_filters.Subscriber(f'vehicle/{frame_id}/color/image_raw', Image)
             depth_sub = message_filters.Subscriber(f'vehicle/{frame_id}/depth/image_raw', Image)
@@ -64,6 +61,8 @@ class ShapeDetector:
                 rospy.Publisher(f'vision/shape_detector/{frame_id}/path_marker/debug_image', Image, queue_size=10)
             self._chevron_debug_img_pubs[frame_id] = \
                 rospy.Publisher(f'vision/shape_detector/{frame_id}/chevron/debug_image', Image, queue_size=10)
+            self._lid_debug_img_pubs[frame_id] = \
+                rospy.Publisher(f'vision/shape_detector/{frame_id}/lid/debug_image', Image, queue_size=10)
 
         self._detections_pub: rospy.Publisher =\
             rospy.Publisher('global_map/feature_detections', FeatureDetections, queue_size=10)
@@ -104,6 +103,11 @@ class ShapeDetector:
             detections.detections = detections.detections + chevron_detections
             chevron_debug_msg = self._cv_bridge.cv2_to_imgmsg(chevron_debug_img, encoding='bgr8')
             self._chevron_debug_img_pubs[frame_id].publish(chevron_debug_msg)
+
+            lid_detections, lid_debug_img = self._get_lid_detections(color, depth, world_t_cam, self._intrinsics[frame_id])
+            detections.detections = detections.detections + lid_detections
+            lid_debug_msg = self._cv_bridge.cv2_to_imgmsg(lid_debug_img, encoding='bgr8')
+            self._lid_debug_img_pubs[frame_id].publish(lid_debug_msg)
 
             self._detections_pub.publish(detections)
 
@@ -195,6 +199,33 @@ class ShapeDetector:
 
         return detections, debug_img
 
+    def _get_lid_detections(self, color: np.array, depth: np.array, world_t_cam: SE3, intrinsics: CameraIntrinsics) -> ([FeatureDetection], np.array):
+        orange_mask = get_adaptive_color_thresholding(color, self._lid_orange_threshold_params)
+        purple_mask = get_adaptive_color_thresholding(color, self._lid_purple_threshold_params)
+
+        debug_img = cv2.cvtColor(255 * (orange_mask | purple_mask), cv2.COLOR_GRAY2BGR)
+
+        cam_t_lids = get_lid_poses(orange_mask, purple_mask, depth, intrinsics, self._lid_pose_params, debug_img)
+
+        world_t_lids = [world_t_cam * cam_t_lid for cam_t_lid in cam_t_lids]
+
+        detections = []
+
+        for world_t_lid in world_t_lids:
+            detection = FeatureDetection()
+
+            detection.confidence = 1
+            detection.tag = 'lid'
+            detection.SE2 = False
+            detection.position = r3_to_ros_point(world_t_lid.t)
+            rpy = world_t_lid.rpy()
+            rpy[0:2] = 0
+            detection.orientation = r3_to_ros_point(rpy)
+
+            detections.append(detection)
+
+        return detections, debug_img
+
     def _load_config(self):
         self._tf_namespace = rospy.get_param('tf_namespace')
         self._frame_ids = rospy.get_param('~frame_ids')
@@ -240,6 +271,28 @@ class ShapeDetector:
             angles=tuple(rospy.get_param('~chevron/pose/angles')),
             angle_match_tolerance=rospy.get_param('~chevron/pose/angle_match_tolerance'),
             depth_window_size=rospy.get_param('~chevron/pose/depth_window_size'),
+        )
+
+        self._lid_orange_threshold_params: GetAdaptiveColorThresholdingParams = GetAdaptiveColorThresholdingParams(
+            global_thresholds=np.array(rospy.get_param('~lid/threshold/orange/global_thresholds')),
+            local_thresholds=np.array(rospy.get_param('~lid/threshold/orange/local_thresholds')),
+            window_size=rospy.get_param('~lid/threshold/orange/window_size'),
+        )
+        self._lid_purple_threshold_params: GetAdaptiveColorThresholdingParams = GetAdaptiveColorThresholdingParams(
+            global_thresholds=np.array(rospy.get_param('~lid/threshold/purple/global_thresholds')),
+            local_thresholds=np.array(rospy.get_param('~lid/threshold/purple/local_thresholds')),
+            window_size=rospy.get_param('~lid/threshold/purple/window_size'),
+        )
+        self._lid_pose_params: GetLidPosesParams = GetLidPosesParams(
+            orange_min_size=tuple(rospy.get_param('~lid/pose/orange/min_size')),
+            orange_max_size=tuple(rospy.get_param('~lid/pose/orange/max_size')),
+            orange_min_aspect_ratio=rospy.get_param('~lid/pose/orange/min_aspect_ratio'),
+            orange_max_aspect_ratio=rospy.get_param('~lid/pose/orange/max_aspect_ratio'),
+            orange_contour_approximation_factor=rospy.get_param('~lid/pose/orange/contour_approximation_factor'),
+            purple_min_size=tuple(rospy.get_param('~lid/pose/purple/min_size')),
+            purple_max_size=tuple(rospy.get_param('~lid/pose/purple/max_size')),
+            purple_min_aspect_ratio=rospy.get_param('~lid/pose/purple/min_aspect_ratio'),
+            purple_max_aspect_ratio=rospy.get_param('~lid/pose/purple/max_aspect_ratio'),
         )
 
 

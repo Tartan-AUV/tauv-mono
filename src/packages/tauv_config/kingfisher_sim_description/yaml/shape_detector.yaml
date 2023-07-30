@@ -53,3 +53,30 @@ chevron:
     angles: [1.57, 2.35, 0.78, 1.57, 0.78, 2.35]
     angle_match_tolerance: 0.2
     depth_window_size: 30
+
+lid:
+  threshold:
+    orange:
+      global_thresholds:
+        - [0, 50, 50, 20, 255, 255]
+      local_thresholds:
+        - [20, 0, 255, 255]
+      window_size: 35
+    purple:
+      global_thresholds:
+        - [120, 50, 50, 130, 255, 255]
+      local_thresholds:
+        - [-255, -255, 255, 255]
+      window_size: 35
+  pose:
+    orange:
+      min_size: [50, 50]
+      max_size: [500, 500]
+      min_aspect_ratio: 1.5
+      max_aspect_ratio: 2.5
+      contour_approximation_factor: 0.05
+    purple:
+      min_size: [5, 20]
+      max_size: [500, 500]
+      min_aspect_ratio: 4
+      max_aspect_ratio: 20

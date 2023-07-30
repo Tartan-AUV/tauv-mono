@@ -50,11 +50,7 @@ def get_chevron_poses(mask: np.array, depth: np.array, intrinsics: CameraIntrins
 
     if debug_img is not None:
         for point, angle in points:
-            # cv2.circle(debug_img, point, 3, (0, 255, 0), -1)
-
             cv2.line(debug_img, point, (int(point[0] + 50 * cos(angle)), int(point[1] + 50 * sin(angle))), (0, 255, 0), 3)
-
-    print(points)
 
     poses = []
 
