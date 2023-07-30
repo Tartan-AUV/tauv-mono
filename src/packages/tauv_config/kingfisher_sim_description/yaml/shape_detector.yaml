@@ -33,3 +33,23 @@ path_marker:
     max_size: [1000, 1000]
     min_aspect_ratio: 3
     max_aspect_ratio: 10
+
+chevron:
+  threshold:
+    # H low, S low, V low, H high, S high, V high
+    global_thresholds:
+      - [0, 0, 0, 20, 255, 255]
+      - [160, 0, 0, 180, 255, 255]
+    # S low, V low, S high, V high
+    local_thresholds:
+      - [20, -255, 255, 255]
+    window_size: 35
+  pose:
+    min_size: [25, 25]
+    max_size: [1000, 1000]
+    min_aspect_ratio: 1
+    max_aspect_ratio: 10
+    contour_approximation_factor: 0.05
+    angles: [1.57, 2.35, 0.78, 1.57, 0.78, 2.35]
+    angle_match_tolerance: 0.2
+    depth_window_size: 30

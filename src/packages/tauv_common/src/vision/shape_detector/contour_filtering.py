@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from math import pi, sin, cos
+from math import pi, sin, cos, atan2
 
 
 def filter_contours_by_bbox(contours: np.array, min_size: (float, float), max_size: (float, float), min_aspect_ratio: float, max_aspect_ratio: float) -> np.array:
@@ -51,3 +51,35 @@ def fit_ellipse_contour(contour: np.array, n_points: int) -> np.array:
         e_x + (e_h / 2) * np.cos(theta) * cos(e_theta) - (e_w / 2) * np.sin(theta) * sin(e_theta)
 
     return ellipse_contour.astype(int)
+
+
+def approximate_contour(contour: np.array, factor: float) -> np.array:
+    length = cv2.arcLength(contour, True)
+    contour_approx =  cv2.approxPolyDP(contour, length * factor, True)
+    return contour_approx
+
+
+def get_angles_contour(contour: np.array) -> np.array:
+    n_points = contour.shape[0]
+
+    angles = np.zeros((n_points, 2))
+
+    for i in range(n_points):
+        x1 = contour[(i - 1) % n_points, 0, :]
+        x2 = contour[i, 0, :]
+        x3 = contour[(i + 1) % n_points, 0, :]
+
+        v1 = x1 - x2
+        v2 = x3 - x2
+
+        dot_product = np.dot(v1, v2)
+        norm_product = np.linalg.norm(v1) * np.linalg.norm(v2)
+        angle = np.arccos(dot_product / norm_product)
+
+        bisector = v1 + v2
+        bisector_angle = (atan2(bisector[1], bisector[0]) + pi) % (2 * pi)
+
+        angles[i, 0] = angle
+        angles[i, 1] = bisector_angle
+
+    return angles

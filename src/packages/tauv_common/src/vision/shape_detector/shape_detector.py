@@ -19,6 +19,7 @@ from transform_client import TransformClient
 from spatialmath import SE3
 from .circle_detection import GetCirclePosesParams, get_circle_poses
 from .path_marker_detection import GetPathMarkerPosesParams, get_path_marker_poses
+from .chevron_detection import GetChevronPosesParams, get_chevron_poses
 from .adaptive_color_thresholding import GetAdaptiveColorThresholdingParams, get_adaptive_color_thresholding
 
 
@@ -46,6 +47,7 @@ class ShapeDetector:
         self._synchronizers: {str: message_filters.ApproximateTimeSynchronizer} = {}
         self._circle_debug_img_pubs: {str: rospy.Publisher} = {}
         self._path_marker_debug_img_pubs: {str: rospy.Publisher} = {}
+        self._chevron_debug_img_pubs: {str: rospy.Publisher} = {}
         for frame_id in self._frame_ids:
             color_sub = message_filters.Subscriber(f'vehicle/{frame_id}/color/image_raw', Image)
             depth_sub = message_filters.Subscriber(f'vehicle/{frame_id}/depth/image_raw', Image)
@@ -60,6 +62,8 @@ class ShapeDetector:
                 rospy.Publisher(f'vision/shape_detector/{frame_id}/circle/debug_image', Image, queue_size=10)
             self._path_marker_debug_img_pubs[frame_id] = \
                 rospy.Publisher(f'vision/shape_detector/{frame_id}/path_marker/debug_image', Image, queue_size=10)
+            self._chevron_debug_img_pubs[frame_id] = \
+                rospy.Publisher(f'vision/shape_detector/{frame_id}/chevron/debug_image', Image, queue_size=10)
 
         self._detections_pub: rospy.Publisher =\
             rospy.Publisher('global_map/feature_detections', FeatureDetections, queue_size=10)
@@ -83,7 +87,6 @@ class ShapeDetector:
             world_t_cam = self._tf_client.get_a_to_b(world_frame, camera_frame, color_msg.header.stamp)
 
             detections = FeatureDetections()
-            detections.header.stamp = color_msg.header.stamp
             detections.detector_tag = 'shape_detector'
 
             circle_detections, circle_debug_img = self._get_circle_detections(color, depth, world_t_cam,
@@ -96,6 +99,11 @@ class ShapeDetector:
             detections.detections = detections.detections + path_marker_detections
             path_marker_debug_msg = self._cv_bridge.cv2_to_imgmsg(path_marker_debug_img, encoding='bgr8')
             self._path_marker_debug_img_pubs[frame_id].publish(path_marker_debug_msg)
+
+            chevron_detections, chevron_debug_img = self._get_chevron_detections(color, depth, world_t_cam, self._intrinsics[frame_id])
+            detections.detections = detections.detections + chevron_detections
+            chevron_debug_msg = self._cv_bridge.cv2_to_imgmsg(chevron_debug_img, encoding='bgr8')
+            self._chevron_debug_img_pubs[frame_id].publish(chevron_debug_msg)
 
             self._detections_pub.publish(detections)
 
@@ -124,9 +132,11 @@ class ShapeDetector:
         for world_t_circle in world_t_circles:
             detection = FeatureDetection()
 
-            detection.count = 1
+            detection.confidence = 1
             detection.tag = 'circle'
+            detection.SE2 = False
             detection.position = r3_to_ros_point(world_t_circle.t)
+            # TODO: enforce verticality
             detection.orientation = r3_to_ros_point(world_t_circle.rpy())
 
             detections.append(detection)
@@ -151,7 +161,35 @@ class ShapeDetector:
             detection.tag = 'path_marker'
             detection.SE2 = False
             detection.position = r3_to_ros_point(world_t_path_marker.t)
-            detection.orientation = r3_to_ros_point(world_t_path_marker.rpy())
+            rpy = world_t_path_marker.rpy()
+            rpy[0:2] = 0
+            detection.orientation = r3_to_ros_point(rpy)
+
+            detections.append(detection)
+
+        return detections, debug_img
+
+    def _get_chevron_detections(self, color: np.array, depth: np.array, world_t_cam: SE3, intrinsics: CameraIntrinsics) -> ([FeatureDetection], np.array):
+        mask = get_adaptive_color_thresholding(color, self._chevron_threshold_params)
+
+        debug_img = cv2.cvtColor(255 * mask, cv2.COLOR_GRAY2BGR)
+
+        cam_t_chevrons = get_chevron_poses(mask, depth, intrinsics, self._chevron_pose_params, debug_img)
+
+        world_t_chevrons = [world_t_cam * cam_t_chevron for cam_t_chevron in cam_t_chevrons]
+
+        detections = []
+
+        for world_t_chevron in world_t_chevrons:
+            detection = FeatureDetection()
+
+            detection.confidence = 1
+            detection.tag = 'chevron'
+            detection.SE2 = False
+            detection.position = r3_to_ros_point(world_t_chevron.t)
+            rpy = world_t_chevron.rpy()
+            rpy[0:2] = 0
+            detection.orientation = r3_to_ros_point(rpy)
 
             detections.append(detection)
 
@@ -186,6 +224,22 @@ class ShapeDetector:
             max_size=tuple(rospy.get_param('~path_marker/pose/max_size')),
             min_aspect_ratio=rospy.get_param('~path_marker/pose/min_aspect_ratio'),
             max_aspect_ratio=rospy.get_param('~path_marker/pose/max_aspect_ratio'),
+        )
+
+        self._chevron_threshold_params: GetAdaptiveColorThresholdingParams = GetAdaptiveColorThresholdingParams(
+            global_thresholds=np.array(rospy.get_param('~chevron/threshold/global_thresholds')),
+            local_thresholds=np.array(rospy.get_param('~chevron/threshold/local_thresholds')),
+            window_size=rospy.get_param('~chevron/threshold/window_size'),
+        )
+        self._chevron_pose_params: GetChevronPosesParams = GetChevronPosesParams(
+            min_size=tuple(rospy.get_param('~chevron/pose/min_size')),
+            max_size=tuple(rospy.get_param('~chevron/pose/max_size')),
+            min_aspect_ratio=rospy.get_param('~chevron/pose/min_aspect_ratio'),
+            max_aspect_ratio=rospy.get_param('~chevron/pose/max_aspect_ratio'),
+            contour_approximation_factor=rospy.get_param('~chevron/pose/contour_approximation_factor'),
+            angles=tuple(rospy.get_param('~chevron/pose/angles')),
+            angle_match_tolerance=rospy.get_param('~chevron/pose/angle_match_tolerance'),
+            depth_window_size=rospy.get_param('~chevron/pose/depth_window_size'),
         )
 
 

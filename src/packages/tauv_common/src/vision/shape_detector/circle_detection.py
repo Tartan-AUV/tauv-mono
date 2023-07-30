@@ -18,7 +18,7 @@ class GetCirclePosesParams:
     depth_mask_scale: float
 
 
-def get_circle_poses(mask: np.array, depth: np.array, intrinsics: CameraIntrinsics, params: GetCirclePosesParams, debug_img: Optional[np.array]) -> [SE3]:
+def get_circle_poses(mask: np.array, depth: np.array, intrinsics: CameraIntrinsics, params: GetCirclePosesParams, debug_img: Optional[np.array] = None) -> [SE3]:
     kernel_open = np.ones((3, 3), np.uint8)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel_open)
 
