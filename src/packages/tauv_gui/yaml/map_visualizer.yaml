@@ -1,0 +1,46 @@
+detection_lifetime: 5.0
+map_lifetime: 100.0
+map_publish_rate: 1.0
+tags:
+  - torpedo_closed
+  - torpedo_open
+  - bin_earth_1
+  - bin_earth_2
+  - bin_abydos_1
+  - bin_abydos_2
+  - buoy_abydos_1
+  - buoy_abydos_2
+  - buoy_earth_1
+  - buoy_earth_2
+  - table_earth_1
+  - table_earth_2
+  - table_earth_3
+  - table_earth_4
+  - table_abydos_1
+  - table_abydos_2
+  - table_abydos_3
+  - table_abydos_4
+  - circle
+  - path_marker
+  - chevron
+  - lid
+marker_types:
+  frame:
+    scale: 1.0
+    lifetime: 1.0
+  arrow:
+    scale: 1.0
+    color: [1.0, 0.0, 0.0]
+    opacity: 1.0
+    axis: "+z"
+    lifetime: 1.0
+markers:
+  default:
+    detection:
+      type: "arrow"
+      scale: 0.05
+      opacity: 0.5
+    map:
+      type: "arrow"
+      scale: 0.1
+      opacity: 1

@@ -24,8 +24,8 @@
         <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>
     </node>
 
-    <node pkg="tauv_common" type="logger" name="logger" output="screen">
-    </node>
+<!--    <node pkg="tauv_common" type="logger" name="logger" output="screen">-->
+<!--    </node>-->
 
     <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
 

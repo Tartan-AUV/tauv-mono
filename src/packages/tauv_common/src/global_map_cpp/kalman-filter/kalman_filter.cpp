@@ -47,9 +47,9 @@ Eigen::MatrixXd KalmanFilter::getParam(string property)
     vector<double> vec;
 
     //try tag-specific
-    if(!ros::param::get("/kalman_params/"+tag+"/"+property, vec)){
+    if(!ros::param::get("kalman_params/"+tag+"/"+property, vec)){
         //try default
-        if(!ros::param::get("/kalman_params/default/"+property, vec))
+        if(!ros::param::get("kalman_params/default/"+property, vec))
         {
             //initialize to identity
             return Eigen::MatrixXd::Identity(dataDim,dataDim);
