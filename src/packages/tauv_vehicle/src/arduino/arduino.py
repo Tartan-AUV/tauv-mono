@@ -1,5 +1,6 @@
 import rospy
 from tauv_msgs.msg import FluidDepth as DepthMsg
+from tauv_msgs.msg import Voltage as VoltMsg
 from tauv_alarms.alarm_client import Alarm, AlarmClient, FailureLevel
 import serial
 
@@ -18,8 +19,10 @@ class Arduino:
         self._dt: float = 0.10
 
         self._depth_pub: rospy.Publisher = rospy.Publisher('vehicle/arduino/depth', DepthMsg, queue_size=10)
+        self._volt_pub: rospy.Publisher = rospy.Publisher('vehicle/arduino/voltage', VoltMsg, queue_size=10)
 
         self._serial = None
+        self._serialvolt = None
 
         while not self._init() and not rospy.is_shutdown():
             rospy.loginfo('init failed, retrying')
@@ -35,6 +38,7 @@ class Arduino:
     def _init(self) -> bool:
         try:
             self._serial = serial.Serial('/dev/arduino', 115200, timeout=0.05)  # try to establish serial connection
+            self._serialvolt = serial.Serial('/dev/ttyACM0', 9600, timeout=0.05)
             return True
         except (IOError, OSError, serial.SerialException) as e:
             rospy.logerr(f'_init: {e}')
@@ -43,6 +47,11 @@ class Arduino:
     def _update(self, timer_event):
         try:
             serial_data = self._serial.readline().decode("UTF-8").strip()
+            serial_vdata_str = self._serialvolt.readline().decode("UTF-8").strip()
+            serial_vdata = None
+            if serial_vdata_str != '':
+                serial_vdata = float(serial_vdata_str)
+
         except (IOError, OSError) as e:
             rospy.logerr(f'_update: {e}')
             while not self._init() and not rospy.is_shutdown():
@@ -57,16 +66,27 @@ class Arduino:
 
         # rospy.loginfo(serial_data)
 
-        if serial_data_split[0] == "D":
-            if serial_data_split[1].lower() != "nan" and -1 < float(serial_data_split[1]) < 10:
-                depth_msg = DepthMsg()
-                depth_msg.header.stamp = timestamp
-                depth_msg.header.frame_id = 'depth_sensor_link'
-                depth_msg.depth = float(serial_data_split[1])
+        if serial_vdata != None:
+            print(serial_vdata_str)
+            volt_msg = VoltMsg()
+            volt_msg.header.stamp = timestamp
+            volt_msg.header.frame_id = "voltage sensor link"
+            volt_msg.voltage = serial_vdata
 
-                self._depth_pub.publish(depth_msg)
-            else:
-                rospy.logwarn("bad depth reading")
+            self._volt_pub.publish(volt_msg)
+        else:
+            rospy.logwarn("bad voltage reading")
+
+        if serial_data_split[0] == "D":
+             if serial_data_split[1].lower() != "nan" and -1 < float(serial_data_split[1]) < 10:
+                 depth_msg = DepthMsg()
+                 depth_msg.header.stamp = timestamp
+                 depth_msg.header.frame_id = 'depth_sensor_link'
+                 depth_msg.depth = float(serial_data_split[1])
+
+                 self._depth_pub.publish(depth_msg)
+             else:
+                 rospy.logwarn("bad depth reading")
         else:
             pass
             # rospy.logwarn(f'unknown message type: {serial_message_type}')
