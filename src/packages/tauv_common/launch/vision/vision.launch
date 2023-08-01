@@ -5,11 +5,12 @@
 
 <!--    <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">-->
 <!--        <arg name="yolo_weights_path" value="$(arg yolo_weights_path)" />-->
+<!--        <arg name="network_param_file" value="$(arg config_pkg)/darknet_config/yolov4-23-v1.yaml" />-->
 <!--    </include>-->
 
-    <node pkg="tauv_common" type="darknet_transformer" name="darknet_transformer" output="screen">
-        <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>
-    </node>
+<!--    <node pkg="tauv_common" type="darknet_transformer" name="darknet_transformer" output="screen">-->
+<!--        <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>-->
+<!--    </node>-->
 
 <!--    <node pkg="tauv_common" type="gate_detector" name="gate_detector" output="screen">-->
 <!--        <rosparam command="load" file="$(arg config_pkg)/yaml/gate_detector.yaml" />-->
@@ -20,6 +21,19 @@
 
     <node pkg="tauv_common" type="shape_detector" name="shape_detector" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/yaml/shape_detector.yaml" />
-        <rosparam param="frame_id">oakd_front</rosparam>
+        <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>
+    </node>
+
+<!--    <node pkg="tauv_common" type="logger" name="logger" output="screen">-->
+<!--    </node>-->
+
+    <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
+
+    <node
+        pkg="tauv_common"
+        type="global_map_cpp"
+        name="global_map"
+        output="screen"
+    >
     </node>
 </launch>

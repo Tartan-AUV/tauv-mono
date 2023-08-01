@@ -21,15 +21,14 @@ from setuptools import find_packages
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=['tauv_mission_manager',
-              'tasks',
-              'test_mission_scripts',
-              'teleop_mission',
-              'prequal_mission'
+    packages=['teleop_mission',
+              'mission_manager',
+              'missions',
+              'tasks'
               ],
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
-    scripts=['scripts/test_script', 'scripts/teleop_mission', 'scripts/prequal_mission'],
+    scripts=['scripts/teleop_mission', 'scripts/mission_manager'],
 )
 setup(**setup_args)

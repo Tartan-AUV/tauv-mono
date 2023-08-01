@@ -35,12 +35,12 @@ GlobalMap::GlobalMap(ros::NodeHandle& handler)
     DUMMY_FILL=0;
     MAP = {};
 
-    listener = handler.subscribe("/feature_detections", 100, &GlobalMap::updateTrackersInterface, this);
-    resetService = handler.advertiseService("/global_map/reset", &GlobalMap::reset, this);
-    findService = handler.advertiseService("/global_map/find", &GlobalMap::find, this);
-    findOneService = handler.advertiseService("/global_map/find_one", &GlobalMap::findOne, this);
-    findClosestService = handler.advertiseService("/global_map/find_closest", &GlobalMap::findClosest, this);
-    syncDetectionsService = handler.advertiseService("/global_map/sync_detections", &GlobalMap::syncAddDetections, this);
+    listener = handler.subscribe("global_map/feature_detections", 100, &GlobalMap::updateTrackersInterface, this);
+    resetService = handler.advertiseService("global_map/reset", &GlobalMap::reset, this);
+    findService = handler.advertiseService("global_map/find", &GlobalMap::find, this);
+    findOneService = handler.advertiseService("global_map/find_one", &GlobalMap::findOne, this);
+    findClosestService = handler.advertiseService("global_map/find_closest", &GlobalMap::findClosest, this);
+    syncDetectionsService = handler.advertiseService("global_map/sync_detections", &GlobalMap::syncAddDetections, this);
     nodeHandler = handler;
 }
 
