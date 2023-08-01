@@ -1,7 +1,0 @@
-<launch>
-  <node pkg="tauv_vehicle" type="depth_sensor" name="depth_sensor"
-    output="screen">
-    <remap from="depth" to="/depth_sensor/depth" />
-    <remap from="temperature" to="/depth_sensor/temperature" />
-  </node>
-</launch>

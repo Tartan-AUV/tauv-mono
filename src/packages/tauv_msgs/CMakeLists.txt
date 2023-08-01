@@ -49,7 +49,7 @@ add_service_files(
   GetTrajectory.srv
   SetTargetPose.srv
   SetPose.srv
-  RunBasicMission.srv
+  RunMission.srv
   UpdateDynamicsParameterConfigs.srv
 )
 

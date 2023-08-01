@@ -22,21 +22,21 @@
 
     <!--front right vertical-->
     <xacro:t200_thruster namespace="${ns}" thruster_id="4">
-        <origin xyz="0.23876 -0.213083 0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
+        <origin xyz="0.23876 -0.213083 -0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
     </xacro:t200_thruster>
 
     <!--front left vertical-->
     <xacro:t200_thruster namespace="${ns}" thruster_id="5">
-        <origin xyz="0.23876 0.21308 0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
+        <origin xyz="0.23876 0.21308 -0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
     </xacro:t200_thruster>
 
     <!--back right vertical-->
     <xacro:t200_thruster namespace="${ns}" thruster_id="6">
-        <origin xyz="-0.23876 -0.213083 0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
+        <origin xyz="-0.23876 -0.213083 -0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
     </xacro:t200_thruster>
 
     <!--back left vertical-->
     <xacro:t200_thruster namespace="${ns}" thruster_id="7">
-        <origin xyz="-0.23876 0.21308 0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
+        <origin xyz="-0.23876 0.21308 -0.01115" rpy="1.5707963267949 1.5707963267949 0"/>
     </xacro:t200_thruster>
 </robot>

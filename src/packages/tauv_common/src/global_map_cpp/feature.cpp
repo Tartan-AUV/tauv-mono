@@ -31,9 +31,9 @@ double TrackerMaster::getParam(string property, double def)
     double val;
 
     //try tag-specific
-    if(!ros::param::get("/tag_params/"+feature_tag+"/"+property, val)){
+    if(!ros::param::get("tag_params/"+feature_tag+"/"+property, val)){
         //try default tag
-        if(!ros::param::get("/tag_params/"+property, val)){
+        if(!ros::param::get("tag_params/"+property, val)){
             return def;
         }
     }
@@ -275,14 +275,14 @@ double Tracker::getParam(string property, double def)
     double val;
 
     //try tracker-specific, tag-specific
-    if(!ros::param::get("/tracker_params/"+tracker_type+"/tag_params/"+feature_tag+"/"+property, val)){
+    if(!ros::param::get("tracker_params/"+tracker_type+"/tag_params/"+feature_tag+"/"+property, val)){
         //try tracker-specific, default tag
-        if(!ros::param::get("/tracker_params/"+tracker_type+"/"+property, val)){
+        if(!ros::param::get("tracker_params/"+tracker_type+"/"+property, val)){
             //try default tracker, tag-specific tag
-            if(!ros::param::get("/tracker_params/default/tag_params/"+feature_tag+"/"+property, val))
+            if(!ros::param::get("tracker_params/default/tag_params/"+feature_tag+"/"+property, val))
             {
             //try default tracker, default tag settings
-                if(!ros::param::get("/tracker_params/default/"+property, val))
+                if(!ros::param::get("tracker_params/default/"+property, val))
                 {
                     return def;
                 }
@@ -298,14 +298,14 @@ bool Tracker::getParam(string property, bool def)
     bool val;
 
     //try tracker-specific, tag-specific
-    if(!ros::param::get("/tracker_params/"+tracker_type+"/tag_params/"+feature_tag+"/"+property, val)){
+    if(!ros::param::get("tracker_params/"+tracker_type+"/tag_params/"+feature_tag+"/"+property, val)){
         //try tracker-specific, default tag
-        if(!ros::param::get("/tracker_params/"+tracker_type+"/"+property, val)){
+        if(!ros::param::get("tracker_params/"+tracker_type+"/"+property, val)){
             //try default tracker, tag-specific tag
-            if(!ros::param::get("/tracker_params/default/tag_params/"+feature_tag+"/"+property, val))
+            if(!ros::param::get("tracker_params/default/tag_params/"+feature_tag+"/"+property, val))
             {
             //try default tracker, default tag settings
-                if(!ros::param::get("/tracker_params/default/"+property, val))
+                if(!ros::param::get("tracker_params/default/"+property, val))
                 {
                     return def;
                 }

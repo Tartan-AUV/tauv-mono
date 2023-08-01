@@ -14,8 +14,8 @@ from geometry_msgs.msg import Pose, Twist, Point
 from std_srvs.srv import SetBool, Trigger
 from std_msgs.msg import Float64
 from tauv_msgs.srv import MapFind, MapFindRequest, MapFindClosest, MapFindClosestRequest
-from motion.motion_utils import MotionUtils
-from motion.trajectories import TrajectoryStatus
+from motion_client.motion_utils import MotionUtils
+from motion_client.trajectories import TrajectoryStatus
 
 
 class ArgumentParserError(Exception): pass

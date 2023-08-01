@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 {
   cout<<"HERE!!!\n";
   ros::init(argc, argv, "global_map");
-  ros::NodeHandle n("global_map");
+  ros::NodeHandle n;
 
   ROS_INFO("Launched!");
 

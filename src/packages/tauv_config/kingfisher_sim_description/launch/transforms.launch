@@ -1,5 +1,5 @@
 <launch>
-    <arg name="namespace" default="kf"/>
+    <arg name="namespace"/>
 
     <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_0_static_publisher"
           args="0.43852 0.22093 0 -0.785 0 1.571 $(arg namespace)/vehicle $(arg namespace)/thruster_0" />

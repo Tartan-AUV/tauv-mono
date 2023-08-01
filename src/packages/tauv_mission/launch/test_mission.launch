@@ -1,3 +1,0 @@
-<launch>
-    <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/>
-</launch>
