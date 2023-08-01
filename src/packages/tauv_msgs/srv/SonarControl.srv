@@ -1,3 +1,7 @@
+# enum 
+# 0: turn off survey mode; 1: turn on survey mode;
+# 2: process heat map and pass detections to global map;
+# 3: reset heat map;
 int8 op
 ---
 bool success

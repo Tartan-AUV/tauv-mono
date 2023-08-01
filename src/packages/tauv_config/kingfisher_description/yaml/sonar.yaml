@@ -28,5 +28,13 @@ map: {
   post_filter_thresh: 1, #post-blur threshold for thresholding
   closing_size: 5, #how much components are connected
   min_object_size: 250, #minimum pixel area to be considered a detection (~150-250)
-  line_of_sight_weight: 0.5 #weight put on the distance from sonar as opposed to strength of detection when doing line-of-sight/max ray filtering (1 for ~1-1 weight)
+  line_of_sight_weight: 0.5, #weight put on the distance from sonar as opposed to strength of detection when doing line-of-sight/max ray filtering (1 for ~1-1 weight)
+
+  alignment:
+  {
+    map_name: "test_map.jpg",
+    time_thresh: "00:30",
+    intensity_thresh: 
+    min_mapped: 0.5: 
+  }
 }
