@@ -1,3 +1,2 @@
 bluerobotics-ping
 scipy
-rawpy
