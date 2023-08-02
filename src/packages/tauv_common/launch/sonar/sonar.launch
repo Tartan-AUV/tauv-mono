@@ -15,5 +15,5 @@
     <node pkg="tauv_common" type="sonar_map" name="sonar_map" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/yaml/sonar.yaml" />
     </node>
-    </group>
+<!--     </group> -->
 </launch>

@@ -1,5 +1,5 @@
 import rospy
-from motion_client.trajectories.trajectories import TrajectoryStatus, Trajectory
+from motion.trajectories.trajectories import TrajectoryStatus, Trajectory
 
 from tauv_msgs.srv import GetTrajectoryRequest, GetTrajectoryResponse
 from geometry_msgs.msg import Pose, Vector3, Quaternion, Point, Twist, PoseStamped
@@ -11,7 +11,7 @@ from collections import Iterable
 from tauv_util.types import tl, tm
 
 # imports for s-curve traj lib:
-from motion_client.trajectories.pyscurve import ScurvePlanner
+from motion.trajectories.pyscurve import ScurvePlanner
 
 # math
 from math import sin, cos, atan2, sqrt, ceil, fabs
