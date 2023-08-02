@@ -36,4 +36,7 @@
         output="screen"
     >
     </node>
+
+    <include file="$(find tauv_common)/launch/vision/debluer.launch"/>
+
 </launch>
