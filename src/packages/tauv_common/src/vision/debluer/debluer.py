@@ -7,7 +7,6 @@ import threading
 import math
 import scipy as sp
 import sys
-import rawpy
 import collections
 from PIL import Image
 
