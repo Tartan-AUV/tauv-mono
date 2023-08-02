@@ -277,14 +277,6 @@ class Debluer:
         refined_nmap = self.closing(refined_nmap, self.square(radius))
         return refined_nmap, num_labels - 1
 
-
-    def load_image_and_depth_map(self, img_fname, depths_fname, size_limit = 1024):
-        depths = Image.open(depths_fname)
-        img = Image.fromarray(rawpy.imread(img_fname).postprocess())
-        img.thumbnail((size_limit, size_limit), Image.ANTIALIAS)
-        depths = depths.resize(img.size, Image.ANTIALIAS)
-        return np.float32(img) / 255.0, np.array(depths)
-
     def wbalance_gw(self, img):
         dr = 1.0 / np.mean(img[:, :, 0])
         dg = 1.0 / np.mean(img[:, :, 1])
