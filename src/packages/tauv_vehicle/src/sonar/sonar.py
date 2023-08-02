@@ -51,9 +51,12 @@ class Sonar:
         self._angle = (1 + self._angle) % 400
         self._do_pulse_at_angle(self._angle)
 
-        res = self._ping.wait_message([definitions.COMMON_NACK, definitions.PING360_DEVICE_DATA], 0.1)
-
-        if res is None:
+        try:
+            res = self._ping.wait_message([definitions.COMMON_NACK, definitions.PING360_DEVICE_DATA], 0.1)
+            if res is None:
+                return
+        except OSError:
+            rospy.logwarn("ping360 input output error")
             return
 
         if res.message_id == definitions.PING360_DEVICE_DATA:

@@ -11,9 +11,36 @@ from tauv_util.transforms import tf2_transform_to_homogeneous
 import tf2_ros as tf2
 import cv2 as cv
 from typing import Optional
-from datetime import datetime
+from visualization_msgs.msg import Marker
 
 MAP_PATH = "./maps/"
+
+def make_marker(detection, angle):
+
+    marker = Marker()
+    marker.header.frame_id = "kf/odom"
+    marker.header.stamp = rospy.Time()
+    marker.ns = ""
+    marker.id = (int)(angle)
+    marker.type = Marker.SPHERE
+    marker.action = Marker.ADD
+    marker.pose.position.x = detection[0]
+    marker.pose.position.y = detection[1]
+    marker.pose.position.z = detection[2]
+    marker.pose.orientation.x = 0.0
+    marker.pose.orientation.y = 0.0
+    marker.pose.orientation.z = 0.0
+    marker.pose.orientation.w = 1.0
+    marker.scale.x = 0.1
+    marker.scale.y = 0.1
+    marker.scale.z = 0.1
+    marker.color.a =  1
+    marker.color.r = (int)(angle/400)
+    marker.color.g = 0
+    marker.color.b = 0
+    marker.lifetime = rospy.Duration(200)
+    
+    return marker
 
 class SonarGraph:
     def __init__(self):
@@ -30,27 +57,27 @@ class SonarGraph:
         self.heat_map = np.zeros((self.HEAT_MAP_DIM, self.HEAT_MAP_DIM), dtype=np.float64)
 
         self.alignment_map = np.zeros_like(self.heat_map, dtype=np.float64)
-        self.alignment_recency = np.empty_like(self.alignment_points, dtype=np.object)
+        self.alignment_recency = np.zeros_like(self.alignment_map, dtype=np.float64)
+        self.alignment_reference_time = rospy.get_time()
 
         #use below to visualize sonar processing
-        # self.heat = np.zeros_like(self.heat_map)
+        self.heat = np.zeros_like(self.heat_map)
 
         self.global_origin = [self.global_range/2.0, self.global_range/2.0] #yx origin
         self.square_size = self.global_range/self.HEAT_MAP_DIM
 
-        #self._tf_buffer: tf2.Buffer = tf2.Buffer()
-        #self._tf_listener: tf2.TransformListener = tf2.TransformListener(self._tf_buffer)
-
         #for to-world transform operations
         self.RELATIVE_POINT_MAP = np.linspace(0, self.range, num=self.num_distances, endpoint=True)
-        self.rot = np.zeros((3,3))
-        self.positions = np.empty((self.num_distances, 3, 4))
-        self.positions[:,:,3] = 1
+        self.ray_t_sonar = np.zeros((3,3))
+        self.sonar_t_pts = np.empty((self.num_distances, 3, 4))
+        self.sonar_t_pts[:,:,3] = 1
 
         #subscribes to sonar driver publishings
         self.pulse_reader = rospy.Subscriber("/sonar/pulse",SonarPulse, self.read)
         #starts scanning immediately, might wanna start from false
         self.survey_mode = True
+
+        self.pub = rospy.Publisher("/visualization_marker", Marker, queue_size=10)
 
         #communicates directly w global map to send survey points
         rospy.wait_for_service("/global_map/sync_detections")
@@ -85,16 +112,18 @@ class SonarGraph:
 
         #alignment thresholding
         self.alignment_thresh = rospy.get_param('sonar_map/map/alignment/intensity_thresh')
-        alignment_time_thresh_str = rospy.get_param('sonar_map/map/alignment/time_thresh')
-        self.alignment_time_thresh = datetime.strptime(alignment_time_thresh_str, '%M::%S').time()
+        self.alignment_time_thresh = rospy.Time.from_sec(rospy.get_param('sonar_map/map/alignment/sec_thresh'))
         self.alignment_min_points = self.gradians*rospy.get_param('sonar_map/map/alignment/min_mapped')
         self.reference_map_name = rospy.get_param('sonar_map/map/alignment/map_name')
 
         #tf frame names
         self._tf_namespace: str = rospy.get_param('tf_namespace')
         self._world_frame_name = f'{self._tf_namespace}/odom'
-        self._sonar_frame_name = f'{self._tf_namespace}/sonar'
+        self._sonar_frame_name = f'{self._tf_namespace}/sonar1'
         self._kf_frame_name = f'{self._tf_namespace}/vehicle'
+
+        self._tf_buffer: tf2.Buffer = tf2.Buffer()
+        self._tf_listener: tf2.TransformListener = tf2.TransformListener(self._tf_buffer)
 
         try:
             reference_map : Optional[np.typing.NDArray[int]] = cv.imload(MAP_PATH+self.alignment_map_name)
@@ -121,7 +150,7 @@ class SonarGraph:
             raise Exception("Point out of map bounds")
 
     #transforms a heat map index to a 2D point (x, y) relative to odom frame
-    def _map_square_to_point(self, coords : tuple[int, int]) -> tuple[float, float]:
+    def _map_square_to_point(self, coords):
         #add 0.5 to ensure centerpoint of matrix index
         (down, right) = ((coords[0]+0.5)*self.square_size, (coords[1]+0.5)*self.square_size)
         (y, x) = (down - self.global_origin[0], right - self.global_origin[1])
@@ -221,7 +250,9 @@ class SonarGraph:
             return False
 
         # do time-based filtering of self.alignment_map based on self.alignment_recency
-        decay = (np.abs(self._alignment_recency-rospy.Time.now()))>self.alignment_time_thresh
+        time = rospy.get_time()
+        dt = time-self.alignment_reference_time
+        decay = self.alignment_recency>(dt - self.alignment_time_thresh)
 
         # make sure there are enough recent points
         if(np.sum(decay.astype(int)<self.alignment_min_points)):
@@ -237,34 +268,39 @@ class SonarGraph:
         drifted_t_kf = np.eye(4,4)
 
         # calculate the odom to body transfrom
-        time = rospy.Time.now()-self._alignment_time_time_thresh/2
-        world_t_drifted = self._tf_listener(self._world_frame_name, self._kf_frame_name, time)
+        world_t_drifted = self._tf_listener(self._world_frame_name, self._kf_frame_name, rospy.Time(0))
         world_t_kf = world_t_drifted * drifted_t_kf
+
+        self.alignment_reference_time = time
+        self.alignment_recency += dt
 
         return world_t_kf
 
 
     #TODO the static TFs are quite untested and need some fixing :P
-    def _transform_to_world(self, low, mid, high, timestamp = None):
+    def _transform_to_world(self, low, mid, high, timestamp = None, angle = 0.0):
         #assuming northwards 0 degrees and NED
         #TODO TODO TODO THIS TRANSFORM WILL NEED TO BE RECALCULATED AT COMP
-        self.rot[:,0:2] = [[np.cos(low), -np.sin(low)],[np.cos(mid), -np.sin(mid)],[np.cos(high), -np.sin(high)]]
-        self.positions[:,:,0:3] = np.multiply.outer(self.RELATIVE_POINT_MAP,self.rot)
+        self.ray_t_sonar[:,0:2] = [[np.cos(low), np.sin(low)],[np.cos(mid), np.sin(mid)],[np.cos(high), np.sin(high)]]
+        self.sonar_t_pts[:,:,0:3] = np.multiply.outer(self.RELATIVE_POINT_MAP,self.ray_t_sonar)
 
         timestamp = rospy.Time.now() if timestamp is None else timestamp
 
         try:
-            transform = self._tf_buffer.lookup_transform(
+            world_t_sonar_buf = self._tf_buffer.lookup_transform(
             self._world_frame_name,
             self._sonar_frame_name,
-            timestamp
+            timestamp,
+            rospy.Duration(1)
             )
 
-            # H = tf2_transform_to_homogeneous(transform)
+            world_t_sonar = tf2_transform_to_homogeneous(world_t_sonar_buf)
             #TODO rn its just doing a silly little identity mutiplication, change this to TFs
-            H = np.eye(4,4)
+            # H = np.eye(4,4)
 
-            return ((np.matmul(self.positions, H))[:,:,0:3])
+            world_t_pts = np.apply_along_axis(lambda x : np.matmul(world_t_sonar,x), 2,  self.sonar_t_pts)
+
+            return (world_t_pts)
 
         except (tf2.LookupException, tf2.ConnectivityException, tf2.ExtrapolationException) as e:
             rospy.logwarn(f'Could not get transform from {self._world_frame_name} to {self._sonar_frame_name}: {e}')
@@ -281,7 +317,8 @@ class SonarGraph:
             return
 
         #transform data to world coordinates
-        coords = self._transform_to_world(self._to_rad(data.angle-1), self._to_rad(data.angle), self._to_rad(data.angle+1), data.header.stamp)
+        angle = (data.angle-self.gradians/2)%self.gradians
+        coords = self._transform_to_world(self._to_rad(angle-1), self._to_rad(angle), self._to_rad(angle+1), data.header.stamp, angle)
 
         #gets the signal data
         ray = self._get_ray(data.data)
@@ -289,6 +326,7 @@ class SonarGraph:
 
         #retainment of previous map data, scales down to stay within data range
         updated_map = self.heat_map*(1-self.residue_factor)
+        print(coords)
         
         try:
             prev_points = np.apply_along_axis(self._get_map_square, 1, (coords[self.ignore_radius]))
@@ -299,12 +337,19 @@ class SonarGraph:
                 #fits hexagon to approximate sonar ray arc between previous and current distance
                 hex = np.concatenate((prev_points, cur_points))
                 #fills in the approximated area with the signal detection
+                print("this")
                 updated_map = cv.fillPoly(updated_map, [hex], signal[i]*(1-self.residue_factor+self.confidence_increment))
+                print("not")
+
+                self.pub.publish(make_marker(coords[i,1], angle))
 
                 if(update_alignment):
-                    self.alignment_map = cv.fillPoly(self.alignment_map, [hex], ray[i])
-                    self.alignment_recency = cv.fillPoly(self.alignment_recency, [hex], data.header.stamp)
-
+                    print("here")
+                    print(ray[i])
+                    self.alignment_map = cv.fillPoly(self.alignment_map, [hex], (int)(ray[i]))
+                    print("here!")
+                    self.alignment_recency = cv.fillPoly(self.alignment_recency, [hex], data.header.stamp.to_sec()-self.alignment_reference_time)
+                    print("good")
                 prev_points = cur_points
 
         #ends loop at first out-of-bounds transform
@@ -314,9 +359,9 @@ class SonarGraph:
         self.heat_map = updated_map+(self.heat_map*self.residue_factor)
 
         #for visualization
-        # show = cv.applyColorMap(np.round(self.heat).astype(np.uint8), cv.COLORMAP_JET)
-        # cv.imshow("Color-map",show)
-        # cv.waitKey(1)
+        show = cv.applyColorMap(np.round(self.heat).astype(np.uint8), cv.COLORMAP_JET)
+        cv.imshow("Color-map",show)
+        cv.waitKey(1)
 
     #handles the enumerated interactions w sonar map
     def handle_sig(self, req):

@@ -16,7 +16,7 @@ device: {
 }
 map: {
   degrees: 400,
-  global_range: 21.0,
+  global_range: 50.0,
   map_dimension: 500,
 
   residue_factor: 0.75, #some averaging factor <1 for retaining old signals
@@ -33,8 +33,8 @@ map: {
   alignment:
   {
     map_name: "test_map.jpg",
-    time_thresh: "00:30",
-    intensity_thresh: 
-    min_mapped: 0.5: 
+    sec_thresh: 15,
+    intensity_thresh: 100,
+    min_mapped: 0.5
   }
 }

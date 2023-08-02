@@ -3,7 +3,7 @@
     <arg name="debug" default="none" />
     <arg name="yolo_weights_path" default="/shared/weights" />
 
-<!--    <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">-->
+<!-- <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">-->
 <!--        <arg name="yolo_weights_path" value="$(arg yolo_weights_path)" />-->
 <!--        <arg name="network_param_file" value="$(arg config_pkg)/darknet_config/yolov4-23-v1.yaml" />-->
 <!--    </include>-->
@@ -17,7 +17,7 @@
 <!--        <remap from="color" to="vehicle/oakd_front/color/image_raw"/>-->
 <!--        <remap from="depth" to="vehicle/oakd_front/depth/image_raw"/>-->
 <!--        <remap from="camera_info" to="vehicle/oakd_front/depth/camera_info"/>-->
-<!--    </node>-->
+<!--    </node> -->
 
     <node pkg="tauv_common" type="shape_detector" name="shape_detector" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/yaml/shape_detector.yaml" />
