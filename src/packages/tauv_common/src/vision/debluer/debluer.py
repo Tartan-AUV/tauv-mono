@@ -1,28 +1,42 @@
 import rospy
 import numpy as np
-import cv_bridge
 import sensor_msgs.msg
 from typing import Optional
 import threading
 import math
 import scipy as sp
 import sys
-import rawpy
 import collections
 from PIL import Image
+import cv2
+from cv_bridge import CvBridge
+from skimage.restoration import denoise_bilateral, denoise_tv_chambolle, estimate_sigma
+from skimage.morphology import closing, opening, erosion, dilation, disk, diamond, square
 
+
+class DeluberParams:
+    def __init__(self) -> None:
+        self.f = 2.0
+        self.l = 0.5
+        self.p = 0.01
+        self.min_depth = 0.1
+        self.spread_data_fraction = 0.01
+        self.additive_depth = 2.0
+        self.multiply_depth = 10.0
 
 class Debluer:
     def __init__(self) -> None:
         self.lock = threading.Lock()
         self.lock.acquire()
         self.frame_id = rospy.get_param('~frame_id')
-        self.cv_bridge = cv_bridge.CvBridge()
-        self.img_sub = rospy.Subscriber(f'vehicle/{self.frame_id}/color/image_raw', Image, self.handle_img)
-        self.depth_sub = rospy.Subscriber(f'vehicle/{self.frame_id}/depth/image_raw', Image, self.handle_depth)
+        self.cv_bridge = CvBridge()
+        self.img_sub = rospy.Subscriber(f'vehicle/{self.frame_id}/color/image_raw', sensor_msgs.msg.Image, self.handle_img)
+        self.depth_sub = rospy.Subscriber(f'vehicle/{self.frame_id}/depth/image_raw', sensor_msgs.msg.Image, self.handle_depth)
         self.pub = rospy.Publisher(f'vision/{self.frame_id}/debluer', sensor_msgs.msg.Image)
         self.depth: Optional[sensor_msgs.msg.Image] = None
         self.lock.release()
+
+        self.deluber_params = DeluberParams()
 
     def start(self):
         rospy.spin()
@@ -32,14 +46,28 @@ class Debluer:
         self.depth = msg
         self.lock.release()
 
+    # def preprocess_for_monodepth(self, img_fname, output_fname, size_limit=1024):
+    #     img = Image.fromarray(rawpy.imread(img_fname).postprocess())
+    #     img.thumbnail((size_limit, size_limit), Image.ANTIALIAS)
+    #     img_adapteq = exposure.equalize_adapthist(np.array(img), clip_limit=0.03)
+    #     Image.fromarray((np.round(img_adapteq * 255.0)).astype(np.uint8)).save(output_fname)
+
+    def preprocess_monodepth_depth_map(self, depths, additive_depth, multiply_depth):
+        depths = ((depths - np.min(depths)) / (
+                    np.max(depths) - np.min(depths))).astype(np.float32)
+        depths = (multiply_depth * (1.0 - depths)) + additive_depth
+        return depths
+
     def find_backscatter_estimation_points(self, img, depths, num_bins=10, fraction=0.01, max_vals=20, min_depth_percent=0.0):
         z_max, z_min = np.max(depths), np.min(depths)
+        
         min_depth = z_min + (min_depth_percent * (z_max - z_min))
         z_ranges = np.linspace(z_min, z_max, num_bins + 1)
         img_norms = np.mean(img, axis=2)
         points_r = []
         points_g = []
         points_b = []
+
         for i in range(len(z_ranges) - 1):
             a, b = z_ranges[i], z_ranges[i+1]
             locs = np.where(np.logical_and(depths > min_depth, np.logical_and(depths >= a, depths <= b)))
@@ -106,13 +134,13 @@ class Debluer:
             if(np.max(np.abs(avg_cs - new_avg_cs)) < tol):
                 break
             avg_cs = new_avg_cs
-        return f * self.denoise_bilateral(np.maximum(0, avg_cs))
+        return f * denoise_bilateral(np.maximum(0, avg_cs))
 
     def estimate_wideband_attentuation(self, depths, illum, radius = 6, max_val = 10.0):
         eps = 1E-8
         BD = np.minimum(max_val, -np.log(illum + eps) / (np.maximum(0, depths) + eps))
         mask = np.where(np.logical_and(depths > eps, illum > eps), 1, 0)
-        refined_attenuations = self.denoise_bilateral(self.closing(np.maximum(0, BD * mask), self.disk(radius)))
+        refined_attenuations = denoise_bilateral(closing(np.maximum(0, BD * mask), disk(radius)))
         return refined_attenuations, []
 
     def calculate_beta_D(self, depths, a, b, c, d):
@@ -235,7 +263,7 @@ class Debluer:
         return nmap, n_neighborhoods - 1
 
     def find_closest_label(self, nmap, start_x, start_y):
-        mask = np.zeros_like(nmap).astype(np.bool)
+        mask = np.zeros_like(nmap).astype(bool)
         q = collections.deque()
         q.append((start_x, start_y))
         while not len(q) == 0:
@@ -274,7 +302,7 @@ class Debluer:
             if size < min_size and label != 0:
                 for x, y in zip(*np.where(nmap == label)):
                     refined_nmap[x, y] = self.find_closest_label(refined_nmap, x, y)
-        refined_nmap = self.closing(refined_nmap, self.square(radius))
+        refined_nmap = closing(refined_nmap, square(radius))
         return refined_nmap, num_labels - 1
 
     def wbalance_gw(self, img):
@@ -369,18 +397,31 @@ class Debluer:
 
     def handle_img(self, msg):
         self.lock.acquire()
+
         if self.depth is None:
             self.lock.release()
             return
 
         img = self.cv_bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
         depth_img = self.cv_bridge.imgmsg_to_cv2(self.depth, desired_encoding='mono16')
-        result = self.run_pipeline(img, depth_img)
-        result_msg = self.cv_bridge.cv2_to_imgmsg(result, encoding='bgr8')
+        processed_depth_img = self.preprocess_monodepth_depth_map(
+            depth_img, self.deluber_params.additive_depth, self.deluber_params.multiply_depth
+        )
+
+        # TODO: remove resizing
+        resized_processed_depth_img = cv2.resize(processed_depth_img, (1280, 720), interpolation = cv2.INTER_AREA)
+
+        result = self.run_pipeline(img, resized_processed_depth_img, self.deluber_params)
+        result_msg = self.cv_bridge.cv2_to_imgmsg(result, encoding="passthrough")
+
+        new_result_msg = cv2.cvtColor() # TODO: convert image type
+        print("Finished DEBLUING")
+        print(result_msg)
         self.pub.publish(result_msg)
+
         self.lock.release()
     
-    def main():
-        rospy.init_node('debluer')
-        n = Debluer()
-        n.start()
+def main():
+    rospy.init_node('debluer')
+    n = Debluer()
+    n.start()
