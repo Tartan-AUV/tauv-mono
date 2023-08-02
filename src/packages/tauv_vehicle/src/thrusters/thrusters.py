@@ -107,8 +107,8 @@ class Thrusters:
         if position > 0:
             pwm_speed = self._servo_zero_pwms[servo] + position * (self._servo_max_pwms[servo] - self._servo_zero_pwms[servo])
         else:
-            pwm_speed = self._servo_zero_pwms[servo] + position * (self._servo_min_pwms[servo] - self._servo_zero_pwms[servo])
-        self._maestro.setTarget(pwm_speed * 4, self._servo_channels[servo])
+            pwm_speed = self._servo_zero_pwms[servo] - position * (self._servo_min_pwms[servo] - self._servo_zero_pwms[servo])
+        self._maestro.setTarget(int(pwm_speed * 4), self._servo_channels[servo])
 
     def _get_pwm_speed(self, thruster: int, thrust: float) -> int:
         pwm_speed = 1500

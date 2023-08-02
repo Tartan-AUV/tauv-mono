@@ -3,12 +3,18 @@ from abc import ABC, abstractmethod
 from enum import IntEnum
 from dataclasses import dataclass
 from threading import Event
-from motion_client.motion_client import MotionClient
+from motion_client import MotionClient
+from actuator_client import ActuatorClient
+from map_client import MapClient
+from transform_client import TransformClient
 
 
 @dataclass
 class TaskResources:
     motion: MotionClient
+    actuators: ActuatorClient
+    map: MapClient
+    transforms: TransformClient
 
 
 TaskStatus = IntEnum
