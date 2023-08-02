@@ -1,0 +1,4 @@
+v_max_linear: 0.5
+a_linear: 0.1
+v_max_angular: 0.5
+a_angular: 0.1

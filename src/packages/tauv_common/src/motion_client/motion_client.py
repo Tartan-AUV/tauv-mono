@@ -10,7 +10,6 @@ from trajectories import Trajectory, ConstantAccelerationTrajectory, ConstantAcc
 from geometry_msgs.msg import Pose as PoseMsg, PoseStamped as PoseStampedMsg, Twist as TwistMsg, TwistStamped as TwistStampedMsg
 from tauv_util.spatialmath import ros_nav_state_to_se3, ros_nav_state_to_body_twist3, body_twist3_to_world_twist3, flatten_se3, flatten_twist3, se3_to_ros_pose, twist3_to_ros_twist
 
-
 class MotionClient:
 
     def __init__(self):

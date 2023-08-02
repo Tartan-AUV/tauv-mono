@@ -1,6 +1,7 @@
 import rospy
 
 from std_msgs.msg import Float64
+import time
 
 
 class ActuatorClient:
@@ -28,9 +29,15 @@ class ActuatorClient:
             raise ValueError(f"torpedo must be one of [0, 1], got {torpedo}")
 
         rospy.loginfo(f"shooting torpedo {torpedo}...")
-        # TODO: do appropriate thing
 
-        self._torpedo_pub.publish(0)
+        if torpedo == 0:
+            self._torpedo_pub.publish(1.0)
+            time.sleep(1.0)
+            self._torpedo_pub.publish(0.0)
+        else:
+            self._torpedo_pub.publish(-1.0)
+            time.sleep(1.0)
+            self._torpedo_pub.publish(0.0)
 
     def drop_marker(self, marker: int):
         if not self._has_marker:
@@ -40,9 +47,15 @@ class ActuatorClient:
             raise ValueError(f"marker must be one of [0, 1], got {marker}")
 
         rospy.loginfo(f"dropping marker {marker}...")
-        # TODO: do appropriate thing
 
-        self._marker_pub.publish(0)
+        if marker == 0:
+            self._marker_pub.publish(1.0)
+            time.sleep(1.0)
+            self._marker_pub.publish(0.0)
+        else:
+            self._marker_pub.publish(-1.0)
+            time.sleep(1.0)
+            self._marker_pub.publish(0.0)
 
     def move_arm(self, position: float):
         if not self._has_arm:
@@ -52,9 +65,8 @@ class ActuatorClient:
             raise ValueError(f"position must be in [0, 1], got {position}")
 
         rospy.loginfo(f"moving arm to {position}...")
-        # TODO: do appropriate thing
 
-        self._arm_pub.publish(0)
+        self._arm_pub.publish(-position)
 
     def activate_suction(self, strength: float):
         if not self._has_suction:
@@ -64,9 +76,8 @@ class ActuatorClient:
             raise ValueError(f"strength must be in [0, 1], got {strength}")
 
         rospy.loginfo(f"setting suction to {strength}...")
-        # TODO: do appropriate thing
 
-        self._suction_pub.publish(0)
+        self._suction_pub.publish(strength)
 
     def _load_config(self):
         self._has_torpedo: bool = rospy.get_param('~has_torpedo')

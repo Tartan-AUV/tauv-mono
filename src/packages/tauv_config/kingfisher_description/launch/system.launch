@@ -57,6 +57,9 @@
         <rosparam command="load" file="$(arg config_pkg)/yaml/sonar.yaml" />
     </node>
 
+    <rosparam command="load" file="$(arg config_pkg)/yaml/actuators/yaml" ns="actuators">
+    <rosparam command="load" file="$(arg config_pkg)/yaml/motion/yaml" ns="motion">
+
     <!-- Start the vision system: -->
     <!-- Launch mission system -->
     <!--     <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
