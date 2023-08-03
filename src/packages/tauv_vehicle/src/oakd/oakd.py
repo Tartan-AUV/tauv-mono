@@ -52,7 +52,6 @@ class OAKDNode:
         self._depth.setSubpixel(False)
         self._depth.setOutputSize(1280, 720)
         self._depth.setDepthAlign(depthai.CameraBoardSocket.RGB)
-        self._depth.setOutputSize(1280, 720)
         self._depth.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         self._depth.initialConfig.setMedianFilter(depthai.MedianFilter.KERNEL_7x7)
 
