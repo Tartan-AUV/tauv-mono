@@ -1,9 +1,10 @@
 import numpy as np
 import rospy
 import tf
+from tauv_util.types import tl, tm
 from filterpy.monte_carlo import systematic_resample
 from dataclasses import dataclass
-from geometry_msgs.msg import PoseWithCovarianceStamped, Vector3
+from geometry_msgs.msg import PoseWithCovarianceStamped, Vector3Stamped, PoseWithCovariance, Pose, Point, Quaternion
 
 @dataclass
 class UniformInitParams:
@@ -42,8 +43,8 @@ class ParticleFilter:
         self._predict_noise = predict_stddev
     
     def update(self, vehicle_pos, meas_direction):
-        self.predict_particles()
-        self.reweight_particles(vehicle_pos, meas_direction)
+        self._predict_particles()
+        self._reweight_particles(vehicle_pos, meas_direction)
 
         if self._neff(self._weights) < self._neff_thresh:
             self.resample_particles()
@@ -104,15 +105,17 @@ class PingerLocalizerPF:
     def __init__(self) -> None:
         self._load_config()
         self._direction_sub = rospy.Subscriber(f'{self._vehicle_ns}/pinger_localizer/direction', Vector3Stamped, self._handle_direction)
-        self._pinger_loc_pub = rospy.Publisher(f'{self._vehicle_ns}/pinger_localizer/pinger_loc_pf', PoseWithCovarianceStamped)
+        self._pinger_loc_pub = rospy.Publisher(f'{self._vehicle_ns}/pinger_localizer/pinger_loc_pf', PoseWithCovarianceStamped, queue_size=10)
         init_params = UniformInitParams(self._x_range, self._y_range, self._z_range)
 
         self._pf = ParticleFilter(self._n_particles, init_params)
 
-    def _handle_direction(self, direction: Vector3Stamped):
+    def _handle_direction(self, msg: Vector3Stamped):
+        direction = msg.direction
+
         direction_time = rospy.Time(
-            secs=direction.header.stamp.secs,
-            nsecs=direction.header.stamp.nsecs
+            secs=msg.header.stamp.secs,
+            nsecs=msg.header.stamp.nsecs
         )
 
         world_direction = tf.TransformerROS.transformVector3(target_frame='kf/world', v3s=direction)
@@ -120,6 +123,23 @@ class PingerLocalizerPF:
 
         self._pf.update(vehicle_pos, world_direction)
         pinger_mean, pinger_var = self._pf.estimate_state()
+
+        flat_cov_matrix = np.zeros(shape=(6,6))
+        flat_cov_matrix[0, 0] = pinger_var[0]
+        flat_cov_matrix[1, 1] = pinger_var[1]
+        flat_cov_matrix[2, 2] = pinger_var[2]
+
+        pinger_loc_estimate = PoseWithCovarianceStamped(
+            header=msg.header,
+            pose=PoseWithCovariance(
+                pose=Pose(
+                    position=tm(pinger_mean, Point)
+                ),
+                covariance=[pinger_var[0]]
+            )
+        )
+
+        self._pinger_loc_pub.publish(pinger_loc_estimate)
     
     def load_config(self):
         self._vehicle_ns = rospy.get_param("namespace")
