@@ -15,6 +15,10 @@ class FitPlaneResult:
 
 def fit_plane(depth: np.array, intrinsics: CameraIntrinsics) -> FitPlaneResult:
     img_points = depth.nonzero()
+
+    if np.sum(depth > 0) < 10:
+        return FitPlaneResult(np.zeros(3), np.zeros(3), 0, 0)
+
     img_points = np.column_stack(img_points)
 
     z = depth[img_points[:, 0], img_points[:, 1]]

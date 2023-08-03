@@ -3,17 +3,17 @@ detectors:
   oakd_front: ['circle']
   oakd_bottom: ['path_marker', 'chevron', 'lid']
 synchronizer_queue_size: 10
-synchronizer_slop: 0.1
+synchronizer_slop: 0.5
 
 circle:
   threshold:
     # H low, S low, V low, H high, S high, V high
     global_thresholds:
-      - [0, 0, 50, 5, 255, 150]
-      - [160, 0, 0, 180, 255, 255]
+      - [0, 0, 0, 180, 255, 255]
     # S low, V low, S high, V high
     local_thresholds:
-      - [20, -255, 255, 255]
+      - [-255, 10, 255, 255]
+      # - [ -255, -255, 255, -5]
     window_size: 35
   pose:
     min_size: [50, 50]
@@ -41,11 +41,11 @@ chevron:
   threshold:
     # H low, S low, V low, H high, S high, V high
     global_thresholds:
-      - [0, 0, 0, 20, 255, 255]
-      - [160, 0, 0, 180, 255, 255]
+      - [0, 10, 20, 20, 255, 255]
+      - [160, 10, 20, 180, 255, 255]
     # S low, V low, S high, V high
     local_thresholds:
-      - [20, -255, 255, 255]
+      - [-255, -255, 255, 255]
     window_size: 35
   pose:
     min_size: [25, 25]

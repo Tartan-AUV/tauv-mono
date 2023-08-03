@@ -29,6 +29,7 @@ class Task(ABC):
 
     def __init__(self) -> None:
         self._cancel_event: Event = Event()
+        self._cancel_complete_event: Event = Event()
 
     @abstractmethod
     def run(self, resources: TaskResources) -> TaskResult:
@@ -41,6 +42,7 @@ class Task(ABC):
     def cancel(self):
         rospy.logdebug('cancel setting cancel_event')
         self._cancel_event.set()
+        self._cancel_complete_event.wait()
 
     def _check_cancel(self, resources: TaskResources):
         rospy.logdebug('_check_cancel checking cancel_event')
@@ -49,3 +51,5 @@ class Task(ABC):
             self._cancel_event.clear()
 
             self._handle_cancel(resources)
+
+            self._cancel_complete_event.set()

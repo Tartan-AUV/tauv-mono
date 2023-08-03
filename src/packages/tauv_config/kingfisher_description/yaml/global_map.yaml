@@ -48,7 +48,7 @@ tracker_params: {
 tag_params: {
   #params not specified within a tagged scope are default parameters for any tag but can be
   #respecified within a specific tag scope
-  DECAY_THRESHOLD: 0.7, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
+  DECAY_THRESHOLD: 0.3, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
   recency_weight: 0.7,
   frequency_weight: 0.5,
   badge: {
@@ -56,7 +56,19 @@ tag_params: {
   },
   phone: {
     expected_count: 1
-  }
+  },
+  buoy_abydos_1: {
+    expected_count: 1
+  },
+  buoy_abydos_2: {
+    expected_count: 1
+  },
+  buoy_earth_1: {
+    expected_count: 1
+  },
+  buoy_earth_2: {
+    expected_count: 1
+  },
 }
 
 kalman_params: {
