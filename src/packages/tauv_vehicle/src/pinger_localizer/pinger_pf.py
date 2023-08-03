@@ -4,6 +4,8 @@ import tf
 from tauv_util.types import tl, tm
 from filterpy.monte_carlo import systematic_resample
 from dataclasses import dataclass
+from typing import List
+from std_msgs.msg import Header
 from geometry_msgs.msg import PoseWithCovarianceStamped, Vector3Stamped, PoseWithCovariance, Pose, Point, Quaternion
 
 @dataclass
@@ -105,44 +107,55 @@ class PingerLocalizerPF:
     def __init__(self) -> None:
         self._load_config()
         self._direction_sub = rospy.Subscriber(f'vehicle/pinger_localizer/direction', Vector3Stamped, self._handle_direction)
-        self._pinger_loc_pub = rospy.Publisher(f'vehicle/pinger_localizer/pinger_loc_pf', PoseWithCovarianceStamped, queue_size=10)
-        init_params = UniformInitParams(self._x_range, self._y_range, self._z_range)
+        self._pinger_loc_pub = rospy.Publisher(f'vehicle/pinger_localizer/pinger_pf', PoseWithCovarianceStamped, queue_size=10)
+        
+        init_sample_params = UniformInitParams(self._x_range, self._y_range, self._z_range)
+        self._pf = ParticleFilter(self._n_particles, init_sample_params)
 
-        self._pf = ParticleFilter(self._n_particles, init_params)
+    def start(self):
+        rospy.spin()
 
-    def _handle_direction(self, msg: Vector3Stamped):
-        direction = msg.direction
-
+    def _handle_direction(self, direction: Vector3Stamped):
         direction_time = rospy.Time(
-            secs=msg.header.stamp.secs,
-            nsecs=msg.header.stamp.nsecs
+            secs=direction.header.stamp.secs,
+            nsecs=direction.header.stamp.nsecs
         )
 
-        world_direction = tf.TransformerROS.transformVector3(target_frame='kf/world', v3s=direction)
-        (vehicle_pos, _) = tf.Transformer.lookupTransform(target_frame='kf/odom', source_frame='kf/vehicle', time=direction_time)
+        world_direction = tf.TransformerROS.transformVector3(target_frame='kf/odom', v3s=direction)
+        vehicle_pos, _ = tf.Transformer.lookupTransform(target_frame='kf/odom', source_frame=direction.header.frame_id, time=direction_time)
 
         self._pf.update(vehicle_pos, world_direction)
         pinger_mean, pinger_var = self._pf.estimate_state()
 
-        flat_cov_matrix = np.zeros(shape=(6,6))
+        flat_cov_matrix = np.zeros(shape=(6, 6))
         flat_cov_matrix[0, 0] = pinger_var[0]
         flat_cov_matrix[1, 1] = pinger_var[1]
         flat_cov_matrix[2, 2] = pinger_var[2]
+        flat_cov_matrix = flat_cov_matrix.flatten()
 
         pinger_loc_estimate = PoseWithCovarianceStamped(
-            header=msg.header,
+            header=Header(
+                stamp=rospy.Time.now(),
+                frame_id="kf/odom"
+            ),
             pose=PoseWithCovariance(
                 pose=Pose(
-                    position=tm(pinger_mean, Point)
+                    position=tm(pinger_mean, Point),
+                    orientation=[0, 0, 0, 1]
                 ),
-                covariance=[pinger_var[0]]
+                covariance=flat_cov_matrix
             )
         )
 
         self._pinger_loc_pub.publish(pinger_loc_estimate)
     
     def load_config(self):
-        self._n_particles = rospy.get_param("~pinger_pf_n_particles")
-        self._x_range = rospy.get_param("~pinger_pf_x_range")
-        self._y_range = rospy.get_param("~pinger_pf_y_range")
-        self._z_range = rospy.get_param("~pinger_pf_z_range")
+        self._n_particles = rospy.get_param("~n_particles")
+        self._x_range = tuple(rospy.get_param("~x_range"))
+        self._y_range = tuple(rospy.get_param("~y_range"))
+        self._z_range = tuple(rospy.get_param("~z_range"))
+
+def main():
+    rospy.init_node('pinger_pf')
+    p = PingerLocalizerPF()
+    p.start()
