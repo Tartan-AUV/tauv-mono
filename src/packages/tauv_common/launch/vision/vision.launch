@@ -19,13 +19,12 @@
 <!--        <remap from="camera_info" to="vehicle/oakd_front/depth/camera_info"/>-->
 <!--    </node> -->
 
-    <node pkg="tauv_common" type="shape_detector" name="shape_detector" output="screen">
+    <!-- <node pkg="tauv_common" type="shape_detector" name="shape_detector" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/yaml/shape_detector.yaml" />
         <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>
-    </node>
+    </node> -->
 
-<!--    <node pkg="tauv_common" type="logger" name="logger" output="screen">-->
-<!--    </node>-->
+    <!-- <include file="$(find tauv_common)/launch/vision/map_test.launch"/> -->
 
     <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
 
