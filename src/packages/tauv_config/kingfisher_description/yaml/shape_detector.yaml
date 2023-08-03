@@ -1,7 +1,85 @@
-hsv_ranges:
-  # H low, H high, S low, S high, V low, V high
-  - [0, 20, 30, 255, 30, 255]
-  - [160, 180, 30, 255, 30, 255]
-contour_area_threshold: 1000
-ellipse_defects_threshold: 0.01
-circle_width: 0.29
+frame_ids: ['oakd_front', 'oakd_bottom']
+detectors:
+  oakd_front: ['circle']
+  oakd_bottom: ['path_marker', 'chevron', 'lid']
+synchronizer_queue_size: 10
+synchronizer_slop: 0.5
+
+circle:
+  threshold:
+    # H low, S low, V low, H high, S high, V high
+    global_thresholds:
+      - [0, 0, 0, 180, 255, 255]
+    # S low, V low, S high, V high
+    local_thresholds:
+      - [-255, 10, 255, 255]
+      # - [ -255, -255, 255, -5]
+    window_size: 35
+  pose:
+    min_size: [50, 50]
+    max_size: [500, 500]
+    min_aspect_ratio: 1.0
+    max_aspect_ratio: 1.5
+    depth_mask_scale: 2.0
+
+path_marker:
+  threshold:
+    # H low, S low, V low, H high, S high, V high
+    global_thresholds:
+      - [0, 0, 50, 20, 255, 255]
+    # S low, V low, S high, V high
+    local_thresholds:
+      - [10, -255, 255, 255]
+    window_size: 35
+  pose:
+    min_size: [25, 100]
+    max_size: [1000, 1000]
+    min_aspect_ratio: 3
+    max_aspect_ratio: 10
+
+chevron:
+  threshold:
+    # H low, S low, V low, H high, S high, V high
+    global_thresholds:
+      - [0, 10, 20, 20, 255, 255]
+      - [160, 10, 20, 180, 255, 255]
+    # S low, V low, S high, V high
+    local_thresholds:
+      - [-255, -255, 255, 255]
+    window_size: 35
+  pose:
+    min_size: [25, 25]
+    max_size: [1000, 1000]
+    min_aspect_ratio: 1
+    max_aspect_ratio: 10
+    contour_approximation_factor: 0.05
+    angles: [1.57, 2.35, 0.78, 1.57, 0.78, 2.35]
+    angle_match_tolerance: 0.2
+    depth_window_size: 30
+
+lid:
+  threshold:
+    orange:
+      global_thresholds:
+        - [0, 50, 50, 20, 255, 255]
+      local_thresholds:
+        - [20, 0, 255, 255]
+      window_size: 35
+    purple:
+      global_thresholds:
+        - [120, 50, 50, 130, 255, 255]
+      local_thresholds:
+        - [-255, -255, 255, 255]
+      window_size: 35
+  pose:
+    orange:
+      min_size: [50, 50]
+      max_size: [500, 500]
+      min_aspect_ratio: 1.5
+      max_aspect_ratio: 2.5
+      contour_approximation_factor: 0.05
+    purple:
+      min_size: [5, 20]
+      max_size: [500, 500]
+      min_aspect_ratio: 4
+      max_aspect_ratio: 20

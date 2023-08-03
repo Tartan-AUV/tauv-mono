@@ -32,6 +32,7 @@ add_message_files(
   PIDTuning.msg
   PIDDebug.msg
   PIDPlannerDebug.msg
+  PingDetection.msg
 )
 
 add_service_files(

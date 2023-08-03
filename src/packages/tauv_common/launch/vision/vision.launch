@@ -3,14 +3,14 @@
     <arg name="debug" default="none" />
     <arg name="yolo_weights_path" default="/shared/weights" />
 
-<!-- <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">-->
-<!--        <arg name="yolo_weights_path" value="$(arg yolo_weights_path)" />-->
-<!--        <arg name="network_param_file" value="$(arg config_pkg)/darknet_config/yolov4-23-v1.yaml" />-->
-<!--    </include>-->
+   <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">-->
+       <arg name="yolo_weights_path" value="$(arg yolo_weights_path)" />-->
+       <arg name="network_param_file" value="$(arg config_pkg)/darknet_config/yolov3-23-v1.yaml" />-->
+   </include>-->
 
-<!--    <node pkg="tauv_common" type="darknet_transformer" name="darknet_transformer" output="screen">-->
-<!--        <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>-->
-<!--    </node>-->
+   <node pkg="tauv_common" type="darknet_transformer" name="darknet_transformer" output="screen">-->
+       <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>-->
+   </node>-->
 
 <!--    <node pkg="tauv_common" type="gate_detector" name="gate_detector" output="screen">-->
 <!--        <rosparam command="load" file="$(arg config_pkg)/yaml/gate_detector.yaml" />-->
@@ -34,5 +34,14 @@
         name="global_map"
         output="screen"
     >
+    </node>
+
+    <node
+        pkg="tauv_gui"
+        type="map_visualizer"
+        name="map_visualizer"
+        output="screen"
+    >
+        <rosparam command="load" file="$(find tauv_gui)/yaml/map_visualizer.yaml"/>
     </node>
 </launch>

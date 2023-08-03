@@ -3,12 +3,18 @@ from abc import ABC, abstractmethod
 from enum import IntEnum
 from dataclasses import dataclass
 from threading import Event
-from motion_client.motion_client import MotionClient
+from motion_client import MotionClient
+from actuator_client import ActuatorClient
+from map_client import MapClient
+from transform_client import TransformClient
 
 
 @dataclass
 class TaskResources:
     motion: MotionClient
+    actuators: ActuatorClient
+    map: MapClient
+    transforms: TransformClient
 
 
 TaskStatus = IntEnum
@@ -23,6 +29,7 @@ class Task(ABC):
 
     def __init__(self) -> None:
         self._cancel_event: Event = Event()
+        self._cancel_complete_event: Event = Event()
 
     @abstractmethod
     def run(self, resources: TaskResources) -> TaskResult:
@@ -35,6 +42,7 @@ class Task(ABC):
     def cancel(self):
         rospy.logdebug('cancel setting cancel_event')
         self._cancel_event.set()
+        self._cancel_complete_event.wait()
 
     def _check_cancel(self, resources: TaskResources):
         rospy.logdebug('_check_cancel checking cancel_event')
@@ -43,3 +51,5 @@ class Task(ABC):
             self._cancel_event.clear()
 
             self._handle_cancel(resources)
+
+            self._cancel_complete_event.set()

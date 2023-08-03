@@ -17,7 +17,7 @@ class TransformClient:
 
     def get_a_to_b(self, frame_a: str, frame_b: str,
                    time: rospy.Time = rospy.Time(0),
-                   timeout: rospy.Duration = rospy.Duration(0)) -> SE3:
+                   timeout: rospy.Duration = rospy.Duration(1)) -> SE3:
         tf_transform = self._tf_buffer.lookup_transform(frame_a, frame_b, time, timeout)
         return ros_transform_to_se3(tf_transform.transform)
 

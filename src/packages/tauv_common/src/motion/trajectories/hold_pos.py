@@ -1,7 +1,7 @@
 
 import abc
 from enum import Enum
-from motion_client.trajectories.trajectories import TrajectoryStatus
+from motion.trajectories.trajectories import TrajectoryStatus
 from nav_msgs.msg import Path
 from collections import Iterable
 from tauv_msgs.srv import GetTrajectory

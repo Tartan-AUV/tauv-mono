@@ -104,9 +104,11 @@ class Thrusters:
         self._maestro.setTarget(pwm_speed * 4, self._thruster_channels[thruster])
 
     def _set_position(self, servo: int, position: float):
-        position = clamp(position, -180, 180)
-        pwm_speed = floor((position / 90) * 1000 + 1500)
-        self._maestro.setTarget(pwm_speed * 4, self._servo_channels[servo])
+        if position > 0:
+            pwm_speed = self._servo_zero_pwms[servo] + position * (self._servo_max_pwms[servo] - self._servo_zero_pwms[servo])
+        else:
+            pwm_speed = self._servo_zero_pwms[servo] - position * (self._servo_min_pwms[servo] - self._servo_zero_pwms[servo])
+        self._maestro.setTarget(int(pwm_speed * 4), self._servo_channels[servo])
 
     def _get_pwm_speed(self, thruster: int, thrust: float) -> int:
         pwm_speed = 1500
@@ -149,6 +151,9 @@ class Thrusters:
         self._maestro_port: str = rospy.get_param('~maestro_port')
         self._thruster_channels: [int] = rospy.get_param('~thruster_channels')
         self._servo_channels: [int] = rospy.get_param('~servo_channels')
+        self._servo_min_pwms: [int] = rospy.get_param('~servo_min_pwms')
+        self._servo_max_pwms: [int] = rospy.get_param('~servo_max_pwms')
+        self._servo_zero_pwms: [int] = rospy.get_param('~servo_zero_pwms')
         self._default_battery_voltage: float = rospy.get_param('~default_battery_voltage')
         self._minimum_pwm_speed: float = rospy.get_param('~minimum_pwm_speed')
         self._maximum_pwm_speed: float = rospy.get_param('~maximum_pwm_speed')

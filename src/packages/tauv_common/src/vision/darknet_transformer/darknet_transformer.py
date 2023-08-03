@@ -4,6 +4,7 @@ import rospy
 import threading
 from typing import Dict
 from tauv_msgs.msg import FeatureDetection, FeatureDetections
+import cv2
 from tauv_msgs.srv import GetCameraInfo
 import numpy as np
 from cv_bridge import CvBridge
@@ -14,6 +15,10 @@ from tauv_util.transforms import tf2_transform_to_homogeneous
 from geometry_msgs.msg import Vector3
 import tf2_ros as tf2
 from collections import deque
+from spatialmath import SE3, SO3
+from tauv_util.cameras import CameraIntrinsics
+from vision.shape_detector.plane_fitting import fit_plane
+from tauv_util.spatialmath import ros_transform_to_se3, r3_to_ros_vector3
 
 
 class DarknetTransformer():
@@ -32,6 +37,7 @@ class DarknetTransformer():
         self._cv_bridge: CvBridge = CvBridge()
 
         self._camera_infos: Dict[str, CameraInfo] = {}
+        self._intrinsics: Dict[str, CameraIntrinsics] = {}
         self._depth_subs: Dict[str, rospy.Subscriber] = {}
 
         self._bboxes_queues: Dict[str, deque[BoundingBoxes]] = {}
@@ -42,6 +48,7 @@ class DarknetTransformer():
 
         for frame_id in self._frame_ids:
             self._camera_infos[frame_id] = rospy.wait_for_message(f'vehicle/{frame_id}/depth/camera_info', CameraInfo, 60)
+            self._intrinsics[frame_id] = CameraIntrinsics.from_matrix(np.array(self._camera_infos[frame_id].K))
 
             self._depth_subs[frame_id] = rospy.Subscriber(f'vehicle/{frame_id}/depth/image_raw', Image, self._handle_depth, callback_args=frame_id)
 
@@ -100,17 +107,58 @@ class DarknetTransformer():
         self._depth_lock.release()
         self._bboxes_lock.release()
 
-    def _transform(self, frame_id, bboxes, depth):
+    def _transform(self, frame_id, bboxes, depth_msg):
         detections = FeatureDetections()
         detections.detector_tag = 'darknet'
 
-        depth_img = self._cv_bridge.imgmsg_to_cv2(depth, desired_encoding='mono16')
+        depth = self._cv_bridge.imgmsg_to_cv2(depth_msg, desired_encoding='mono16')
+        depth = depth.astype(float) / 1000
+
+        intrinsics = self._intrinsics[frame_id]
 
         for bbox in bboxes.bounding_boxes:
-            bbox_depth = DepthEstimator.estimate_absolute_depth(depth_img, bbox, self._camera_infos[frame_id])
+            # bbox_depth = DepthEstimator.estimate_absolute_depth(depth_img, bbox, self._camera_infos[frame_id])
+            # bbox is xmin, xmax, ymin, ymax
 
-            if bbox_depth == np.nan:
+            e_x = (bbox.xmin + bbox.xmax) // 2
+            e_y = (bbox.ymin + bbox.ymax) // 2
+
+            depth_mask = np.zeros(depth.shape, dtype=np.uint8)
+
+            cv2.rectangle(
+                depth_mask,
+                (bbox.xmin, bbox.ymin),
+                (bbox.xmax, bbox.ymax),
+                255,
+                -1
+            )
+
+            if np.sum(depth[depth_mask > 0]) < 10:
                 continue
+
+            z = np.mean(depth[depth_mask > 0])
+
+            x = (e_x - intrinsics.c_x) * (z / intrinsics.f_x)
+            y = (e_y - intrinsics.c_y) * (z / intrinsics.f_y)
+
+            '''
+            fit_plane_result = fit_plane(np.where(depth_mask, depth, 0), intrinsics)
+            if fit_plane_result.n_points < 10:
+                continue
+            if fit_plane_result.normal[2] > 0:
+                fit_plane_result.normal = -fit_plane_result.normal
+
+            R = SO3.OA(np.array([0, -1, 0]), fit_plane_result.normal)
+
+            a, b, c = fit_plane_result.coefficients
+            z = c / (1 - a * (e_x - intrinsics.c_x) / intrinsics.f_x - b * (e_y - intrinsics.c_y) / intrinsics.f_y)
+            x = (e_x - intrinsics.c_x) * (z / intrinsics.f_x)
+            y = (e_y - intrinsics.c_y) * (z / intrinsics.f_y)
+
+            t = np.array([x, y, z])
+            '''
+
+            cam_t_detection = SE3.Rt(SO3(), np.array([x, y, z]))
 
             # TODO: Change this
             world_frame = f'{self._tf_namespace}/odom'
@@ -120,17 +168,18 @@ class DarknetTransformer():
                 transform = self._tf_buffer.lookup_transform(
                     world_frame,
                     camera_frame,
-                    depth.header.stamp,
+                    depth_msg.header.stamp,
                 )
 
-                H = tf2_transform_to_homogeneous(transform)
+                odom_t_cam = ros_transform_to_se3(transform.transform)
 
-                world_point_h = H @ np.array([bbox_depth[1], bbox_depth[2], bbox_depth[0], 1])
-                world_point = world_point_h[0:3] / world_point_h[3]
+                odom_t_detection = odom_t_cam * cam_t_detection
 
                 detection = FeatureDetection()
                 detection.tag = bbox.Class
-                detection.position = Vector3(world_point[0], world_point[1], world_point[2])
+                detection.position = r3_to_ros_vector3(odom_t_detection.t)
+                # detection.orientation = r3_to_ros_vector3(odom_t_detection.rpy())
+                # Point towards camera
                 detection.confidence = 1
                 detection.SE2 = False
                 detections.detections.append(detection)

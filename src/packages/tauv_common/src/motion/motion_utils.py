@@ -20,16 +20,16 @@ from tauv_msgs.srv import GetTrajectory, GetTrajectoryRequest, GetTrajectoryResp
 from std_srvs.srv import SetBool, SetBoolRequest, Trigger
 from tauv_util.transforms import twist_body_to_world, quat_to_rpy
 from nav_msgs.msg import Path, Odometry as OdometryMsg
-from motion_client.trajectories import Trajectory, TrajectoryStatus
+from motion.trajectories import Trajectory, TrajectoryStatus
 from tauv_util.types import tl, tm
 from scipy.spatial.transform import Rotation
-from motion_client.trajectories.fixed_linear_trajectory import LinearTrajectory
+from motion.trajectories.fixed_linear_trajectory import LinearTrajectory
 import typing
 from tauv_msgs.msg import TrajPoint
 from tauv_msgs.srv import SetPose, SetPoseRequest, SetPoseResponse
 from std_msgs.msg import Float64
-from motion_client.trajectories.pyscurve.pyscurve.trajectory import PlanningError
-from motion_client.trajectories.hold_pos import HoldPos
+from motion.trajectories.pyscurve.pyscurve.trajectory import PlanningError
+from motion.trajectories.hold_pos import HoldPos
 
 class MotionUtils:
     def __init__(self):
