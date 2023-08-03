@@ -104,8 +104,8 @@ class ParticleFilter:
 class PingerLocalizerPF:
     def __init__(self) -> None:
         self._load_config()
-        self._direction_sub = rospy.Subscriber(f'{self._vehicle_ns}/pinger_localizer/direction', Vector3Stamped, self._handle_direction)
-        self._pinger_loc_pub = rospy.Publisher(f'{self._vehicle_ns}/pinger_localizer/pinger_loc_pf', PoseWithCovarianceStamped, queue_size=10)
+        self._direction_sub = rospy.Subscriber(f'vehicle/pinger_localizer/direction', Vector3Stamped, self._handle_direction)
+        self._pinger_loc_pub = rospy.Publisher(f'vehicle/pinger_localizer/pinger_loc_pf', PoseWithCovarianceStamped, queue_size=10)
         init_params = UniformInitParams(self._x_range, self._y_range, self._z_range)
 
         self._pf = ParticleFilter(self._n_particles, init_params)
@@ -142,8 +142,7 @@ class PingerLocalizerPF:
         self._pinger_loc_pub.publish(pinger_loc_estimate)
     
     def load_config(self):
-        self._vehicle_ns = rospy.get_param("namespace")
-        self._n_particles = rospy.get_param(f"{self._vehicle_ns}/pf__particles")
-        self._x_range = rospy.get_param(f"{self._vehicle_ns}/pf_x_range")
-        self._y_range = rospy.get_param(f"{self._vehicle_ns}/pf_y_range")
-        self._z_range = rospy.get_param(f"{self._vehicle_ns}/pf_z_range")
+        self._n_particles = rospy.get_param("~pinger_pf_n_particles")
+        self._x_range = rospy.get_param("~pinger_pf_x_range")
+        self._y_range = rospy.get_param("~pinger_pf_y_range")
+        self._z_range = rospy.get_param("~pinger_pf_z_range")
