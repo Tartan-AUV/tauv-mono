@@ -19,7 +19,7 @@ from scipy.spatial.transform import Rotation
 class PIDPlanner:
 
     def __init__(self):
-        self._use_roll_pitch = True
+        self._use_roll_pitch = False
 
         self._ac = AlarmClient()
         self._load_config()
