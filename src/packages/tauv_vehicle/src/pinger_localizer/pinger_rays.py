@@ -12,14 +12,6 @@ from typing import List
 from dataclasses import dataclass, field
 
 @dataclass
-class PingerCluster:
-    frequency: int
-    n_obs: int
-    A: np.ndarray = field(default=np.zeros(shape=(3, 3)))
-    b: np.ndarray = field(default=np.zeros(shape=(3,)))
-    center: np.ndarray = field(default=np.zeros(shape=(3,)))
-
-@dataclass
 class Line:
     point: np.ndarray
     unit: np.ndarray
