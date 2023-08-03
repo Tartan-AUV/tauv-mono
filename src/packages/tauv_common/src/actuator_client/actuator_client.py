@@ -10,16 +10,16 @@ class ActuatorClient:
         self._load_config()
 
         if self._has_torpedo:
-            self._torpedo_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/{self._torpedo_servo}/target_position', Float64)
+            self._torpedo_pub: rospy.Publisher = rospy.Publisher(f'vehicle/servos/{self._torpedo_servo}/target_position', Float64)
 
         if self._has_marker:
-            self._marker_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/{self._marker_servo}/target_position', Float64)
+            self._marker_pub: rospy.Publisher = rospy.Publisher(f'vehicle/servos/{self._marker_servo}/target_position', Float64)
 
         if self._has_arm:
-            self._arm_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/{self._arm_servo}/target_position', Float64)
+            self._arm_pub: rospy.Publisher = rospy.Publisher(f'vehicle/servos/{self._arm_servo}/target_position', Float64)
 
         if self._has_suction:
-            self._suction_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/{self._suction_servo}/target_position', Float64)
+            self._suction_pub: rospy.Publisher = rospy.Publisher(f'vehicle/servos/{self._suction_servo}/target_position', Float64)
 
     def shoot_torpedo(self, torpedo: int):
         if not self._has_torpedo:
@@ -80,18 +80,18 @@ class ActuatorClient:
         self._suction_pub.publish(strength)
 
     def _load_config(self):
-        self._has_torpedo: bool = rospy.get_param('~has_torpedo')
+        self._has_torpedo: bool = rospy.get_param('actuators/has_torpedo')
         if self._has_torpedo:
-            self._torpedo_servo: int = rospy.get_param('~torpedo_servo')
+            self._torpedo_servo: int = rospy.get_param('actuators/torpedo_servo')
 
-        self._has_marker: bool = rospy.get_param('~has_marker')
+        self._has_marker: bool = rospy.get_param('actuators/has_marker')
         if self._has_marker:
-            self._marker_servo: int = rospy.get_param('~marker_servo')
+            self._marker_servo: int = rospy.get_param('actuators/marker_servo')
 
-        self._has_arm: bool = rospy.get_param('~has_arm')
+        self._has_arm: bool = rospy.get_param('actuators/has_arm')
         if self._has_arm:
-            self._arm_servo: int = rospy.get_param('~arm_servo')
+            self._arm_servo: int = rospy.get_param('actuators/arm_servo')
 
-        self._has_suction: bool = rospy.get_param('~has_suction')
+        self._has_suction: bool = rospy.get_param('actuators/has_suction')
         if self._has_suction:
-            self._suction_servo: int = rospy.get_param('~suction_servo')
+            self._suction_servo: int = rospy.get_param('actuators/suction_servo')

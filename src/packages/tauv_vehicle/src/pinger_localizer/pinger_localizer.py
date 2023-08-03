@@ -4,8 +4,9 @@ import uuid
 import time
 
 from std_msgs.msg import Float64, Float64MultiArray
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Vector3
 from tauv_util.transforms import rpy_to_quat
+from tauv_msgs.msg import PingDetection
 
 from .backends.adalm_chained import ADALMChainedBackend
 from .frontends.as1_rev_4 import AS1Rev4Frontend
@@ -20,8 +21,6 @@ class PingerLocalizer:
 
     def __init__(self):
         self._load_config()
-
-        self._gain: int = 1
 
         self._frontend: AS1Rev4Frontend = AS1Rev4Frontend(
             gain_pins=self._frontend_gain_pins,
@@ -43,7 +42,10 @@ class PingerLocalizer:
             self._sample_pubs.append(sample_pub)
 
         self._ping_frequency_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/ping_frequency', Float64, queue_size=10)
-        self._direction_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/direction', PoseStamped, queue_size=10)
+        self._direction_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/direction', Vector3, queue_size=10)
+        self._direction_pose_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/direction_pose', PoseStamped, queue_size=10)
+
+        self._detection_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/detection', PingDetection, queue_size=10)
 
     def start(self):
         self._frontend.open()
@@ -77,9 +79,9 @@ class PingerLocalizer:
 
         sample_times, samples = remap_channels(self._channel_mappings, sample_times, samples)
 
-        file_id = time.strftime("%Y%m%d-%H%M%S")
-        np.save(f'/data/pinger_localizer/right/{file_id}-times.npy', sample_times)
-        np.save(f'/data/pinger_localizer/right/{file_id}-samples.npy', samples)
+        # file_id = time.strftime("%Y%m%d-%H%M%S")
+        # np.save(f'/data/pinger_localizer/right/{file_id}-times.npy', sample_times)
+        # np.save(f'/data/pinger_localizer/right/{file_id}-samples.npy', samples)
 
         amplitudes = np.abs(samples)
         max_amplitudes = np.max(amplitudes, axis=1)
@@ -89,15 +91,15 @@ class PingerLocalizer:
 
         rospy.loginfo(f'Ping frequency: {ping_frequency} Hz')
 
+        if abs(ping_frequency - 25000) < 2000:
+            return
+
         self._ping_frequency_pub.publish(ping_frequency)
 
         for i in range(self._n_channels):
             msg = Float64MultiArray()
             msg.data = samples[i]
             self._sample_pubs[i].publish(msg)
-
-        if ping_frequency != 30000:
-            return
 
         sample_times, samples = filter_samples(sample_times, samples, self._backend_sample_frequency, ping_frequency)
 
@@ -111,18 +113,30 @@ class PingerLocalizer:
         rospy.loginfo(f'Direction: {direction}')
         rospy.loginfo(f'Psi: {direction_psi}, Theta: {direction_theta}')
 
-        direction_msg = PoseStamped()
-        direction_msg.header.frame_id = 'kf/vehicle'
+        direction_msg = Vector3()
+        direction_msg.x = direction[0]
+        direction_msg.y = direction[1]
+        direction_msg.z = direction[2]
+        self._direction_pub.publish(direction_msg)
+
+        direction_pose_msg = PoseStamped()
+        direction_pose_msg.header.frame_id = 'kf/vehicle'
         direction_rpy = np.array([0, direction_theta, direction_psi])
         direction_quat = rpy_to_quat(direction_rpy)
-        direction_msg.pose.orientation = direction_quat
-        # direction_msg.vector.x = direction[0]
-        # direction_msg.vector.y = direction[1]
-        # direction_msg.vector.z = direction[2]
-        self._direction_pub.publish(direction_msg)
+        direction_pose_msg.pose.orientation = direction_quat
+        self._direction_pose_pub.publish(direction_pose_msg)
+
+        detection_msg = PingDetection()
+        detection_msg.stamp = rospy.Time.now()
+        detection_msg.frequency = ping_frequency
+        detection_msg.direction.x = direction[0]
+        detection_msg.direction.y = direction[1]
+        detection_msg.direction.z = direction[2]
+        self._detection_pub.publish(detection_msg)
 
     def _load_config(self):
         self._n_channels = 4
+        self._gain: int = rospy.get_param('~gain')
         self._channel_positions: np.array = np.array(rospy.get_param('~channel_positions'))
         self._channel_mappings: [int] = rospy.get_param('~channel_mappings')
         self._interpolation_factor: int = int(rospy.get_param('~interpolation_factor'))

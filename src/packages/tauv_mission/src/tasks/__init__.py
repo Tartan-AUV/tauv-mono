@@ -1,1 +1,1 @@
-from . import task, dive, goto
+from .task import TaskResources, Task, TaskResult, TaskStatus

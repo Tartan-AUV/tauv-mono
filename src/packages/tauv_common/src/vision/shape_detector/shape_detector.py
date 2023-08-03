@@ -38,7 +38,8 @@ class ShapeDetector:
             info = rospy.wait_for_message(f'vehicle/{frame_id}/color/camera_info', CameraInfo, 60)
             self._camera_infos[frame_id] = info
             self._intrinsics[frame_id] = CameraIntrinsics.from_matrix(np.array(info.K))
-            self._distortions[frame_id] = CameraDistortion.from_matrix(np.array(info.D))
+            # self._distortions[frame_id] = CameraDistortion.from_matrix(np.array(info.D))
+            self._distortions[frame_id] = CameraDistortion.from_matrix(np.zeros(5))
 
         self._synchronizers: {str: message_filters.ApproximateTimeSynchronizer} = {}
         self._circle_debug_img_pubs: {str: rospy.Publisher} = {}

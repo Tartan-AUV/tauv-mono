@@ -1,7 +1,11 @@
 import rospy
 import argparse
+from typing import Optional
+from threading import Thread
 from motion_client import MotionClient
 from actuator_client import ActuatorClient
+from map_client import MapClient
+from transform_client import TransformClient
 from tauv_msgs.msg import PIDTuning, DynamicsTuning, DynamicsParameterConfigUpdate
 from tauv_msgs.srv import \
     TuneController, TuneControllerRequest,\
@@ -11,6 +15,8 @@ from tauv_msgs.srv import \
 from std_srvs.srv import SetBool
 from spatialmath import SE3, SO3, SE2, SO2
 import numpy as np
+from tasks import Task, TaskResources
+from tasks.torpedo import Torpedo as TorpedoTask, TorpedoResult, TorpedoStatus
 
 class ArgumentParserError(Exception): pass
 
@@ -26,6 +32,11 @@ class TeleopMission:
 
         self._motion = MotionClient()
         self._actuators = ActuatorClient()
+        self._map = MapClient()
+        self._transforms = TransformClient()
+
+        self._task_resources: TaskResources = TaskResources(self._motion, self._actuators, self._map, self._transforms)
+        self._task: Optional[Task] = None
 
         self._tune_controller_srv: rospy.ServiceProxy = rospy.ServiceProxy('gnc/tune_controller', TuneController)
         self._tune_pid_planner_srv: rospy.ServiceProxy = rospy.ServiceProxy('gnc/tune_pid_planner', TunePIDPlanner)
@@ -292,6 +303,21 @@ class TeleopMission:
 
         self._actuators.activate_suction(args.strength)
 
+    def _handle_run_torpedo_task(self, args):
+        print('run_torpedo_task')
+
+        self._task = TorpedoTask()
+        Thread(target=self._task.run, daemon=True).start()
+
+    def _handle_cancel_task(self, args):
+        print('cancel_task')
+
+        if self._task is not None:
+            self._task.cancel()
+
+    def _handle_cancel(self, args):
+        self._motion.cancel()
+
     def _build_parser(self) -> argparse.ArgumentParser:
         parser = ThrowingArgumentParser(prog="teleop_mission")
         subparsers = parser.add_subparsers()
@@ -360,6 +386,9 @@ class TeleopMission:
         disarm = subparsers.add_parser('disarm')
         disarm.set_defaults(func=self._handle_disarm)
 
+        cancel = subparsers.add_parser('cancel')
+        cancel.set_defaults(func=self._handle_cancel)
+
         shoot_torpedo = subparsers.add_parser('shoot_torpedo')
         shoot_torpedo.add_argument('torpedo', type=int)
         shoot_torpedo.set_defaults(func=self._handle_shoot_torpedo)
@@ -375,6 +404,14 @@ class TeleopMission:
         activate_suction = subparsers.add_parser('set_suction')
         activate_suction.add_argument('strength', type=float)
         activate_suction.set_defaults(func=self._handle_activate_suction)
+
+        run_torpedo_task = subparsers.add_parser('run_torpedo_task')
+        run_torpedo_task.set_defaults(func=self._handle_run_torpedo_task)
+
+        cancel_task = subparsers.add_parser('cancel_task')
+        cancel_task.set_defaults(func=self._handle_cancel_task)
+
+        return parser
 
 
 def main():
