@@ -126,7 +126,7 @@ class PingerClusterManager:
             if len(self._observation_result_queue) >= self._obs_queue_len:
                 self._observation_result_queue.pop(0)
 
-            # check if we have enough outliers
+            # check if we have enough outliers to redo cluster
             if sum(self._observation_result_queue) >= self._resample_outlier_n_thresh:
                 rospy.loginfo("Detected a pinger location switch, rebuilding cluster...")
                 
