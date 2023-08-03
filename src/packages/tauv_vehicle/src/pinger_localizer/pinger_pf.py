@@ -133,7 +133,7 @@ class PingerLocalizerPF:
         flat_cov_matrix[2, 2] = pinger_var[2]
         flat_cov_matrix = flat_cov_matrix.flatten()
 
-        pinger_loc_estimate = PoseWithCovarianceStamped(
+        pinger_pos_msg = PoseWithCovarianceStamped(
             header=Header(
                 stamp=rospy.Time.now(),
                 frame_id="kf/odom"
@@ -147,7 +147,7 @@ class PingerLocalizerPF:
             )
         )
 
-        self._pinger_loc_pub.publish(pinger_loc_estimate)
+        self._pinger_loc_pub.publish(pinger_pos_msg)
     
     def load_config(self):
         self._n_particles = rospy.get_param("~n_particles")
