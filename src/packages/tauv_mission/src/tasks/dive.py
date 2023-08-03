@@ -31,6 +31,7 @@ class Dive(Task):
             if self._check_cancel(resources): return DiveResult(DiveStatus.FAILURE)
             time.sleep(0.1)
 
+        resources.motion.cancel()
         resources.motion.arm(True)
 
         odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
@@ -38,7 +39,7 @@ class Dive(Task):
         yaw_initial = odom_t_vehicle_initial.rpy()[2]
         R = SO3.Rz(yaw_initial)
         t = odom_t_vehicle.t.copy()
-        t[2] = 0.5
+        t[2] = 1.0
         odom_t_vehicle_target = SE3.Rt(R, t)
         odom_t_vehicle_target = odom_t_vehicle_target * SE3.Tx(1.0)
 

@@ -55,9 +55,7 @@ class MotionClient:
                 res.message = "no trajectory, returning current pose"
                 return res
 
-            rospy.loginfo(self._trajectory_start_time)
             traj_time = (req.curr_time - self._trajectory_start_time).to_sec()
-            rospy.loginfo(traj_time)
             poses = [None] * req.len
             twists = [None] * req.len
 
