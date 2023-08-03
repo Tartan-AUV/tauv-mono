@@ -18,6 +18,7 @@ class MotionClient:
 
         self._odom_lock: Lock = Lock()
         self._odom: Optional[Tuple[SE3, Twist3]] = None
+        self._odom_target: Optional[Tuple[SE3, Twist3]] = None
 
         self._trajectory_lock: Lock = Lock()
         self._trajectory: Optional[Trajectory] = None
@@ -40,12 +41,14 @@ class MotionClient:
             res = GetTrajectoryResponse()
 
             if self._trajectory is None:
-                if self._odom is None:
+                if self._odom is None and self._odom_target is None:
                     res.success = False
                     res.message = "no trajectory or odometry"
                     return res
 
-                res.poses = [se3_to_ros_pose(self._odom[0])]
+                odom = self._odom_target if self._odom_target is not None else self._odom
+
+                res.poses = [se3_to_ros_pose(odom[0])]
                 res.twists = [twist3_to_ros_twist(Twist3())]
                 self._publish_debug_target(req.curr_time, res.poses[0], res.twists[0])
                 res.success = True
@@ -160,10 +163,7 @@ class MotionClient:
             self._trajectory_start_time = None
             self._trajectory_complete_event.set()
 
-            if self._trajectory_complete_timer is not None:
-                self._trajectory_complete_timer.shutdown()
-
-            self._trajectory_complete_timer = None
+            self._odom_target = self._odom
 
     def _set_trajectory(self, trajectory: Trajectory, current_time: rospy.Time):
         with self._trajectory_lock:

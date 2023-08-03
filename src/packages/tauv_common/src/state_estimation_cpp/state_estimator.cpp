@@ -334,7 +334,8 @@ void StateEstimator::publish_odom(
   odom_msg.pose.pose.orientation.x = orientation_quat.x();
   odom_msg.pose.pose.orientation.y = orientation_quat.y();
   odom_msg.pose.pose.orientation.z = orientation_quat.z();
-  odom_msg.pose.pose.orientation.w = -orientation_quat.w();
+  // TODO: CHECK THIS. IT USED TO BE NEGATED
+  odom_msg.pose.pose.orientation.w = orientation_quat.w();
   odom_msg.twist.twist.linear.x = velocity.x();
   odom_msg.twist.twist.linear.y = velocity.y();
   odom_msg.twist.twist.linear.z = velocity.z();

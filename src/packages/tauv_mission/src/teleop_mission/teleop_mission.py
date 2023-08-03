@@ -315,6 +315,9 @@ class TeleopMission:
         if self._task is not None:
             self._task.cancel()
 
+    def _handle_cancel(self, args):
+        self._motion.cancel()
+
     def _build_parser(self) -> argparse.ArgumentParser:
         parser = ThrowingArgumentParser(prog="teleop_mission")
         subparsers = parser.add_subparsers()
@@ -382,6 +385,9 @@ class TeleopMission:
 
         disarm = subparsers.add_parser('disarm')
         disarm.set_defaults(func=self._handle_disarm)
+
+        cancel = subparsers.add_parser('cancel')
+        cancel.set_defaults(func=self._handle_cancel)
 
         shoot_torpedo = subparsers.add_parser('shoot_torpedo')
         shoot_torpedo.add_argument('torpedo', type=int)
