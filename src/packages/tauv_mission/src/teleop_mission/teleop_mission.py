@@ -1,22 +1,26 @@
 import rospy
 import argparse
 from typing import Optional
-import numpy as np
-from math import atan2, cos, sin, e, pi
-
+from threading import Thread
+from motion_client import MotionClient
+from actuator_client import ActuatorClient
+from map_client import MapClient
+from transform_client import TransformClient
 from tauv_msgs.msg import PIDTuning, DynamicsTuning, DynamicsParameterConfigUpdate
 from tauv_msgs.srv import \
     TuneController, TuneControllerRequest,\
     TunePIDPlanner, TunePIDPlannerRequest,\
     TuneDynamics, TuneDynamicsRequest,\
     UpdateDynamicsParameterConfigs, UpdateDynamicsParameterConfigsRequest, UpdateDynamicsParameterConfigsResponse
-from geometry_msgs.msg import Pose, Twist, Point
-from std_srvs.srv import SetBool, Trigger
-from std_msgs.msg import Float64
-from tauv_msgs.srv import MapFind, MapFindRequest, MapFindClosest, MapFindClosestRequest
-from motion_client.motion_utils import MotionUtils
-from motion_client.trajectories import TrajectoryStatus
-
+from std_srvs.srv import SetBool
+from spatialmath import SE3, SO3, SE2, SO2
+import numpy as np
+from tasks import Task, TaskResources
+from tasks.shoot_torpedo import ShootTorpedo as ShootTorpedoTask, ShootTorpedoResult, ShootTorpedoStatus
+from tasks.pick_chevron import PickChevron as PickChevronTask, PickChevronResult, PickChevronStatus
+from tasks.dive import Dive as DiveTask, DiveResult, DiveStatus
+from tasks.scan_rotate import ScanRotate as ScanRotateTask
+from tasks.scan_translate import ScanTranslate as ScanTranslateTask
 
 class ArgumentParserError(Exception): pass
 
@@ -25,16 +29,18 @@ class ThrowingArgumentParser(argparse.ArgumentParser):
     def error(self, message):
         raise ArgumentParserError(message)
 
-
 class TeleopMission:
 
     def __init__(self):
         self._parser = self._build_parser()
 
-        self._motion = MotionUtils()
+        self._motion = MotionClient()
+        self._actuators = ActuatorClient()
+        self._map = MapClient()
+        self._transforms = TransformClient()
 
-        self._pose: Optional[Pose] = None
-        self._twist: Optional[Twist] = None
+        self._task_resources: TaskResources = TaskResources(self._motion, self._actuators, self._map, self._transforms)
+        self._task: Optional[Task] = None
 
         self._tune_controller_srv: rospy.ServiceProxy = rospy.ServiceProxy('gnc/tune_controller', TuneController)
         self._tune_pid_planner_srv: rospy.ServiceProxy = rospy.ServiceProxy('gnc/tune_pid_planner', TunePIDPlanner)
@@ -43,28 +49,6 @@ class TeleopMission:
         self._update_dynamics_parameter_configs_srv: rospy.ServiceProxy = rospy.ServiceProxy(
             'gnc/update_dynamics_parameter_configs', UpdateDynamicsParameterConfigs
         )
-
-        self._torpedo_servo_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/0/target_position', Float64, queue_size=10)
-        self._arm_servo_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/4/target_position', Float64, queue_size=10)
-        self._suction_servo_pub: rospy.Publisher = rospy.Publisher('vehicle/servos/5/target_position', Float64, queue_size=10)
-
-        self._goto_circle_timer: rospy.Timer = None
-        self._last_circle_position = None
-        self._goto_circle_args = None
-        self._goto_circle_v = 0.1
-        self._goto_circle_a = 0.1
-        self._goto_circle_j = 0.4
-        self._goto_circle_state = None
-
-        self._find_srv = rospy.ServiceProxy("global_map/find", MapFind)
-        self._find_closest_srv = rospy.ServiceProxy("global_map/find_closest", MapFindClosest)
-        self._map_reset_srv = rospy.ServiceProxy("global_map/reset", Trigger)
-
-        self._pick_chevron_args = None
-        self._pick_chevron_timer = None
-        self._last_chevron_position = None
-
-        self._prequal_timer = None
 
     def start(self):
         while not rospy.is_shutdown():
@@ -243,275 +227,6 @@ class TeleopMission:
         req.tuning = t
         self._tune_dynamics_srv.call(req)
 
-    def _handle_goto(self, args):
-        v = args.v if args.v is not None else .1
-        a = args.a if args.a is not None else .1
-        j = args.j if args.j is not None else .4
-
-        try:
-            self._motion.goto(
-                (args.x, args.y, args.z),
-                args.yaw,
-                v=v,
-                a=a,
-                j=j,
-                block=TrajectoryStatus.EXECUTING
-            )
-        except Exception as e:
-            print("Exception from teleop_mission! (Gleb)")
-            print(e)
-
-    def _handle_goto_relative(self, args):
-        v = args.v if args.v is not None else .1
-        a = args.a if args.a is not None else .1
-        j = args.j if args.j is not None else .4
-
-        try:
-            self._motion.goto_relative(
-                (args.x, args.y, args.z),
-                args.yaw,
-                v=v,
-                a=a,
-                j=j
-            )
-        except Exception as e:
-            print(e)
-
-    def _handle_goto_circle(self, args):
-        v = args.v if args.v is not None else .1
-        a = args.a if args.a is not None else .1
-        j = args.j if args.j is not None else .4
-
-        self._goto_circle_v = v
-        self._goto_circle_a = a
-        self._goto_circle_j = j
-
-        self._goto_circle_args = args
-
-        self._last_circle_position = None
-
-        if self._goto_circle_timer is not None:
-            self._goto_circle_timer.shutdown()
-
-        self._goto_circle_state = 0
-
-        self._motion.reset()
-
-        self._goto_circle_timer = rospy.Timer(rospy.Duration(0.1), self._update_goto_circle)
-
-    def _handle_stop_goto_circle(self, args):
-        if self._goto_circle_timer is not None:
-            self._goto_circle_timer.shutdown()
-
-    def _update_goto_circle(self, timer_event):
-        args = self._goto_circle_args
-
-        sub_position = self._motion.get_position()
-        sub_yaw = self._motion.get_orientation()[2]
-
-        req = MapFindClosestRequest()
-        req.tag = 'circle'
-
-        if self._last_circle_position is None:
-            req.point = Point(sub_position[0], sub_position[1], sub_position[2])
-        else:
-            req.point = Point(self._last_circle_position[0], self._last_circle_position[1], self._last_circle_position[2])
-        # detections, success = self._find_srv.call()
-        resp = self._find_closest_srv.call(req)
-
-        if not resp.success:
-            print('no circle')
-            return
-
-        detection = resp.detection
-
-        # Use detection
-        circle_position = np.array([detection.position.x, detection.position.y, detection.position.z])
-        circle_yaw = detection.orientation.z
-
-        approach_offset = -np.array([
-            args.ax, args.ay, args.az
-        ])
-
-        shoot_offset = -np.array([
-            args.bx, args.by, args.bz
-        ])
-
-        approach_yaw = atan2(circle_position[1] - sub_position[1], circle_position[0] - sub_position[0])
-
-        approach_position = circle_position + np.array([
-            approach_offset[0] * cos(approach_yaw) + approach_offset[1] * -sin(approach_yaw),
-            approach_offset[0] * sin(approach_yaw) + approach_offset[1] * cos(approach_yaw),
-            approach_offset[2]
-        ])
-
-        shoot_position = circle_position + np.array([
-            shoot_offset[0] * cos(circle_yaw) + shoot_offset[1] * -sin(circle_yaw),
-            shoot_offset[0] * sin(circle_yaw) + shoot_offset[1] * cos(circle_yaw),
-            shoot_offset[2]
-        ])
-
-        shoot_error = shoot_position - sub_position
-
-        circle_direction = np.array([
-            cos(approach_yaw),
-            sin(approach_yaw),
-            0
-        ])
-
-        planar_error = shoot_error - np.dot(shoot_error, circle_direction) * circle_direction
-
-        shoot_decay_position = sub_position + planar_error + (e ** (-args.w * np.linalg.norm(planar_error))) * np.dot(shoot_error, circle_direction) * circle_direction
-
-        if self._goto_circle_state == 0 and np.linalg.norm(sub_position - approach_position) < 0.05 and np.abs(sub_yaw - approach_yaw) < 0.05:
-            print('lined up')
-            self._goto_circle_state = 1
-
-        if self._goto_circle_state == 1 and np.linalg.norm(sub_position - shoot_position) < 0.05 and np.abs(sub_yaw - approach_yaw) < 0.05:
-            print('shoot!')
-            # rospy.sleep(1.0)
-            # self._motion.shoot_torpedo(0)
-            # rospy.sleep(1)
-            self._motion.shoot_torpedo(1)
-
-        if self._goto_circle_state == 0:
-            self._motion.goto(approach_position, approach_yaw, v=self._goto_circle_v, a=self._goto_circle_a, j=self._goto_circle_j, block=TrajectoryStatus.EXECUTING)
-
-        if self._goto_circle_state == 1:
-            self._motion.goto(shoot_decay_position, approach_yaw, v=self._goto_circle_v, a=self._goto_circle_a, j=self._goto_circle_j, block=TrajectoryStatus.EXECUTING)
-
-    def _handle_pick_chevron(self, args):
-        v = args.v if args.v is not None else .1
-        a = args.a if args.a is not None else .1
-        j = args.j if args.j is not None else .4
-
-        self._map_reset_srv.call()
-
-        self._pick_chevron_v = v
-        self._pick_chevron_a = a
-        self._pick_chevron_j = j
-        self._pick_chevron_args = args
-
-        self._motion.reset()
-
-        if self._pick_chevron_timer is not None:
-            self._pick_chevron_timer.shutdown()
-
-        self._last_chevron_position = None
-
-        self._pick_chevron_timer = rospy.Timer(rospy.Duration(args.r), self._handle_update_pick_chevron)
-
-    def _handle_update_pick_chevron(self, timer_event):
-        args = self._pick_chevron_args
-
-        sub_position = self._motion.get_position()
-
-        req = MapFindClosestRequest()
-        req.tag = 'chevron'
-        if self._last_chevron_position is None:
-            req.point = Point(sub_position[0], sub_position[1], sub_position[2])
-        else:
-            req.point = Point(self._last_chevron_position[0], self._last_chevron_position[1], self._last_chevron_position[2])
-        resp = self._find_closest_srv.call(req)
-
-        if not resp.success:
-            print('no chevron')
-            return
-
-        detection = resp.detection
-
-        approach_yaw = detection.orientation.z
-
-        chevron_position = np.array([detection.position.x, detection.position.y, detection.position.z])
-        self._last_chevron_position = chevron_position
-        suction_position = np.array([0.1524, -0.0508, 0.4572])
-        suction_offset = -(np.array([args.x, args.y, args.z]) + suction_position)
-        goal_position = chevron_position + np.array([
-            suction_offset[0] * cos(approach_yaw) + suction_offset[1] * -sin(approach_yaw),
-            suction_offset[0] * sin(approach_yaw) + suction_offset[1] * cos(approach_yaw),
-            suction_offset[2]
-        ])
-
-        sub_orientation = self._motion.get_orientation()
-
-        error = args.wxy * np.linalg.norm(goal_position[0:2] - sub_position[0:2]) + args.wy * np.abs(sub_orientation[2] - approach_yaw)
-
-        target_position = goal_position + (1 - (e ** (-error))) * np.array([0, 0, sub_position[2] - goal_position[2]])
-
-        if np.linalg.norm(sub_position - goal_position) < args.t:
-            self._pick_chevron_timer.shutdown()
-            self._suction_servo_pub.publish(-90)
-            self._motion.goto(
-                (goal_position[0], goal_position[1], goal_position[2] + args.s),
-                approach_yaw,
-                v=self._pick_chevron_v,
-                a=self._pick_chevron_a,
-                j=self._pick_chevron_j,
-                block=TrajectoryStatus.FINISHED
-            )
-            self._motion.goto(
-                (target_position[0], target_position[1], 0),
-                approach_yaw,
-                v=self._pick_chevron_v,
-                a=self._pick_chevron_a,
-                j=self._pick_chevron_j,
-                block=TrajectoryStatus.FINISHED
-            )
-        else:
-            self._motion.goto(
-                (target_position[0], target_position[1], target_position[2]),
-                approach_yaw,
-                v=self._pick_chevron_v,
-                a=self._pick_chevron_a,
-                j=self._pick_chevron_j,
-                block=TrajectoryStatus.EXECUTING
-            )
-
-    def _handle_stop_pick_chevron(self, args):
-        if self._pick_chevron_timer is not None:
-            self._pick_chevron_timer.shutdown()
-
-    def _handle_shoot_torpedo(self, args):
-        print(f'shoot torpedo {args.torpedo}')
-
-        self._motion.shoot_torpedo(args.torpedo)
-
-        # if args.torpedo == 0:
-        #     self._torpedo_servo_pub.publish(90)
-        #     rospy.sleep(1.0)
-        #     self._torpedo_servo_pub.publish(0)
-        # elif args.torpedo == 1:
-        #     self._torpedo_servo_pub.publish(-90)
-        #     rospy.sleep(1.0)
-        #     self._torpedo_servo_pub.publish(0)
-        # else:
-        #     self._torpedo_servo_pub.publish(0)
-
-    def _handle_drop_marker(self, args):
-        print(f'drop marker {args.marker}')
-
-        self._motion.drop_marker(args.marker)
-
-    def _handle_move_arm(self, args):
-        print(f'move arm {args.position}')
-
-        self._arm_servo_pub.publish(args.position)
-
-    def _handle_suction(self, args):
-        print(f'suction {args.power}')
-
-        self._suction_servo_pub.publish(args.power * (90 / 100))
-
-    def _handle_arm(self, args):
-        print('arm')
-
-        self._arm_srv.call(True)
-
-    def _handle_disarm(self, args):
-        print('disarm')
-
-        self._arm_srv.call(False)
-
     def _handle_config_param_est(self, args):
         req = UpdateDynamicsParameterConfigsRequest()
         update = DynamicsParameterConfigUpdate()
@@ -543,48 +258,114 @@ class TeleopMission:
 
         self._update_dynamics_parameter_configs_srv.call(req)
 
-    def _handle_prequal(self, args):
-        if self._prequal_timer is not None:
-            self._prequal_timer.shutdown()
+    def _handle_arm(self, args):
+        print('arm')
 
-        self._prequal_timer = rospy.Timer(rospy.Duration(30), self._handle_update_prequal, oneshot=True)
+        self._arm_srv.call(True)
 
-    def _handle_update_prequal(self, timer_event):
-        self._motion.arm(True)
-        self._motion.reset()
+    def _handle_disarm(self, args):
+        print('disarm')
 
-        print('running!')
+        self._arm_srv.call(False)
 
-        depth = 1.5
+    def _handle_goto(self, args):
+        print('goto')
+        pose = SE3.Rt(SO3.Rx(args.yaw), np.array([args.x, args.y, args.z]))
 
-        start_position = self._motion.get_position()
-        start_yaw = self._motion.get_orientation()[2]
+        self._motion.goto(pose)
 
-        waypoints = np.array([
-            [0, 0, depth, 0],
-            [3, 0, depth, 0],
-            [12, 2, depth, 0],
-            [12, -2, depth, 0],
-            [3, 0, depth, 0],
-            [0, 0, depth, 0],
-        ])
-        n_waypoints = waypoints.shape[0]
+    def _handle_goto_relative(self, args):
+        print('goto')
 
-        for i in range(n_waypoints):
-            position = waypoints[i, 0:3]
-            yaw = waypoints[i, 3]
+        if args.relative_z:
+            self._motion.goto_relative(
+                SE3.Rt(SO3.Rx(args.yaw), np.array([args.x, args.y, args.z]))
+            )
+        else:
+            self._motion.goto_relative_with_depth(
+                SE2(args.x, args.y, args.yaw),
+                args.z
+            )
 
-            transformed_position = start_position + np.array([
-                position[0] * cos(start_yaw) + position[1] * -sin(start_yaw),
-                position[0] * sin(start_yaw) + position[1] * cos(start_yaw),
-                position[2]
-            ])
+    def _handle_shoot_torpedo(self, args):
+        print('shoot_torpedo')
 
-            transformed_yaw = start_yaw + yaw
+        self._actuators.shoot_torpedo(args.torpedo)
 
-            self._motion.goto(transformed_position, transformed_yaw, v=0.3, a=0.05, j=0.04)
+    def _handle_drop_marker(self, args):
+        print('drop_marker')
 
-        self._motion.arm(False)
+        self._actuators.drop_marker(args.marker)
+
+    def _handle_move_arm(self, args):
+        print('move_arm')
+
+        self._actuators.move_arm(args.position)
+
+    def _handle_activate_suction(self, args):
+        print('activate_suction')
+
+        self._actuators.activate_suction(args.strength)
+
+    def _handle_run_shoot_torpedo_task(self, args):
+        print('run_shoot_torpedo_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = ShootTorpedoTask()
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_run_pick_chevron_task(self, args):
+        print('run_pick_chevron_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = PickChevronTask()
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_run_dive_task(self, args):
+        print('run_dive_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = DiveTask(args.delay)
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_run_scan_rotate_task(self, args):
+        print('run_scan_rotate_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = ScanRotateTask()
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_run_scan_translate_task(self, args):
+        print('run_scan_translate_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = ScanTranslateTask()
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_cancel_task(self, args):
+        print('cancel_task')
+
+        if self._task is not None:
+            self._task.cancel()
+            self._task = None
+
+    def _handle_cancel(self, args):
+        self._motion.cancel()
 
     def _build_parser(self) -> argparse.ArgumentParser:
         parser = ThrowingArgumentParser(prog="teleop_mission")
@@ -632,43 +413,30 @@ class TeleopMission:
         goto_relative.add_argument('y', type=float)
         goto_relative.add_argument('z', type=float)
         goto_relative.add_argument('yaw', type=float)
+        goto_relative.add_argument('--relative-z', default=False, action='store_true')
         goto_relative.add_argument('--v', type=float)
         goto_relative.add_argument('--a', type=float)
         goto_relative.add_argument('--j', type=float)
         goto_relative.set_defaults(func=self._handle_goto_relative)
 
-        goto_circle = subparsers.add_parser('goto_circle')
-        goto_circle.add_argument('--v', type=float)
-        goto_circle.add_argument('--a', type=float)
-        goto_circle.add_argument('--j', type=float)
-        goto_circle.add_argument('--ax', type=float)
-        goto_circle.add_argument('--ay', type=float)
-        goto_circle.add_argument('--az', type=float)
-        goto_circle.add_argument('--bx', type=float)
-        goto_circle.add_argument('--by', type=float)
-        goto_circle.add_argument('--bz', type=float)
-        goto_circle.add_argument('--w', type=float)
-        goto_circle.set_defaults(func=self._handle_goto_circle)
+        config_param_est = subparsers.add_parser('config_param_est')
+        config_param_est.add_argument('name', type=str)
+        config_param_est.add_argument('--initial_value', type=float)
+        config_param_est.add_argument('--fixed', type=str, choices=('true', 'false'))
+        config_param_est.add_argument('--initial_covariance', type=float)
+        config_param_est.add_argument('--process_covariance', type=float)
+        config_param_est.add_argument('--limits', type=float, nargs=2)
+        config_param_est.add_argument('--reset', default=False, action='store_true')
+        config_param_est.set_defaults(func=self._handle_config_param_est)
 
-        stop_goto_circle = subparsers.add_parser('stop_goto_circle')
-        stop_goto_circle.set_defaults(func=self._handle_stop_goto_circle)
+        arm = subparsers.add_parser('arm')
+        arm.set_defaults(func=self._handle_arm)
 
-        pick_chevron = subparsers.add_parser('pick_chevron')
-        pick_chevron.add_argument('--v', type=float)
-        pick_chevron.add_argument('--a', type=float)
-        pick_chevron.add_argument('--j', type=float)
-        pick_chevron.add_argument('--x', type=float, default=0)
-        pick_chevron.add_argument('--y', type=float, default=0)
-        pick_chevron.add_argument('--z', type=float, default=0)
-        pick_chevron.add_argument('--s', type=float, default=0)
-        pick_chevron.add_argument('--wxy', type=float, default=10)
-        pick_chevron.add_argument('--wy', type=float, default=10)
-        pick_chevron.add_argument('--r', type=float, default=1.0)
-        pick_chevron.add_argument('--t', type=float, default=0.05)
-        pick_chevron.set_defaults(func=self._handle_pick_chevron)
+        disarm = subparsers.add_parser('disarm')
+        disarm.set_defaults(func=self._handle_disarm)
 
-        stop_pick_chevron = subparsers.add_parser('stop_pick_chevron')
-        stop_pick_chevron.set_defaults(func=self._handle_stop_pick_chevron)
+        cancel = subparsers.add_parser('cancel')
+        cancel.set_defaults(func=self._handle_cancel)
 
         shoot_torpedo = subparsers.add_parser('shoot_torpedo')
         shoot_torpedo.add_argument('torpedo', type=int)
@@ -682,33 +450,35 @@ class TeleopMission:
         move_arm.add_argument('position', type=float)
         move_arm.set_defaults(func=self._handle_move_arm)
 
-        suction = subparsers.add_parser('suction')
-        suction.add_argument('power', type=float)
-        suction.set_defaults(func=self._handle_suction)
+        activate_suction = subparsers.add_parser('set_suction')
+        activate_suction.add_argument('strength', type=float)
+        activate_suction.set_defaults(func=self._handle_activate_suction)
 
-        arm = subparsers.add_parser('arm')
-        arm.set_defaults(func=self._handle_arm)
+        run_shoot_torpedo_task = subparsers.add_parser('run_shoot_torpedo_task')
+        run_shoot_torpedo_task.set_defaults(func=self._handle_run_shoot_torpedo_task)
 
-        disarm = subparsers.add_parser('disarm')
-        disarm.set_defaults(func=self._handle_disarm)
+        run_pick_chevron_task = subparsers.add_parser('run_pick_chevron_task')
+        run_pick_chevron_task.set_defaults(func=self._handle_run_pick_chevron_task)
 
-        config_param_est = subparsers.add_parser('config_param_est')
-        config_param_est.add_argument('name', type=str)
-        config_param_est.add_argument('--initial_value', type=float)
-        config_param_est.add_argument('--fixed', type=str, choices=('true', 'false'))
-        config_param_est.add_argument('--initial_covariance', type=float)
-        config_param_est.add_argument('--process_covariance', type=float)
-        config_param_est.add_argument('--limits', type=float, nargs=2)
-        config_param_est.add_argument('--reset', default=False, action='store_true')
-        config_param_est.set_defaults(func=self._handle_config_param_est)
+        run_dive_task = subparsers.add_parser('run_dive_task')
+        run_dive_task.add_argument("delay", type=float)
+        run_dive_task.set_defaults(func=self._handle_run_dive_task)
 
-        prequal = subparsers.add_parser('prequal')
-        prequal.set_defaults(func=self._handle_prequal)
+        run_scan_rotate_task = subparsers.add_parser('run_scan_rotate_task')
+        run_scan_rotate_task.set_defaults(func=self._handle_run_scan_rotate_task)
+
+        run_scan_translate_task = subparsers.add_parser('run_scan_translate_task')
+        run_scan_translate_task.add_argument('x_range', type=float)
+        run_scan_translate_task.add_argument('y_range', type=float)
+        run_scan_translate_task.set_defaults(func=self._handle_run_scan_translate_task)
+
+        cancel_task = subparsers.add_parser('cancel_task')
+        cancel_task.set_defaults(func=self._handle_cancel_task)
 
         return parser
 
 
 def main():
     rospy.init_node('teleop_mission')
-    m = TeleopMission()
-    m.start()
+    n = TeleopMission()
+    n.start()

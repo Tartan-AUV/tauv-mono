@@ -40,6 +40,7 @@ setup_args = generate_distutils_setup(
               'thruster_manager',
               'dynamics_parameter_estimator',
               'dynamics',
+              'motion',
               'tauv_alarms',
               'tauv_util',
               'motion_client',

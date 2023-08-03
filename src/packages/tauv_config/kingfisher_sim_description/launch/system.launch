@@ -49,4 +49,7 @@
             <arg name="yolo_weights_path" value="/home/theo/weights" />
         </include>
     </group>
+
+    <rosparam command="load" file="$(arg config_pkg)/yaml/actuators/yaml" ns="actuators">
+    <rosparam command="load" file="$(arg config_pkg)/yaml/motion/yaml" ns="motion">
 </launch>

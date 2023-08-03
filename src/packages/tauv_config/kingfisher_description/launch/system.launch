@@ -27,9 +27,11 @@
 
     <include file="$(find tauv_common)/launch/alarms/alarms.launch" />
 
-    <include file="$(find tauv_vehicle)/launch/vehicles/$(arg model_name)_vehicle.launch"/>
+    <include file="$(arg config_pkg)/launch/vehicle.launch">
+          <arg name="config_pkg" value="$(arg config_pkg)" />
+    </include>
     <include file="$(arg config_pkg)/launch/transforms.launch">
-      <arg name="namespace" value="$(arg namespace)" />
+          <arg name="namespace" value="$(arg namespace)" />
     </include>
 
     <!-- =======================  -->
@@ -47,10 +49,19 @@
       <arg name="teleop" value="$(arg teleop)" />
     </include>
 
-    <include file="$(find tauv_common)/launch/vision/vision.launch"/>
+    <include file="$(find tauv_common)/launch/vision/vision.launch">
+          <arg name="config_pkg" value="$(arg config_pkg)" />
+    </include>
+
+    <node pkg="tauv_common" type="sonar_map" name="sonar_map" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/yaml/sonar.yaml" />
+    </node>
+
+    <rosparam command="load" file="$(arg config_pkg)/yaml/actuators.yaml" ns="actuators"/>
+    <rosparam command="load" file="$(arg config_pkg)/yaml/motion.yaml" ns="motion"/>
 
     <!-- Start the vision system: -->
     <!-- Launch mission system -->
-<!--     <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
+    <!--     <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
   </group>
 </launch>

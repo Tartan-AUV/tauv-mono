@@ -23,15 +23,26 @@ class TeledyneDVL:
 
     def start(self):
         self._pf.open()
+        self._pf.configure()
+        self._pf.start_measuring()
 
         self._ac.clear(Alarm.DVL_NOT_INITIALIZED)
+
+        n_missed = 0
 
         while not rospy.is_shutdown():
             ensemble = self._pf.poll()
 
             if ensemble is None:
                 rospy.logwarn_throttle(10, 'No ensemble')
+                n_missed += 1
                 continue
+            else:
+                n_missed = 0
+
+            if n_missed > 5:
+                self._pf.reset()
+                self._pf.start_measuring()
 
             rospy.logdebug(f'[teledyne_dvl] timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
 

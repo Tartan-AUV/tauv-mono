@@ -19,19 +19,23 @@ class GetCirclePosesParams:
 
 
 def get_circle_poses(mask: np.array, depth: np.array, intrinsics: CameraIntrinsics, params: GetCirclePosesParams, debug_img: Optional[np.array] = None) -> [SE3]:
-    kernel_open = np.ones((3, 3), np.uint8)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel_open)
+    kernel_open = np.ones((9, 9), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_DILATE, kernel_open)
+    kernel_close = np.ones((9, 9), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel_close)
 
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    if debug_img is not None:
+        cv2.drawContours(debug_img, contours, -1, (255, 0, 0), 1)
+
     contours = filter_contours_by_bbox(contours, params.min_size, params.max_size, params.min_aspect_ratio, params.max_aspect_ratio)
 
     templates = [fit_ellipse_contour(contour, 32) for contour in contours]
 
     # TODO: This is slow
-    contours = filter_contours_by_defects(contours, templates, 0.5)
 
-    if debug_img is not None:
-        cv2.drawContours(debug_img, contours, -1, (255, 0, 0), 1)
+    contours = filter_contours_by_defects(contours, templates, 0.1)
 
     poses = []
 
@@ -52,6 +56,8 @@ def get_circle_poses(mask: np.array, depth: np.array, intrinsics: CameraIntrinsi
         )
 
         fit_plane_result = fit_plane(np.where(depth_mask, depth, 0), intrinsics)
+        if fit_plane_result.n_points < 10:
+            continue
         if fit_plane_result.normal[2] > 0:
             fit_plane_result.normal = -fit_plane_result.normal
 

@@ -10,7 +10,6 @@ from trajectories import Trajectory, ConstantAccelerationTrajectory, ConstantAcc
 from geometry_msgs.msg import Pose as PoseMsg, PoseStamped as PoseStampedMsg, Twist as TwistMsg, TwistStamped as TwistStampedMsg
 from tauv_util.spatialmath import ros_nav_state_to_se3, ros_nav_state_to_body_twist3, body_twist3_to_world_twist3, flatten_se3, flatten_twist3, se3_to_ros_pose, twist3_to_ros_twist
 
-
 class MotionClient:
 
     def __init__(self):
@@ -19,6 +18,7 @@ class MotionClient:
 
         self._odom_lock: Lock = Lock()
         self._odom: Optional[Tuple[SE3, Twist3]] = None
+        self._odom_target: Optional[Tuple[SE3, Twist3]] = None
 
         self._trajectory_lock: Lock = Lock()
         self._trajectory: Optional[Trajectory] = None
@@ -41,19 +41,23 @@ class MotionClient:
             res = GetTrajectoryResponse()
 
             if self._trajectory is None:
-                if self._odom is None:
+                if self._odom is None and self._odom_target is None:
                     res.success = False
                     res.message = "no trajectory or odometry"
                     return res
 
-                res.poses = [se3_to_ros_pose(self._odom[0])]
+                odom = self._odom_target if self._odom_target is not None else self._odom
+
+                res.poses = [se3_to_ros_pose(odom[0])]
                 res.twists = [twist3_to_ros_twist(Twist3())]
                 self._publish_debug_target(req.curr_time, res.poses[0], res.twists[0])
                 res.success = True
                 res.message = "no trajectory, returning current pose"
                 return res
 
+            rospy.loginfo(self._trajectory_start_time)
             traj_time = (req.curr_time - self._trajectory_start_time).to_sec()
+            rospy.loginfo(traj_time)
             poses = [None] * req.len
             twists = [None] * req.len
 
@@ -95,12 +99,17 @@ class MotionClient:
             start_world_twist = flatten_twist3(start_world_twist)
             pose = flatten_se3(pose)
 
+        rospy.loginfo(start_pose)
+        rospy.loginfo(pose)
+
         traj = ConstantAccelerationTrajectory(
             start_pose, start_world_twist,
             pose, Twist3(),
             params,
             relax=True,
         )
+
+        rospy.loginfo(f"current_time: {current_time}")
 
         self._set_trajectory(traj, current_time)
 
@@ -161,16 +170,14 @@ class MotionClient:
             self._trajectory_start_time = None
             self._trajectory_complete_event.set()
 
-            if self._trajectory_complete_timer is not None:
-                self._trajectory_complete_timer.shutdown()
-
-            self._trajectory_complete_timer = None
+            self._odom_target = self._odom
 
     def _set_trajectory(self, trajectory: Trajectory, current_time: rospy.Time):
         with self._trajectory_lock:
             self._trajectory_start_time = current_time
             self._trajectory = trajectory
             self._trajectory_complete_event.clear()
+            rospy.loginfo("Set trajectory")
 
     def _publish_debug_target(self, time: rospy.Time, pose: PoseMsg, twist: TwistMsg):
         pose_stamped = PoseStampedMsg()
