@@ -21,6 +21,7 @@ from tasks.pick_chevron import PickChevron as PickChevronTask, PickChevronResult
 from tasks.dive import Dive as DiveTask, DiveResult, DiveStatus
 from tasks.scan_rotate import ScanRotate as ScanRotateTask
 from tasks.scan_translate import ScanTranslate as ScanTranslateTask
+from tasks.hit_buoy import HitBuoy as HitBuoyTask
 
 class ArgumentParserError(Exception): pass
 
@@ -357,6 +358,16 @@ class TeleopMission:
         self._task = ScanTranslateTask()
         Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
 
+    def _handle_run_hit_buoy_task(self, args):
+        print('run_hit_buoy_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = HitBuoyTask(args.tag)
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
     def _handle_cancel_task(self, args):
         print('cancel_task')
 
@@ -471,6 +482,10 @@ class TeleopMission:
         run_scan_translate_task.add_argument('x_range', type=float)
         run_scan_translate_task.add_argument('y_range', type=float)
         run_scan_translate_task.set_defaults(func=self._handle_run_scan_translate_task)
+
+        run_hit_buoy_task = subparsers.add_parser('run_hit_buoy_task')
+        run_hit_buoy_task.add_argument('tag', type=str)
+        run_hit_buoy_task.set_defaults(func=self._handle_run_hit_buoy_task)
 
         cancel_task = subparsers.add_parser('cancel_task')
         cancel_task.set_defaults(func=self._handle_cancel_task)

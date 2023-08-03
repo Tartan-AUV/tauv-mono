@@ -362,11 +362,12 @@ StateEstimator::ImuMsg::ImuMsg(const tauv_msgs::XsensImuData::ConstPtr &msg) {
     this->stamp = msg->header.stamp;
     this->orientation = Eigen::Vector3d { msg->orientation.x, msg->orientation.y, msg->orientation.z };
     this->rate_of_turn = Eigen::Vector3d { msg->rate_of_turn.x, msg->rate_of_turn.y, msg->rate_of_turn.z };
-    Eigen::Vector3d raw_linear_acceleration = Eigen::Vector3d { -msg->linear_acceleration.x, msg->linear_acceleration.y, -msg->linear_acceleration.z };
-    Eigen::Vector3d gravity { 0.0, 0.0, -9.806 };
-    Eigen::Quaterniond orientation_quat = rpy_to_quat(orientation);
-    Eigen::Vector3d body_gravity = orientation_quat.inverse().toRotationMatrix() * gravity;
-    this->linear_acceleration = raw_linear_acceleration - body_gravity;
+    // Eigen::Vector3d raw_linear_acceleration = Eigen::Vector3d { msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z };
+    // Eigen::Vector3d gravity { 0.0, 0.0, -9.806 };
+    // Eigen::Quaterniond orientation_quat = rpy_to_quat(orientation);
+    // Eigen::Vector3d body_gravity = orientation_quat.inverse().toRotationMatrix() * gravity;
+    Eigen::Vector3d linear_acceleration { 0, 0, 0 };
+    this->linear_acceleration = linear_acceleration;
 }
 
 StateEstimator::DvlMsg::DvlMsg(const tauv_msgs::TeledyneDvlData::ConstPtr &msg) {

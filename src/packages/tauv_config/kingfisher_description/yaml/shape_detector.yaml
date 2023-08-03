@@ -41,12 +41,11 @@ chevron:
   threshold:
     # H low, S low, V low, H high, S high, V high
     global_thresholds:
-      - [0, 10, 20, 20, 255, 255]
-      - [160, 10, 20, 180, 255, 255]
+      - [0, 0, 0, 180, 255, 255]
     # S low, V low, S high, V high
     local_thresholds:
-      - [-255, -255, 255, 255]
-    window_size: 35
+      - [-255, -255, 255, -20]
+    window_size: 150
   pose:
     min_size: [25, 25]
     max_size: [1000, 1000]
@@ -55,7 +54,7 @@ chevron:
     contour_approximation_factor: 0.05
     angles: [1.57, 2.35, 0.78, 1.57, 0.78, 2.35]
     angle_match_tolerance: 0.2
-    depth_window_size: 30
+    depth_window_size: 100
 
 lid:
   threshold:
