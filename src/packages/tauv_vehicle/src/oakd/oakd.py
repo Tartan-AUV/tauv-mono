@@ -107,15 +107,15 @@ class OAKDNode:
         self._color_info_pub = rospy.Publisher(f'vehicle/{self._frame}/color/camera_info', CameraInfo, queue_size=1, latch=True)
 
     def start(self):
-        self._depth_info_pub.publish(self._depth_info)
-        self._color_info_pub.publish(self._color_info)
-
         rgb_queue = self._device.getOutputQueue(name='rgb', maxSize=1, blocking=False)
         depth_queue = self._device.getOutputQueue(name='depth', maxSize=1, blocking=False)
 
         while not rospy.is_shutdown():
             rgb = rgb_queue.tryGet()
             depth = depth_queue.tryGet()
+
+            self._depth_info_pub.publish(self._depth_info)
+            self._color_info_pub.publish(self._color_info)
 
             if rgb is not None:
                 try:
