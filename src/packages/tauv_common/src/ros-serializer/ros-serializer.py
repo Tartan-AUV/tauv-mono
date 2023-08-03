@@ -1,61 +1,58 @@
-#!/usr/bin/python3
-
-import rospy
 import serial
+import serial.tools.list_ports
+import binascii
+import rospy
+from tauv_common.srv import AcousticSerialization, AcousticSerializationResponse
 
-class Reciever():
+class Serializer():
     def __init__(self):
-        self._chksum_msk = 0xFF
-        self._data_msk = 0x00FFFFFFFFFFFF00
-        self._data_max = 0xFFFFFFFFFFFF
-        self._baud = 115200
-    
-    def bit_sum(self, data):
-        checksum = 0
+        self._baud = 9600
+        self._port = self.find_port()
+        if self._port is None:
+            raise Exception("No serial port detected")
 
-        while(data != 0):
-            byte_data = bytes([data & 0xFF])
+        self._ser = serial.Serial(self._port, self._baud)
 
-            print(bytes.hex(byte_data))
+    def find_port(self):
+        ports = list(serial.tools.list_ports.comports())
+        for port in ports:
+            for p in str(port).split(' - '):
+                if '/dev/tty' in p and ('USB' in p or 'ACM' in p):
+                    return p
 
-            for byte in byte_data:
-                checksum += byte
+        return None
 
-            data = data >> 8
+    def compute_checksum(self, data):
+        total_bits_sum = sum(bin(byte).count('1') for byte in data)
 
-        return int(checksum / 6)
-    
-    def checksum(self, msg):
-        sum = msg & self._chksum_msk
-        data = (msg & self._data_msk) >> 8
+        return total_bits_sum
+        
+    def serialize(self, msg):
+        if type(msg) is not int:
+            raise Exception("Unexpected type")
+        
+        chksum = self.compute_checksum(int.to_bytes(msg, 6, 'big'))
 
-        return sum == self.bit_sum(data)
-    
-    def recover(self, msg):
-        return bytes.hex(msg)
-    
-    def spin(self):
-        while True:
-            msg = serial.Serial('/dev/arduino', self._baud, timeout=.05)
+        raw_val = chksum + (msg << 8)
 
-            if self.checksum(msg):
-                data = self.recover(msg)
-                print(data)
+        return int.to_bytes(raw_val, 8, 'big')
 
-                # do something with data
-            else:
-                print("message checksum fail")
+    def send(self, msg):
+        if msg is not None:
+            self._ser.write(self.serialize(msg))
 
-class Sender():
-    def __init__(self):
-        pass
-
-
-def main():
-    print(serial.Serial'/dev/)
-    x = Reciever()
-    print(x.checksum(0xFFFFF0FFFFFFFC))
+    def handle_send_message(self, request):
+        if request.data:
+            self.send(request.data)
+        
+            response = AcousticSerializationResponse()
+            response.success = True
+            response.message = str(self.serialize(request.data).hex())
+        return response
 
 if __name__ == "__main__":
-    main()
-
+    rospy.init_node("serializer_node")
+    serializer = Serializer()
+    service_name = "send_serial_message"
+    rospy.Service(service_name, AcousticSerialization, serializer.handle_send_message)
+    rospy.spin()
