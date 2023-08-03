@@ -69,10 +69,52 @@ include CMakeFiles/Z_DUMMY_TARGET.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/dsss_demodulator.cpp
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/dsss_demodulator.cpp
+
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.i"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/dsss_demodulator.cpp > CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.i
+
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.s"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/dsss_demodulator.cpp -o CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.s
+
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/dsss_modulator.cpp
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/dsss_modulator.cpp
+
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.i"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/dsss_modulator.cpp > CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.i
+
+CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.s"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/dsss_modulator.cpp -o CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.s
+
+CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
+CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/fsk_demodulator.cpp
+CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/fsk_demodulator.cpp
+
+CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.i"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/fsk_demodulator.cpp > CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.i
+
+CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.s"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/fsk_demodulator.cpp -o CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.s
+
 CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/fsk_modulator.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/fsk_modulator.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.i: cmake_force
@@ -86,7 +128,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.s: cmake_force
 CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/main.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/main.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.i: cmake_force
@@ -97,24 +139,24 @@ CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.s"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/main.cpp -o CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.s
 
-CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
-CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/modem.cpp
-CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj"
-	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/modem.cpp
+CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
+CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/packet_decoder.cpp
+CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/packet_decoder.cpp
 
-CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.i"
-	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/modem.cpp > CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.i
+CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.i"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/packet_decoder.cpp > CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.i
 
-CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.s"
-	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/modem.cpp -o CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.s
+CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.s"
+	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/src/packet_decoder.cpp -o CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.s
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-gcc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.i: cmake_force
@@ -128,7 +170,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.i: cmake_force
@@ -142,7 +184,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Time
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.i: cmake_force
@@ -156,7 +198,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/base
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHandling/error_handler.cpp.i: cmake_force
@@ -170,7 +212,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/ErrorHan
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/GPT/GPTChannel.cpp.i: cmake_force
@@ -184,7 +226,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerMod
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/PIT4/PIT.cpp.i: cmake_force
@@ -198,7 +240,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerMod
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TCK.cpp.i: cmake_force
@@ -212,7 +254,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerMod
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/TckChannelBase.cpp.i: cmake_force
@@ -226,7 +268,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerMod
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerModules/TCK/tickCounters.cpp.i: cmake_force
@@ -240,7 +282,7 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/TimerMod
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/flags.make
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.obj: /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.obj: CMakeFiles/Z_DUMMY_TARGET.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.obj"
 	/Users/glebryabtsev/.platformio/packages/toolchain-gccarmnoneeabi-teensy/bin/arm-none-eabi-g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.obj -MF CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.obj.d -o CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.obj -c /Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp
 
 CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.i: cmake_force
@@ -253,9 +295,12 @@ CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.c
 
 # Object files for target Z_DUMMY_TARGET
 Z_DUMMY_TARGET_OBJECTS = \
+"CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj" \
+"CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj" \
+"CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj" \
 "CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj" \
 "CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj" \
-"CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj" \
+"CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj" \
 "CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj" \
 "CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj" \
 "CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj" \
@@ -270,9 +315,12 @@ Z_DUMMY_TARGET_OBJECTS = \
 # External object files for target Z_DUMMY_TARGET
 Z_DUMMY_TARGET_EXTERNAL_OBJECTS =
 
+Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj
+Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj
+Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj
 Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_modulator.cpp.obj
 Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.obj
-Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj
+Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj
 Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/examples/99_Misc/PinInformation/PWM_TimerInfo.c.obj
 Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/Timer.cpp.obj
 Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/API/baseTimer.cpp.obj
@@ -285,7 +333,7 @@ Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerT
 Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.obj
 Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/build.make
 Z_DUMMY_TARGET: CMakeFiles/Z_DUMMY_TARGET.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Linking CXX executable Z_DUMMY_TARGET"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/glebryabtsev/Dev/tauv_ws/src/TAUV-ROS-Packages/firmware/modem/cmake-build-teensy41/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Linking CXX executable Z_DUMMY_TARGET"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Z_DUMMY_TARGET.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

@@ -35,12 +35,10 @@ status_t FSKModulator::init() {
     uint32_t hp_hi = ONE_SECOND_NS / (modem_config->freq_hi * 2);
     float m = ((float)hp_hi - (float)hp_lo) / 2.0f;
     float n = ((float) (hp_lo + hp_hi)) / 2.0f;
-    Serial.println("LUT:");
     for (int i = 0; i < FREQ_LUT_SIZE; i++) {
         float x = -1.0f + 2.0f * ((float) i) / FREQ_LUT_SIZE;
         float g = k * gaussian_integral(x, sigma);
         period_lut[i] = (uint32_t) (m*g + n);
-         Serial.println(period_lut[i]);
     }
 
     bit_period = ONE_SECOND_NS / modem_config->chip_rate;
@@ -56,7 +54,7 @@ status_t FSKModulator::init() {
     period_hi = (ONE_SECOND_NS / modem_config->freq_hi) / 2;
     period_lo = (ONE_SECOND_NS / modem_config->freq_lo) / 2;
 
-    Serial.printf("%ld %ld\n", period_hi, period_lo);
+//    Serial.printf("%ld %ld\n", period_hi, period_lo);
 
     return MDM_OK;
 }
@@ -66,8 +64,8 @@ status_t FSKModulator::transmit(m_word_t *buf, size_t size) {
     buf_size = size;
 
     transmitting = true;
-//    prev_bit = buf[0] & 0x1;
-//    curr_bit = buf[0] & 0x1;
+//    prev_bit = tx_buf[0] & 0x1;
+//    curr_bit = tx_buf[0] & 0x1;
 //    buf_time = 0;
 //    buf_time_end = bit_period * (size * 8);
 //    transmitting = true;
@@ -137,7 +135,7 @@ void FSKModulator::bit_timer_isr() {
 //
 //        size_t next_byte_i = next_bit_i / 8;
 //        uint8_t msk = 0x1 << (next_bit_i % 8);
-//        next_bit = buf[next_byte_i] & msk;
+//        next_bit = tx_buf[next_byte_i] & msk;
 //
 //    }
 //

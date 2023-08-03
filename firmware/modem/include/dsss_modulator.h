@@ -27,7 +27,7 @@ public:
     bool busy();
 
 private:
-//    uint8_t *buf;
+//    uint8_t *tx_buf;
     size_t curr_chip_buf_size;
     bool transmitting;
 

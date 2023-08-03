@@ -395,6 +395,78 @@ Z_DUMMY_TARGET/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/.pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.s
 .PHONY : .pio/libdeps/teensy41/TeensyTimerTool/src/config.cpp.s
 
+src/dsss_demodulator.obj: src/dsss_demodulator.cpp.obj
+.PHONY : src/dsss_demodulator.obj
+
+# target to build an object file
+src/dsss_demodulator.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.obj
+.PHONY : src/dsss_demodulator.cpp.obj
+
+src/dsss_demodulator.i: src/dsss_demodulator.cpp.i
+.PHONY : src/dsss_demodulator.i
+
+# target to preprocess a source file
+src/dsss_demodulator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.i
+.PHONY : src/dsss_demodulator.cpp.i
+
+src/dsss_demodulator.s: src/dsss_demodulator.cpp.s
+.PHONY : src/dsss_demodulator.s
+
+# target to generate assembly for a file
+src/dsss_demodulator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_demodulator.cpp.s
+.PHONY : src/dsss_demodulator.cpp.s
+
+src/dsss_modulator.obj: src/dsss_modulator.cpp.obj
+.PHONY : src/dsss_modulator.obj
+
+# target to build an object file
+src/dsss_modulator.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.obj
+.PHONY : src/dsss_modulator.cpp.obj
+
+src/dsss_modulator.i: src/dsss_modulator.cpp.i
+.PHONY : src/dsss_modulator.i
+
+# target to preprocess a source file
+src/dsss_modulator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.i
+.PHONY : src/dsss_modulator.cpp.i
+
+src/dsss_modulator.s: src/dsss_modulator.cpp.s
+.PHONY : src/dsss_modulator.s
+
+# target to generate assembly for a file
+src/dsss_modulator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/dsss_modulator.cpp.s
+.PHONY : src/dsss_modulator.cpp.s
+
+src/fsk_demodulator.obj: src/fsk_demodulator.cpp.obj
+.PHONY : src/fsk_demodulator.obj
+
+# target to build an object file
+src/fsk_demodulator.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.obj
+.PHONY : src/fsk_demodulator.cpp.obj
+
+src/fsk_demodulator.i: src/fsk_demodulator.cpp.i
+.PHONY : src/fsk_demodulator.i
+
+# target to preprocess a source file
+src/fsk_demodulator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.i
+.PHONY : src/fsk_demodulator.cpp.i
+
+src/fsk_demodulator.s: src/fsk_demodulator.cpp.s
+.PHONY : src/fsk_demodulator.s
+
+# target to generate assembly for a file
+src/fsk_demodulator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/fsk_demodulator.cpp.s
+.PHONY : src/fsk_demodulator.cpp.s
+
 src/fsk_modulator.obj: src/fsk_modulator.cpp.obj
 .PHONY : src/fsk_modulator.obj
 
@@ -443,29 +515,29 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
-src/modem.obj: src/modem.cpp.obj
-.PHONY : src/modem.obj
+src/packet_decoder.obj: src/packet_decoder.cpp.obj
+.PHONY : src/packet_decoder.obj
 
 # target to build an object file
-src/modem.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.obj
-.PHONY : src/modem.cpp.obj
+src/packet_decoder.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.obj
+.PHONY : src/packet_decoder.cpp.obj
 
-src/modem.i: src/modem.cpp.i
-.PHONY : src/modem.i
+src/packet_decoder.i: src/packet_decoder.cpp.i
+.PHONY : src/packet_decoder.i
 
 # target to preprocess a source file
-src/modem.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.i
-.PHONY : src/modem.cpp.i
+src/packet_decoder.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.i
+.PHONY : src/packet_decoder.cpp.i
 
-src/modem.s: src/modem.cpp.s
-.PHONY : src/modem.s
+src/packet_decoder.s: src/packet_decoder.cpp.s
+.PHONY : src/packet_decoder.s
 
 # target to generate assembly for a file
-src/modem.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/modem.cpp.s
-.PHONY : src/modem.cpp.s
+src/packet_decoder.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Z_DUMMY_TARGET.dir/build.make CMakeFiles/Z_DUMMY_TARGET.dir/src/packet_decoder.cpp.s
+.PHONY : src/packet_decoder.cpp.s
 
 # Help Target
 help:
@@ -508,15 +580,24 @@ help:
 	@echo "... .pio/libdeps/teensy41/TeensyTimerTool/src/config.obj"
 	@echo "... .pio/libdeps/teensy41/TeensyTimerTool/src/config.i"
 	@echo "... .pio/libdeps/teensy41/TeensyTimerTool/src/config.s"
+	@echo "... src/dsss_demodulator.obj"
+	@echo "... src/dsss_demodulator.i"
+	@echo "... src/dsss_demodulator.s"
+	@echo "... src/dsss_modulator.obj"
+	@echo "... src/dsss_modulator.i"
+	@echo "... src/dsss_modulator.s"
+	@echo "... src/fsk_demodulator.obj"
+	@echo "... src/fsk_demodulator.i"
+	@echo "... src/fsk_demodulator.s"
 	@echo "... src/fsk_modulator.obj"
 	@echo "... src/fsk_modulator.i"
 	@echo "... src/fsk_modulator.s"
 	@echo "... src/main.obj"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/modem.obj"
-	@echo "... src/modem.i"
-	@echo "... src/modem.s"
+	@echo "... src/packet_decoder.obj"
+	@echo "... src/packet_decoder.i"
+	@echo "... src/packet_decoder.s"
 .PHONY : help
 
 

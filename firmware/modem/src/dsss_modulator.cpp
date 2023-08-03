@@ -36,7 +36,7 @@ status_t DSSSModulator::transmit(uint8_t *buf, size_t size) {
 
     memset(chip_buf, 0, size * code.nchips + 1);
 
-    Serial.printf("DSSSModulator::transmit: size = %d, nchips = %d\n", size, code.nchips);
+    // Serial.printf("DSSSModulator::transmit: size = %d, nchips = %d\n", size, code.nchips);
     size_t chip_buf_chip_i = 0;
     for (int i = 0; i < size; i++) {
         for (int j = 0; j < 8; j++) {
@@ -53,7 +53,7 @@ status_t DSSSModulator::transmit(uint8_t *buf, size_t size) {
 
     while (fskModulator->busy())
         ;
-    Serial.println("DSSSModulator::transmit: transmitting");
+    // Serial.println("DSSSModulator::transmit: transmitting");
 
     return fskModulator->transmit(chip_buf, size * code.nchips);
 }
