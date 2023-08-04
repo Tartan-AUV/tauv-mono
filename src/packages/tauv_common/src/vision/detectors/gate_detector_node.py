@@ -46,7 +46,6 @@ class GateDetectorNode:
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)
 
     def callback(self, rgb: Image, depth: Image):
-        print("cb")
         # Update camera matrix
         self._detector.set_camera_matrix(self._camera_info.K)
 

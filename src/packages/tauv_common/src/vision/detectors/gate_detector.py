@@ -79,7 +79,6 @@ class GateDetector:
         for c in candidates:
             d = self.GatePosition(*c.depth_translation, *c.depth_rotation.as_quat())
             detections.append(d)
-        print(f'{detections=}\n\n')
         return detections
 
     def _find_candidates(self, img):
@@ -96,24 +95,20 @@ class GateDetector:
         print(self._act_params)
         filtered = get_adaptive_color_thresholding(img, self._act_params)
 
-        # cv2.imshow("filtered", filtered*255)
-        # cv2.imshow("img", img)
+        cv2.imshow("img", img)
 
-        floodfilled = self._fill_holes(filtered)
-        eroded = self._erode(floodfilled)
-        edges = cv2.Canny(eroded, 0, 255, )
-        contours, _ = cv2.findContours(edges, cv2.RETR_TREE,
-                                       cv2.CHAIN_APPROX_SIMPLE)
+        dilated = self._dilate(filtered)
+        eroded = self._erode(dilated)
 
-        cv2.imshow("edges", edges)
-        # Get lines corresponding to gate poles
-        lines = self._lines_from_contours(contours)
+        blurred = cv2.GaussianBlur(eroded*255, (3, 3), 0.5)
+        cv2.imshow("blurred", blurred)
+        lines = cv2.HoughLinesP(blurred, 1, 2*math.pi/180, 300, minLineLength=100, maxLineGap=5)
 
         self._draw_lines(img, lines, 2, (255, 0, 0))
 
-        cv2.imshow("lines", cv2.cvtColor(img, cv2.COLOR_HSV2RGB))
+        cv2.imshow("lines", cv2.cvtColor(img, cv2.COLOR_HSV2BGR))
         cv2.waitKey(1)
-
+        # return []
         if len(lines) == 0:
             return []
 
@@ -136,6 +131,7 @@ class GateDetector:
                     GateDetector._GateCandidate(left, right, tvec, rot))
 
         return candidates
+
 
     def _filter_by_depth_dev(self,
                              candidates: List[_GateCandidate]):
@@ -326,6 +322,13 @@ class GateDetector:
 
         lines = np.array(lines).astype(int)
         return lines
+
+    def _dilate(self, img):
+        ks = self._parms.preprocessing.dilation_ks
+        print(f'{ks=}')
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2*ks + 1, 2*ks + 1), (ks, ks))
+        dilated = cv2.dilate(img, kernel)
+        return dilated
 
     def _erode(self, img):
         """

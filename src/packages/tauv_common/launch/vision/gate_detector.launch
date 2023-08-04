@@ -9,4 +9,24 @@
         <remap from="depth" to="vehicle/oakd_front/depth/image_raw"/>
         <remap from="camera_info" to="vehicle/oakd_front/depth/camera_info"/>
     </node>
+
+    <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
+
+    <node
+            pkg="tauv_common"
+            type="global_map_cpp"
+            name="global_map"
+            output="screen"
+    >
+    </node>
+
+    <node
+            pkg="tauv_gui"
+            type="map_visualizer"
+            name="map_visualizer"
+            output="screen"
+    >
+        <rosparam command="load"
+                  file="$(find tauv_gui)/yaml/map_visualizer.yaml" />
+    </node>
 </launch>

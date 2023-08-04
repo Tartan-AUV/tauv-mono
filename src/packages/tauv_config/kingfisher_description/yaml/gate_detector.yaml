@@ -6,7 +6,7 @@ gate_detector_parameters:
       - [0,0,0,255,255,225]
     window_size: 20
     dilation_ks: 2
-    erosion_ks: 2
+    erosion_ks: 1
   contours:
     min_size: 50
     min_hw_ratio: 5
