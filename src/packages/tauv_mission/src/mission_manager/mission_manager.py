@@ -12,7 +12,6 @@ from actuator_client import ActuatorClient
 from map_client import MapClient
 from transform_client import TransformClient
 
-
 class MissionManager:
 
     def __init__(self):
@@ -26,10 +25,11 @@ class MissionManager:
         self._task_resources: TaskResources = TaskResources(
             motion=MotionClient(),
             transforms=TransformClient(),
-            map=MapClient()
+            map=MapClient(),
+            actuators=ActuatorClient()
         )
 
-        self._params = rospy.get_param("mission_params")
+        self._params = rospy.get_param("missions")
 
         self._mission_start_event: Event = Event()
         self._mission_cancel_event: Event = Event()

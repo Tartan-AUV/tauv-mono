@@ -23,4 +23,3 @@ class GetPose(Task):
 
     def _handle_cancel(self, resources: TaskResources):
         pass
-

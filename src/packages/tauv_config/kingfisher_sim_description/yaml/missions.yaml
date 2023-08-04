@@ -1,17 +1,18 @@
 # this is relative to the start of the course, assumes we start from a corner point
 missions: {
-  search: {
-    rot_scan_resolution: 8,
-    trans_scan_resolution: 4,
-    x_range: 2.0,
-    y_range: 4.0,
-    theta_range: 3.14,
+  find: {
+    rot_scan_resolution: 4,
+    trans_scan_resolution: 3,
+    x_range: 4.0,
+    y_range: 1.0,
+    theta_range: 0.7,
     gate:
     {
-      approx_position: {
-        x: 1.0,
-        y: 10.0,
-        z: 1.0
+      relative_position: {
+        x: 3.0,
+        y: 7.0,
+        z: 1.0,
+        theta: 1.57
       }
     }
   }

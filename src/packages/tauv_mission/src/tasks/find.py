@@ -3,7 +3,7 @@ import rospy
 from spatialmath import SE2, SE3, SO3
 from dataclasses import dataclass
 from tasks.task import Task, TaskResources, TaskStatus, TaskResult
-from numpy import np
+import numpy as np
 from typing import Dict, Union
 
 class FindStatus(TaskStatus):
@@ -20,12 +20,14 @@ class Find(Task):
     def __init__(self, tag : str, params : Dict, timeout = None):
         super().__init__(timeout)
 
+        print(params)
+
         self._resources = None
 
         self._tag = tag
 
-        pos = params[f"{tag}/approximate_position"]
-        self._approx_position = [pos.x, pos.y, pos.z]
+        pos = params[f"{tag}"]["relative_position"]
+        self._approx_go_to = SE3.Rt(SO3.RPY(0,0,pos["theta"]), t=[pos["x"], pos["y"], pos["z"]])
         
         self._rot_scan_resolution = (int)(params["rot_scan_resolution"])
         self._trans_scan_resolution = (int)(params["trans_scan_resolution"])
@@ -37,12 +39,12 @@ class Find(Task):
         self._resources.motion.goto(transform)
 
         #start scanning until we timeout or find the tagged object
-        detection = self._resources.map.find_closest(self._tag, self._approx_position)
+        detection = self._resources.map.find_closest(self._tag, transform.t)
         while((not self._check_timeout()) and (detection is None)):
             if self._resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
                 return FindResult(FindStatus.NOT_FOUND)
 
-            detection = self._resources.map.find_closest(self._tag, self._approx_position)
+            detection = self._resources.map.find_closest(self._tag, transform.t)
 
         if(detection is None):
             return FindResult(FindStatus.TIMEOUT)
@@ -51,7 +53,7 @@ class Find(Task):
 
     def _generate_scan(self, x_range, y_range, radius):
         #get the initial position
-        odom_t_vehicle_initial = self._resources.transforms.get_a_t_b('kf/odom', 'kf/vehicle')
+        odom_t_vehicle_initial = self._resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
 
         positions = []
         #cycle around and scan
@@ -74,7 +76,10 @@ class Find(Task):
         self._set_timeout()
 
         #go to the initial position estimate
-        result = self._go_to_until_found(SE3.Rt(SO3(), self._approx_position))
+        odom_t_vehicle = self._resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
+        initial_go_to = odom_t_vehicle * self._approx_go_to
+
+        result = self._go_to_until_found(initial_go_to)
         if(result.status!=FindStatus.NOT_FOUND):
             return result
 
@@ -89,4 +94,3 @@ class Find(Task):
 
     def _handle_cancel(self, resources: TaskResources):
         resources.motion.cancel()
-

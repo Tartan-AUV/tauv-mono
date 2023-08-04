@@ -3,8 +3,8 @@
     <arg name="config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
 
     <group ns="$(arg namespace)">
-        <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen" />
-
         <rosparam command="load" ns="motion" file="$(arg config_pkg)/yaml/motion.yaml" />
+        <rosparam command="load" ns="" file="$(arg config_pkg)/yaml/missions.yaml" />
+        <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen" />
     </group>
 </launch>
