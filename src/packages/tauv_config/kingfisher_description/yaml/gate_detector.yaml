@@ -1,12 +1,12 @@
 gate_detector_parameters:
   preprocessing:
     hsv_boundaries:
-    - - - 150
+    - - - 0
         - 0
         - 0
-      - - 200
+      - - 50
         - 255
-        - 100
+        - 255
     dilation_ks: 2
     erosion_ks: 2
   contours:
@@ -14,17 +14,17 @@ gate_detector_parameters:
     min_hw_ratio: 5
   geometry:
     side_poles: # in the camera frame (x right, y down, z forward)
-      - - -1.52
-        - -0.61
-        - 0.0
-      - - 1.52
-        - -0.61
-        - 0.0
-      - - 1.52
+      - - -0.9144
         - 0.61
         - 0.0
-      - - -1.52
-        - 0.61
+      - - -0.9144
+        - 0.0
+        - 0.0
+      - - 0.9144
+        - -0.61
+        - 0.0
+      - - 0.9114
+        - 0.0
         - 0.0
   clipping:
     max_distance: 30.0

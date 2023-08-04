@@ -82,16 +82,57 @@ def neutralize_image(img):
     neu_img = image(track.values())
 
     return neu_img
-
-
 def Stretching(image):
 
-    LSR_img = np.zeros_like(image) # for lower stretched image
-    USR_img = np.zeros_like(image) # for upper stretched image
+    LSR_img = [] # for lower stretched image
+    USR_img = [] # for upper stretched image
     height, width = image.shape[:2]
-    #
-    # LS_img = np.zeros_like(image)
-    # US_img = np.zeros_like(image)
+
+    for i in range(image.shape[2]):
+        img_hist = image[:,:,i]
+        max_P = np.max(img_hist)
+        min_P = np.min(img_hist)
+
+        mean_P = np.mean(img_hist)
+        median_P = np.median(img_hist)
+
+        avg_point = (mean_P + median_P)/2
+
+        LS_img = np.zeros((height, width))
+        US_img = np.zeros((height, width))
+
+        mask = np.zeros((height, width))
+        for i in range(0, height):
+            for j in range(0, width):
+                if img_hist[i][j] < avg_point:
+                    LS_img[i][j] = int((( img_hist[i][j] - min_P) * ((255 - min_P) / (avg_point - min_P)) + min_P))
+                    print(f'{((255 - min_P) / (avg_point - min_P))}')
+                    US_img[i][j] = 0
+                    mask[i][j] = 255
+                    #array_upper_histogram_stretching[i][j] = p_out
+                else:
+                    LS_img[i][j] = 255
+                    US_img[i][j] = int((( img_hist[i][j] - avg_point) * ((255) / (max_P - avg_point))))
+
+        # cv2.imshow(f'msk {i}', mask)
+        LSR_img.append(LS_img)
+        USR_img.append(US_img)
+
+    LS = np.array(np.dstack(LSR_img),dtype=np.uint8)
+    US = np.array(np.dstack(USR_img),dtype=np.uint8)
+
+    cv2.imshow('ls', LS)
+    cv2.imshow('us', US)
+    cv2.waitKey(1)
+
+    return LS,US
+
+def Stretching_new(image):
+    LSR_img = np.zeros_like(image, dtype=np.uint8)
+    USR_img = np.zeros_like(image, dtype=np.uint8) # for upper stretched image
+    height, width = image.shape[:2]
+
+    ones = np.full((height,width), 255, dtype=np.uint8)
 
     for i in range(image.shape[2]):
         img_hist = image[:,:,i]
@@ -104,34 +145,44 @@ def Stretching(image):
         avg_point = (mean_P + median_P)/2
 
         mask = (img_hist < avg_point).astype(np.uint8)
+        inv_mask = cv2.bitwise_not(mask)
 
-        LS_k = ((255 - min_P) / (avg_point - min_P))
-        LS_img_pre = ((img_hist - min_P) * LS_k + min_P)
+        # print(f'{inv_mask=}')
+        LS_img_pre = (((img_hist - min_P) * ((255 - min_P) / (avg_point - min_P)) +
+                       min_P)).astype(np.uint8)
+        if i == 1:
+            cv2.imshow("pre", LS_img_pre)
         LSR_img[:, :, i] = cv2.bitwise_or(LS_img_pre, LS_img_pre, mask=mask)
-        LSR_img[:, :, i] = cv2.bitwise_or(LSR_img[:,:,i], 255, mask=~mask)
+        LSR_img[:, :, i] = cv2.bitwise_or(LSR_img[:,:,i], ones, mask=inv_mask)
 
         US_k = (255 / (max_P - avg_point))
         US_img_pre = (img_hist - avg_point) * US_k
-        USR_img[:, :, i] = cv2.bitwise_or(US_img_pre, US_img_pre, ~mask)
+        USR_img[:, :, i] = cv2.bitwise_or(US_img_pre, US_img_pre, inv_mask)
 
-        #
-        # for i in range(0, height):
-        #     for j in range(0, width):
-        #         if img_hist[i][j] < avg_point:
-        #             LS_img[i][j] = int((( img_hist[i][j] - min_P) * ((255 - min_P) / (avg_point - min_P)) + min_P))
-        #             US_img[i][j] = 0
-        #             #array_upper_histogram_stretching[i][j] = p_out
-        #         else:
-        #             LS_img[i][j] = 255
-        #             US_img[i][j] = int((( img_hist[i][j] - avg_point) * ((255) / (max_P - avg_point))))
-        #
-        # LSR_img.append(LS_img)
-        # USR_img.append(US_img)
-
-    # LS = np.array(np.dstack(LSR_img),dtype=np.uint8)
-    # US = np.array(np.dstack(USR_img),dtype=np.uint8)
-
+    cv2.imshow('ls', LSR_img)
+    cv2.imshow('us', USR_img)
+    cv2.waitKey(1)
     return LSR_img, USR_img
+
+    #
+    #     #
+    #     # for i in range(0, height):
+    #     #     for j in range(0, width):
+    #     #         if img_hist[i][j] < avg_point:
+    #     #             LS_img[i][j] = int((( img_hist[i][j] - min_P) * ((255 - min_P) / (avg_point - min_P)) + min_P))
+    #     #             US_img[i][j] = 0
+    #     #             #array_upper_histogram_stretching[i][j] = p_out
+    #     #         else:
+    #     #             LS_img[i][j] = 255
+    #     #             US_img[i][j] = int((( img_hist[i][j] - avg_point) * ((255) / (max_P - avg_point))))
+    #     #
+    #     # LSR_img.append(LS_img)
+    #     # USR_img.append(US_img)
+    #
+    # # LS = np.array(np.dstack(LSR_img),dtype=np.uint8)
+    # # US = np.array(np.dstack(USR_img),dtype=np.uint8)
+    # LSR_img = LSR_img.astype(np.uint8)
+
 
 
 def enhanced_image(img1, img2):
@@ -201,7 +252,7 @@ def NUCE(img):
     neu_img = neutralize_image(img)
     print('stretch')
     #Dual-intensity images fusion based on average of mean and median values
-    img1, img2 = Stretching(neu_img)
+    img1, img2 = Stretching_new(neu_img)
 
     print('enhance')
     dual_img = enhanced_image(img1, img2)
