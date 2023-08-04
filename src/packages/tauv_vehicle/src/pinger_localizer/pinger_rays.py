@@ -38,7 +38,7 @@ class PingerCluster:
             self.handle_line(line, outlier_rejection_thresh)
 
     def handle_line(self, line: Line, outlier_rejection_thresh=0.9):
-        def vector_match(v1, v2, sim_thresh=0.9):
+        def vector_match(v1, v2):
             v1_norm = np.linalg.norm(v1)
             v2_norm = np.linalg.norm(v2)
 
@@ -47,7 +47,7 @@ class PingerCluster:
 
             angular_similarity = 1 - np.arccos(cos_sim) / np.pi
 
-            return angular_similarity >= sim_thresh
+            return angular_similarity
 
         if outlier_rejection_thresh and self.enough_samples:
             # get vector from line position to cluster center
