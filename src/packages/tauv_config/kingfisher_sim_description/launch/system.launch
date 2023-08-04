@@ -50,6 +50,6 @@
         </include>
     </group>
 
-    <rosparam command="load" file="$(arg config_pkg)/yaml/actuators/yaml" ns="actuators">
-    <rosparam command="load" file="$(arg config_pkg)/yaml/motion/yaml" ns="motion">
+    <rosparam command="load" file="$(arg config_pkg)/yaml/actuators.yaml" ns="actuators" />
+    <rosparam command="load" file="$(arg config_pkg)/yaml/motion.yaml" ns="motion" />
 </launch>

@@ -48,11 +48,11 @@
     </include>
 
     <!-- Start the perception system: -->
-   <!-- <include file="$(find tauv_common)/launch/vision/vision.launch"/>
+    <include file="$(find tauv_common)/launch/vision/vision.launch"/>
     <include file="$(find tauv_common)/launch/global_map_cpp/global_map.launch"/>
-    <include file="$(find tauv_common)/launch/sonar/sonar.launch"/> -->
+    <include file="$(find tauv_common)/launch/sonar/sonar.launch"/>
 
     <!-- Launch mission system -->
-    <!-- <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/> -->
+    <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen"/>
   </group>
 </launch>
