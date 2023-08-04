@@ -1,7 +1,8 @@
+import cv2
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
-from PSO import *
+from .PSO import *
 
 # shows histogram of all 3 channels 
 def color_hist(img):
@@ -85,9 +86,12 @@ def neutralize_image(img):
 
 def Stretching(image):
 
-    LSR_img = [] # for lower stretched image
-    USR_img = [] # for upper stretched image
+    LSR_img = np.zeros_like(image) # for lower stretched image
+    USR_img = np.zeros_like(image) # for upper stretched image
     height, width = image.shape[:2]
+    #
+    # LS_img = np.zeros_like(image)
+    # US_img = np.zeros_like(image)
 
     for i in range(image.shape[2]):
         img_hist = image[:,:,i]
@@ -99,26 +103,37 @@ def Stretching(image):
 
         avg_point = (mean_P + median_P)/2
 
-        LS_img = np.zeros((height, width))
-        US_img = np.zeros((height, width))
+        mask = (img_hist < avg_point).astype(np.uint8)
 
-        for i in range(0, height):
-            for j in range(0, width):
-                if img_hist[i][j] < avg_point:
-                    LS_img[i][j] = int((( img_hist[i][j] - min_P) * ((255 - min_P) / (avg_point - min_P)) + min_P))
-                    US_img[i][j] = 0
-                    #array_upper_histogram_stretching[i][j] = p_out
-                else:
-                    LS_img[i][j] = 255
-                    US_img[i][j] = int((( img_hist[i][j] - avg_point) * ((255) / (max_P - avg_point))))
+        print(mask)
 
-        LSR_img.append(LS_img)
-        USR_img.append(US_img)
+        LS_k = ((255 - min_P) / (avg_point - min_P))
+        LS_img_pre = ((img_hist - min_P) * LS_k + min_P)
+        LSR_img[:, :, i] = cv2.bitwise_or(LS_img_pre, LS_img_pre, mask=mask)
+        LSR_img[:, :, i] = cv2.bitwise_or(LSR_img[:,:,i], 255, mask=~mask)
 
-    LS = np.array(np.dstack(LSR_img),dtype=np.uint8)
-    US = np.array(np.dstack(USR_img),dtype=np.uint8)
+        US_k = (255 / (max_P - avg_point))
+        US_img_pre = (img_hist - avg_point) * US_k
+        USR_img[:, :, i] = cv2.bitwise_or(US_img_pre, US_img_pre, ~mask)
 
-    return LS,US
+
+        # for i in range(0, height):
+        #     for j in range(0, width):
+        #         if img_hist[i][j] < avg_point:
+        #             LS_img[i][j] = int((( img_hist[i][j] - min_P) * ((255 - min_P) / (avg_point - min_P)) + min_P))
+        #             US_img[i][j] = 0
+        #             #array_upper_histogram_stretching[i][j] = p_out
+        #         else:
+        #             LS_img[i][j] = 255
+        #             US_img[i][j] = int((( img_hist[i][j] - avg_point) * ((255) / (max_P - avg_point))))
+        #
+        # LSR_img.append(LS_img)
+        # USR_img.append(US_img)
+
+    # LS = np.array(np.dstack(LSR_img),dtype=np.uint8)
+    # US = np.array(np.dstack(USR_img),dtype=np.uint8)
+
+    return LSR_img, USR_img
 
 
 def enhanced_image(img1, img2):
@@ -148,7 +163,7 @@ def pso_image(img):
     # Defining hyperparameters
     n = 50  # number of particles
     params = {"wmax" : 0.9, "wmin" : 0.4, "c1" : 2 , "c2" : 2}
-    max_iteration = 100
+    max_iteration = 10
 
     x = np.array([inte, mini])
 
@@ -183,18 +198,24 @@ def unsharp_masking(img):
     return unsharp_img
 
 def NUCE(img):
-
+    print('neutralizing...')
     #superior based underwater color cast neutralization
     neu_img = neutralize_image(img)
-
+    print('stretch')
     #Dual-intensity images fusion based on average of mean and median values
     img1, img2 = Stretching(neu_img)
+
+    print('enhance')
     dual_img = enhanced_image(img1, img2)
 
+    print('pso')
     #Swarm-intelligence based mean equalization
     pso_res = pso_image(dual_img)
 
+    print('unsharp')
     #Unsharp masking
     nuce_img = unsharp_masking(pso_res)
 
+    print('done')
+    print()
     return nuce_img
