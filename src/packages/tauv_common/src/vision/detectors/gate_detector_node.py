@@ -89,6 +89,7 @@ class GateDetectorNode:
             # detection_msg.count = 1
             detections_msg.detections.append(detection_msg)
 
+        print(detections_msg)
         self._detection_pub.publish(detections_msg)
 
 

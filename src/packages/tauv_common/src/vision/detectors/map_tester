@@ -58,8 +58,10 @@ class MapListener():
         self.serve = []
         self.timers = []
 
-        rospy.wait_for_service("/global_map/find")
-        self.find = rospy.ServiceProxy("/global_map/find", MapFind)
+        rospy.wait_for_service("/kf/global_map/find")
+        self.find = rospy.ServiceProxy("/kf/global_map/find", MapFind)
+
+        print("MapTester initialized")
 
         self.timers.append(rospy.Timer(rospy.Duration(TIME_TO_VISUALIZE), self.__visualize_map, False))
 
@@ -90,9 +92,9 @@ class MapListener():
         color = self.colors[tag]
 
         marker = Marker()
-        marker.header.frame_id = "map"
+        marker.header.frame_id = "/kf/odom"
         marker.header.stamp = rospy.Time()
-        marker.ns = "my_namespace"
+        marker.ns = ""
         marker.text = tag
         marker.id = self.id_counter
         marker.type = shape
@@ -122,7 +124,9 @@ class MapListener():
 
     def __visualize_map(self, time):
         for tag in self.tags:
+            print("visualizing tag: " + tag)
             dets = self.find(tag)
+            print(dets)
             self.__show(dets, scale = 1, shape = Marker.CUBE, time = rospy.Duration(TIME_TO_VISUALIZE))
 
     def __show(self, data, scale = 0.5, shape = Marker.SPHERE, time = rospy.Duration(TIME_TO_SIM), transparent = False):
@@ -164,23 +168,23 @@ class MapListener():
 def main():
     #EXAMPLES OF MAPLISTENER INTERACTIONS
     simulator = MapListener()
-    simulator.add_tags(["unknown", "badge", "phone", "notebook"])
+    simulator.add_tags(["gate"])
 
-    simulator.add_visualizer("/feature_detectionsS")
+    simulator.add_visualizer("/kf/global_map/feature_detections")
 
-    rospy.wait_for_service("/sonar/map/")
-    findSonar = rospy.ServiceProxy("/sonar/map/", SonarControl)
-    def publishWrapper(service):
-        def publish(time):
-            service(2)
-        return publish
-    
-    simulator.add_incremental_service_call(findSonar, publishWrapper, 5.0)
-
-    time.sleep(20)
-
-    simulator.add_sim_obj("badge", Point(11.5, 10.5, 15.5), Point(1,2,1))
-    simulator.add_sim_obj("notebook", Point(7.5, 9.5, 0.5), Point(2,2,1))
+    # rospy.wait_for_service("/sonar/map/")
+    # findSonar = rospy.ServiceProxy("/sonar/map/", SonarControl)
+    # def publishWrapper(service):
+    #     def publish(time):
+    #         service(2)
+    #     return publish
+    #
+    # simulator.add_incremental_service_call(findSonar, publishWrapper, 5.0)
+    #
+    # time.sleep(20)
+    #
+    # simulator.add_sim_obj("badge", Point(11.5, 10.5, 15.5), Point(1,2,1))
+    # simulator.add_sim_obj("notebook", Point(7.5, 9.5, 0.5), Point(2,2,1))
 
     rospy.spin()
 

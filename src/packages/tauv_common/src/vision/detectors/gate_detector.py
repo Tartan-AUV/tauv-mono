@@ -4,6 +4,7 @@
 
 import cv2
 import numpy as np
+from numpy import NaN
 from skspatial.objects import Plane, Line
 from scipy.spatial.transform import Rotation
 from ..shape_detector.adaptive_color_thresholding import get_adaptive_color_thresholding, GetAdaptiveColorThresholdingParams
@@ -36,11 +37,11 @@ class GateDetector:
                                         [0, 1, 1],
                                         [0, 0, 1]])
         self._camera_matrix_inv = self._inv_camera_matrix(self._camera_matrix)
-        self._act_params = GetAdaptiveColorThresholdingParams(
-            self._parms.preprocessing.global_thresholds,
-            self._parms.preprocessing.local_thresholds,
-            self._parms.preprocessing.window_size
-        )
+        # self._act_params = GetAdaptiveColorThresholdingParams(
+        #     self._parms.preprocessing.global_thresholds,
+        #     self._parms.preprocessing.local_thresholds,
+        #     self._parms.preprocessing.window_size
+        # )
 
 
     def set_camera_matrix(self, camera_matrix):
@@ -54,32 +55,216 @@ class GateDetector:
         self._camera_matrix_inv = self._inv_camera_matrix(self._camera_matrix)
 
     def detect(self, color: np.array, depth: np.array):
-        """
-        Run the gate detector on the color and depth data and return the list
-        of possible gate positions
-        @param color: BGR color image
-        @param depth: Single channel floating point depth image
-        @return:
-        """
-        p = self._parms
 
-        # find gate candidates on the rgb image
-        candidates = self._find_candidates(color)
+        p = GetAdaptiveColorThresholdingParams(
+            global_thresholds=[[0,0,0,255,255,255]],
+            local_thresholds=[[-255,-255,255,-5]],
+            window_size=35
+        )
 
-        # clip position and orientation
-        candidates = self._clip_candidates(candidates)
+        print(f"{color.shape=}, {depth.shape=}")
 
-        self._calculate_depth_poses(candidates, depth)
+        depth = cv2.resize(depth, color.shape[:2][::-1])
 
-        candidates = self._filter_by_depth_dev(candidates)
+        print(f"{color.shape=}, {depth.shape=}")
 
-        candidates = self._filter_by_pose_diff(candidates)
+        filtered = get_adaptive_color_thresholding(color, p)*255
 
-        detections = []
-        for c in candidates:
-            d = self.GatePosition(*c.depth_translation, *c.depth_rotation.as_quat())
-            detections.append(d)
-        return detections
+        cv2.imshow('depth', depth)
+        cv2.imshow('filtered', filtered)
+
+        # cv2.waitKey(1)
+
+        # return []
+        kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (4, 4))
+        dilated = cv2.dilate(filtered, kernel)
+        eroded = cv2.erode(dilated, kernel)
+        edges = cv2.Canny(eroded, 100, 200)
+
+        # blurred = cv2.blur(edges, (5, 5))
+
+        # cv2.imshow('blurred', blurred)
+
+        lines = cv2.HoughLinesP(eroded, 1, math.pi/180, 150, minLineLength=100, maxLineGap=5)
+
+        if lines is None:
+            return []
+
+        vertical_lines = []
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            angle = math.atan2(y2-y1, x2-x1)
+            HIGH = math.pi/2 + 0.1
+            LOW = math.pi/2 - 0.1
+
+            if LOW <= abs(angle) <= HIGH:
+                vertical_lines.append(line)
+                cv2.line(color, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+
+
+        vertical_lines = np.array(vertical_lines)
+
+        if len(vertical_lines) < 2:
+            return []
+
+        # sort vertical lines by x1
+        vertical_lines = vertical_lines[vertical_lines[:, 0, 0].argsort()]
+
+        MID_ALLOWED_DEV = 0.1
+        MIN_DIST = 100
+
+        vertical_candidate_pairs = []
+        for i in range(len(vertical_lines)):
+            for j in range(len(vertical_lines)):
+                if i == j:
+                    continue
+
+                x1 = vertical_lines[i, 0, 0]
+                x2 = vertical_lines[j, 0, 0]
+                mid = (x1 + x2) / 2
+                d = abs(x2-x1)
+                if d < MIN_DIST:
+                    continue
+
+                diff = np.abs(vertical_lines[i+1:j, 0, 0] - mid)
+                # print(diff)
+                if np.any(diff < MID_ALLOWED_DEV*d):
+                    # draw center circle
+                    x_mid = int((x1 + x2) / 2)
+                    y_mid = int((vertical_lines[i, 0, 1] + vertical_lines[j, 0, 1]) / 2)
+                    cv2.circle(color, (x_mid, y_mid), 10, (0, 0, 255), 2)
+                    vertical_candidate_pairs.append((i, j))
+
+        horizontal_lines = []
+        for line in lines:
+            x1, y1, x2, y2 = line[0]
+            angle = math.atan2(y2-y1, x2-x1)
+            HIGH = 1.0
+            LOW = -1.0
+
+            if LOW <= angle <= HIGH:
+                horizontal_lines.append(line)
+                cv2.line(color, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+
+        horizontal_lines = np.array(horizontal_lines)
+
+        #sort horizontal lines by y1 in reverse order
+        horizontal_lines = horizontal_lines[horizontal_lines[:, 0, 1].argsort()[::-1]]
+
+        # differentiate y1
+        y1_diff = np.diff(horizontal_lines[:, 0, 1])
+
+        # find first index where y1_diff is less than Y_CLUSTER_MAX_DIST
+        Y_CLUSTER_MAX_DIST = 20
+        y1_diff_idx = np.where(y1_diff < Y_CLUSTER_MAX_DIST)[0][0]
+        print(y1_diff_idx)
+
+        top_line = horizontal_lines[y1_diff_idx]
+
+        cv2.line(color, (top_line[0, 0], top_line[0, 1]), (top_line[0, 2], top_line[0, 3]), (0, 0, 255), 2)
+
+        gate_candidates = []
+
+        for i1, i2 in vertical_candidate_pairs:
+            # find intersections with top line
+            intersection1 = GateDetector.find_intersection(vertical_lines[i1, 0], top_line[0])
+            intersection2 = GateDetector.find_intersection(vertical_lines[i2, 0], top_line[0])
+            if intersection1 is None or intersection2 is None:
+                continue
+
+            #convert to int
+            intersection1 = (int(intersection1[0]), int(intersection1[1]))
+            intersection2 = (int(intersection2[0]), int(intersection2[1]))
+
+            depth_array = self._get_line_array(np.array(intersection1), np.array(intersection2),
+                                               depth)[:,2]
+            x1,y1 = intersection1
+            x2,y2 = intersection2
+
+            # check if intersection is in the image
+            if x1 < 0 or x1 >= depth.shape[1] or y1 < 0 or y1 >= depth.shape[0] or \
+                x2 < 0 or x2 >= depth.shape[1] or y2 < 0 or y2 >= depth.shape[0]:
+                continue
+
+
+            d1 = depth[y1, x1]
+            d2 = depth[y2, x2]
+
+
+            if d1 == 0 or d2 == 0 or d1 == NaN or d2 == NaN:
+                continue
+
+            mat = self._camera_matrix_inv
+            # 4 element np array
+            pt1 = np.array([0,0,0,0])
+            pt2 = np.array([0,0,0,0])
+            pt1[0] = x1*d1
+            pt1[1] = y1*d1
+            pt1[2] = d1
+            pt1[3] = 1.0
+            pt2[0] = x2*d2
+            pt2[1] = y2*d2
+            pt2[2] = d2
+            pt2[3] = 1.0
+            # pt2 = np.array([x2, y2, d2, 1])
+            pt13 = np.matmul(mat, pt1.transpose())
+            pt23 = np.matmul(mat, pt2.transpose())
+
+            #get distance between pt13 and 23
+            dist = np.linalg.norm(pt13 - pt23)
+
+            gate_candidates.append((pt13, pt23, dist))
+
+            cv2.circle(color, intersection1, 10, (0, 0, 255), 2)
+            cv2.circle(color, intersection2, 10, (0, 0, 255), 2)
+
+
+
+        bestCandidate = None
+        bestDev = 0
+        GATE_WIDTH = 1.8
+        for (pt1, pt2, dist) in gate_candidates:
+            if bestCandidate is None or (bestDev > abs(dist - GATE_WIDTH)):
+                bestCandidate = (pt1, pt2, dist)
+                bestDev = abs(dist - GATE_WIDTH)
+
+        print(bestCandidate, bestDev)
+
+        # get midpoint
+        if bestCandidate == None:
+            return []
+        midpoint = (bestCandidate[0] + bestCandidate[1]) / 2
+
+
+        cv2.imshow('rgb', color)
+
+        cv2.waitKey(1)
+
+        # for c in candidates:
+        #     d = self.GatePosition(*c.depth_translation, *c.depth_rotation.as_quat())
+        #     detections.append(d)
+        return [self.GatePosition(midpoint[0], midpoint[1], midpoint[2], 0, 0, 0, 1)]
+
+    @staticmethod
+    def find_intersection(line1, line2):
+        x1, y1, x2, y2 = line1
+        x3, y3, x4, y4 = line2
+
+        # Check if lines are parallel
+        if (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4) == 0:
+            return None  # Lines are parallel, no intersection point
+
+        # Calculate intersection point coordinates using Cramer's rule
+        det_x = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)
+        det_y = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)
+        denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+
+        intersection_x = det_x / denominator
+        intersection_y = det_y / denominator
+
+        return intersection_x, intersection_y
 
     def _find_candidates(self, img):
         """
