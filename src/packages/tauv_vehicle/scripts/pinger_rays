@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from pinger_localizer import pinger_rays
+
+if __name__ == "__main__":
+    pinger_rays.main()
