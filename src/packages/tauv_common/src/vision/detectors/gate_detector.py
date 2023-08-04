@@ -54,6 +54,8 @@ class GateDetector:
         @param depth: Single channel floating point depth image
         @return:
         """
+
+        print('detecting')
         p = self._parms
 
         # find gate candidates on the rgb image
@@ -85,9 +87,16 @@ class GateDetector:
         # Filter in HSV, fill holes and detect contours
         filtered = self._get_color_filter_mask(img,
                                                p.preprocessing.hsv_boundaries)
+
+        cv2.imshow("filtered", filtered)
+        print(p.preprocessing.hsv_boundaries)
+
         floodfilled = self._fill_holes(filtered)
         eroded = self._erode(floodfilled)
         edges = cv2.Canny(eroded, 0, 255)
+
+
+
         contours, _ = cv2.findContours(edges, cv2.RETR_TREE,
                                        cv2.CHAIN_APPROX_SIMPLE)
 
@@ -95,6 +104,9 @@ class GateDetector:
         lines = self._lines_from_contours(contours)
 
         self._draw_lines(img, lines, 2, (255, 0, 0))
+
+        cv2.imshow('lines', img)
+        cv2.waitKey(1)
 
         if len(lines) == 0:
             return []

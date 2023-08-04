@@ -22,15 +22,17 @@ class GateDetectorNode:
         parameters = Parms(rospy.get_param("~gate_detector_parameters"))
         self._detector = GateDetector(parameters)
 
-        self._rgb_sub = message_filters.Subscriber('color', Image)
-        self._depth_sub = message_filters.Subscriber('depth', Image)
-        self._camera_info_sub = message_filters.Subscriber('camera_info',
-                                                           CameraInfo)
+        self._rgb_sub = message_filters.Subscriber('color', Image, queue_size=10)
+        self._depth_sub = message_filters.Subscriber('depth', Image, queue_size=10)
+        # self._camera_info_sub = message_filters.Subscriber('camera_info',
+        #                                                    CameraInfo, queue_size=10)
 
-        self._time_synchronizer = message_filters.TimeSynchronizer(
+        self._camera_info = rospy.wait_for_message('camera_info', CameraInfo, 60)
+
+        self._time_synchronizer = message_filters.ApproximateTimeSynchronizer(
             [self._rgb_sub,
-            self._depth_sub,
-               self._camera_info_sub], 10)
+                self._depth_sub,
+             ], queue_size=200, slop=0.5)
         self._time_synchronizer.registerCallback(self.callback)
 
         self._detection_pub = rospy.Publisher('global_map/feature_detections', FeatureDetections,
@@ -42,9 +44,10 @@ class GateDetectorNode:
         self._tf_buffer = tf2_ros.Buffer()
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer)
 
-    def callback(self, rgb: Image, depth: Image, camera_info: CameraInfo):
+    def callback(self, rgb: Image, depth: Image):
+        print("cb")
         # Update camera matrix
-        self._detector.set_camera_matrix(camera_info.K)
+        self._detector.set_camera_matrix(self._camera_info.K)
 
         # Convert colors
         cv_rgb = self._bridge.imgmsg_to_cv2(rgb, desired_encoding="passthrough")
@@ -56,7 +59,7 @@ class GateDetectorNode:
         tf_cam_odom = self._tf_buffer.lookup_transform(
             f'{self._tf_namespace}/odom',
             f'{self._tf_namespace}/oakd_front',
-            rgb.header.stamp
+        rospy.Time(0)
         )
 
         H_cam_odom = tf2_transform_to_homogeneous(tf_cam_odom)
@@ -64,9 +67,10 @@ class GateDetectorNode:
 
         # Get detections
         detections = self._detector.detect(cv_rgb, cv_depth)
+        print(detections)
 
         detections_msg = FeatureDetections()
-        detections_msg.header.stamp = rgb.header.stamp
+        # detections_msg.header.stamp = rgb.header.stamp
         detections_msg.detector_tag = 'gate_detector'
 
         # Need to transform these detections into world frame :(
@@ -82,7 +86,7 @@ class GateDetectorNode:
             detection_msg.tag = 'gate'
             detection_msg.position = Point(position_odom[0], position_odom[1], position_odom[2])
             detection_msg.orientation = Point(orientation_odom_rpy[0], orientation_odom_rpy[1], orientation_odom_rpy[2])
-            detection_msg.count = 1
+            # detection_msg.count = 1
             detections_msg.detections.append(detection_msg)
 
         self._detection_pub.publish(detections_msg)

@@ -1,12 +1,12 @@
 gate_detector_parameters:
   preprocessing:
     hsv_boundaries:
-    - - - 150
+    - - - 0
         - 0
         - 0
       - - 200
         - 255
-        - 100
+        - 255
     dilation_ks: 2
     erosion_ks: 2
   contours:

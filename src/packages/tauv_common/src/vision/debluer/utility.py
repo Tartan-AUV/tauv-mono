@@ -150,8 +150,8 @@ def Stretching_new(image):
         # print(f'{inv_mask=}')
         LS_img_pre = (((img_hist - min_P) * ((255 - min_P) / (avg_point - min_P)) +
                        min_P)).astype(np.uint8)
-        if i == 1:
-            cv2.imshow("pre", LS_img_pre)
+        # if i == 1:
+            # cv2.imshow("pre", LS_img_pre)
         LSR_img[:, :, i] = cv2.bitwise_or(LS_img_pre, LS_img_pre, mask=mask)
         LSR_img[:, :, i] = cv2.bitwise_or(LSR_img[:,:,i], ones, mask=inv_mask)
 
@@ -159,8 +159,8 @@ def Stretching_new(image):
         US_img_pre = (img_hist - avg_point) * US_k
         USR_img[:, :, i] = cv2.bitwise_or(US_img_pre, US_img_pre, inv_mask)
 
-    cv2.imshow('ls', LSR_img)
-    cv2.imshow('us', USR_img)
+    # cv2.imshow('ls', LSR_img)
+    # cv2.imshow('us', USR_img)
     cv2.waitKey(1)
     return LSR_img, USR_img
 
@@ -252,7 +252,7 @@ def NUCE(img):
     neu_img = neutralize_image(img)
     print('stretch')
     #Dual-intensity images fusion based on average of mean and median values
-    img1, img2 = Stretching_new(neu_img)
+    img1, img2 = Stretching(neu_img)
 
     print('enhance')
     dual_img = enhanced_image(img1, img2)

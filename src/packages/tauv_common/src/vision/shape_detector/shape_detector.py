@@ -16,6 +16,7 @@ from .circle_detection import GetCirclePosesParams, get_circle_poses
 from .path_marker_detection import GetPathMarkerPosesParams, get_path_marker_poses
 from .chevron_detection import GetChevronPosesParams, get_chevron_poses
 from .lid_detection import GetLidPosesParams, get_lid_poses
+from .gate_detection import detect_gate
 from .adaptive_color_thresholding import GetAdaptiveColorThresholdingParams, get_adaptive_color_thresholding
 
 
@@ -150,6 +151,9 @@ class ShapeDetector:
             detections.append(detection)
 
         return detections, debug_img
+
+    def _get_gate_detections(self, color, depth, intrinsics):
+        detect_gate(color, depth)
 
     def _get_path_marker_detections(self, color: np.array, depth: np.array, world_t_cam: SE3,
                                     intrinsics: CameraIntrinsics) -> ([FeatureDetection], np.array):
