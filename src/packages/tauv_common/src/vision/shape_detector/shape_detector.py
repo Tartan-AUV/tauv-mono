@@ -35,11 +35,14 @@ class ShapeDetector:
         self._intrinsics: {str: CameraIntrinsics} = {}
         self._distortions: {str: CameraDistortion} = {}
         for frame_id in self._frame_ids:
+            rospy.loginfo(f'Waiting for {frame_id} camera info')
             info = rospy.wait_for_message(f'vehicle/{frame_id}/color/camera_info', CameraInfo, 60)
             self._camera_infos[frame_id] = info
             self._intrinsics[frame_id] = CameraIntrinsics.from_matrix(np.array(info.K))
             # self._distortions[frame_id] = CameraDistortion.from_matrix(np.array(info.D))
             self._distortions[frame_id] = CameraDistortion.from_matrix(np.zeros(5))
+
+        rospy.loginfo(f'Got camera infos')
 
         self._synchronizers: {str: message_filters.ApproximateTimeSynchronizer} = {}
         self._circle_debug_img_pubs: {str: rospy.Publisher} = {}
@@ -56,14 +59,18 @@ class ShapeDetector:
             synchronizer.registerCallback(partial(self._handle_imgs, frame_id=frame_id))
             self._synchronizers[frame_id] = synchronizer
 
-            self._circle_debug_img_pubs[frame_id] =\
-                rospy.Publisher(f'vision/shape_detector/{frame_id}/circle/debug_image', Image, queue_size=10)
-            self._path_marker_debug_img_pubs[frame_id] = \
-                rospy.Publisher(f'vision/shape_detector/{frame_id}/path_marker/debug_image', Image, queue_size=10)
-            self._chevron_debug_img_pubs[frame_id] = \
-                rospy.Publisher(f'vision/shape_detector/{frame_id}/chevron/debug_image', Image, queue_size=10)
-            self._lid_debug_img_pubs[frame_id] = \
-                rospy.Publisher(f'vision/shape_detector/{frame_id}/lid/debug_image', Image, queue_size=10)
+            if 'circle' in self._detectors[frame_id]:
+                self._circle_debug_img_pubs[frame_id] =\
+                    rospy.Publisher(f'vision/shape_detector/{frame_id}/circle/debug_image', Image, queue_size=10)
+            if 'path_marker' in self._detectors[frame_id]:
+                self._path_marker_debug_img_pubs[frame_id] = \
+                    rospy.Publisher(f'vision/shape_detector/{frame_id}/path_marker/debug_image', Image, queue_size=10)
+            if 'chevron' in self._detectors[frame_id]:
+                self._chevron_debug_img_pubs[frame_id] = \
+                    rospy.Publisher(f'vision/shape_detector/{frame_id}/chevron/debug_image', Image, queue_size=10)
+            if 'lid' in self._detectors[frame_id]:
+                self._lid_debug_img_pubs[frame_id] = \
+                    rospy.Publisher(f'vision/shape_detector/{frame_id}/lid/debug_image', Image, queue_size=10)
 
         self._detections_pub: rospy.Publisher =\
             rospy.Publisher('global_map/feature_detections', FeatureDetections, queue_size=10)

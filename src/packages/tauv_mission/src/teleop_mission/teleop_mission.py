@@ -16,7 +16,12 @@ from std_srvs.srv import SetBool
 from spatialmath import SE3, SO3, SE2, SO2
 import numpy as np
 from tasks import Task, TaskResources
-from tasks.torpedo import Torpedo as TorpedoTask, TorpedoResult, TorpedoStatus
+from tasks.shoot_torpedo import ShootTorpedo as ShootTorpedoTask, ShootTorpedoResult, ShootTorpedoStatus
+from tasks.pick_chevron import PickChevron as PickChevronTask, PickChevronResult, PickChevronStatus
+from tasks.dive import Dive as DiveTask, DiveResult, DiveStatus
+from tasks.scan_rotate import ScanRotate as ScanRotateTask
+from tasks.scan_translate import ScanTranslate as ScanTranslateTask
+from tasks.hit_buoy import HitBuoy as HitBuoyTask
 
 class ArgumentParserError(Exception): pass
 
@@ -303,17 +308,72 @@ class TeleopMission:
 
         self._actuators.activate_suction(args.strength)
 
-    def _handle_run_torpedo_task(self, args):
-        print('run_torpedo_task')
+    def _handle_run_shoot_torpedo_task(self, args):
+        print('run_shoot_torpedo_task')
 
-        self._task = TorpedoTask()
-        Thread(target=self._task.run, daemon=True).start()
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = ShootTorpedoTask()
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_run_pick_chevron_task(self, args):
+        print('run_pick_chevron_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = PickChevronTask()
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_run_dive_task(self, args):
+        print('run_dive_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = DiveTask(args.delay)
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_run_scan_rotate_task(self, args):
+        print('run_scan_rotate_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = ScanRotateTask()
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_run_scan_translate_task(self, args):
+        print('run_scan_translate_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = ScanTranslateTask()
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
+
+    def _handle_run_hit_buoy_task(self, args):
+        print('run_hit_buoy_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = HitBuoyTask(args.tag)
+        Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
 
     def _handle_cancel_task(self, args):
         print('cancel_task')
 
         if self._task is not None:
             self._task.cancel()
+            self._task = None
 
     def _handle_cancel(self, args):
         self._motion.cancel()
@@ -405,8 +465,27 @@ class TeleopMission:
         activate_suction.add_argument('strength', type=float)
         activate_suction.set_defaults(func=self._handle_activate_suction)
 
-        run_torpedo_task = subparsers.add_parser('run_torpedo_task')
-        run_torpedo_task.set_defaults(func=self._handle_run_torpedo_task)
+        run_shoot_torpedo_task = subparsers.add_parser('run_shoot_torpedo_task')
+        run_shoot_torpedo_task.set_defaults(func=self._handle_run_shoot_torpedo_task)
+
+        run_pick_chevron_task = subparsers.add_parser('run_pick_chevron_task')
+        run_pick_chevron_task.set_defaults(func=self._handle_run_pick_chevron_task)
+
+        run_dive_task = subparsers.add_parser('run_dive_task')
+        run_dive_task.add_argument("delay", type=float)
+        run_dive_task.set_defaults(func=self._handle_run_dive_task)
+
+        run_scan_rotate_task = subparsers.add_parser('run_scan_rotate_task')
+        run_scan_rotate_task.set_defaults(func=self._handle_run_scan_rotate_task)
+
+        run_scan_translate_task = subparsers.add_parser('run_scan_translate_task')
+        run_scan_translate_task.add_argument('x_range', type=float)
+        run_scan_translate_task.add_argument('y_range', type=float)
+        run_scan_translate_task.set_defaults(func=self._handle_run_scan_translate_task)
+
+        run_hit_buoy_task = subparsers.add_parser('run_hit_buoy_task')
+        run_hit_buoy_task.add_argument('tag', type=str)
+        run_hit_buoy_task.set_defaults(func=self._handle_run_hit_buoy_task)
 
         cancel_task = subparsers.add_parser('cancel_task')
         cancel_task.set_defaults(func=self._handle_cancel_task)

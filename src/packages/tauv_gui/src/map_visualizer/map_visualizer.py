@@ -160,7 +160,7 @@ class MapVisualizer:
 
         if axis not in ["+x", "-x", "+z", "-z"]:
             raise ValueError(f"unknown axis {axis}")
-        pose_adjustment = SO3.TwoVectors(x=axis, y="+y")
+        pose_adjustment = SE3(SO3.TwoVectors(x=axis, y="+y"))
 
         pose = pose * pose_adjustment
 
@@ -182,7 +182,7 @@ class MapVisualizer:
         if param in self._marker_params["default"][source.value]:
             return self._marker_params["default"][source.value][param]
 
-        return self._marker_types[type][param]
+        return self._marker_types[marker_type][param]
 
     def _load_config(self):
         self._tf_namespace: str = rospy.get_param("tf_namespace")

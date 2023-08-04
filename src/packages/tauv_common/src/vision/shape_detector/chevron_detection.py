@@ -65,10 +65,11 @@ def get_chevron_poses(mask: np.array, depth: np.array, intrinsics: CameraIntrins
         )
 
         depth_window = depth[min_yx[0]:max_yx[0], min_yx[1]:max_yx[1]]
-        if np.all(depth_window == 0):
+        depth_window = depth_window[depth_window > 0]
+        if depth_window.shape[0] < 10:
             continue
 
-        z = np.mean(depth_window[depth_window > 0])
+        z = np.mean(depth_window)
 
         t = np.array([
             (point[0] - intrinsics.c_x) * (z / intrinsics.f_x),

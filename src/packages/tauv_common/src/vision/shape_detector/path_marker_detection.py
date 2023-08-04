@@ -43,7 +43,10 @@ def get_path_marker_poses(mask: np.array, depth: np.array, intrinsics: CameraInt
 
         cv2.drawContours(depth_mask, [contour], -1, color=255, thickness=-1)
 
-        z = np.mean(depth[(depth_mask > 0) & (depth > 0)])
+        depth_window = depth[(depth_mask > 0) & (depth > 0)]
+        if depth_window.shape[0] < 10:
+            continue
+        z = np.mean(depth_window)
         x = (b_x - intrinsics.c_x) * (z / intrinsics.f_x)
         y = (b_y - intrinsics.c_y) * (z / intrinsics.f_y)
 

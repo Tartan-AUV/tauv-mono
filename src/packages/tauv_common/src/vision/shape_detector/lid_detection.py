@@ -64,7 +64,7 @@ def get_lid_poses(orange_mask: np.array, purple_mask: np.array, depth: np.array,
         b_theta = np.deg2rad(b_theta_deg)
 
         depth = depth[(depth > 0) & (depth_mask > 0)]
-        if depth.shape[0] == 0:
+        if depth.shape[0] < 10:
             continue
 
         z = np.mean(depth)

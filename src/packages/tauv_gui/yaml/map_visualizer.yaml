@@ -38,9 +38,21 @@ markers:
   default:
     detection:
       type: "arrow"
-      scale: 0.05
+      scale: 0.25
       opacity: 0.5
     map:
       type: "arrow"
-      scale: 0.1
+      scale: 0.5
       opacity: 1
+  buoy_earth_1:
+    map:
+      color: [0, 1, 0]
+  buoy_earth_2:
+    map:
+      color: [ 0, 1, 0 ]
+  buoy_abydos_1:
+    map:
+      color: [ 0, 1, 0 ]
+  buoy_abydos_2:
+    map:
+      color: [ 0, 1, 0 ]

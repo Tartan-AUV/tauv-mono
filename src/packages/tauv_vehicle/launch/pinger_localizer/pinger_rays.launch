@@ -1,0 +1,4 @@
+<launch>
+    <node ns="kf" pkg="tauv_vehicle" type="pinger_rays" name="pinger_rays" output="screen">
+    </node>
+</launch>

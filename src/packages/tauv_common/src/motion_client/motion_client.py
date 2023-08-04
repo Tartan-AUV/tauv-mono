@@ -97,12 +97,17 @@ class MotionClient:
             start_world_twist = flatten_twist3(start_world_twist)
             pose = flatten_se3(pose)
 
+        rospy.loginfo(start_pose)
+        rospy.loginfo(pose)
+
         traj = ConstantAccelerationTrajectory(
             start_pose, start_world_twist,
             pose, Twist3(),
             params,
             relax=True,
         )
+
+        rospy.loginfo(f"current_time: {current_time}")
 
         self._set_trajectory(traj, current_time)
 
@@ -170,6 +175,7 @@ class MotionClient:
             self._trajectory_start_time = current_time
             self._trajectory = trajectory
             self._trajectory_complete_event.clear()
+            rospy.loginfo("Set trajectory")
 
     def _publish_debug_target(self, time: rospy.Time, pose: PoseMsg, twist: TwistMsg):
         pose_stamped = PoseStampedMsg()
