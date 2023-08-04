@@ -5,11 +5,11 @@
 tracker_params: {
   default: {
     min_decay_time: 1, #lower limit on decay time, resets w every new detection (>=0 seconds)
-    mahalanobis_threshold: 5,
+    mahalanobis_threshold: 1,
     tracker_bias: 0, #larger decreases the odds of matches w assigned tracker
     reassignable: false,
     matching_weights: { #these correspond to the impact of each characteristic distance on the similarity score between trackers
-          tag_weight: 100,
+          tag_weight: 100000,
           distance_weight: 1,
           orientation_weight: 0,
           recency_weight: 0.2,

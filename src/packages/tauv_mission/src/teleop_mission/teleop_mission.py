@@ -365,7 +365,7 @@ class TeleopMission:
             print('task in progress')
             return
 
-        self._task = HitBuoyTask(args.tag)
+        self._task = HitBuoyTask(args.tag, args.timeout)
         Thread(target=lambda: self._task.run(self._task_resources), daemon=True).start()
 
     def _handle_cancel_task(self, args):
@@ -485,6 +485,7 @@ class TeleopMission:
 
         run_hit_buoy_task = subparsers.add_parser('run_hit_buoy_task')
         run_hit_buoy_task.add_argument('tag', type=str)
+        run_hit_buoy_task.add_argument('timeout', type=float)
         run_hit_buoy_task.set_defaults(func=self._handle_run_hit_buoy_task)
 
         cancel_task = subparsers.add_parser('cancel_task')
