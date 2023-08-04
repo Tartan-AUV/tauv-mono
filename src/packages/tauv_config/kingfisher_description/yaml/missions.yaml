@@ -1,0 +1,14 @@
+# this is relative to the start of the course, assumes we start from a corner point
+run_params: {
+  A:
+  {
+    focal_length_a: 40.0, #91 meters across
+    focal_length_b: 29.0, #61 meters wide
+    depth: 1.0,
+    gate:
+    {
+      approximate_position: ()
+    }
+  }
+  
+}

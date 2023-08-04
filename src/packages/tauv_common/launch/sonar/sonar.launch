@@ -4,16 +4,9 @@
     <arg name="model_name" default="kingfisher"/>
     <arg name="namespace" default="kf"/>
 
-<!-- TEMP FOR TESTING -->
-  <!-- <arg name="teleop" default="true"/>
-  <group ns="$(arg namespace)">
     <param name="tf_namespace" value="$(arg namespace)" />
-    <include file="$(arg config_pkg)/launch/transforms.launch">
-      <arg name="namespace" value="$(arg namespace)" />
-    </include> -->
-
+     <node pkg="tf2_ros" type="static_transform_publisher" name="vehicle_t_sonar" args="0.45 0 0 0 0 0 $(arg namespace)/vehicle $(arg namespace)/sonar1"/>
     <node pkg="tauv_common" type="sonar_map" name="sonar_map" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/yaml/sonar.yaml" />
     </node>
-<!--     </group> -->
 </launch>

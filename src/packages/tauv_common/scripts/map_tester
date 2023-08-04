@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from vision.detectors import map_tester
+
+if __name__ == "__main__":
+    map_tester.main()

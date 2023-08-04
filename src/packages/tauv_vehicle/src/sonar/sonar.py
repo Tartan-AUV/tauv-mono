@@ -3,10 +3,12 @@ from .ping_python.brping import definitions
 
 from tauv_msgs.msg import SonarPulse as PulseMsg
 from std_msgs.msg import Header
+from tauv_utils import SE3
 
 import math
 
 import rospy
+# import numpy as np
 
 RAD_PER_GRAD = math.pi / 200.0
 
@@ -49,9 +51,12 @@ class Sonar:
         self._angle = (1 + self._angle) % 400
         self._do_pulse_at_angle(self._angle)
 
-        res = self._ping.wait_message([definitions.COMMON_NACK, definitions.PING360_DEVICE_DATA], 0.1)
-
-        if res is None:
+        try:
+            res = self._ping.wait_message([definitions.COMMON_NACK, definitions.PING360_DEVICE_DATA], 0.1)
+            if res is None:
+                return
+        except OSError:
+            rospy.logwarn("ping360 input output error")
             return
 
         if res.message_id == definitions.PING360_DEVICE_DATA:
@@ -65,6 +70,12 @@ class Sonar:
 
     def _calculate_sample_period(self, distance, num_samples, speed_sound, sample_period_tick_duration=25e-9):
         return int(2 * distance / (num_samples * speed_sound * sample_period_tick_duration))
+
+    # implementation assumes stationary sub during scan, but because of speed-of-sound to speed-of-sub
+    # ratio, the triangulation offset can be ignored
+    # def _calculate_offset(self, prev_loc : SE3, cur_loc : SE3, msg : PulseMsg) -> PulseMsg:
+    #     np.roots()
+    #     2b^2 + b(2q – 2c cos t) – (q^2+c^2+2qc cost) = 0
 
     def _get_pulse_msg(self, pinger_data) -> PulseMsg:
         msg = PulseMsg()
