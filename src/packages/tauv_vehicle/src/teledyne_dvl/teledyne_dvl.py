@@ -36,7 +36,6 @@ class TeledyneDVL:
             if ensemble is None:
                 rospy.logwarn_throttle(10, 'No ensemble')
                 n_missed += 1
-                continue
             else:
                 n_missed = 0
 
@@ -45,6 +44,9 @@ class TeledyneDVL:
                 self._pf.close()
                 self._pf.open()
                 self._pf.start_measuring()
+
+            if ensemble is None:
+                continue
 
             rospy.logdebug(f'[teledyne_dvl] timestamps: {list(map(lambda t: t.to_sec(), self._sync_timestamps))}')
 
