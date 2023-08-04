@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from skspatial.objects import Plane, Line
 from scipy.spatial.transform import Rotation
+from ..shape_detector.adaptive_color_thresholding import get_adaptive_color_thresholding, GetAdaptiveColorThresholdingParams
 
 import math
 import itertools
@@ -35,6 +36,12 @@ class GateDetector:
                                         [0, 1, 1],
                                         [0, 0, 1]])
         self._camera_matrix_inv = self._inv_camera_matrix(self._camera_matrix)
+        self._act_params = GetAdaptiveColorThresholdingParams(
+            self._parms.preprocessing.global_thresholds,
+            self._parms.preprocessing.local_thresholds,
+            self._parms.preprocessing.window_size
+        )
+
 
     def set_camera_matrix(self, camera_matrix):
         """
@@ -72,6 +79,7 @@ class GateDetector:
         for c in candidates:
             d = self.GatePosition(*c.depth_translation, *c.depth_rotation.as_quat())
             detections.append(d)
+        print(f'{detections=}\n\n')
         return detections
 
     def _find_candidates(self, img):
@@ -83,18 +91,28 @@ class GateDetector:
         p = self._parms
 
         # Filter in HSV, fill holes and detect contours
-        filtered = self._get_color_filter_mask(img,
-                                               p.preprocessing.hsv_boundaries)
+        # filtered = self._get_color_filter_mask(img,
+        #                                        p.preprocessing.hsv_boundaries)
+        print(self._act_params)
+        filtered = get_adaptive_color_thresholding(img, self._act_params)
+
+        # cv2.imshow("filtered", filtered*255)
+        # cv2.imshow("img", img)
+
         floodfilled = self._fill_holes(filtered)
         eroded = self._erode(floodfilled)
-        edges = cv2.Canny(eroded, 0, 255)
+        edges = cv2.Canny(eroded, 0, 255, )
         contours, _ = cv2.findContours(edges, cv2.RETR_TREE,
                                        cv2.CHAIN_APPROX_SIMPLE)
 
+        cv2.imshow("edges", edges)
         # Get lines corresponding to gate poles
         lines = self._lines_from_contours(contours)
 
         self._draw_lines(img, lines, 2, (255, 0, 0))
+
+        cv2.imshow("lines", cv2.cvtColor(img, cv2.COLOR_HSV2RGB))
+        cv2.waitKey(1)
 
         if len(lines) == 0:
             return []

@@ -303,6 +303,7 @@ class ShapeDetector:
         )
 
 
+
 def main():
     rospy.init_node('shape_detector')
     n = ShapeDetector()

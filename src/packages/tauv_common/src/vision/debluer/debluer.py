@@ -32,7 +32,7 @@ class Debluer:
         self.frame_id = rospy.get_param('~frame_id')
         self.cv_bridge = CvBridge()
         self.img_sub = rospy.Subscriber(f'vehicle/{self.frame_id}/color/image_raw', sensor_msgs.msg.Image, self.handle_img)
-        self.pub = rospy.Publisher(f'vision/{self.frame_id}/debluer', sensor_msgs.msg.Image)
+        self.pub = rospy.Publisher(f'vehicle/{self.frame_id}/color/deblued', sensor_msgs.msg.Image)
         self.lock.release()
 
         self.deluber_params = DeluberParams()
@@ -50,6 +50,7 @@ class Debluer:
         result = np.round(img_adapteq * 255.0).astype(np.uint8)
         result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
         result_msg = self.cv_bridge.cv2_to_imgmsg(result, encoding="passthrough")
+        result_msg.header = msg.header
         self.pub.publish(result_msg)
 
         self.lock.release()
