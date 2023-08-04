@@ -6,7 +6,7 @@
 <!--            <rosparam param="frame_id">oakd_bottom</rosparam>-->
 <!--        </node>-->
         <node pkg="tauv_common" type="debluer" name="debluer_front" output="screen">
-            <rosparam param="frame_id">oakd_front</rosparam>
+            <rosparam param="frame_id">oakd_bottom</rosparam>
         </node>
 <!--    </group>-->
 </launch>
