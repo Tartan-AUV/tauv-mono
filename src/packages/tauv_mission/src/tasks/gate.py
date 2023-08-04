@@ -63,7 +63,7 @@ class Gate(Task):
         odom_t_gate = gate_detection.pose
         '''
         # odom_t_gate = odom_t_course * SE3.Rt(SO3.Rz(1.57), (5, 2, 2))
-        odom_t_gate = odom_t_course * SE3.Rt(SO3(), (6, 0, 1))
+        odom_t_gate = odom_t_course * SE3.Rt(SO3(), (12, 0, 1))
 
         gate_t_spin = SE3.Rt(SO3(), (-2, 0, 0.5))
         gate_t_through = SE3.Rt(SO3(), (2, 0, 0.5))
@@ -111,7 +111,21 @@ class Gate(Task):
 
             if self._check_cancel(resources): return GateResult(status=GateStatus.CANCELLED)
 
+        odom_t_octagon = odom_t_gate * SE3.Tx(12.0)
+
+        resources.motion.goto(odom_t_octagon)
+
+        while True:
+            if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
+                break
+
+            if self._check_cancel(resources): return GateResult(status=GateStatus.CANCELLED)
+
+        resources.motion.arm(False)
+
         return GateResult(status=GateStatus.SUCCESS)
+
+
 
     def _handle_cancel(self, resources: TaskResources):
         resources.motion.cancel()

@@ -132,8 +132,6 @@ class PingerLocalizer:
         self._direction_pose_pub.publish(direction_pose_msg)
 
         detection_msg = PingDetection()
-        detection_msg.header.frame_id = 'kf/vehicle'
-        detection_msg.header.stamp = curr_ros_time
         detection_msg.frequency = ping_frequency
         detection_msg.direction.x = direction[0]
         detection_msg.direction.y = direction[1]

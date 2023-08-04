@@ -33,14 +33,17 @@ class DetectPinger(Task):
         avg_z = 0
 
         while True:
-            self._arm_srv.call(False)
             try:
+                self._arm_srv.call(False)
                 detection = rospy.wait_for_message('vehicle/pinger_localizer/detection', PingDetection, timeout=3.0)
-            except Exception:
                 self._arm_srv.call(True)
-                continue
+            except Exception:
+                pass
 
-            self._arm_srv.call(True)
+            try:
+                self._arm_srv.call(True)
+            except Exception:
+                pass
 
             if abs(detection.frequency - self._frequency) > 500:
                 continue
@@ -54,7 +57,7 @@ class DetectPinger(Task):
             # current_yaw = odom_t_vehicle.rpy()[2]
             direction_yaw = atan2(direction[1], direction[0])
             avg_z = 0.5 * avg_z + 0.5 * direction[2]
-            if avg_z < -0.8:
+            if avg_z > 0.8:
                 resources.motion.goto_relative_with_depth(SE2(), 0)
 
                 while True:
@@ -63,7 +66,10 @@ class DetectPinger(Task):
 
                     if self._check_cancel(resources): return DetectPingerResult(DetectPingerStatus.FAILURE)
 
-                self._arm_srv.call(False)
+                try:
+                    self._arm_srv.call(False)
+                except Exception:
+                    pass
 
             goal_odom_t_vehicle = odom_t_vehicle * SE3.Rt(SO3.Rz(direction_yaw), np.array([direction[0], direction[1], 0]))
             goal_odom_t_vehicle.t[2] = self._depth
