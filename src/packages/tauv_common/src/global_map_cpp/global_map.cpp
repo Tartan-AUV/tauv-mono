@@ -242,6 +242,14 @@ bool GlobalMap::findOne(tauv_msgs::MapFindOne::Request &req, tauv_msgs::MapFindO
 
     vector<shared_ptr<Tracker>> detections = (master->second)->getTrackers();
 
+    if(detections.size()==0)
+    {
+        res.detection = {};
+        res.success = false;
+
+        return false;
+    }
+
     int minInd = 0;
     double maxDecay = -1;
     for(size_t i = 0; i<detections.size(); i++)
@@ -271,6 +279,14 @@ bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::
     if(master == MAP.end()){res.success=false; res.detection = {}; return false;}
 
     vector<shared_ptr<Tracker>> detections = (master->second)->getTrackers();
+
+    if(detections.size()==0)
+    {
+        res.detection = {};
+        res.success = false;
+
+        return false;
+    }
 
     int minInd = 0;
     double minDist = -1;
