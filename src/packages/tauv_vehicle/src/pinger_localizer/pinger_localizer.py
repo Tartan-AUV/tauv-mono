@@ -3,8 +3,8 @@ import numpy as np
 import uuid
 import time
 
-from std_msgs.msg import Float64, Float64MultiArray
-from geometry_msgs.msg import PoseStamped, Vector3
+from std_msgs.msg import Float64, Float64MultiArray, Header
+from geometry_msgs.msg import PoseStamped, Vector3Stamped
 from tauv_util.transforms import rpy_to_quat
 from tauv_msgs.msg import PingDetection
 
@@ -42,7 +42,7 @@ class PingerLocalizer:
             self._sample_pubs.append(sample_pub)
 
         self._ping_frequency_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/ping_frequency', Float64, queue_size=10)
-        self._direction_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/direction', Vector3, queue_size=10)
+        self._direction_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/direction', Vector3Stamped, queue_size=10)
         self._direction_pose_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/direction_pose', PoseStamped, queue_size=10)
 
         self._detection_pub: rospy.Publisher = rospy.Publisher(f'vehicle/pinger_localizer/detection', PingDetection, queue_size=10)
@@ -113,7 +113,11 @@ class PingerLocalizer:
         rospy.loginfo(f'Direction: {direction}')
         rospy.loginfo(f'Psi: {direction_psi}, Theta: {direction_theta}')
 
-        direction_msg = Vector3()
+        curr_ros_time = rospy.Time.now()
+
+        direction_msg = Vector3Stamped()
+        direction_msg.header.frame_id = 'kf/vehicle'
+        direction_msg.header.stamp = curr_ros_time
         direction_msg.x = direction[0]
         direction_msg.y = direction[1]
         direction_msg.z = direction[2]
@@ -121,13 +125,15 @@ class PingerLocalizer:
 
         direction_pose_msg = PoseStamped()
         direction_pose_msg.header.frame_id = 'kf/vehicle'
+        direction_pose_msg.header.stamp = curr_ros_time
         direction_rpy = np.array([0, direction_theta, direction_psi])
         direction_quat = rpy_to_quat(direction_rpy)
         direction_pose_msg.pose.orientation = direction_quat
         self._direction_pose_pub.publish(direction_pose_msg)
 
         detection_msg = PingDetection()
-        detection_msg.stamp = rospy.Time.now()
+        detection_msg.header.frame_id = 'kf/vehicle'
+        detection_msg.header.stamp = curr_ros_time
         detection_msg.frequency = ping_frequency
         detection_msg.direction.x = direction[0]
         detection_msg.direction.y = direction[1]

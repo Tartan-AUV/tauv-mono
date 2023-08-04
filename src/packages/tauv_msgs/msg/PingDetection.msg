@@ -1,3 +1,3 @@
-time stamp
+Header header
 float64 frequency
 geometry_msgs/Vector3 direction
