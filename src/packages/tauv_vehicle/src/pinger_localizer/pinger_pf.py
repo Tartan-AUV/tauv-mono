@@ -14,6 +14,7 @@ class UniformInitParams:
     y_range: tuple(float, float)
     z_range: tuple(float, float)
 
+
 # @dataclass
 # class GaussianInitParams:
 #     xyz_mean: tuple(float, float, float)
