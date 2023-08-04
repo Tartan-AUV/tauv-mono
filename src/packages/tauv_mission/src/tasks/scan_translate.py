@@ -25,7 +25,7 @@ class ScanTranslate(Task):
         self._y_range: float = y_range
 
     def run(self, resources: TaskResources) -> ScanTranslateResult:
-        odom_t_vehicle_initial = resources.transforms.get_a_t_b('kf/odom', 'kf/vehicle')
+        odom_t_vehicle_initial = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
 
         for i in range(4):
             for j in range(4):

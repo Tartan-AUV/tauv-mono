@@ -76,7 +76,10 @@ class MotionClient:
             return res
 
     def arm(self, arm: bool):
-        self._arm_srv(arm)
+        try:
+            self._arm_srv(arm)
+        except:
+            pass
 
     def goto(self,
              pose: SE3,

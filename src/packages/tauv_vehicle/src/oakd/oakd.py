@@ -111,8 +111,11 @@ class OAKDNode:
         depth_queue = self._device.getOutputQueue(name='depth', maxSize=1, blocking=False)
 
         while not rospy.is_shutdown():
-            rgb = rgb_queue.tryGet()
-            depth = depth_queue.tryGet()
+            try:
+                rgb = rgb_queue.tryGet()
+                depth = depth_queue.tryGet()
+            except Exception:
+                continue
 
             self._depth_info_pub.publish(self._depth_info)
             self._color_info_pub.publish(self._color_info)
