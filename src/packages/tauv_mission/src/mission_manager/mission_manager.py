@@ -7,11 +7,10 @@ from missions.mission import Mission
 from missions.manifest import get_mission_by_name
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 from tauv_msgs.srv import RunMission, RunMissionRequest, RunMissionResponse
-from motion_client.motion_client import MotionClient
+from motion_client import MotionClient
 from actuator_client import ActuatorClient
-from transform_client import TransformClient
 from map_client import MapClient
-
+from transform_client import TransformClient
 
 class MissionManager:
 
@@ -29,6 +28,10 @@ class MissionManager:
             transforms=TransformClient(),
             map=MapClient(),
         )
+
+        self._params = rospy.get_param("missions")
+        course_num = self._params["course"]
+        self._course_info = rospy.get_param(f"course_info.{course_num}")
 
         self._mission_start_event: Event = Event()
         self._mission_cancel_event: Event = Event()
@@ -147,7 +150,7 @@ class MissionManager:
                 res.message = f'could not find mission named {req.mission_name}'
                 return res
 
-            self._mission = mission()
+            self._mission = mission(self._params, self._course_info)
 
             rospy.logdebug('_handle_run_mission setting mission_start_event')
             self._mission_start_event.set()

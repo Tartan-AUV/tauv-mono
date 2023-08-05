@@ -7,7 +7,11 @@ from motion_client import MotionClient
 from actuator_client import ActuatorClient
 from map_client import MapClient
 from transform_client import TransformClient
+<<<<<<< HEAD
+import time
+=======
 from typing import Callable, Any
+>>>>>>> origin/develop
 
 
 @dataclass
@@ -28,9 +32,10 @@ class TaskResult:
 
 class Task(ABC):
 
-    def __init__(self) -> None:
+    def __init__(self, timeout = None) -> None:
         self._cancel_event: Event = Event()
         self._cancel_complete_event: Event = Event()
+        self._timeout = timeout
 
     @abstractmethod
     def run(self, resources: TaskResources) -> TaskResult:
@@ -63,7 +68,14 @@ class Task(ABC):
             self._handle_cancel(resources)
 
             self._cancel_complete_event.set()
+        
+    def _set_timeout(self):
+        if(not self._timeout is None):
+            self._end_time = time.time()+self._timeout
+        else:
+            self._end_time = None
 
-            return True
-
+    def _check_timeout(self):
+        if(not self._end_time is None):
+            return (time.time()<self._end_time)
         return False

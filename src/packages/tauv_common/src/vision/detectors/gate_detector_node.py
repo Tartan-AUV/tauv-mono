@@ -20,7 +20,7 @@ from vision.detectors.gate_detector import GateDetector
 class GateDetectorNode:
     def __init__(self):
         parameters = Parms(rospy.get_param("~gate_detector_parameters"))
-        print(parameters)
+        # print(parameters)
         self._detector = GateDetector(parameters)
 
         self._rgb_sub = message_filters.Subscriber('color', Image, queue_size=10)
@@ -38,7 +38,7 @@ class GateDetectorNode:
 
         self._detection_pub = rospy.Publisher('global_map/feature_detections', FeatureDetections,
                                               queue_size=10)
-        self._tf_namespace = rospy.get_param('tf_namespace')
+        self._tf_namespace = "kf" #rospy.get_param('tf_namespace')
 
         self._bridge = cv_bridge.CvBridge()
 
@@ -67,7 +67,7 @@ class GateDetectorNode:
 
         # Get detections
         detections = self._detector.detect(cv_rgb, cv_depth)
-        print(detections)
+        # print(detections)
 
         detections_msg = FeatureDetections()
         # detections_msg.header.stamp = rgb.header.stamp
@@ -89,7 +89,7 @@ class GateDetectorNode:
             # detection_msg.count = 1
             detections_msg.detections.append(detection_msg)
 
-        print(detections_msg)
+        # print(detections_msg)
         self._detection_pub.publish(detections_msg)
 
 
