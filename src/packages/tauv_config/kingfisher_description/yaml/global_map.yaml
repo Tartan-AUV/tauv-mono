@@ -5,11 +5,11 @@
 tracker_params: {
   default: {
     min_decay_time: 1, #lower limit on decay time, resets w every new detection (>=0 seconds)
-    mahalanobis_threshold: 5,
+    mahalanobis_threshold: 1,
     tracker_bias: 0, #larger decreases the odds of matches w assigned tracker
     reassignable: false,
     matching_weights: { #these correspond to the impact of each characteristic distance on the similarity score between trackers
-          tag_weight: 100,
+          tag_weight: 100000,
           distance_weight: 1,
           orientation_weight: 0,
           recency_weight: 0.2,
@@ -48,7 +48,7 @@ tracker_params: {
 tag_params: {
   #params not specified within a tagged scope are default parameters for any tag but can be
   #respecified within a specific tag scope
-  DECAY_THRESHOLD: 0.7, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
+  DECAY_THRESHOLD: 0.3, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
   recency_weight: 0.7,
   frequency_weight: 0.5,
   badge: {
@@ -56,7 +56,19 @@ tag_params: {
   },
   phone: {
     expected_count: 1
-  }
+  },
+  buoy_abydos_1: {
+    expected_count: 1
+  },
+  buoy_abydos_2: {
+    expected_count: 1
+  },
+  buoy_earth_1: {
+    expected_count: 1
+  },
+  buoy_earth_2: {
+    expected_count: 1
+  },
 }
 
 kalman_params: {

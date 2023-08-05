@@ -3,7 +3,7 @@ detectors:
   oakd_front: ['circle']
   oakd_bottom: ['path_marker', 'chevron', 'lid']
 synchronizer_queue_size: 10
-synchronizer_slop: 0.1
+synchronizer_slop: 0.5
 
 circle:
   threshold:

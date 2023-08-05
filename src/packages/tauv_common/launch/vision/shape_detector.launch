@@ -1,5 +1,5 @@
 <launch>
-    <arg name="config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
+    <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
 
     <group ns="kf">
         <node pkg="tauv_common" type="shape_detector" name="shape_detector" output="screen">

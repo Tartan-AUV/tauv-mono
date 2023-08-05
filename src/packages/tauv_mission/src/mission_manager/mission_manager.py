@@ -8,6 +8,9 @@ from missions.manifest import get_mission_by_name
 from std_srvs.srv import Trigger, TriggerRequest, TriggerResponse
 from tauv_msgs.srv import RunMission, RunMissionRequest, RunMissionResponse
 from motion_client.motion_client import MotionClient
+from actuator_client import ActuatorClient
+from transform_client import TransformClient
+from map_client import MapClient
 
 
 class MissionManager:
@@ -21,7 +24,10 @@ class MissionManager:
         self._task_result: Optional[TaskResult] = None
 
         self._task_resources: TaskResources = TaskResources(
-            motion=MotionClient()
+            motion=MotionClient(),
+            actuators=ActuatorClient(),
+            transforms=TransformClient(),
+            map=MapClient(),
         )
 
         self._mission_start_event: Event = Event()

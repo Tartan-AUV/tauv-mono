@@ -1,6 +1,9 @@
 maestro_port: /dev/maestro
 thruster_channels: [5, 4, 6, 0, 3, 7, 1, 2]
-servo_channels: [8, 9, 10, 11, 12, 13]
+servo_channels: [9, 10, 11, 12, 8, 13]
+servo_min_pwms: [834, 834, 834, 834, 834, 834]
+servo_max_pwms: [2300, 2300, 1200, 2300, 2300, 2300]
+servo_zero_pwms: [1500, 1500, 1200, 1500, 1500, 1500]
 
 default_battery_voltage: 16.0
 

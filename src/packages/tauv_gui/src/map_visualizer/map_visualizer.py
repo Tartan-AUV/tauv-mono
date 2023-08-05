@@ -169,7 +169,7 @@ class MapVisualizer:
         return marker
 
     def _get_marker_type(self, tag: str, source: Source) -> str:
-        if tag in self._marker_params and source.value in self._marker_params[tag]:
+        if tag in self._marker_params and source.value in self._marker_params[tag] and "type" in self._marker_params[tag][source.value]:
             return self._marker_params[tag][source.value]["type"]
 
         return self._marker_params["default"][source.value]["type"]

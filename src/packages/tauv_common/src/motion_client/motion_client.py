@@ -10,15 +10,15 @@ from trajectories import Trajectory, ConstantAccelerationTrajectory, ConstantAcc
 from geometry_msgs.msg import Pose as PoseMsg, PoseStamped as PoseStampedMsg, Twist as TwistMsg, TwistStamped as TwistStampedMsg
 from tauv_util.spatialmath import ros_nav_state_to_se3, ros_nav_state_to_body_twist3, body_twist3_to_world_twist3, flatten_se3, flatten_twist3, se3_to_ros_pose, twist3_to_ros_twist
 
-
 class MotionClient:
 
     def __init__(self):
         self._tf_namespace: str = None
-        self._params: ConstantAccelerationTrajectoryParams = None
+        self._params: {str: ConstantAccelerationTrajectoryParams} = {}
 
         self._odom_lock: Lock = Lock()
         self._odom: Optional[Tuple[SE3, Twist3]] = None
+        self._odom_target: Optional[Tuple[SE3, Twist3]] = None
 
         self._trajectory_lock: Lock = Lock()
         self._trajectory: Optional[Trajectory] = None
@@ -41,12 +41,14 @@ class MotionClient:
             res = GetTrajectoryResponse()
 
             if self._trajectory is None:
-                if self._odom is None:
+                if self._odom is None and self._odom_target is None:
                     res.success = False
                     res.message = "no trajectory or odometry"
                     return res
 
-                res.poses = [se3_to_ros_pose(self._odom[0])]
+                odom = self._odom_target if self._odom_target is not None else self._odom
+
+                res.poses = [se3_to_ros_pose(odom[0])]
                 res.twists = [twist3_to_ros_twist(Twist3())]
                 self._publish_debug_target(req.curr_time, res.poses[0], res.twists[0])
                 res.success = True
@@ -74,7 +76,10 @@ class MotionClient:
             return res
 
     def arm(self, arm: bool):
-        self._arm_srv(arm)
+        try:
+            self._arm_srv(arm)
+        except:
+            pass
 
     def goto(self,
              pose: SE3,
@@ -82,7 +87,7 @@ class MotionClient:
              flat: bool = True,
              current_time: Optional[rospy.Time] = None):
 
-        params = self._params if params is None else params
+        params = self._params["default"] if params is None else params
         current_time = rospy.Time.now() if current_time is None else current_time
 
         start = self._get_start(current_time)
@@ -94,6 +99,9 @@ class MotionClient:
             start_pose = flatten_se3(start_pose)
             start_world_twist = flatten_twist3(start_world_twist)
             pose = flatten_se3(pose)
+
+        rospy.loginfo(start_pose)
+        rospy.loginfo(pose)
 
         traj = ConstantAccelerationTrajectory(
             start_pose, start_world_twist,
@@ -161,10 +169,7 @@ class MotionClient:
             self._trajectory_start_time = None
             self._trajectory_complete_event.set()
 
-            if self._trajectory_complete_timer is not None:
-                self._trajectory_complete_timer.shutdown()
-
-            self._trajectory_complete_timer = None
+            self._odom_target = self._odom
 
     def _set_trajectory(self, trajectory: Trajectory, current_time: rospy.Time):
         with self._trajectory_lock:
@@ -209,19 +214,19 @@ class MotionClient:
         with self._odom_lock:
             self._odom = (pose, world_twist)
 
+    def get_trajectory_params(self, name: str) -> ConstantAccelerationTrajectoryParams:
+        return self._params.get(name)
+
     def _load_config(self):
         self._tf_namespace = rospy.get_param('tf_namespace')
 
-        v_max_linear = rospy.get_param('motion/v_max_linear')
-        v_max_angular = rospy.get_param('motion/v_max_angular')
-        a_linear = rospy.get_param('motion/a_linear')
-        a_angular = rospy.get_param('motion/a_angular')
+        params = rospy.get_param('motion/params')
+        self._params = {}
 
-        params = ConstantAccelerationTrajectoryParams(
-            v_max_linear=v_max_linear,
-            v_max_angular=v_max_angular,
-            a_linear=a_linear,
-            a_angular=a_angular,
-        )
-
-        self._params = params
+        for key, value in params.items():
+            self._params[key] = ConstantAccelerationTrajectoryParams(
+                v_max_linear=value["v_max_linear"],
+                v_max_angular=value["v_max_angular"],
+                a_linear=["a_linear"],
+                a_angular=value["a_angular"],
+            )

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Optional, List
 from spatialmath import SE3, SO3
 from spatialmath.base.types import R3
+import numpy as np
 
 from tauv_msgs.srv import MapFind, MapFindRequest, MapFindResponse
 from tauv_msgs.srv import MapFindClosest, MapFindClosestRequest, MapFindClosestResponse
@@ -37,7 +38,7 @@ class MapClient:
         detections = [
             MapDetection(
                 tag,
-                SE3.Rt(SO3.RPY(ros_point_to_r3(detection.position), order="xyz"), ros_point_to_r3(detection.orientation)),
+                SE3.Rt(SO3.RPY(ros_point_to_r3(detection.orientation), order="xyz"), ros_point_to_r3(detection.position)),
             )
             for detection in res.detections
         ]
@@ -55,15 +56,19 @@ class MapClient:
 
         detection = MapDetection(
             tag,
-            SE3.Rt(SO3.RPY(ros_point_to_r3(res.detection.position), order="xyz"), ros_point_to_r3(res.detection.orientation)),
+            SE3.Rt(SO3.RPY(ros_point_to_r3(res.detection.orientation), order="xyz"), ros_point_to_r3(res.detection.position)),
         )
 
         return detection
 
     def find_closest(self, tag: str, position: R3) -> Optional[MapDetection]:
+        if np.any(np.isnan(position)):
+            return None
+
         req = MapFindClosestRequest()
         req.tag = tag
         req.point = r3_to_ros_point(position)
+
         res: MapFindClosestResponse = self._find_closest_srv(req)
 
         if not res.success:
@@ -72,7 +77,7 @@ class MapClient:
 
         detection = MapDetection(
             tag,
-            SE3.Rt(SO3.RPY(ros_point_to_r3(res.detection.position), order="xyz"), ros_point_to_r3(res.detection.orientation)),
+            SE3.Rt(SO3.RPY(ros_point_to_r3(res.detection.orientation), order="xyz"), ros_point_to_r3(res.detection.position)),
         )
 
         return detection
