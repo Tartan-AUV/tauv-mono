@@ -14,7 +14,7 @@ class MotionClient:
 
     def __init__(self):
         self._tf_namespace: str = None
-        self._params: ConstantAccelerationTrajectoryParams = None
+        self._params: {str: ConstantAccelerationTrajectoryParams} = {}
 
         self._odom_lock: Lock = Lock()
         self._odom: Optional[Tuple[SE3, Twist3]] = None
@@ -87,7 +87,7 @@ class MotionClient:
              flat: bool = True,
              current_time: Optional[rospy.Time] = None):
 
-        params = self._params if params is None else params
+        params = self._params["default"] if params is None else params
         current_time = rospy.Time.now() if current_time is None else current_time
 
         start = self._get_start(current_time)
@@ -109,8 +109,6 @@ class MotionClient:
             params,
             relax=True,
         )
-
-        rospy.loginfo(f"current_time: {current_time}")
 
         self._set_trajectory(traj, current_time)
 
@@ -178,7 +176,6 @@ class MotionClient:
             self._trajectory_start_time = current_time
             self._trajectory = trajectory
             self._trajectory_complete_event.clear()
-            rospy.loginfo("Set trajectory")
 
     def _publish_debug_target(self, time: rospy.Time, pose: PoseMsg, twist: TwistMsg):
         pose_stamped = PoseStampedMsg()
@@ -217,19 +214,19 @@ class MotionClient:
         with self._odom_lock:
             self._odom = (pose, world_twist)
 
+    def get_trajectory_params(self, name: str) -> ConstantAccelerationTrajectoryParams:
+        return self._params.get(name)
+
     def _load_config(self):
         self._tf_namespace = rospy.get_param('tf_namespace')
 
-        v_max_linear = rospy.get_param('motion/v_max_linear')
-        v_max_angular = rospy.get_param('motion/v_max_angular')
-        a_linear = rospy.get_param('motion/a_linear')
-        a_angular = rospy.get_param('motion/a_angular')
+        params = rospy.get_param('motion/params')
+        self._params = {}
 
-        params = ConstantAccelerationTrajectoryParams(
-            v_max_linear=v_max_linear,
-            v_max_angular=v_max_angular,
-            a_linear=a_linear,
-            a_angular=a_angular,
-        )
-
-        self._params = params
+        for key, value in params.items():
+            self._params[key] = ConstantAccelerationTrajectoryParams(
+                v_max_linear=value["v_max_linear"],
+                v_max_angular=value["v_max_angular"],
+                a_linear=["a_linear"],
+                a_angular=value["a_angular"],
+            )

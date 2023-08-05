@@ -63,7 +63,6 @@ class PingerLocalizer:
 
         while not rospy.is_shutdown():
             self._run()
-            rospy.sleep(1.0)
 
         self._frontend.close()
         self._backend.close()

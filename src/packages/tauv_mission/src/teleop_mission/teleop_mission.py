@@ -16,7 +16,6 @@ from std_srvs.srv import SetBool
 from spatialmath import SE3, SO3, SE2, SO2
 import numpy as np
 from tasks import Task, TaskResources
-from tasks.shoot_torpedo import ShootTorpedo as ShootTorpedoTask, ShootTorpedoResult, ShootTorpedoStatus
 from tasks.pick_chevron import PickChevron as PickChevronTask, PickChevronResult, PickChevronStatus
 from tasks.dive import Dive as DiveTask, DiveResult, DiveStatus
 from tasks.scan_rotate import ScanRotate as ScanRotateTask
@@ -24,6 +23,7 @@ from tasks.scan_translate import ScanTranslate as ScanTranslateTask
 from tasks.hit_buoy import HitBuoy as HitBuoyTask
 from tasks.detect_pinger import DetectPinger as DetectPingerTask
 from tasks.gate import Gate as GateTask
+from tasks.shoot_torpedo import ShootTorpedo as ShootTorpedoTask
 
 class ArgumentParserError(Exception): pass
 
@@ -367,7 +367,14 @@ class TeleopMission:
             print('task in progress')
             return
 
-        self._task = HitBuoyTask(args.tag, args.timeout)
+        self._task = HitBuoyTask(args.tag, args.timeout, args.distance, args.error_threshold)
+        Thread(target=self._run_task, daemon=True).start()
+
+    def _handle_run_shoot_torpedo_task(self, args):
+        if self._task is not None:
+            return
+
+        self._task = ShootTorpedoTask(args.tag, args.torpedo, args.timeout, args.frequency, args.distance, args.error_factor, args.error_threshold)
         Thread(target=self._run_task, daemon=True).start()
 
     def _handle_run_detect_pinger_task(self, args):
@@ -504,7 +511,20 @@ class TeleopMission:
         run_hit_buoy_task = subparsers.add_parser('run_hit_buoy_task')
         run_hit_buoy_task.add_argument('tag', type=str)
         run_hit_buoy_task.add_argument('timeout', type=float)
+        run_hit_buoy_task.add_argument('frequency', type=float)
+        run_hit_buoy_task.add_argument('distance', type=float)
+        run_hit_buoy_task.add_argument('error_threshold', type=float)
         run_hit_buoy_task.set_defaults(func=self._handle_run_hit_buoy_task)
+
+        run_shoot_torpedo_task = subparsers.add_parser('run_shoot_torpedo_task')
+        run_shoot_torpedo_task.add_argument('tag', type=str)
+        run_shoot_torpedo_task.add_argument('torpedo', type=int)
+        run_shoot_torpedo_task.add_argument('timeout', type=float)
+        run_shoot_torpedo_task.add_argument('frequency', type=float)
+        run_shoot_torpedo_task.add_argument('distance', type=float)
+        run_shoot_torpedo_task.add_argument('error_factor', type=float)
+        run_shoot_torpedo_task.add_argument('error_threshold', type=float)
+        run_shoot_torpedo_task.set_defaults(func=self._handle_run_shoot_torpedo_task)
 
         run_detect_pinger_task = subparsers.add_parser('run_detect_pinger_task')
         run_detect_pinger_task.add_argument('frequency', type=float)
