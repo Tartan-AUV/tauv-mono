@@ -11,7 +11,7 @@ class StartStatus(TaskStatus):
 class StartResult(TaskResult):
     status: StartStatus
 
-class GetPose(Task):
+class Start(Task):
     def __init__(self):
         super().__init__()
 

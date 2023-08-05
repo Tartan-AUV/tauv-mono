@@ -18,7 +18,6 @@
        <remap from="depth" to="vehicle/oakd_front/depth/image_raw"/>
        <remap from="camera_info" to="vehicle/oakd_front/depth/camera_info"/>
    </node>
- <include file="$(find tauv_common)/launch/vision/map_test.launch"/>
 
     <node pkg="tauv_common" type="shape_detector" name="shape_detector" output="screen">
         <rosparam command="load" file="$(arg config_pkg)/yaml/shape_detector.yaml" />
@@ -26,5 +25,4 @@
     </node>
     
     <include file="$(find tauv_common)/launch/vision/debluer.launch"/>
-
 </launch>

@@ -1,47 +1,35 @@
 # this is relative to the start of the course, assumes we start from a corner point
-missions: {
-  course: "A",
-  find: {
-    rot_scan_resolution: 4,
-    trans_scan_resolution: 3,
-    x_range: 4.0,
-    y_range: 1.0,
+missions:
+  course: "C"
+  find: 
+    rot_scan_resolution: 4
+    trans_scan_resolution: 3
+    x_range: 4.0
+    y_range: 1.0
     theta_range: 0.7
-  }
-}
 
-course_info: 
-{
-  A: {
-    gate: {
-      x: 3.0,
-      y: 7.0,
-      z: 1.0,
-      theta: 1.57
-    }
-  },
-  B: {
-    gate: {
-      x: 3.0,
-      y: 7.0,
-      z: 1.0,
-      theta: 1.57
-    }
-  },
-  C: {
-    gate: {
-      x: 7.0,
-      y: -1.0,
-      z: 1.0,
+course_info:
+  A: 
+    gate: 
+      x: 7.0
+      y: -1.0
+      z: 1.0
+      theta: -0.3
+  B: 
+    gate: 
+      x: 7.0
+      y: 1.0
+      z: 1.0
       theta: 0.3
-    }
-  },
-  D: {
-    gate: {
-      x: 3.0,
-      y: 7.0,
-      z: 1.0,
-      theta: 1.57
-    }
-  }
-}
+  C: 
+    gate: 
+      x: 7.0
+      y: 1.0
+      z: 1.0
+      theta: 0.3
+  D:
+    gate: 
+      x: 7.0
+      y: -1.0
+      z: 1.0
+      theta: -0.3

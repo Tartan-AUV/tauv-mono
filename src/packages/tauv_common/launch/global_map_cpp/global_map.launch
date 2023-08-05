@@ -5,6 +5,16 @@
 <!--     <group ns="global_map">-->
 
     <!--for testing-->
-    <include file="$(find tauv_common)/launch/vision/map_test.launch"/>
+    <!-- <include file="$(find tauv_common)/launch/vision/map_test.launch"/> -->
 <!--     </group>-->
+
+    <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
+
+    <node
+        pkg="tauv_common"
+        type="global_map_cpp"
+        name="global_map"
+        output="screen"
+    >
+    </node>
 </launch>
