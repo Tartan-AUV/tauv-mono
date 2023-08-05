@@ -46,7 +46,7 @@
     <group if="$(arg launch_vision)">
         <include file="$(find tauv_common)/launch/vision/vision.launch">
             <arg name="config_pkg" value="$(arg config_pkg)" />
-            <arg name="yolo_weights_path" value="/home/theo/weights" />
+            <arg name="yolo_weights_path" value="/home/tauv/weights" />
         </include>
     </group>
 

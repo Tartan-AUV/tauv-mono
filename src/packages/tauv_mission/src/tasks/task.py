@@ -7,7 +7,11 @@ from motion_client import MotionClient
 from actuator_client import ActuatorClient
 from map_client import MapClient
 from transform_client import TransformClient
+<<<<<<< HEAD
 import time
+=======
+from typing import Callable, Any
+>>>>>>> origin/develop
 
 
 @dataclass
@@ -46,7 +50,16 @@ class Task(ABC):
         self._cancel_event.set()
         self._cancel_complete_event.wait()
 
-    def _check_cancel(self, resources: TaskResources):
+    def _spin_cancel(self, resources: TaskResources, func: Callable[[], bool], stop_time: rospy.Time) -> bool:
+        while rospy.Time.now() < stop_time:
+            if func():
+                return False
+
+            if self._check_cancel(resources): return True
+
+        return True
+
+    def _check_cancel(self, resources: TaskResources) -> bool:
         rospy.logdebug('_check_cancel checking cancel_event')
         if self._cancel_event.is_set():
             rospy.logdebug('_check_cancel cancel_event is set, running _handle_cancel')

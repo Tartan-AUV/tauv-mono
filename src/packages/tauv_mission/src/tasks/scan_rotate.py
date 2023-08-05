@@ -23,12 +23,14 @@ class ScanRotate(Task):
         super().__init__()
 
     def run(self, resources: TaskResources) -> ScanRotateResult:
-        odom_t_vehicle_initial = resources.transforms.get_a_t_b('kf/odom', 'kf/vehicle')
+        odom_t_vehicle_initial = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
 
         for i in range(8):
             theta = i * (2 * pi) / 8
 
-            resources.motion.goto(odom_t_vehicle_initial * SE3.Rt(SO3(), np.array([0, 0, theta])))
+            rospy.loginfo(theta)
+
+            resources.motion.goto(odom_t_vehicle_initial * SE3.Rz(theta))
 
             while True:
                 if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):

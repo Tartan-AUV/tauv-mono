@@ -2,6 +2,7 @@ import time
 import rospy
 from spatialmath import SE2, SE3, SO3
 from dataclasses import dataclass
+from tauv_util.spatialmath import flatten_se3
 from tasks.task import Task, TaskResources, TaskStatus, TaskResult
 
 
@@ -24,6 +25,8 @@ class Dive(Task):
 
     def run(self, resources: TaskResources) -> DiveResult:
         odom_t_vehicle_initial = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
+        odom_t_vehicle_initial = flatten_se3(odom_t_vehicle_initial)
+        resources.transforms.set_a_to_b('kf/odom', 'kf/course', odom_t_vehicle_initial)
 
         # time.sleep(self._delay)
         start_time = time.time()

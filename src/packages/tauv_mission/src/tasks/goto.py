@@ -17,13 +17,18 @@ class GotoResult(TaskResult):
 
 class Goto(Task):
 
-    def __init__(self, pose: SE3):
+    def __init__(self, pose: SE3, in_course: bool = False):
         super().__init__()
 
         self._pose: SE3 = pose
+        self._in_course = in_course
 
     def run(self, resources: TaskResources) -> GotoResult:
-        resources.motion.goto(self._pose)
+        if self._in_course:
+            pose = resources.transforms.get_a_to_b('kf/odom', 'kf/course') * self._pose
+        else:
+            pose = self._pose
+        resources.motion.goto(pose)
 
         while True:
             if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):

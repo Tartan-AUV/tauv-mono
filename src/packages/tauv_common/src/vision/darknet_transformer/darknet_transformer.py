@@ -123,20 +123,23 @@ class DarknetTransformer():
             e_x = (bbox.xmin + bbox.xmax) // 2
             e_y = (bbox.ymin + bbox.ymax) // 2
 
+            w = bbox.xmax - bbox.xmin
+            h = bbox.ymax - bbox.ymin
+
             depth_mask = np.zeros(depth.shape, dtype=np.uint8)
 
             cv2.rectangle(
                 depth_mask,
-                (bbox.xmin, bbox.ymin),
-                (bbox.xmax, bbox.ymax),
+                (int(e_x - 0.4 * w), int(e_y - 0.4 * h)),
+                (int(e_x + 0.4 * w), int(e_y + 0.4 * h)),
                 255,
                 -1
             )
 
-            if np.sum(depth[depth_mask > 0]) < 10:
+            if np.sum(depth[(depth_mask > 0) & (depth > 0)]) < 10:
                 continue
 
-            z = np.mean(depth[depth_mask > 0])
+            z = np.mean(depth[(depth_mask > 0) & (depth > 0)])
 
             x = (e_x - intrinsics.c_x) * (z / intrinsics.f_x)
             y = (e_y - intrinsics.c_y) * (z / intrinsics.f_y)
@@ -154,11 +157,13 @@ class DarknetTransformer():
             z = c / (1 - a * (e_x - intrinsics.c_x) / intrinsics.f_x - b * (e_y - intrinsics.c_y) / intrinsics.f_y)
             x = (e_x - intrinsics.c_x) * (z / intrinsics.f_x)
             y = (e_y - intrinsics.c_y) * (z / intrinsics.f_y)
-
-            t = np.array([x, y, z])
             '''
 
-            cam_t_detection = SE3.Rt(SO3(), np.array([x, y, z]))
+            t = np.array([x, y, z])
+
+            R = SO3.OA(np.array([0, -1, 0]), np.array([0, 0, -1]))
+
+            cam_t_detection = SE3.Rt(R, t)
 
             # TODO: Change this
             world_frame = f'{self._tf_namespace}/odom'
@@ -178,7 +183,7 @@ class DarknetTransformer():
                 detection = FeatureDetection()
                 detection.tag = bbox.Class
                 detection.position = r3_to_ros_vector3(odom_t_detection.t)
-                # detection.orientation = r3_to_ros_vector3(odom_t_detection.rpy())
+                detection.orientation = r3_to_ros_vector3(odom_t_detection.rpy())
                 # Point towards camera
                 detection.confidence = 1
                 detection.SE2 = False

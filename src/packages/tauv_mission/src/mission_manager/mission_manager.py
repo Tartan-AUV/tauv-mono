@@ -24,9 +24,9 @@ class MissionManager:
 
         self._task_resources: TaskResources = TaskResources(
             motion=MotionClient(),
+            actuators=ActuatorClient(),
             transforms=TransformClient(),
             map=MapClient(),
-            actuators=ActuatorClient()
         )
 
         self._params = rospy.get_param("missions")
