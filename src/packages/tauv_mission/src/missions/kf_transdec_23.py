@@ -2,7 +2,7 @@ from typing import Optional
 from spatialmath import SE3, SO3, SE2
 from missions.mission import Mission
 from tasks.task import Task, TaskResult
-from tasks import dive, goto, gate, detect_pinger, hit_buoy
+from tasks import dive, goto, gate, detect_pinger, hit_buoy, gate_dead_reckon
 from enum import IntEnum
 
 
@@ -40,7 +40,7 @@ class KFTransdec23(Mission):
             return gate.Gate(timeout=300)
         elif self._state == KFTransdec23State.GATE:
             if task_result.status == gate.GateStatus.GATE_NOT_FOUND:
-                return gate.Gate()
+                return gate_dead_reckon.GateDeadReckon()
             elif task_result.status == gate.GateStatus.SUCCESS:
                 self._state = KFTransdec23State.GOTO_BUOY
                 return goto.Goto(self._buoy_pose, in_course=True)

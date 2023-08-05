@@ -28,7 +28,7 @@ class Goto(Task):
             pose = resources.transforms.get_a_to_b('kf/odom', 'kf/course') * self._pose
         else:
             pose = self._pose
-        resources.motion.goto(pose)
+        resources.motion.goto(pose, params=resources.motion.get_trajectory_params("rapid"))
 
         while True:
             if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):

@@ -21,15 +21,14 @@ class GateResult(TaskResult):
 
 class Gate(Task):
 
-    def __init__(self):
+    def __init__(self, course_t_gate: SE3):
         super().__init__()
 
+        self._course_t_gate = course_t_gate
+
     def run(self, resources: TaskResources) -> GateResult:
-        odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
-
         odom_t_course = resources.transforms.get_a_to_b('kf/odom', 'kf/course')
-
-        odom_t_gate = odom_t_course * SE3.Rt(SO3(), (12, 0, 1))
+        odom_t_gate = odom_t_course * self._course_t_gate
 
         gate_t_spin = SE3.Rt(SO3(), (-2, 0, 0.5))
         gate_t_through = SE3.Rt(SO3(), (2, 0, 0.5))
@@ -41,7 +40,7 @@ class Gate(Task):
         resources.transforms.set_a_to_b('kf/odom', 'spin', odom_t_spin)
         resources.transforms.set_a_to_b('kf/odom', 'through', odom_t_through)
 
-        resources.motion.goto(odom_t_spin)
+        resources.motion.goto(odom_t_spin, params=resources.motion.get_trajectory_params("rapid"))
 
         while True:
             if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
@@ -49,19 +48,12 @@ class Gate(Task):
 
             if self._check_cancel(resources): return GateResult(status=GateStatus.CANCELLED)
 
-        spin_thetas = np.concatenate((
-            np.linspace(0, 2 * pi, 4),
-            np.linspace(0, 2 * pi, 4),
-        ))
+        spin_thetas = np.array([0, pi, 0, pi, 0])
 
         for spin_theta in spin_thetas:
-            print(spin_theta)
             odom_t_vehicle_goal = odom_t_spin * SE3.Rz(spin_theta, unit='rad')
-            print(odom_t_vehicle)
-            print(odom_t_vehicle_goal)
-            # odom_t_vehicle_goal = odom_t_spin
 
-            resources.motion.goto(odom_t_vehicle_goal)
+            resources.motion.goto(odom_t_vehicle_goal, params=resources.motion.get_trajectory_params("rapid"))
 
             while True:
                 if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
@@ -69,25 +61,13 @@ class Gate(Task):
 
                 if self._check_cancel(resources): return GateResult(status=GateStatus.CANCELLED)
 
-        resources.motion.goto(odom_t_through)
+        resources.motion.goto(odom_t_through, resources.motion.get_trajectory_params("rapid"))
 
         while True:
             if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
                 break
 
             if self._check_cancel(resources): return GateResult(status=GateStatus.CANCELLED)
-
-        odom_t_octagon = odom_t_gate * SE3.Tx(12.0)
-
-        resources.motion.goto(odom_t_octagon)
-
-        while True:
-            if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
-                break
-
-            if self._check_cancel(resources): return GateResult(status=GateStatus.CANCELLED)
-
-        resources.motion.arm(False)
 
         return GateResult(status=GateStatus.SUCCESS)
 

@@ -3,15 +3,15 @@
     <arg name="debug" default="none" />
     <arg name="yolo_weights_path" default="/shared/weights" />
 
-   <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">-->
-       <arg name="config_pkg" value="$(arg config_pkg)" />
-       <arg name="yolo_weights_path" value="$(arg yolo_weights_path)" />-->
-       <arg name="network_param_file" value="$(arg config_pkg)/darknet_config/yolov3-23-v3.yaml" />-->
-   </include>-->
+<!--    <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch">--> -->
+<!--        <arg name="config_pkg" value="$(arg config_pkg)" /> -->
+<!--        <arg name="yolo_weights_path" value="$(arg yolo_weights_path)" />--> -->
+<!--        <arg name="network_param_file" value="$(arg config_pkg)/darknet_config/yolov3-23-v3.yaml" />--> -->
+<!--    </include> -->
 
-   <node pkg="tauv_common" type="darknet_transformer" name="darknet_transformer" output="screen">-->
-       <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>-->
-   </node>-->
+<!--    <node pkg="tauv_common" type="darknet_transformer" name="darknet_transformer" output="screen">--> -->
+<!--        <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>--> -->
+<!--    </node> -->
 
 <!--    <node pkg="tauv_common" type="gate_detector" name="gate_detector" output="screen">-->
 <!--        <rosparam command="load" file="$(arg config_pkg)/yaml/gate_detector.yaml" />-->
@@ -19,12 +19,12 @@
 <!--        <remap from="depth" to="vehicle/oakd_front/depth/image_raw"/>-->
 <!--        <remap from="camera_info" to="vehicle/oakd_front/depth/camera_info"/>-->
 <!--    </node>-->
- <include file="$(find tauv_common)/launch/vision/map_test.launch"/>
+<!--  <include file="$(find tauv_common)/launch/vision/map_test.launch"/> -->
 
-    <node pkg="tauv_common" type="shape_detector" name="shape_detector" output="screen">
-        <rosparam command="load" file="$(arg config_pkg)/yaml/shape_detector.yaml" />
-        <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>
-    </node>
+<!--     <node pkg="tauv_common" type="shape_detector" name="shape_detector" output="screen"> -->
+<!--         <rosparam command="load" file="$(arg config_pkg)/yaml/shape_detector.yaml" /> -->
+<!--         <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam> -->
+<!--     </node> -->
 
 <!--    <node pkg="tauv_common" type="logger" name="logger" output="screen">-->
 <!--    </node>-->
@@ -41,12 +41,12 @@
 
 <!--     <include file="$(find tauv_common)/launch/vision/debluer.launch"/> -->
 
-    <node
-        pkg="tauv_gui"
-        type="map_visualizer"
-        name="map_visualizer"
-        output="screen"
-    >
-        <rosparam command="load" file="$(find tauv_gui)/yaml/map_visualizer.yaml"/>
-    </node>
+<!--     <node -->
+<!--         pkg="tauv_gui" -->
+<!--         type="map_visualizer" -->
+<!--         name="map_visualizer" -->
+<!--         output="screen" -->
+<!--     > -->
+<!--         <rosparam command="load" file="$(find tauv_gui)/yaml/map_visualizer.yaml"/> -->
+<!--     </node> -->
 </launch>
