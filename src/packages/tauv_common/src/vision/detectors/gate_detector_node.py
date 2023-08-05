@@ -14,6 +14,7 @@ from tauv_msgs.msg import FeatureDetection, FeatureDetections
 from tauv_util.parms import Parms
 from tauv_util.transforms import quat_to_rpy, tf2_transform_to_homogeneous, tf2_transform_to_quat, multiply_quat
 from tauv_util.types import tm
+from math import atan2
 
 from vision.detectors.gate_detector import GateDetector
 
@@ -81,11 +82,13 @@ class GateDetectorNode:
 
             orientation_odom = multiply_quat(q_cam_odom, np.array([pos.q0, pos.q1, pos.q2, pos.q3]))
 
+            yaw = atan2(position_odom[1] - tf_cam_odom.transform.translation.y, position_odom[0] - tf_cam_odom.transform.translation.x)
+
             orientation_odom_rpy = quat_to_rpy(tm(orientation_odom, Quaternion))
             detection_msg = FeatureDetection()
             detection_msg.tag = 'gate'
             detection_msg.position = Point(position_odom[0], position_odom[1], position_odom[2])
-            detection_msg.orientation = Point(orientation_odom_rpy[0], orientation_odom_rpy[1], orientation_odom_rpy[2])
+            detection_msg.orientation = Point(0, 0, yaw)
             # detection_msg.count = 1
             detections_msg.detections.append(detection_msg)
 

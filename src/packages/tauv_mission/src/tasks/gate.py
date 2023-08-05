@@ -28,24 +28,28 @@ class Gate(Task):
         self._timeout = timeout
 
     def run(self, resources: TaskResources) -> GateResult:
+        timeout_time = rospy.Time.now() + rospy.Duration.from_sec(self._timeout)
+
         odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
 
         scan_thetas = np.linspace(-pi / 2, pi / 2, 4)
 
         for scan_theta in scan_thetas:
+            print("SCAN THETA", scan_thetas
+                  )
             odom_t_vehicle_goal = odom_t_vehicle * SE3.Rz(scan_theta)
 
             resources.motion.goto(odom_t_vehicle_goal)
 
-            if not self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(
-                    timeout=rospy.Duration.from_sec(0.1))):
+            if self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(
+                    timeout=rospy.Duration.from_sec(0.1)), timeout_time):
                 return GateResult(status=GateStatus.TIMEOUT)
 
             time.sleep(2.0)
 
         resources.motion.goto(odom_t_vehicle)
 
-        if not self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1))):
+        if self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)), timeout_time):
             return GateResult(status=GateStatus.TIMEOUT)
 
         gate_detection = resources.map.find_closest('gate', odom_t_vehicle.t)
@@ -67,7 +71,7 @@ class Gate(Task):
 
         resources.motion.goto(odom_t_spin)
 
-        if not self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1))):
+        if self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)), timeout_time):
             return GateResult(status=GateStatus.TIMEOUT)
 
         spin_thetas = np.concatenate((
@@ -80,13 +84,13 @@ class Gate(Task):
 
             resources.motion.goto(odom_t_vehicle_goal)
 
-            if not self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(
-                    timeout=rospy.Duration.from_sec(0.1))):
+            if self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(
+                    timeout=rospy.Duration.from_sec(0.1)), timeout_time):
                 return GateResult(status=GateStatus.TIMEOUT)
 
         resources.motion.goto(odom_t_through)
 
-        if not self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1))):
+        if self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)), timeout_time):
             return GateResult(status=GateStatus.TIMEOUT)
 
         return GateResult(status=GateStatus.SUCCESS)

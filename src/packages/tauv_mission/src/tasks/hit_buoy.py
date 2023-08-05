@@ -71,7 +71,7 @@ class HitBuoy(Task):
 
         resources.motion.goto_relative(SE3.Rt(SO3(), (-1, 0, 0)))
 
-        if not self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1))):
+        if not self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)), timeout_time):
             return HitBuoyResult(status=HitBuoyStatus.TIMEOUT)
 
         return HitBuoyResult(status=HitBuoyStatus.SUCCESS)

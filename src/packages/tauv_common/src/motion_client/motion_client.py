@@ -227,6 +227,6 @@ class MotionClient:
             self._params[key] = ConstantAccelerationTrajectoryParams(
                 v_max_linear=value["v_max_linear"],
                 v_max_angular=value["v_max_angular"],
-                a_linear=["a_linear"],
+                a_linear=value["a_linear"],
                 a_angular=value["a_angular"],
             )

@@ -12,7 +12,7 @@ import numpy as np
 
 class DetectPingerStatus(TaskStatus):
     SUCCESS = 0
-    FAILURE = 1
+    TIMEOUT = 1
     CANCELLED = 2
 
 @dataclass
@@ -21,18 +21,20 @@ class DetectPingerResult(TaskResult):
 
 class DetectPinger(Task):
 
-    def __init__(self, frequency: float, depth: float):
+    def __init__(self, frequency: float, timeout: float, depth: float):
         super().__init__()
 
         self._frequency = frequency
+        self._timeout = timeout
         self._depth = depth
 
         self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('vehicle/thrusters/arm', SetBool)
 
     def run(self, resources: TaskResources) -> DetectPingerResult:
+        timeout_time = rospy.Time.now() + rospy.Duration.from_sec(self._timeout)
         avg_z = 0
 
-        while True:
+        while rospy.Time.now() < timeout_time:
             try:
                 self._arm_srv.call(False)
                 detection = rospy.wait_for_message('vehicle/pinger_localizer/detection', PingDetection, timeout=3.0)
@@ -54,35 +56,26 @@ class DetectPinger(Task):
 
             direction = ros_vector3_to_r3(detection.direction)
 
-            # current_yaw = odom_t_vehicle.rpy()[2]
             direction_yaw = atan2(direction[1], direction[0])
             avg_z = 0.5 * avg_z + 0.5 * direction[2]
             if avg_z > 0.8:
-                resources.motion.goto_relative_with_depth(SE2(), 0)
-
-                while True:
-                    if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
-                        break
-
-                    if self._check_cancel(resources): return DetectPingerResult(DetectPingerStatus.FAILURE)
-
-                try:
-                    self._arm_srv.call(False)
-                except Exception:
-                    pass
+                resources.motion.cancel()
+                return DetectPingerResult(DetectPingerStatus.SUCCESS)
 
             goal_odom_t_vehicle = odom_t_vehicle * SE3.Rt(SO3.Rz(direction_yaw), np.array([direction[0], direction[1], 0]))
             goal_odom_t_vehicle.t[2] = self._depth
 
-            # goal_odom_t_vehicle = SE3.Rt(SO3.Rz(current_yaw + direction_yaw), odom_t_vehicle.t)
-            # resources.motion.goto_relative_with_depth(SE2(direction[0], direction[1], direction_yaw), 0.2)
             resources.motion.goto(goal_odom_t_vehicle, params=ConstantAccelerationTrajectoryParams(v_max_linear=0.5, a_linear=1.0, v_max_angular=0.5, a_angular=1.0))
             time.sleep(3.0)
-            # while True:
-            #     if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
-            #         break
 
             if self._check_cancel(resources): return DetectPingerResult(DetectPingerStatus.CANCELLED)
+
+        if rospy.Time.now() > timeout_time:
+            return DetectPingerResult(DetectPingerStatus.TIMEOUT)
+
+        return DetectPingerResult(DetectPingerStatus.SUCCESS)
+
+
 
     def _handle_cancel(self, resources: TaskResources):
         resources.motion.cancel()

@@ -38,7 +38,7 @@ class MapClient:
         detections = [
             MapDetection(
                 tag,
-                SE3.Rt(SO3.RPY(ros_point_to_r3(detection.orientation), order="xyz"), ros_point_to_r3(detection.position)),
+                SE3.Rt(SO3.RPY(ros_point_to_r3(detection.orientation), order="zyx"), ros_point_to_r3(detection.position)),
             )
             for detection in res.detections
         ]
@@ -56,7 +56,7 @@ class MapClient:
 
         detection = MapDetection(
             tag,
-            SE3.Rt(SO3.RPY(ros_point_to_r3(res.detection.orientation), order="xyz"), ros_point_to_r3(res.detection.position)),
+            SE3.Rt(SO3.RPY(ros_point_to_r3(res.detection.orientation), order="zyx"), ros_point_to_r3(res.detection.position)),
         )
 
         return detection
@@ -77,7 +77,7 @@ class MapClient:
 
         detection = MapDetection(
             tag,
-            SE3.Rt(SO3.RPY(ros_point_to_r3(res.detection.orientation), order="xyz"), ros_point_to_r3(res.detection.position)),
+            SE3.Rt(SO3.RPY(ros_point_to_r3(res.detection.orientation), order="zyx"), ros_point_to_r3(res.detection.position)),
         )
 
         return detection

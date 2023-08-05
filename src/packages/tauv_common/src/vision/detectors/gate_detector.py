@@ -73,7 +73,7 @@ class GateDetector:
         cv2.imshow('depth', depth)
         cv2.imshow('filtered', filtered)
 
-        # cv2.waitKey(1)
+        cv2.waitKey(1)
 
         # return []
         kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (4, 4))

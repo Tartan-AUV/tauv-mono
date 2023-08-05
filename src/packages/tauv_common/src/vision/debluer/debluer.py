@@ -51,7 +51,7 @@ class Debluer:
         # result = np.round(img_adapteq * 255.0).astype(np.uint8)
         # result = cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
         result = NUCE(img)
-        result_msg = self.cv_bridge.cv2_to_imgmsg(result, encoding="passthrough")
+        result_msg = self.cv_bridge.cv2_to_imgmsg(result, encoding="bgr8")
         result_msg.header = msg.header
         self.pub.publish(result_msg)
 
