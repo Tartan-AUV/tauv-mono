@@ -41,8 +41,8 @@ class KFTransdec23(Mission):
         ]
 
         self._course_t_start: SE3 = SE3.Rt(SO3(), (2, -3, 1.5))
-        self._course_t_gate: SE3 = SE3.Rt(SO3(), (9.5, -5.75, 1.5))
-        self._course_t_buoy: SE3 = SE3.Rt(SO3(), (20.8, -7.5, 2))
+        self._course_t_gate: SE3 = SE3.Rt(SO3(), (7.5, -4.75, 1.5))
+        self._course_t_buoy: SE3 = SE3.Rt(SO3(), (14, -6.5, 2))
         self._course_t_octagon: SE3 = SE3.Rt(SO3(), (32, -26, 1.5))
 
         self._pinger_frequency: int = 30000
