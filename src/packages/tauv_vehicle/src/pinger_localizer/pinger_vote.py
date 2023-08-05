@@ -13,12 +13,13 @@ class Line:
     unit: np.ndarray
 
 class PingerVoter:
-    def __init__(self, pinger_A_pos, pinger_B_pos, freq, freq_thresh=100, voting_sim_thresh=10) -> None:
+    def __init__(self, pinger_A_pos, pinger_B_pos, freq, freq_thresh=100, voting_dist_thresh=10, consensus_thresh=5) -> None:
         self._pinger_A_pos = pinger_A_pos
         self._pinger_B_pos = pinger_B_pos
         self._freq = freq
         self._freq_thresh = freq_thresh
-        self._voting_sim_thresh = voting_sim_thresh
+        self._voting_dist_thresh = voting_dist_thresh
+        self._consensus_thresh = consensus_thresh
 
         self.pinger_A_votes = 0
         self.pinger_B_votes = 0
@@ -76,3 +77,5 @@ class PingerVoter:
                     self.pinger_A_votes += 1
                 else:
                     self.pinger_B_votes += 1
+        # How to decide which one to use?
+        
