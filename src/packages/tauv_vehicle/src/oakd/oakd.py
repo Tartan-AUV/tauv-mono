@@ -50,6 +50,7 @@ class OAKDNode:
         self._depth.setLeftRightCheck(False)
         self._depth.setExtendedDisparity(False)
         self._depth.setSubpixel(False)
+        self._depth.setOutputSize(1280, 720)
         self._depth.setDepthAlign(depthai.CameraBoardSocket.RGB)
         self._depth.setOutputSize(1280, 720)
         self._depth.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_DENSITY)

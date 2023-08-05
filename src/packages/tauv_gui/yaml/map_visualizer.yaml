@@ -24,6 +24,7 @@ tags:
   - path_marker
   - chevron
   - lid
+  - gate
 marker_types:
   frame:
     scale: 1.0

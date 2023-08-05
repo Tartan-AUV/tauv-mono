@@ -45,27 +45,24 @@ class SimObj():
 # called every time seconds.
 class MapListener():
     def __init__(self):
-        rospy.init_node("map_tester")
-
         self.id_counter = 0
         self.tags = []
         self.sim_objs = []
         self.colors = {}
 
         self.viz = rospy.Publisher("/visualization_marker_array", MarkerArray, queue_size=10)
-        self.pub = rospy.Publisher("/feature_detections", FeatureDetections, queue_size=10)
+        self.pub = rospy.Publisher("global_map/feature_detections", FeatureDetections, queue_size=10)
         self.subs = []
         self.serve = []
         self.timers = []
 
-        rospy.wait_for_service("/global_map/find")
-        self.find = rospy.ServiceProxy("/global_map/find", MapFind)
+        rospy.wait_for_service("global_map/find")
+        self.find = rospy.ServiceProxy("global_map/find", MapFind)
 
         self.timers.append(rospy.Timer(rospy.Duration(TIME_TO_VISUALIZE), self.__visualize_map, False))
 
         if(SIM_MODE):
             self.timers.append(rospy.Timer(rospy.Duration(TIME_TO_SIM), self.__pub_random_objects))
-
 
     def __make_detection(self, tag, pos, confidence, orientation):
         detection = FeatureDetection()
@@ -92,7 +89,7 @@ class MapListener():
         marker = Marker()
         marker.header.frame_id = "map"
         marker.header.stamp = rospy.Time()
-        marker.ns = "my_namespace"
+        marker.ns = ""
         marker.text = tag
         marker.id = self.id_counter
         marker.type = shape
@@ -118,11 +115,14 @@ class MapListener():
         return marker
 
     def __make_color(self, tag, transparent=False):
-        self.colors[tag] = [np.random.random(), np.random.random(), np.random.random()]
+        self.colors[tag] = [255, np.random.random(), np.random.random()]
 
     def __visualize_map(self, time):
+        print("Visualizing!")
         for tag in self.tags:
+            print(f"visualizing {tag}")
             dets = self.find(tag)
+            print(dets)
             self.__show(dets, scale = 1, shape = Marker.CUBE, time = rospy.Duration(TIME_TO_VISUALIZE))
 
     def __show(self, data, scale = 0.5, shape = Marker.SPHERE, time = rospy.Duration(TIME_TO_SIM), transparent = False):
@@ -162,25 +162,25 @@ class MapListener():
         self.timers.append(rospy.Timer(rospy.Duration(time), fun (service)))
 
 def main():
+    rospy.init_node('map_test', anonymous=True)
+
     #EXAMPLES OF MAPLISTENER INTERACTIONS
     simulator = MapListener()
-    simulator.add_tags(["unknown", "badge", "phone", "notebook"])
+    simulator.add_tags(["gate"])
 
-    simulator.add_visualizer("/feature_detectionsS")
+    # simulator.add_sim_obj("badge", Point(11.5, 10.5, 15.5), Point(1,2,1))
+    # simulator.add_sim_obj("notebook", Point(7.5, 9.5, 0.5), Point(2,2,1))
 
-    rospy.wait_for_service("/sonar/map/")
-    findSonar = rospy.ServiceProxy("/sonar/map/", SonarControl)
-    def publishWrapper(service):
-        def publish(time):
-            service(2)
-        return publish
+    simulator.add_visualizer("global_map/feature_detections")
+
+    # rospy.wait_for_service("/sonar/map/")
+    # findSonar = rospy.ServiceProxy("/sonar/map/", SonarControl)
+    # def publishWrapper(service):
+    #     def publish(time):
+    #         service(2)
+    #     return publish
     
-    simulator.add_incremental_service_call(findSonar, publishWrapper, 5.0)
-
-    time.sleep(20)
-
-    simulator.add_sim_obj("badge", Point(11.5, 10.5, 15.5), Point(1,2,1))
-    simulator.add_sim_obj("notebook", Point(7.5, 9.5, 0.5), Point(2,2,1))
+    # simulator.add_incremental_service_call(findSonar, publishWrapper, 5.0)
 
     rospy.spin()
 

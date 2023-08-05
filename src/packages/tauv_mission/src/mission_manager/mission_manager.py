@@ -30,6 +30,8 @@ class MissionManager:
         )
 
         self._params = rospy.get_param("missions")
+        course_num = self._params["course"]
+        self._course_info = rospy.get_param(f"course_info.{course_num}")
 
         self._mission_start_event: Event = Event()
         self._mission_cancel_event: Event = Event()
@@ -148,7 +150,7 @@ class MissionManager:
                 res.message = f'could not find mission named {req.mission_name}'
                 return res
 
-            self._mission = mission(self._params)
+            self._mission = mission(self._params, self._course_info)
 
             rospy.logdebug('_handle_run_mission setting mission_start_event')
             self._mission_start_event.set()

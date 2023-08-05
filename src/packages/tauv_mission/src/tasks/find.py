@@ -15,9 +15,10 @@ class FindStatus(TaskStatus):
 @dataclass
 class FindResult(TaskResult):
     status: FindStatus
+    tag : str
 
 class Find(Task):
-    def __init__(self, tag : str, params : Dict, timeout = None):
+    def __init__(self, tag : str, pos_estimate : Dict, params : Dict, timeout = None):
         super().__init__(timeout)
 
         print(params)
@@ -25,9 +26,7 @@ class Find(Task):
         self._resources = None
 
         self._tag = tag
-
-        pos = params[f"{tag}"]["relative_position"]
-        self._approx_go_to = SE3.Rt(SO3.RPY(0,0,pos["theta"]), t=[pos["x"], pos["y"], pos["z"]])
+        self._approx_go_to = SE3.Rt(SO3.RPY(0,0,pos_estimate["theta"]), t=[pos_estimate["x"], pos_estimate["y"], pos_estimate["z"]])
         
         self._rot_scan_resolution = (int)(params["rot_scan_resolution"])
         self._trans_scan_resolution = (int)(params["trans_scan_resolution"])
@@ -42,14 +41,14 @@ class Find(Task):
         detection = self._resources.map.find_closest(self._tag, transform.t)
         while((not self._check_timeout()) and (detection is None)):
             if self._resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
-                return FindResult(FindStatus.NOT_FOUND)
+                return FindResult(FindStatus.NOT_FOUND, self._tag)
 
             detection = self._resources.map.find_closest(self._tag, transform.t)
 
         if(detection is None):
-            return FindResult(FindStatus.TIMEOUT)
+            return FindResult(FindStatus.TIMEOUT, self._tag)
 
-        return FindResult(FindStatus.FOUND)
+        return FindResult(FindStatus.FOUND, self._tag)
 
     def _generate_scan(self, x_range, y_range, radius):
         #get the initial position
@@ -70,13 +69,13 @@ class Find(Task):
     def run(self, resources: TaskResources) -> FindResult:
         #setup
         self._resources = resources
-        result = FindResult(FindStatus.NOT_FOUND)
+        result = FindResult(FindStatus.NOT_FOUND, self._tag)
 
         #set timeout to start scanning
         self._set_timeout()
 
         #go to the initial position estimate
-        odom_t_vehicle = self._resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
+        odom_t_vehicle = self._resources.transforms.get_a_to_b('kf/odom', 'kf/start')
         initial_go_to = odom_t_vehicle * self._approx_go_to
 
         result = self._go_to_until_found(initial_go_to)
