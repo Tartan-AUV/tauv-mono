@@ -63,6 +63,7 @@ class PingerLocalizer:
 
         while not rospy.is_shutdown():
             self._run()
+            rospy.sleep(1.0)
 
         self._frontend.close()
         self._backend.close()
@@ -131,9 +132,12 @@ class PingerLocalizer:
         self._direction_pose_pub.publish(direction_pose_msg)
 
         detection_msg = PingDetection()
+        detection_msg.header.frame_id = 'kf/vehicle'
+        detection_msg.header.stamp = curr_ros_time
         detection_msg.frequency = ping_frequency
-        detection_msg.direction = direction_msg
-        
+        detection_msg.direction.x = direction[0]
+        detection_msg.direction.y = direction[1]
+        detection_msg.direction.z = direction[2]
         self._detection_pub.publish(detection_msg)
 
     def _load_config(self):
