@@ -132,9 +132,8 @@ class PingerLocalizer:
 
         detection_msg = PingDetection()
         detection_msg.frequency = ping_frequency
-        detection_msg.direction.x = direction[0]
-        detection_msg.direction.y = direction[1]
-        detection_msg.direction.z = direction[2]
+        detection_msg.direction = direction_msg
+        
         self._detection_pub.publish(detection_msg)
 
     def _load_config(self):
