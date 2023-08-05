@@ -3,6 +3,7 @@ import rospy
 from spatialmath import SE3, SE3, SO3, SE2
 from dataclasses import dataclass
 from tasks.task import Task, TaskResources, TaskStatus, TaskResult
+from typing import Optional
 from std_srvs.srv import SetBool
 from tauv_msgs.msg import PingDetection
 from math import atan2, cos, sin
@@ -18,62 +19,79 @@ class DetectPingerStatus(TaskStatus):
 @dataclass
 class DetectPingerResult(TaskResult):
     status: DetectPingerStatus
+    location: str = "octagon"
 
 class DetectPinger(Task):
 
-    def __init__(self, frequency: float, timeout: float, depth: float):
+    def __init__(self, frequency: float, depth: float, course_t_torpedo: SE3, course_t_octagon: SE3, n_pings: int):
         super().__init__()
 
         self._frequency = frequency
-        self._timeout = timeout
         self._depth = depth
+
+        self._course_t_torpedo = course_t_torpedo
+        self._course_t_octagon = course_t_octagon
+
+        self._n_pings = n_pings
 
         self._arm_srv: rospy.ServiceProxy = rospy.ServiceProxy('vehicle/thrusters/arm', SetBool)
 
     def run(self, resources: TaskResources) -> DetectPingerResult:
         timeout_time = rospy.Time.now() + rospy.Duration.from_sec(self._timeout)
-        avg_z = 0
 
-        while rospy.Time.now() < timeout_time:
+        resources.motion.goto_relative_with_depth(SE2(0, 0, 0), self._depth)
+
+        torpedo_votes = 0
+        octagon_votes = 0
+
+        for i in range(self._n_pings):
+            detection = None
+
             try:
                 self._arm_srv.call(False)
                 detection = rospy.wait_for_message('vehicle/pinger_localizer/detection', PingDetection, timeout=3.0)
                 self._arm_srv.call(True)
             except Exception:
-                pass
+                continue
 
-            try:
-                self._arm_srv.call(True)
-            except Exception:
-                pass
+            if detection is None:
+                continue
 
             if abs(detection.frequency - self._frequency) > 500:
                 continue
 
             rospy.loginfo(detection)
 
+            odom_t_course = resources.transforms.get_a_to_b('kf/odom', 'kf/course')
+            odom_t_torpedo = odom_t_course * self._course_t_torpedo
+            odom_t_octagon = odom_t_course * self._course_t_octagon
+
             odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
 
             direction = ros_vector3_to_r3(detection.direction)
 
-            direction_yaw = atan2(direction[1], direction[0])
-            avg_z = 0.5 * avg_z + 0.5 * direction[2]
-            if avg_z > 0.8:
-                resources.motion.cancel()
-                return DetectPingerResult(DetectPingerStatus.SUCCESS)
+            direction_yaw = atan2(direction[1], direction[0]) + odom_t_vehicle.rpy()[2]
 
-            goal_odom_t_vehicle = odom_t_vehicle * SE3.Rt(SO3.Rz(direction_yaw), np.array([direction[0], direction[1], 0]))
-            goal_odom_t_vehicle.t[2] = self._depth
+            torpedo_yaw = atan2(odom_t_torpedo.t[1] - odom_t_vehicle.t[1], odom_t_torpedo.t[0] - odom_t_vehicle.t[0])
+            octagon_yaw = atan2(odom_t_octagon.t[1] - odom_t_vehicle.t[1], odom_t_octagon.t[0] - odom_t_vehicle.t[0])
 
-            resources.motion.goto(goal_odom_t_vehicle, params=ConstantAccelerationTrajectoryParams(v_max_linear=0.5, a_linear=1.0, v_max_angular=0.5, a_angular=1.0))
-            time.sleep(3.0)
+            if (direction_yaw - torpedo_yaw) < 0.1:
+                torpedo_votes += 1
+            elif (direction_yaw - octagon_yaw) < 0.1:
+                octagon_votes += 1
 
             if self._check_cancel(resources): return DetectPingerResult(DetectPingerStatus.CANCELLED)
 
         if rospy.Time.now() > timeout_time:
             return DetectPingerResult(DetectPingerStatus.TIMEOUT)
 
-        return DetectPingerResult(DetectPingerStatus.SUCCESS)
+        location = "octagon"
+        if torpedo_votes > octagon_votes and torpedo_votes > 7:
+            location = "torpedo"
+        if octagon_votes > torpedo_votes and octagon_votes > 7:
+            location="octagon"
+
+        return DetectPingerResult(DetectPingerStatus.SUCCESS, location=location)
 
 
 

@@ -68,11 +68,12 @@ class MissionManager:
             rospy.logdebug("_spin_task waiting")
             self._task_update_event.wait()
 
-            if self._task_done_event.is_set():
-                self._transition_task()
-
-            self._task_done_event.clear()
             self._task_update_event.clear()
+
+            if self._task_done_event.is_set():
+                self._task_done_event.clear()
+
+                self._transition_task()
 
     def _start_mission(self):
         rospy.logdebug("_start_mission acquiring lock")
@@ -112,7 +113,7 @@ class MissionManager:
                 return
 
             rospy.logdebug(f'_transition_task running new_task {type(new_task)}')
-            self._task = self._mission.transition(self._task, self._task_result)
+            self._task = new_task
             self._task_result = None
             self._task_thread = Thread(target=self._run_task, daemon=True)
             self._task_thread.start()

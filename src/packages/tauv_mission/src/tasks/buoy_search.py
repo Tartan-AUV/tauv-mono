@@ -1,6 +1,6 @@
 import rospy
 import numpy as np
-from spatialmath import SE3, SO3
+from spatialmath import SE3, SO3, SE2
 from dataclasses import dataclass
 from tasks.task import Task, TaskResources, TaskStatus, TaskResult
 import time
@@ -46,6 +46,12 @@ class BuoySearch(Task):
                 if self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(
                         timeout=rospy.Duration.from_sec(0.1)), timeout_time):
                     return BuoySearchResult(status=BuoySearchStatus.TIMEOUT)
+
+        resources.motion.goto_relative_with_depth(SE2(0, 0, 0), 1.5)
+
+        if self._spin_cancel(resources, lambda: resources.motion.wait_until_complete(
+                timeout=rospy.Duration.from_sec(0.1)), timeout_time):
+            return BuoySearchResult(status=BuoySearchStatus.TIMEOUT)
 
         return BuoySearchResult(status=BuoySearchStatus.SUCCESS)
 

@@ -13,8 +13,12 @@ class KFTransdec23State(IntEnum):
     GATE = 3
     GOTO_BUOY = 4
     BUOY = 5
-    GOTO_OCTAGON = 6
-    SURFACE = 7
+    DETECT_PINGER = 6
+    GOTO_OCTAGON_FIRST = 7
+    GOTO_OCTAGON_SECOND = 8
+    GOTO_TORPEDO_FIRST = 9
+    GOTO_TORPEDO_SECOND = 10
+    SURFACE = 11
 
 class KFTransdec23(Mission):
 
@@ -36,13 +40,15 @@ class KFTransdec23(Mission):
         ]
         self._buoy_z_steps = [
             0,
+            0.5,
             1
         ]
 
         self._course_t_start: SE3 = SE3.Rt(SO3(), (2, -3, 1.5))
-        self._course_t_gate: SE3 = SE3.Rt(SO3.Rz(0.2), (7.5, -4.75, 1.5))
+        self._course_t_gate: SE3 = SE3.Rt(SO3(), (7.5, -4.75, 1.5))
         self._course_t_buoy: SE3 = SE3.Rt(SO3(), (14, -6.5, 2.5))
         self._course_t_octagon: SE3 = SE3.Rt(SO3(), (32, -26, 1.5))
+        self._course_t_torpedo: SE3 = SE3.Rt(SO3(), (0, 0, 0))
 
         self._pinger_frequency: int = 30000
 
@@ -65,10 +71,16 @@ class KFTransdec23(Mission):
             return buoy_search.BuoySearch(course_t_start
                                           =self._course_t_buoy, xy_steps=self._buoy_xy_steps, z_steps=self._buoy_z_steps)
         elif self._state == KFTransdec23State.BUOY:
-            self._state = KFTransdec23State.GOTO_OCTAGON
-            return goto.Goto(self._course_t_octagon, in_course=True)
-        elif self._state == KFTransdec23State.GOTO_OCTAGON:
-            self._state = KFTransdec23State.SURFACE
-            return surface.Surface()
+            self._state = KFTransdec23State.DETECT_PINGER
+            return detect_pinger.DetectPinger(self._pinger_frequency, depth=2.0, course_t_torpedo=self._course_t_torpedo, course_t_octagon=self._course_t_octagon, n_pings=10)
+        elif self._state == KFTransdec23State.DETECT_PINGER:
+            if task_result.location == "octagon":
+                self._state = KFTransdec23State.GOTO_OCTAGON_FIRST
+                return goto.Goto(self._course_t_octagon, in_course=True)
+            else:
+                self._state = KFTransdec23State.GOTO_TORPEDO_FIRST
+                return goto.Goto(self._course_t_torpedo, in_course=True)
+        elif self._state == KFTransdec23State.GOTO_OCTAGON_FIRST:
+            self._state = KFTransdec23State.OCTAGON
         else:
             return None

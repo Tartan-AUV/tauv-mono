@@ -55,9 +55,7 @@ class Task(ABC):
         return True
 
     def _check_cancel(self, resources: TaskResources) -> bool:
-        rospy.logdebug('_check_cancel checking cancel_event')
         if self._cancel_event.is_set():
-            rospy.logdebug('_check_cancel cancel_event is set, running _handle_cancel')
             self._cancel_event.clear()
 
             self._handle_cancel(resources)
