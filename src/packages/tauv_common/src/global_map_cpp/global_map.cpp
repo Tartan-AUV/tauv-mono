@@ -238,7 +238,7 @@ bool GlobalMap::findOne(tauv_msgs::MapFindOne::Request &req, tauv_msgs::MapFindO
 {
     unordered_map<string,shared_ptr<TrackerMaster>>::iterator master = MAP.find(req.tag);
 
-    if(master == MAP.end()){res.success=false; res.detection = {}; return false;}
+    if(master == MAP.end()){res.success=false; res.detection = {}; return true;}
 
     vector<shared_ptr<Tracker>> detections = (master->second)->getTrackers();
 
@@ -247,7 +247,7 @@ bool GlobalMap::findOne(tauv_msgs::MapFindOne::Request &req, tauv_msgs::MapFindO
         res.detection = {};
         res.success = false;
 
-        return false;
+        return true;
     }
 
     int minInd = 0;
@@ -276,7 +276,7 @@ bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::
     unordered_map<string,shared_ptr<TrackerMaster>>::iterator master = MAP.find(req.tag);
     Eigen::Vector3d position = point_to_vec(req.point);
 
-    if(master == MAP.end()){res.success=false; res.detection = {}; return false;}
+    if(master == MAP.end()){res.success=false; res.detection = {}; return true;}
 
     vector<shared_ptr<Tracker>> detections = (master->second)->getTrackers();
 
@@ -285,7 +285,7 @@ bool GlobalMap::findClosest(tauv_msgs::MapFindClosest::Request &req, tauv_msgs::
         res.detection = {};
         res.success = false;
 
-        return false;
+        return true;
     }
 
     int minInd = 0;
