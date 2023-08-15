@@ -5,7 +5,7 @@ This is the monorepo for all TAUV ROS packages. Each package contains its own RO
 
 *This repository and ROS should be installed on a clean version of Ubuntu 20.04*
 
-*Disclaimer: whenever `/path/to/TAUV-ROS-Packages/` is written, this should be the file path to the location of the `TAUV-ROS-Packages` cloned directory on your local computer. For example, mine is `/home/mreich/Documents/TAUV-ROS-Packages`*
+*Disclaimer: whenever `/path/to/TAUV-ROS-Packages/` is written, this should be the file path to the location of the `TAUV-ROS-Packages` cloned directory on your local computer.
 
 # Setup
 ## Ubuntu 20.04 Installation
