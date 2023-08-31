@@ -10,7 +10,57 @@ from cv_bridge import CvBridge, CvBridgeError
 # publishes depth map and color image
 
 class OAKDNode:
-    def __init__(self):
+    def __init__(self, configured=False):
+        try:
+            self._setup()
+        except Exception as e:
+            rospy.logerr('init failed (retrying): {e}')
+            if not rospy.is_shutdown:
+                self.__init__()
+
+    def start(self):
+        rgb_queue = self._device.getOutputQueue(name='rgb', maxSize=1, blocking=False)
+        depth_queue = self._device.getOutputQueue(name='depth', maxSize=1, blocking=False)
+
+
+        while not rospy.is_shutdown():
+            try:
+                rgb = rgb_queue.tryGet()
+                depth = depth_queue.tryGet()
+            except Exception:
+                rospy.logerr('OAKD error (attempting reinit): {e}')
+                try:
+                    self.__init__()
+                    rgb_queue = self._device.getOutputQueue(name='rgb', maxSize=1, blocking=False)
+                    depth_queue = self._device.getOutputQueue(name='depth', maxSize=1, blocking=False)
+                    rospy.loginfo('Reconnect successful')
+                except Exception:
+                    continue
+
+            self._depth_info_pub.publish(self._depth_info)
+            self._color_info_pub.publish(self._color_info)
+
+            if rgb is not None:
+                try:
+                    img = self._bridge.cv2_to_imgmsg(rgb.getCvFrame(), encoding='bgr8')
+                    img.header.frame_id = self._frame
+                    img.header.seq = rgb.getSequenceNum()
+                    img.header.stamp = self._time_offset + rospy.Time.from_sec(rgb.getTimestamp().total_seconds())
+                    self._color_pub.publish(img)
+                except CvBridgeError as e:
+                    rospy.loginfo(f'OAKD frame error: {e}')
+
+            if depth is not None:
+                try:
+                    img = self._bridge.cv2_to_imgmsg(depth.getCvFrame(), encoding='mono16')
+                    img.header.frame_id = self._frame
+                    img.header.seq = depth.getSequenceNum()
+                    img.header.stamp = self._time_offset + rospy.Time.from_sec(depth.getTimestamp().total_seconds())
+                    self._depth_pub.publish(img)
+                except CvBridgeError as e:
+                    rospy.loginfo(f'OAKD frame error: {e}')
+    
+    def _setup(self):
         self._load_config()
 
         self._pipeline = depthai.Pipeline()
@@ -75,15 +125,7 @@ class OAKDNode:
         self._color.isp.link(self._color_manip.inputImage)
         self._color_manip.out.link(self._xout_color.input)
 
-        self._device = None
-        while self._device is None and not rospy.is_shutdown():
-            try:
-                device_info = depthai.DeviceInfo(self._id)
-
-                self._device = depthai.Device(self._pipeline, device_info)
-            except Exception as e:
-                rospy.logerr(f'OAKD device error: {e}')
-                rospy.sleep(1.0)
+        self._connect_cam()
         
         self._calibration = self._device.readCalibration()
         self._depth_info = CameraInfo()
@@ -97,49 +139,29 @@ class OAKDNode:
 
         self._bridge = CvBridge()
 
-        #estimate of ros system time offset compared to depthai clock
-        depthai_time = depthai.Clock.now()
-        self._time_offset = rospy.Time.now() - rospy.Time.from_sec(depthai_time.total_seconds())
-        rospy.loginfo(f'Time offset: {self._time_offset}')
-
         self._depth_pub = rospy.Publisher(f'vehicle/{self._frame}/depth/image_raw', Image, queue_size=self._queue_size)
         self._color_pub = rospy.Publisher(f'vehicle/{self._frame}/color/image_raw', Image, queue_size=self._queue_size)
         self._depth_info_pub = rospy.Publisher(f'vehicle/{self._frame}/depth/camera_info', CameraInfo, queue_size=1, latch=True)
         self._color_info_pub = rospy.Publisher(f'vehicle/{self._frame}/color/camera_info', CameraInfo, queue_size=1, latch=True)
-
-    def start(self):
-        rgb_queue = self._device.getOutputQueue(name='rgb', maxSize=1, blocking=False)
-        depth_queue = self._device.getOutputQueue(name='depth', maxSize=1, blocking=False)
-
-        while not rospy.is_shutdown():
+    
+    def _connect_cam(self):
+        self._device = None
+        logerr = False
+        
+        while self._device is None and not rospy.is_shutdown():
             try:
-                rgb = rgb_queue.tryGet()
-                depth = depth_queue.tryGet()
-            except Exception:
-                continue
+                device_info = depthai.DeviceInfo(self._id)
 
-            self._depth_info_pub.publish(self._depth_info)
-            self._color_info_pub.publish(self._color_info)
-
-            if rgb is not None:
-                try:
-                    img = self._bridge.cv2_to_imgmsg(rgb.getCvFrame(), encoding='bgr8')
-                    img.header.frame_id = self._frame
-                    img.header.seq = rgb.getSequenceNum()
-                    img.header.stamp = self._time_offset + rospy.Time.from_sec(rgb.getTimestamp().total_seconds())
-                    self._color_pub.publish(img)
-                except CvBridgeError as e:
-                    rospy.loginfo(f'OAKD frame error: {e}')
-
-            if depth is not None:
-                try:
-                    img = self._bridge.cv2_to_imgmsg(depth.getCvFrame(), encoding='mono16')
-                    img.header.frame_id = self._frame
-                    img.header.seq = depth.getSequenceNum()
-                    img.header.stamp = self._time_offset + rospy.Time.from_sec(depth.getTimestamp().total_seconds())
-                    self._depth_pub.publish(img)
-                except CvBridgeError as e:
-                    rospy.loginfo(f'OAKD frame error: {e}')
+                self._device = depthai.Device(self._pipeline, device_info)
+            except Exception as e:
+                if not logErr:
+                    rospy.logerr(f'OAKD device error: {e}')
+                    logErr = True
+        
+        #estimate of ros system time offset compared to depthai clock
+        depthai_time = depthai.Clock.now()
+        self._time_offset = rospy.Time.now() - rospy.Time.from_sec(depthai_time.total_seconds())
+        rospy.loginfo(f'Time offset: {self._time_offset}')
 
     def _load_config(self):
         self._tf_namespace = rospy.get_param('tf_namespace')
