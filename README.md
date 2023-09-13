@@ -6,10 +6,10 @@ This is the monorepo for all TAUV ROS packages. Each package contains its own RO
 *Disclaimer: whenever `/path/to/TAUV-ROS-Packages/` is written, this should be the file path to the location of the `TAUV-ROS-Packages` cloned directory on your local computer.
 
 # Setup
-The code in this repo runs ROS Noetic on Ubuntu 20.04. Below find instructions for getting this environment installed on your computer. Either use Google or the running debugging list for issues encountered along the way.
+The code in this repo runs ROS Noetic on Ubuntu 20.04. Below find instructions for getting this environment installed on your computer. Either use Google or [the running setup debugging list](https://github.com/Tartan-AUV/TAUV-ROS-Packages/wiki/Installation-and-Setup-Debugging-Help) for issues encountered along the way.
 
 ## Ubuntu 20.04 + ROS Noetic Install
-The easiest way to get up and running is through virtualization of an Ubuntu 20.04 environment. An alternative and often higher-performance solution (if your hardware supports it) is dual-booting your native OS and Ubuntu 20.04. Google Drive (link here) containing VM images -- download and save it someplace safe!
+The easiest way to get up and running is through virtualization of an Ubuntu 20.04 environment. An alternative and often higher-performance solution (if your hardware supports it) is dual-booting your native OS and Ubuntu 20.04. [Google Drive](https://drive.google.com/drive/folders/1KdAnfuahlqWfyaMwDTwxQsJ7HDAdvSMs?usp=sharing) containing VM images -- download and save it someplace safe!
 
 **M1 Mac Users**: Download [UTM VM Software](https://mac.getutm.app) and the `.utm` file from the Google Drive
 
