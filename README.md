@@ -3,57 +3,32 @@
 
 This is the monorepo for all TAUV ROS packages. Each package contains its own ROS nodes or other common code.
 
-*This repository and ROS should be installed on a clean version of Ubuntu 20.04*
-
 *Disclaimer: whenever `/path/to/TAUV-ROS-Packages/` is written, this should be the file path to the location of the `TAUV-ROS-Packages` cloned directory on your local computer.
 
 # Setup
-## Ubuntu 20.04 Installation
-Since ROS and all the dependencies used here require the Ubuntu 20.04 operating system, you must somehow get it.
+The code in this repo runs ROS Noetic on Ubuntu 20.04. Below find instructions for getting this environment installed on your computer.
 
-If you're on an M1 Mac, look up "VMWare M1 Ubuntu 20.04 Tutorial" and follow instructions to install all the required stuff. If you're on another kind of machine, look up "Dual boot {your operating system} and Ubuntu" or "VMWare {OS} Ubuntu 20.04 Tutorial". Make sure that, despite what a tutorial might use, you download and use files (like `.iso` files) for **Ubuntu version 20.04**.
+## Ubuntu 20.04 + ROS Noetic Install
+The easiest way to get up and running is through virtualization of an Ubuntu 20.04 environment. An alternative and often higher-performance solution (if your hardware supports it) is dual-booting your native OS and Ubuntu 20.04.
 
-Return once you are able to access Ubuntu.
+**M1 Mac Users**: Download [UTM VM Software](https://mac.getutm.app)
 
-## `zsh` Installation
-First, make sure you are logged in as a user with sudo permission (but not as root) to a Ubuntu 20.04 machine (or VM). Then, install the `zsh` shell with the following commands:
+**Windows 11 Users**: Download [Oracle VirtualBox](https://www.virtualbox.org)
+
+Download the pre-made VM image for the VM software you downloaded from the Google Drive (link here). These VMs have ROS Noetic installed on Ubuntu 20.04. The username, computer name, and password are all `sam` (Submarine Application Machine!).
+
+## Configure `git`
+Sign up for GitHub if you don't already have an account. Follow [this tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account#:~:text=In%20the%20%22Access%22%20section%20of,this%20key%20%22Personal%20laptop%22.) for adding an SSH key to your account. Once set up, configure your username and email:
 ```bash
-sudo apt-get update
-sudo apt-get install zsh
+git config --global user.name "Submarine Guy"
+$ git config --global user.email submarine@guy.com
 ```
 
-Ensure that everything was installed properly with:
+In the home directory of your VM there should be a folder called `catkin_ws` (`/home/sam/catkin_ws`). All ROS code, whether from this repository or another, should live in the `src` sub-directory of the `catkin_ws` folder. Navigate to the `src` directory and clone the repository:
 ```bash
-zsh --version # this should tell you which version of zsh was installed
-```
-
-Now, set `zsh` to be your default shell instead of `bash` with:
-```bash
-chsh -s $(which zsh)
-```
-Restart your computer or VM. When you open a terminal, it should now be using `zsh`. 
-
-## ROS Installation (Noetic)
-This repository relies on ROS being installed, so follow the instructions from the following installation guide for ROS Noetic. Whenever prompted, follow the instructions for a `zsh` shell (rather than `bash`).
-
-http://wiki.ros.org/noetic/Installation/Ubuntu
-
-Use the full-desktop-install since we need Gazebo and other dependencies. Stop at the end of this tutorial page and do not execute `catkin_make`.
-
-## Repository Installation
-To install:
-```bash
-cd <~ or wherever you want your workspace to live>
-mkdir catkin_ws
-cd catkin_ws
-mkdir src
-cd src
+cd ~/catkin_ws/src
 git clone --recurse-submodules git@github.com:Tartan-AUV/TAUV-ROS-Packages.git
-cd TAUV-ROS-Packages
-sudo make deps # run the Makefile, this might take 5 to 10 minutes
 ```
-
-If you run into permission errors on the last step, see which file is giving the error. Give it the correct permissions with the `chmod` command. For example, `sudo chmod 777 filename` will give the current user read, write, and execute permissions for `filename`.
 
 ## Darknet installation
 To use darknet in sim, you will need to [build it from source](https://github.com/leggedrobotics/darknet_ros).
@@ -63,10 +38,10 @@ git clone --recurse-submodules git@github.com:leggedrobotics/darknet_ros.git
 catkin build darknet_ros -DCMAKE_BUILD_TYPE=Release
 ```
 
-## Editing the `~/.zshrc`
-If you followed the ROS installation tutorial, this line might already be in your `./zshrc` file. If not, you should:
+## Editing the `~/.bashrc`
+If you followed the ROS installation tutorial, this line might already be in your `./bashrc` file. If not, you should:
 ```bash
-echo "source /opt/ros/noetic/setup.zsh" >> ~/.zshrc
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
 ```
 
 ## Building Your ROS Project
@@ -74,7 +49,7 @@ When you make changes like adding new message types or add new dependencies to a
 ```bash
 cd <path to catkin_ws>
 catkin build
-source devel/setup.zsh
+source devel/setup.bash
 ```
     
 If the above `catkin build` command fails, try toubleshooting using these answers: https://github.com/catkin/catkin_tools/issues/525
