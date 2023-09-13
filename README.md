@@ -21,7 +21,7 @@ Download the pre-made VM image for the VM software you downloaded from the Googl
 Sign up for GitHub if you don't already have an account. Follow [this tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account#:~:text=In%20the%20%22Access%22%20section%20of,this%20key%20%22Personal%20laptop%22.) for adding an SSH key to your account. Once set up, configure your username and email:
 ```bash
 git config --global user.name "Submarine Guy"
-$ git config --global user.email submarine@guy.com
+git config --global user.email submarine@guy.com
 ```
 
 In the home directory of your VM there should be a folder called `catkin_ws` (`/home/sam/catkin_ws`). All ROS code, whether from this repository or another, should live in the `src` sub-directory of the `catkin_ws` folder. Navigate to the `src` directory and clone the repository:
