@@ -202,7 +202,7 @@ void Ekf::extrapolate_cov(double dt, Eigen::Matrix<double, 15, 15> &old_cov, Eig
 
 double wrap(double angle)
 {
-  // phttps://stackoverflow.com/a/29871193
+  // https://stackoverflow.com/a/29871193
   return -M_PI + fmod(2 * M_PI + fmod(angle + M_PI, 2 * M_PI), 2 * M_PI);
 }
 
@@ -268,6 +268,18 @@ void Ekf::get_F(double dt, Eigen::Matrix<double, 15, 15> &F)
   double cr = cos(this->state(S::ROLL));
   double sr = sin(this->state(S::ROLL));
 
+  // State evolution matrix comes from robot_localization math
+  // https://github.com/cra-ros-pkg/robot_localization/blob/ea976f9e65eac505f5cc7d3197ae080de4e5c10b/src/ekf.cpp#L259C5-L259C5
+
+  // This propagates the last states forward in time, tracking 
+  // Position in the world frame
+  // Velocity in the body frame
+  // Acceleration in the body frame
+  // Orientation (euler angles) in the world frame
+  // Angular velocity (axis-angle) in the body frame
+
+  // See the GitHub wiki entry on kinematics math for more info on this
+
   F = Eigen::Matrix<double, 15, 15>::Identity();
   F(S::X, S::VX) = (cp * cy) * dt;
   F(S::X, S::VY) = (cy * sp * sr - cr * sy) * dt;
@@ -289,7 +301,7 @@ void Ekf::get_F(double dt, Eigen::Matrix<double, 15, 15> &F)
   F(S::Z, S::AZ) = 0.5 * F(S::Z, S::VZ) * dt;
   F(S::VX, S::AX) = dt;
   F(S::VY, S::AY) = dt;
-  F(S::VZ, S::AZ) = dt;
+  F(S::VZ, S::AZ) = dt; 
   F(S::YAW, S::VYAW) = (cr / cp) * dt;
   F(S::YAW, S::VPITCH) = (sr / cp) * dt;
   F(S::PITCH, S::VYAW) = (-sr) * dt;
