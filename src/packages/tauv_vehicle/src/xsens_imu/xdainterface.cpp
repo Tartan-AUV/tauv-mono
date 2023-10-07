@@ -70,6 +70,8 @@ void XdaInterface::spinFor(std::chrono::milliseconds timeout)
 
 void XdaInterface::registerPublishers(ros::NodeHandle &node)
 {
+  // Override from original xsens ROS driver to publish custom IMU message
+  // Want to publish orientation, angular velocity, linear acceleration, and free (gravity-compensated) linear acceleration in one msg
   registerCallback(new ImuPublisher(node));
 }
 

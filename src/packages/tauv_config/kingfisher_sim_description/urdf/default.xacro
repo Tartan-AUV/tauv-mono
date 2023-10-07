@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <robot name="kingfisher_sim" xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:arg name="namespace" default="ns" />
+    <xacro:arg name="simulate_cameras" default="true" />
+
     <xacro:property name="ns" value="$(arg namespace)" />
 
     <xacro:include filename="$(find tauv_sim_gazebo_plugins)/urdf/utils.xacro"/>
@@ -84,6 +86,10 @@
     </gazebo>
 
     <xacro:include filename="$(find kingfisher_sim_description)/urdf/thrusters.xacro" />
-    <xacro:include filename="$(find kingfisher_sim_description)/urdf/cameras.xacro" />
+    
+    <xacro:if value="$(arg simulate_cameras)">
+        <xacro:include filename="$(find kingfisher_sim_description)/urdf/cameras.xacro" />
+    </xacro:if>
+
     <xacro:include filename="$(find kingfisher_sim_description)/urdf/sensors.xacro" />
 </robot>

@@ -66,7 +66,7 @@ struct ImuPublisher : public PacketCallback
         }
 
         ros::Time sample_time(sec, nsec);
-
+        
         bool orientation_available = packet.containsOrientation();
         bool rate_of_turn_available = packet.containsCalibratedGyroscopeData();
         bool linear_acceleration_available = packet.containsCalibratedAcceleration();
@@ -75,6 +75,7 @@ struct ImuPublisher : public PacketCallback
         geometry_msgs::Vector3 orientation;
         if (orientation_available)
         {
+            // Output in degrees (line 124 `xsdataidentifier.h`)
             XsEuler a = packet.orientationEuler();
 
             orientation.x = a.roll() * (M_PI / 180.0);
@@ -85,16 +86,18 @@ struct ImuPublisher : public PacketCallback
         geometry_msgs::Vector3 rate_of_turn;
         if (rate_of_turn_available)
         {
+            // Output in rad/s (line 152 `xsdataidentifier.h`)
             XsVector a = packet.calibratedGyroscopeData();
 
-            rate_of_turn.x = a[0] * (M_PI / 180.0);
-            rate_of_turn.y = a[1] * (M_PI / 180.0);
-            rate_of_turn.z = a[2] * (M_PI / 180.0);
+            rate_of_turn.x = a[0];
+            rate_of_turn.y = a[1];
+            rate_of_turn.z = a[2];
         }
 
         geometry_msgs::Vector3 linear_acceleration;
         if (linear_acceleration_available)
         {
+            // Output in m/s^2 (line 131 `xsdataidentifier.h`)
             XsVector a = packet.calibratedAcceleration();
 
             linear_acceleration.x = a[0];
@@ -105,6 +108,7 @@ struct ImuPublisher : public PacketCallback
         geometry_msgs::Vector3 free_acceleration;
         if (free_acceleration_available)
         {
+            // Output in m/s^2 (line 132 `xsdataidentifier.h`)
             XsVector a = packet.freeAcceleration();
 
             free_acceleration.x = a[0];

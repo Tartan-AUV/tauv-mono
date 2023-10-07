@@ -13,9 +13,9 @@ tracker_params: {
           distance_weight: 1,
           orientation_weight: 0,
           recency_weight: 0.2,
-          frequency_weight: 0.8,
-          oversaturation_penalty: 100,
-          confidence_weight: 1
+          frequency_weight: 0.2,
+          oversaturation_penalty: 5,
+          confidence_weight: 0.5
     },
     #paramaters specific to each individual object
     tag_params: { 
