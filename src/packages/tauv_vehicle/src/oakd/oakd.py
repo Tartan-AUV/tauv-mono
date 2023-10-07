@@ -123,7 +123,7 @@ class OAKDNode:
 
             if rgb is not None:
                 try:
-                    img = self._bridge.cv2_to_imgmsg(rgb.getCvFrame(), encoding='bgr8')
+                    img = self._bridge.cv2_to_imgmsg(rgb.getCvFrame()[:, :, ::-1], encoding='rgb8')
                     img.header.frame_id = self._frame
                     img.header.seq = rgb.getSequenceNum()
                     img.header.stamp = self._time_offset + rospy.Time.from_sec(rgb.getTimestamp().total_seconds())

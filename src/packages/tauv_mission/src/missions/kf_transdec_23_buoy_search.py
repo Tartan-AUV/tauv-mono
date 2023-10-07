@@ -13,8 +13,9 @@ class KFTransdec23State(IntEnum):
     GATE = 3
     GOTO_BUOY = 4
     BUOY = 5
-    GOTO_OCTAGON = 6
-    SURFACE = 7
+    CLEAR_BUOY = 6
+    GOTO_OCTAGON = 7
+    SURFACE = 8
 
 class KFTransdec23(Mission):
 
@@ -24,25 +25,26 @@ class KFTransdec23(Mission):
         self._dive_y_offset = -1
 
         self._buoy_xy_steps = [
-            (0, -2),
-            (2, -1.5),
             (0, -1),
-            (2, -0.5),
+            (1, -1),
+            (0, -1),
             (0, 0),
-            (2, 0.5),
+            (1, 0),
+            (0, 0),
             (0, 1),
-            (2, 1.5),
-            (0, 2),
+            (1, 1),
+            (0, 1),
         ]
         self._buoy_z_steps = [
             0,
-            1
+            0.5
         ]
 
         self._course_t_start: SE3 = SE3.Rt(SO3(), (2, -3, 1.5))
-        self._course_t_gate: SE3 = SE3.Rt(SO3.Rz(0.2), (7.5, -4.75, 1.5))
-        self._course_t_buoy: SE3 = SE3.Rt(SO3(), (14, -6.5, 2.5))
-        self._course_t_octagon: SE3 = SE3.Rt(SO3(), (32, -26, 1.5))
+        self._course_t_gate: SE3 = SE3.Rt(SO3.Rz(0.0), (7.5, -3.4, 1.5))
+        self._course_t_buoy: SE3 = SE3.Rt(SO3(), (14.7, -9.8, 2.5))
+        self._course_t_clear_buoy: SE3 = SE3.Rt(SO3(), (12, -7.3, 1.5))
+        self._course_t_octagon: SE3 = SE3.Rt(SO3(), (32, -22, 1.5))
 
         self._pinger_frequency: int = 30000
 
@@ -58,13 +60,16 @@ class KFTransdec23(Mission):
             self._state = KFTransdec23State.GATE
             return gate_dead_reckon.Gate(course_t_gate=self._course_t_gate)
         elif self._state == KFTransdec23State.GATE:
-            self._state = KFTransdec23State.GOTO_BUOY
-            return goto.Goto(self._course_t_buoy, in_course=True)
-        elif self._state == KFTransdec23State.GOTO_BUOY:
-            self._state = KFTransdec23State.BUOY
-            return buoy_search.BuoySearch(course_t_start
-                                          =self._course_t_buoy, xy_steps=self._buoy_xy_steps, z_steps=self._buoy_z_steps)
-        elif self._state == KFTransdec23State.BUOY:
+        # self._state = KFTransdec23State.GOTO_BUOY
+        #     return goto.Goto(self._course_t_buoy, in_course=True)
+        # elif self._state == KFTransdec23State.GOTO_BUOY:
+        #     self._state = KFTransdec23State.BUOY
+        #     return buoy_search.BuoySearch(course_t_start
+        #                                   =self._course_t_buoy, xy_steps=self._buoy_xy_steps, z_steps=self._buoy_z_steps)
+        # elif self._state == KFTransdec23State.BUOY:
+        #     self._state = KFTransdec23State.CLEAR_BUOY
+        #     return goto.Goto(self._course_t_clear_buoy, in_course=True)
+        # elif self._state == KFTransdec23State.CLEAR_BUOY:
             self._state = KFTransdec23State.GOTO_OCTAGON
             return goto.Goto(self._course_t_octagon, in_course=True)
         elif self._state == KFTransdec23State.GOTO_OCTAGON:

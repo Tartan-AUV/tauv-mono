@@ -29,10 +29,15 @@ class MapClient:
     def find(self, tag: str) -> Optional[List[MapDetection]]:
         req = MapFindRequest()
         req.tag = tag
-        res: MapFindResponse = self._find_srv(req)
+
+        try:
+          res: MapFindResponse = self._find_srv(req)
+        except Exception as e:
+            rospy.logerr(f'received exception from global_map/find: {e}')
+            return None
 
         if not res.success:
-            rospy.logerr('received error from global_map/find: {res.message}')
+            rospy.logerr(f'received error from global_map/find: {res.message}')
             return None
 
         detections = [
@@ -48,10 +53,15 @@ class MapClient:
     def find_one(self, tag: str) -> Optional[MapDetection]:
         req = MapFindOneRequest()
         req.tag = tag
-        res: MapFindOneResponse = self._find_one_srv(req)
+
+        try:
+            res: MapFindOneResponse = self._find_one_srv(req)
+        except Exception as e:
+            rospy.logerr(f'received exception from global_map/find_one: {e}')
+            return None
 
         if not res.success:
-            rospy.logerr('received error from global_map/find_one: {res.message}')
+            rospy.logerr('freceived error from global_map/find_one: {res.message}')
             return None
 
         detection = MapDetection(
@@ -69,10 +79,14 @@ class MapClient:
         req.tag = tag
         req.point = r3_to_ros_point(position)
 
-        res: MapFindClosestResponse = self._find_closest_srv(req)
+        try:
+            res: MapFindClosestResponse = self._find_closest_srv(req)
+        except Exception as e:
+            rospy.logerr(f'received exception from global_map/find_closest: {e}')
+            return None
 
         if not res.success:
-            rospy.logerr('received error from find_closest: {res.message}')
+            rospy.logerr(f'received error from global_map/find_closest: {res.message}')
             return None
 
         detection = MapDetection(
@@ -87,7 +101,7 @@ class MapClient:
         res: TriggerResponse = self._reset_srv(req)
 
         if not res.success:
-            rospy.logerr('received error from global_map/reset: {res.message}')
+            rospy.logerr(f'received error from global_map/reset: {res.message}')
             return False
 
         return True

@@ -3,8 +3,7 @@
 <launch>
   <!-- Console launch prefix -->
   <arg name="launch_prefix" default=""/>
-  <arg name="model_name" default="kingfisher"/>
-  <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+  <arg name="config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
 
 
   <!-- Config and weights folder. -->
@@ -13,7 +12,7 @@
 
   <!-- ROS and network parameter files -->
   <arg name="ros_param_file"             default="$(arg config_pkg)/darknet_config/ros.yaml"/>
-  <arg name="network_param_file"         default="$(arg config_pkg)/darknet_config/yolov3-23-v3.yaml"/>
+  <arg name="network_param_file"         default="$(arg config_pkg)/darknet_config/yolov3-23-8-5.yaml"/>
 
   <!-- Load parameters -->
   <rosparam command="load" ns="darknet_ros" file="$(arg ros_param_file)"/>

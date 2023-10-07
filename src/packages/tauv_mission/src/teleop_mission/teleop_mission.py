@@ -367,14 +367,17 @@ class TeleopMission:
             print('task in progress')
             return
 
-        self._task = HitBuoyTask(args.tag, args.timeout, args.distance, args.error_threshold)
+        self._task = HitBuoyTask(args.tag, args.timeout, args.frequency, args.distance, args.error_a, args.error_b, args.error_threshold)
         Thread(target=self._run_task, daemon=True).start()
 
     def _handle_run_shoot_torpedo_task(self, args):
         if self._task is not None:
             return
 
-        self._task = ShootTorpedoTask(args.tag, args.torpedo, args.timeout, args.frequency, args.distance, args.error_factor, args.error_threshold)
+        if args.torpedo == -1:
+            args.torpedo = None
+
+        self._task = ShootTorpedoTask(args.tag, args.torpedo, args.timeout, args.frequency, args.distance, args.error_factor, args.error_threshold, args.torpedo)
         Thread(target=self._run_task, daemon=True).start()
 
     def _handle_run_detect_pinger_task(self, args):
@@ -513,7 +516,10 @@ class TeleopMission:
         run_hit_buoy_task.add_argument('timeout', type=float)
         run_hit_buoy_task.add_argument('frequency', type=float)
         run_hit_buoy_task.add_argument('distance', type=float)
+        run_hit_buoy_task.add_argument('error_a', type=float)
+        run_hit_buoy_task.add_argument('error_b', type=float)
         run_hit_buoy_task.add_argument('error_threshold', type=float)
+        run_hit_buoy_task.add_argument('shoot_torpedo', type=int)
         run_hit_buoy_task.set_defaults(func=self._handle_run_hit_buoy_task)
 
         run_shoot_torpedo_task = subparsers.add_parser('run_shoot_torpedo_task')

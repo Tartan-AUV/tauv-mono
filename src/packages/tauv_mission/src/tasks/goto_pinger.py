@@ -60,20 +60,20 @@ class GotoPinger(Task):
             avg_z = 0.5 * avg_z + 0.5 * direction[2]
             if avg_z > 0.8:
                 resources.motion.cancel()
-                return DetectPingerResult(DetectPingerStatus.SUCCESS)
+                return GotoPingerResult(GotoPingerStatus.SUCCESS)
 
             goal_odom_t_vehicle = odom_t_vehicle * SE3.Rt(SO3.Rz(direction_yaw), np.array([direction[0], direction[1], 0]))
             goal_odom_t_vehicle.t[2] = self._depth
 
-            resources.motion.goto(goal_odom_t_vehicle, params=ConstantAccelerationTrajectoryParams(v_max_linear=0.5, a_linear=1.0, v_max_angular=0.5, a_angular=1.0))
+            resources.motion.goto(goal_odom_t_vehicle, params=resources.motion.get_trajectory_params("rapid"))
             time.sleep(3.0)
 
-            if self._check_cancel(resources): return DetectPingerResult(DetectPingerStatus.CANCELLED)
+            if self._check_cancel(resources): return GotoPingerResult(GotoPingerStatus.CANCELLED)
 
         if rospy.Time.now() > timeout_time:
-            return DetectPingerResult(DetectPingerStatus.TIMEOUT)
+            return GotoPingerResult(GotoPingerStatus.TIMEOUT)
 
-        return DetectPingerResult(DetectPingerStatus.SUCCESS)
+        return GotoPingerResult(GotoPingerStatus.SUCCESS)
 
 
     def _handle_cancel(self, resources: TaskResources):

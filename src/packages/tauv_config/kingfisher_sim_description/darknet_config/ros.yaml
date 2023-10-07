@@ -1,28 +1,28 @@
 subscribers:
 
   camera_reading:
-    topic: /kf/vehicle/oakd_front/color/image_raw
+    topic: /kf/darknet_ros/image
     queue_size: 1
 
 actions:
 
   camera_reading:
-    name: /darknet_ros_front/check_for_objects
+    name: /kf/darknet_ros/check_for_objects
 
 publishers:
 
   object_detector:
-    topic: /darknet_ros/found_object
+    topic: /kf/darknet_ros/found_object
     queue_size: 1
     latch: false
 
   bounding_boxes:
-    topic: /darknet_ros/bounding_boxes
+    topic: /kf/darknet_ros/bounding_boxes
     queue_size: 1
     latch: false
 
   detection_image:
-    topic: /darknet_ros/detection_image
+    topic: /kf/darknet_ros/detection_image
     queue_size: 1
     latch: true
 

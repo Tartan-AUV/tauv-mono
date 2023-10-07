@@ -75,6 +75,8 @@ class DetectPinger(Task):
             torpedo_yaw = atan2(odom_t_torpedo.t[1] - odom_t_vehicle.t[1], odom_t_torpedo.t[0] - odom_t_vehicle.t[0])
             octagon_yaw = atan2(odom_t_octagon.t[1] - odom_t_vehicle.t[1], odom_t_octagon.t[0] - odom_t_vehicle.t[0])
 
+            # TODO: Make this the actual angle between two angles``
+
             if (direction_yaw - torpedo_yaw) < 0.1:
                 torpedo_votes += 1
             elif (direction_yaw - octagon_yaw) < 0.1:
@@ -89,7 +91,7 @@ class DetectPinger(Task):
         if torpedo_votes > octagon_votes and torpedo_votes > 7:
             location = "torpedo"
         if octagon_votes > torpedo_votes and octagon_votes > 7:
-            location="octagon"
+            location = "octagon"
 
         return DetectPingerResult(DetectPingerStatus.SUCCESS, location=location)
 

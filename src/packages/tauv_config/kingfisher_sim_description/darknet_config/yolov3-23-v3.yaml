@@ -3,7 +3,7 @@ yolo_model:
   config_file:
     name: yolov3-23-v3.cfg
   weight_file:
-    name: yolo-obj_9100.weights
+    name: yolo-obj_32000.weights
   threshold:
     value: 0.1
   detection_classes:

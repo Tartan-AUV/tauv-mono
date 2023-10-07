@@ -92,12 +92,12 @@
 
         <include>
             <uri>model://whirlpool_buoy</uri>
-            <pose>32 -10 -2.15 0 0 -2.3</pose>
+            <pose>20 -20 -2 0 0 0.1</pose>
         </include>
 
         <include>
             <uri>model://gate</uri>
-            <pose>17 -21 -2.15 0 0 -1</pose>
+            <pose>14.75 -17.5 -0.5 0 0 -1</pose>
         </include>
 
         <include>

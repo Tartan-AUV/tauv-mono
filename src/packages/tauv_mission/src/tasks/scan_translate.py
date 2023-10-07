@@ -18,29 +18,28 @@ class ScanTranslateResult(TaskResult):
 
 class ScanTranslate(Task):
 
-    def __init__(self, x_range: float, y_range: float):
+    def __init__(self, course_t_start: SE3, points: [(float, float)]):
         super().__init__()
 
-        self._x_range: float = x_range
-        self._y_range: float = y_range
+        self._course_t_start = course_t_start
+        self._points = points
 
     def run(self, resources: TaskResources) -> ScanTranslateResult:
-        odom_t_vehicle_initial = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
 
-        for i in range(4):
-            for j in range(4):
-                x = ((i / 4) - 0.5) * self._x_range
-                y = ((i / 4) - 0.5) * self._y_range
+        odom_t_course = resources.transforms.get_a_to_b('kf/odom', 'kf/course')
+        odom_t_start = odom_t_course * self._course_t_start
 
-                resources.motion.goto(odom_t_vehicle_initial * SE3.Rt(SO3(), np.array([x, y, 0])))
+        for (y, z) in self._points:
+                start_t_vehicle_goal = SE3.Rt(SO3(), (0, y, z))
+                odom_t_vehicle_goal = odom_t_start * start_t_vehicle_goal
+
+                resources.motion.goto(odom_t_vehicle_goal)
 
                 while True:
                     if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
                         break
 
                     if self._check_cancel(resources): return ScanTranslateResult(ScanTranslateStatus.FAILURE)
-
-                time.sleep(5.0)
 
         return ScanTranslateResult(ScanTranslateStatus.SUCCESS)
 

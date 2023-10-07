@@ -19,7 +19,7 @@ class KFTransdec23(Mission):
     def __init__(self):
         self._state = KFTransdec23State.UNKNOWN
 
-        self._dive_y_offset = -1
+        self._dive_y_offset = 1
 
         self._buoy_xy_steps = [
             (0, -2),
@@ -34,14 +34,13 @@ class KFTransdec23(Mission):
         ]
         self._buoy_z_steps = [
             0,
-            0.5,
-            1
+            0.75
         ]
 
-        self._course_t_start: SE3 = SE3.Rt(SO3(), (2, -3, 1.5))
-        self._course_t_gate: SE3 = SE3.Rt(SO3(), (7.5, -4.75, 1.5))
-        self._course_t_buoy: SE3 = SE3.Rt(SO3(), (14, -6.5, 2.5))
-        self._course_t_octagon: SE3 = SE3.Rt(SO3(), (32, -26, 1.5))
+        self._course_t_start: SE3 = SE3.Rt(SO3(), (2, 3, 1.5))
+        self._course_t_gate: SE3 = SE3.Rt(SO3.Rz(0.2), (6.75, 4.4, 1.5))
+        self._course_t_buoy: SE3 = SE3.Rt(SO3(), (14.7, -22, 1.5))
+        self._course_t_octagon: SE3 = SE3.Rt(SO3(), (32, -22, 1.5))
 
         self._pinger_frequency: int = 30000
 
@@ -51,9 +50,9 @@ class KFTransdec23(Mission):
 
     def transition(self, task: Task, task_result: TaskResult) -> Optional[Task]:
         if self._state == KFTransdec23State.DIVE:
-            self._state = KFTransdec23State.GOTO_GATE
-            return goto.Goto(self._course_t_gate, in_course=True, delay=10.0)
-        elif self._state == KFTransdec23State.GOTO_GATE:
+        #     self._state = KFTransdec23State.GOTO_GATE
+        #     return goto.Goto(self._course_t_gate, in_course=True, delay=10.0)
+        # elif self._state == KFTransdec23State.GOTO_GATE:
             self._state = KFTransdec23State.GOTO_BUOY
             return goto.Goto(self._course_t_buoy, in_course=True, delay=10.0)
         elif self._state == KFTransdec23State.GOTO_BUOY:
