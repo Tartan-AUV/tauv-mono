@@ -1,0 +1,6 @@
+<launch>
+    <group ns="accumulators">
+        <node pkg="tauv_common" type="accumulator" name="fun accumulator" ns="fun"/>
+        <node pkg="tauv_common" type="accumulator" name="less fun accumulator" ns="not_fun"/>
+    </group>
+</launch>
