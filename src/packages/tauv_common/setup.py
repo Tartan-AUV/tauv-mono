@@ -22,6 +22,7 @@ from setuptools import find_packages
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
     packages=[
+               'MERGE CONFLICT',
               'thruster_managers.models',
               'controllers',
               'controllers.controller',
