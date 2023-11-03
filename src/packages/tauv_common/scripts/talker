@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from tutorials import talker
+
+if __name__ == "__main__":
+    talker.main()

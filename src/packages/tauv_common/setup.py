@@ -22,6 +22,7 @@ from setuptools import find_packages
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
     packages=[
+              'tutorials',
               'thruster_managers.models',
               'controllers',
               'controllers.controller',
@@ -50,7 +51,9 @@ setup_args = generate_distutils_setup(
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
-    scripts=['scripts/thruster_allocator',
+    scripts=['scripts/listener',
+             'scripts/talker',
+             'scripts/thruster_allocator',
              'scripts/keyboard_planner',
              'scripts/teleop_planner',
              'scripts/controller',
