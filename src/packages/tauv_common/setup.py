@@ -21,9 +21,7 @@ from setuptools import find_packages
 
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
-    packages=[
-              'accumulator',
-              'thruster_managers.models',
+    packages=['thruster_managers.models',
               'controllers',
               'controllers.controller',
               'planners',
@@ -42,6 +40,7 @@ setup_args = generate_distutils_setup(
               'dynamics_parameter_estimator',
               'dynamics',
               'motion',
+              'transform_client',
               'tauv_alarms',
               'tauv_util',
               'motion_client',
@@ -51,8 +50,7 @@ setup_args = generate_distutils_setup(
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
-    scripts=['scripts/accumulator',
-             'scripts/thruster_allocator',
+    scripts=['scripts/thruster_allocator',
              'scripts/keyboard_planner',
              'scripts/teleop_planner',
              'scripts/controller',

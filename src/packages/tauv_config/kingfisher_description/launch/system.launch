@@ -49,6 +49,11 @@
       <arg name="teleop" value="$(arg teleop)" />
     </include>
 
+    <node pkg="tauv_vision" type="yolact" name="yolact" output="screen">
+      <rosparam param="weight_path">/shared/weights/royal-water-37_9.pt</rosparam>
+      <rosparam param="frame_ids">[oakd_front]</rosparam>-->
+    </node>
+
 <!--     <include file="$(find tauv_common)/launch/vision/vision.launch"> -->
 <!--           <arg name="config_pkg" value="$(arg config_pkg)" /> -->
 <!--     </include> -->
