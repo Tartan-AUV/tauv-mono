@@ -21,7 +21,7 @@
   <!--  Launch Vehicle / Cams   -->
   <!-- =======================  -->
 <!--  <include file="$(find tauv_common)/launch/transform_manager/retare_sub_position.launch"/>-->
-<!--  <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch"/>-->
+<!--  <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch"/>--> -->
   <group ns="$(arg namespace)">
     <param name="tf_namespace" value="$(arg namespace)" />
 
