@@ -1,0 +1,3 @@
+<launch>
+    <node pkg = "tauv_common" type = "camera_listener" name = "camera_listener" output = "screen"/>
+</launch>

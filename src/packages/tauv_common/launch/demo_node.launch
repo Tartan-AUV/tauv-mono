@@ -1,0 +1,3 @@
+<launch>
+    <node pkg = "tauv_common" type = "demo_node" name = "my_demo_ndoe" output = "screen"/>
+</launch>

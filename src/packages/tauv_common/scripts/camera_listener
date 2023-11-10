@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from eliz_introtask import camera_listener
+
+if __name__ == "__main__":
+    camera_listener.main()
