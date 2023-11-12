@@ -56,9 +56,6 @@ include_directories(
         ${catkin_INCLUDE_DIRS}
 )
 
-#catkin_install_python(PROGRAMS scripts/thruster_allocator
-#                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
 install(DIRECTORY launch config include src/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"

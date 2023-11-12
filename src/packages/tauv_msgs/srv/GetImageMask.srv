@@ -1,0 +1,4 @@
+geometry_msgs/Vector3 mask1_lwr
+geometry_msgs/Vector3 mask1_upr
+---
+bool sucess 
