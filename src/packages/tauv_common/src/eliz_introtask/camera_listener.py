@@ -2,7 +2,7 @@ import rospy
 
 from sensor_msgs.msg import CameraInfo
 from sensor_msgs.msg import Image
-#from tauv_msgs.srv import HSVul, HSVulResponse, HSVulRequest
+from tauv_msgs.srv import GetImageMask, GetImageMaskResponse, GetImageMaskRequest
 from std_srvs.srv import Trigger, TriggerResponse,TriggerRequest
 import cv2 as cv
 from cv_bridge import CvBridge
@@ -13,7 +13,7 @@ class redDetection:
         self._sub = rospy.Subscriber('/kf/vehicle/oakd_bottom/color/image_raw',Image,self._handle_image)
         ##need to create a new topic to bpulish to
         self._pub = rospy.Publisher('color_filter/threshold_image',Image,queue_size=10)
-        #self._srv1 = rospy.Service('color_filter/user_mask',HSVul,self._update_mask)
+        self._srv1 = rospy.Service('color_filter/user_mask',GetImageMask,self._apply_mask)
         #self._srv2 = rospy.Service('color_filter/reset_masks',Trigger,self._reset)
         self._bridge = CvBridge()
         self._mask1_lwr = (0,120,120)
@@ -39,14 +39,14 @@ class redDetection:
         img_red = cv.bitwise_and(hsv_img,hsv_img,mask=red_mask)
         final_img = cv.cvtColor(img_red,cv.COLOR_HSV2BGR)
         msg = self._bridge.cv2_to_imgmsg(final_img)
-        self._pub.publish(msg)
 
-    #def _apply_mask(self,HSVmsg: HSVulRequest) -> HSVulResponse:
-        #response = HSVulResponse()
-        #self._mask1_lwr = HSVmsg.mask1_lwr
-        #self._mask1_upr = HSVmsg.mask1_upr
-        #self._mask2_lwr = HSVmsg.mask2_lwr
-        #self._mask2_upr = HSVmsg.mask2_upr
+    def _apply_mask(self,HSVmsg: GetImageMaskRequest) -> GetImageMaskResponse:
+        response = GetImageMaskResponse()
+        self._mask1_lwr = HSVmsg.mask1_lwr
+        self._mask1_upr = HSVmsg.mask1_upr
+        response.sucess = True
+        return response
+
     
 
     #def _reset(self,msg:TriggerRequest) -> TriggerResponse:
