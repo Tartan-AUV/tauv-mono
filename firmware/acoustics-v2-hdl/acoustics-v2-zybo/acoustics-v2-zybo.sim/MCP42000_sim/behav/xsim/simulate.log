@@ -1,0 +1,2 @@
+Time resolution is 1 ps
+$finish called at time : 1342050 ns : File "C:/Dev/TAUV-ROS-Packages/firmware/acoustics-v2-hdl/periphery/MCP42000/testbenches/MCP42000_Driver_tb.sv" Line 45

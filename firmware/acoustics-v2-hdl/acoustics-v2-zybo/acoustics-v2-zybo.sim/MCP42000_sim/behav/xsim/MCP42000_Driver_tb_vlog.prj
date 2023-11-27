@@ -1,0 +1,10 @@
+# compile verilog/system verilog design source files
+sv xil_defaultlib  \
+"../../../../../periphery/MCP42000/MCP42000_Driver.sv" \
+"../../../../../periphery/MCP42000/testbenches/MCP42000_Driver_tb.sv" \
+
+# compile glbl module
+verilog xil_defaultlib "glbl.v"
+
+# Do not sort compile order
+nosort

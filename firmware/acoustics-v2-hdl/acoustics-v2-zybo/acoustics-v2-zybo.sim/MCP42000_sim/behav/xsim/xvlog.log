@@ -1,0 +1,4 @@
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Dev/TAUV-ROS-Packages/firmware/acoustics-v2-hdl/periphery/MCP42000/MCP42000_Driver.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module MCP42000_Driver
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "C:/Dev/TAUV-ROS-Packages/firmware/acoustics-v2-hdl/periphery/MCP42000/testbenches/MCP42000_Driver_tb.sv" into library xil_defaultlib
+INFO: [VRFC 10-311] analyzing module MCP42000_Driver_tb

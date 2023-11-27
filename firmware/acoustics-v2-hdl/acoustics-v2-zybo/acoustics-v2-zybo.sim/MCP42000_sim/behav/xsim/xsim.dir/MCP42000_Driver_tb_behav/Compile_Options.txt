@@ -1,0 +1,1 @@
+--incr --debug "typical" --relax --mt "2" -L "xil_defaultlib" -L "uvm" -L "unisims_ver" -L "unimacro_ver" -L "secureip" --snapshot "MCP42000_Driver_tb_behav" "xil_defaultlib.MCP42000_Driver_tb" "xil_defaultlib.glbl" -log "elaborate.log" 

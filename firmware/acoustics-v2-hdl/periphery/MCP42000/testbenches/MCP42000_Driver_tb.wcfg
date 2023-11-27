@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="MCP42000_Driver_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="MCP42000_Driver_tb" />
+            <top_module name="glbl" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="1,232.550000 us"></ZoomStartTime>
+      <ZoomEndTime time="1,367.950001 us"></ZoomEndTime>
+      <Cursor1Time time="1,342.050000 us"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="256"></NameColumnWidth>
+      <ValueColumnWidth column_width="90"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="33" />
+   <wvobject fp_name="/MCP42000_Driver_tb/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/reset_n" type="logic">
+      <obj_property name="ElementShortName">reset_n</obj_property>
+      <obj_property name="ObjectShortName">reset_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/wiper_sel" type="logic">
+      <obj_property name="ElementShortName">wiper_sel</obj_property>
+      <obj_property name="ObjectShortName">wiper_sel</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/valid" type="logic">
+      <obj_property name="ElementShortName">valid</obj_property>
+      <obj_property name="ObjectShortName">valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/cs" type="logic">
+      <obj_property name="ElementShortName">cs</obj_property>
+      <obj_property name="ObjectShortName">cs</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/mosi" type="logic">
+      <obj_property name="ElementShortName">mosi</obj_property>
+      <obj_property name="ObjectShortName">mosi</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/sck" type="logic">
+      <obj_property name="ElementShortName">sck</obj_property>
+      <obj_property name="ObjectShortName">sck</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/val" type="array">
+      <obj_property name="ElementShortName">val[7:0]</obj_property>
+      <obj_property name="ObjectShortName">val[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/sck_delayed_pulse" type="logic">
+      <obj_property name="ElementShortName">sck_delayed_pulse</obj_property>
+      <obj_property name="ObjectShortName">sck_delayed_pulse</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/clk" type="logic">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/reset_n" type="logic">
+      <obj_property name="ElementShortName">reset_n</obj_property>
+      <obj_property name="ObjectShortName">reset_n</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/wiper_sel" type="logic">
+      <obj_property name="ElementShortName">wiper_sel</obj_property>
+      <obj_property name="ObjectShortName">wiper_sel</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/val" type="array">
+      <obj_property name="ElementShortName">val[7:0]</obj_property>
+      <obj_property name="ObjectShortName">val[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/valid" type="logic">
+      <obj_property name="ElementShortName">valid</obj_property>
+      <obj_property name="ObjectShortName">valid</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/ready" type="logic">
+      <obj_property name="ElementShortName">ready</obj_property>
+      <obj_property name="ObjectShortName">ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/cs" type="logic">
+      <obj_property name="ElementShortName">cs</obj_property>
+      <obj_property name="ObjectShortName">cs</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/mosi" type="logic">
+      <obj_property name="ElementShortName">mosi</obj_property>
+      <obj_property name="ObjectShortName">mosi</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/sck" type="logic">
+      <obj_property name="ElementShortName">sck</obj_property>
+      <obj_property name="ObjectShortName">sck</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/clk_div" type="array">
+      <obj_property name="ElementShortName">clk_div[31:0]</obj_property>
+      <obj_property name="ObjectShortName">clk_div[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/sck_offset_cntr" type="array">
+      <obj_property name="ElementShortName">sck_offset_cntr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">sck_offset_cntr[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/sck_delayed_pulse" type="logic">
+      <obj_property name="ElementShortName">sck_delayed_pulse</obj_property>
+      <obj_property name="ObjectShortName">sck_delayed_pulse</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/sck_offset_cntr_en" type="logic">
+      <obj_property name="ElementShortName">sck_offset_cntr_en</obj_property>
+      <obj_property name="ObjectShortName">sck_offset_cntr_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/shift_cntr_clr" type="logic">
+      <obj_property name="ElementShortName">shift_cntr_clr</obj_property>
+      <obj_property name="ObjectShortName">shift_cntr_clr</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/shift_en" type="logic">
+      <obj_property name="ElementShortName">shift_en</obj_property>
+      <obj_property name="ObjectShortName">shift_en</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/wiper_ld" type="logic">
+      <obj_property name="ElementShortName">wiper_ld</obj_property>
+      <obj_property name="ObjectShortName">wiper_ld</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/shift_cntr" type="array">
+      <obj_property name="ElementShortName">shift_cntr[31:0]</obj_property>
+      <obj_property name="ObjectShortName">shift_cntr[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/data_reg" type="array">
+      <obj_property name="ElementShortName">data_reg[15:0]</obj_property>
+      <obj_property name="ObjectShortName">data_reg[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/data_ready_ff" type="logic">
+      <obj_property name="ElementShortName">data_ready_ff</obj_property>
+      <obj_property name="ObjectShortName">data_ready_ff</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/shift_done" type="logic">
+      <obj_property name="ElementShortName">shift_done</obj_property>
+      <obj_property name="ObjectShortName">shift_done</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/state" type="array">
+      <obj_property name="ElementShortName">state[1:0]</obj_property>
+      <obj_property name="ObjectShortName">state[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/nextState" type="array">
+      <obj_property name="ElementShortName">nextState[1:0]</obj_property>
+      <obj_property name="ObjectShortName">nextState[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/SPI_CLK_DOUBLE_DIV" type="array">
+      <obj_property name="ElementShortName">SPI_CLK_DOUBLE_DIV[31:0]</obj_property>
+      <obj_property name="ObjectShortName">SPI_CLK_DOUBLE_DIV[31:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/MCP42000_Driver_tb/dut/SCK_OFFSET" type="array">
+      <obj_property name="ElementShortName">SCK_OFFSET[31:0]</obj_property>
+      <obj_property name="ObjectShortName">SCK_OFFSET[31:0]</obj_property>
+   </wvobject>
+</wave_config>
