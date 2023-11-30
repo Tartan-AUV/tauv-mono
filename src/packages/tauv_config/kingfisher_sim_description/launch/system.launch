@@ -44,6 +44,8 @@
     </group>
 
     <node pkg="tauv_vision" type="yolact" name="yolact" output="screen">
+      <rosparam param="model_config_path">/home/tauv/weights/lunar-water-358_model_config.json</rosparam>
+      <rosparam param="class_config_path">/home/tauv/weights/lunar-water-358_class_config.json</rosparam>
       <rosparam param="weight_path">/home/tauv/weights/lunar-water-358_3.pt</rosparam>
       <rosparam param="frame_ids">[oakd_front]</rosparam>-->
       <rosparam param="topk">100</rosparam>-->
