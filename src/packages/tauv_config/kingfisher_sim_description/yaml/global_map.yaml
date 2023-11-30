@@ -13,18 +13,14 @@ tracker_params: {
     recency_weight: 0.7,
     frequency_weight: 0.5,
   },
-  badge: {
+  torpedo_22_bootlegger_circle: {
     mahalanobis_threshold: 5,
     expected_count: 1
   },
-  phone: {
+  torpedo_22_bootlegger_trapezoid: {
     mahalanobis_threshold: 5,
     expected_count: 1
   },
-  chevron: {
-    mahalanobis_threshold: 5,
-    expected_count: 1
-  }
 }
 
 kalman_params: {

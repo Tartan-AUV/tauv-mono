@@ -70,7 +70,7 @@ class ShootTorpedo(Task):
             orthogonal_error = np.linalg.norm(odom_t_vehicle_goal.t[1:3] - odom_t_vehicle.t[1:3])\
                 + abs(odom_t_vehicle_goal.rpy()[2] - odom_t_vehicle.rpy()[2])
 
-            x = (1 - np.exp(-self._error_factor * orthogonal_error)) * target_t_vehicle_goal.t[0]
+            x = -(1 - np.exp(-self._error_factor * orthogonal_error)) * target_t_vehicle_goal.t[0]
 
             target_t_vehicle_target = SE3.Rt(
                 target_t_vehicle_goal.R,
@@ -81,7 +81,7 @@ class ShootTorpedo(Task):
 
             resources.transforms.set_a_to_b('kf/odom', 'vehicle_target', odom_t_vehicle_target)
 
-            resources.motion.goto(odom_t_vehicle_target, params=resources.motion.get_params("feedback"))
+            resources.motion.goto(odom_t_vehicle_target, params=resources.motion.get_trajectory_params("feedback"))
 
             if self._check_cancel(resources): return ShootTorpedoResult(ShootTorpedoStatus.CANCELLED)
 

@@ -43,12 +43,32 @@
         </node>
     </group>
 
-    <group if="$(arg launch_vision)">
-        <include file="$(find tauv_common)/launch/vision/vision.launch">
-            <arg name="config_pkg" value="$(arg config_pkg)" />
-            <arg name="yolo_weights_path" value="/home/tauv/weights" />
-        </include>
-    </group>
+    <node pkg="tauv_vision" type="yolact" name="yolact" output="screen">
+      <rosparam param="weight_path">/home/tauv/weights/lunar-water-358_3.pt</rosparam>
+      <rosparam param="frame_ids">[oakd_front]</rosparam>-->
+      <rosparam param="topk">100</rosparam>-->
+      <rosparam param="iou_threshold">0.1</rosparam>-->
+      <rosparam param="confidence_threshold">0.95</rosparam>-->
+    </node>
+
+    <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
+
+    <node
+        pkg="tauv_common"
+        type="global_map_cpp"
+        name="global_map"
+        output="screen"
+    >
+    </node>
+
+    <node
+        pkg="tauv_gui"
+        type="map_visualizer"
+        name="map_visualizer"
+        output="screen"
+    >
+        <rosparam command="load" file="$(find tauv_gui)/yaml/map_visualizer.yaml"/>
+    </node>
 
     <rosparam command="load" file="$(arg config_pkg)/yaml/actuators.yaml" ns="actuators" />
     <rosparam command="load" file="$(arg config_pkg)/yaml/motion.yaml" ns="motion" />

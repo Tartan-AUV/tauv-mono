@@ -38,7 +38,8 @@ class HitBuoy(Task):
         odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
         buoy_detection = resources.map.find_closest(self._tag, odom_t_vehicle.t)
 
-        buoy_t_buoy_aligned = SE3(SO3.TwoVectors(x="-z", y="x"))
+        # buoy_t_buoy_aligned = SE3(SO3.TwoVectors(x="-z", y="x"))
+        buoy_t_buoy_aligned = SE3()
         buoy_aligned_t_vehicle_goal = SE3.Tx(-self._distance)
 
         if buoy_detection is None:

@@ -32,4 +32,7 @@
     <!--    10in forward, 0in right, 5in down-->
     <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_bottom_static_publisher"
           args="0.254 0 0.127 -3.14 0 0 $(arg namespace)/vehicle $(arg namespace)/oakd_bottom" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="torpedo_static_publisher"
+          args="0.6 0 -0.1 0 0 0 $(arg namespace)/vehicle $(arg namespace)/torpedo" />
 </launch>

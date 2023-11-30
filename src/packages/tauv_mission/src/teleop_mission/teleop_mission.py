@@ -377,7 +377,7 @@ class TeleopMission:
         if args.torpedo == -1:
             args.torpedo = None
 
-        self._task = ShootTorpedoTask(args.tag, args.torpedo, args.timeout, args.frequency, args.distance, args.error_factor, args.error_threshold, args.torpedo)
+        self._task = ShootTorpedoTask(args.tag, args.torpedo, args.timeout, args.frequency, args.distance, args.error_factor, args.error_threshold)
         Thread(target=self._run_task, daemon=True).start()
 
     def _handle_run_detect_pinger_task(self, args):

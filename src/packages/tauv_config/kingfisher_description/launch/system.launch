@@ -50,8 +50,11 @@
     </include>
 
     <node pkg="tauv_vision" type="yolact" name="yolact" output="screen">
-      <rosparam param="weight_path">/shared/weights/royal-water-37_9.pt</rosparam>
+      <rosparam param="weight_path">/shared/weights/lunar-water-358_3.pt</rosparam>
       <rosparam param="frame_ids">[oakd_front]</rosparam>-->
+      <rosparam param="topk">100</rosparam>-->
+      <rosparam param="iou_threshold">0.5</rosparam>-->
+      <rosparam param="confidence_threshold">0.5</rosparam>-->
     </node>
 
 <!--     <include file="$(find tauv_common)/launch/vision/vision.launch"> -->
