@@ -367,7 +367,7 @@ class TeleopMission:
             print('task in progress')
             return
 
-        self._task = HitBuoyTask(args.tag, args.timeout, args.frequency, args.distance, args.error_a, args.error_b, args.error_threshold)
+        self._task = HitBuoyTask(args.tag, args.timeout, args.frequency, args.distance, args.error_a, args.error_b, args.error_threshold, args.shoot_torpedo)
         Thread(target=self._run_task, daemon=True).start()
 
     def _handle_run_shoot_torpedo_task(self, args):

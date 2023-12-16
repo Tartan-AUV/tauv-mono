@@ -51,22 +51,10 @@ tag_params: {
   DECAY_THRESHOLD: 0.3, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
   recency_weight: 0.7,
   frequency_weight: 0.5,
-  badge: {
+  torpedo_22_bootlegger_circle: {
     expected_count: 1
   },
-  phone: {
-    expected_count: 1
-  },
-  buoy_abydos_1: {
-    expected_count: 1
-  },
-  buoy_abydos_2: {
-    expected_count: 1
-  },
-  buoy_earth_1: {
-    expected_count: 1
-  },
-  buoy_earth_2: {
+  torpedo_22_bootlegger_trapezoid: {
     expected_count: 1
   },
 }
@@ -78,6 +66,6 @@ kalman_params: {
     H: [1, 0, 0, 0, 1, 0, 0, 0, 1],
     P: [1, 0, 0, 0, 1, 0, 0, 0, 1],
     R: [0.01, 0, 0, 0, 0.01, 0, 0, 0, 0.01],
-    Q: [0.000001, 0, 0, 0, 0.000001, 0, 0, 0, 0.000001]
+    Q: [0.00001, 0, 0, 0, 0.00001, 0, 0, 0, 0.00001]
   }
 }

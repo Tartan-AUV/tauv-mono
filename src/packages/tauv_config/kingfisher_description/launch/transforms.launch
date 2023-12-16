@@ -37,6 +37,9 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="suction_static_publisher"
           args="0.1524 -0.0508 0.4572 0 0 0 $(arg namespace)/vehicle $(arg namespace)/suction" />
 
+    <node pkg="tf2_ros" type="static_transform_publisher" name="torpedo_static_publisher"
+          args="0.52 -0.15 -0.5 0 0 0 $(arg namespace)/vehicle $(arg namespace)/torpedo" />
+
     <!-- vehicle -> sonar transform (needs to actually be measured)-->
     <node pkg="tf2_ros" type="static_transform_publisher" name="sonar_static_publisher"
         args="0 0 0 0 0 0 1 $(arg namespace)/vehicle $(arg namespace)/sonar" />

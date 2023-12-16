@@ -38,9 +38,11 @@ class HitBuoy(Task):
         odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
         buoy_detection = resources.map.find_closest(self._tag, odom_t_vehicle.t)
 
+        vehicle_t_torpedo = resources.transforms.get_a_to_b('kf/vehicle', 'kf/torpedo')
+
         # buoy_t_buoy_aligned = SE3(SO3.TwoVectors(x="-z", y="x"))
         buoy_t_buoy_aligned = SE3()
-        buoy_aligned_t_vehicle_goal = SE3.Tx(-self._distance)
+        buoy_aligned_t_vehicle_goal = SE3.Tx(-self._distance) * vehicle_t_torpedo.inv()
 
         if buoy_detection is None:
             return HitBuoyResult(status=HitBuoyStatus.BUOY_NOT_FOUND)
@@ -74,8 +76,10 @@ class HitBuoy(Task):
 
             x = -self._error_a * (1 - np.exp(-self._error_b * orthogonal_error))
 
-            buoy_aligned_t_vehicle_target = SE3.Rt(SO3(), (x, buoy_aligned_t_vehicle_goal.t[1], buoy_aligned_t_vehicle_goal.t[2]))
-            odom_t_vehicle_target = odom_t_buoy_aligned * buoy_aligned_t_vehicle_target
+            buoy_t_vehicle_target = SE3.Rt(SO3(), (x + buoy_aligned_t_vehicle_goal.t[0], buoy_aligned_t_vehicle_goal.t[1], buoy_aligned_t_vehicle_goal.t[2]))
+            # target_t_vehicle_target = buoy_aligned_t_vehicle_target
+
+            odom_t_vehicle_target = odom_t_buoy * buoy_t_vehicle_target
 
             resources.transforms.set_a_to_b('kf/odom', 'buoy', odom_t_buoy)
 
@@ -88,6 +92,10 @@ class HitBuoy(Task):
             if self._check_cancel(resources): return HitBuoyResult(status=HitBuoyStatus.CANCELLED)
 
             rospy.sleep(self._period)
+
+        if self._shoot_torpedo is not None:
+            print("shoot!")
+            resources.actuators.shoot_torpedo(self._shoot_torpedo)
 
         resources.motion.goto_relative(SE3.Rt(SO3(), (-2, 0, 0)))
 

@@ -2,7 +2,7 @@ has_torpedo: true
 has_marker: true
 has_arm: true
 has_suction: true
-torpedo_servo: 4
-marker_servo: 1
+torpedo_servo: 1
+marker_servo: 4
 arm_servo: 2
 suction_servo: 5
