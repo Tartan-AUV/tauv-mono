@@ -22,6 +22,7 @@ from setuptools import find_packages
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
     packages=[
+
               'accumulator',
               'thruster_managers.models',
               'controllers',
@@ -47,7 +48,8 @@ setup_args = generate_distutils_setup(
               'motion_client',
               'tauv_messages',
               'trajectories',
-              'albatross_state_estimation'],
+              'albatross_state_estimation',
+              'power'],
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
@@ -70,7 +72,8 @@ setup_args = generate_distutils_setup(
              'scripts/darknet_transformer',
              'scripts/bucket_to_tf',
              'scripts/shape_detector',
-             'scripts/albatross_state_estimation'],
+             'scripts/albatross_state_estimation',
+             'scripts/power'],
 
 )
 setup(**setup_args)

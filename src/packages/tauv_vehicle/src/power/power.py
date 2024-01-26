@@ -14,7 +14,7 @@ class Power():
 
     def _handle_get_voltage(self):
         try: 
-            ser = serial.Serial('COM3', 9600, timeout=1)
+            ser = serial.Serial(rospy.get_param('~power'), baudrate=rospy.get_param('~baudrate'), timeout=1)
 
             bytes = struct.pack('f', 34) #34 = 0x22
 
@@ -55,3 +55,7 @@ class Power():
             hash_value = (hash_value * base + byte) % modulus
         return hash_value 
 
+def main():
+    rospy.init_node('powerboard')
+    n = Power()
+    n.start()

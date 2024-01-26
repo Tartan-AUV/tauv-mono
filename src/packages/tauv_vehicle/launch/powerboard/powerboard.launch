@@ -1,0 +1,4 @@
+<launch>
+	<node pkg="tauv_vehicle" type="powerboard" name="powerboard" output="screen" />
+	</node>
+</launch>
