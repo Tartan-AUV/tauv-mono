@@ -29,6 +29,10 @@ class Power:
             response = ser.read(11)
 
             self._parse('f', response)
+
+            msg = GetVoltageResponse()
+            return msg
+
         except serial.SerialException as e:
             print(f"Error sending message: {e}")
 
