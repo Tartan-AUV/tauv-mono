@@ -26,7 +26,9 @@ class Power:
 
             ser.write(bytes)
 
-            response = ser.read(11)
+            
+            response = ser.read(1)
+
 
             self._parse('f', response)
 
@@ -38,7 +40,7 @@ class Power:
 
     def _parse(self, format_string, response):
 
-            print(len(response))
+            print(response)
             checksum = self._computeCheckSum(response[:-2])
 
             if checksum != struct.unpack('H', response[9:]): 
