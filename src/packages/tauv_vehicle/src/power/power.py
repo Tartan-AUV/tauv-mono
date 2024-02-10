@@ -37,6 +37,8 @@ class Power:
                 response += ser.read(1)
                 if len(response) == 11:
                     parsed = self._parse('f', response)
+                    if parsed:
+                        break
                     response = response[1:]
         
             return parsed
