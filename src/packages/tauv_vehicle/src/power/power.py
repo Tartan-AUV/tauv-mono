@@ -1,5 +1,5 @@
 import rospy
-from tauv_msgs.srv import GetVoltage, GetVoltageResponse
+from tauv_msgs.srv import GetVoltage, GetVoltageRequest, GetVoltageResponse
 
 from enum import Enum
 import serial
@@ -12,7 +12,7 @@ class Power:
     def __init__(self):
         self._srv: rospy.Service = rospy.Service("vehicle/power/get_voltage", GetVoltage, self._handle_get_voltage)
 
-    def _handle_get_voltage(self):
+    def _handle_get_voltage(self, req : GetVoltageRequest):
         try: 
             ser = serial.Serial(rospy.get_param('~port'), baudrate=rospy.get_param('~baudrate'), timeout=1)
 
