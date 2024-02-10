@@ -46,7 +46,7 @@ class Power:
 
             checksum = self._computeCheckSum(response[:-2])
 
-            if checksum != struct.unpack('H', response[9:]): 
+            if checksum != struct.unpack('H', response[9:11]): 
                 return None
             
             commandID = struct.unpack('B', response[0])
