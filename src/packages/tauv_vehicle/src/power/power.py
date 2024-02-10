@@ -14,7 +14,7 @@ class Power:
 
     def _handle_get_voltage(self):
         try: 
-            ser = serial.Serial(rospy.get_param('~power'), baudrate=rospy.get_param('~baudrate'), timeout=1)
+            ser = serial.Serial(rospy.get_param('~port'), baudrate=rospy.get_param('~baudrate'), timeout=1)
 
             bytes = struct.pack('f', 34) #34 = 0x22
 
