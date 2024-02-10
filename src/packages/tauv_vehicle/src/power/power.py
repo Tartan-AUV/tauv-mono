@@ -28,9 +28,9 @@ class Power:
 
             startTime = rospy.Time.now()
 
-            response = []
+            response = b''
             while rospy.Time.now() - startTime < rospy.Duration.from_sec(1):
-                response.append(ser.read(1))
+                response.extend(ser.read(1))
             
             print(response)
 
