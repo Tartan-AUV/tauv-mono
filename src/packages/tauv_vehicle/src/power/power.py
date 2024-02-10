@@ -24,6 +24,8 @@ class Power:
             checksum_bytes = struct.pack('<I', checksum)
             bytes = bytes + checksum_bytes
 
+            print(bytes)
+
             ser.write(bytes)
 
             startTime = rospy.Time.now()
@@ -31,13 +33,11 @@ class Power:
             response = b''
             while rospy.Time.now() - startTime < rospy.Duration.from_sec(1):
                 response += ser.read(1)
-            
-            print(response)
-
-            self._parse('f', response)
-
-            msg = GetVoltageResponse()
-            return msg
+                if len(response) == 11:
+                    parsed = self._parse('f', response)
+                    response = response[1:]
+        
+            return parsed
 
         except serial.SerialException as e:
             print(f"Error sending message: {e}")
