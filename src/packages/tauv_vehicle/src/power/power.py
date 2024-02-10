@@ -26,7 +26,7 @@ class Power:
 
             ser.write(bytes)
 
-            response = ser.read(11, timeout= 1)
+            response = ser.read(11)
 
             self._parse('f', response)
         except serial.SerialException as e:
@@ -58,6 +58,6 @@ class Power:
         rospy.spin()
 
 def main():
-    rospy.init_node('powerboard')
+    rospy.init_node('power')
     n = Power()
     n.start()
