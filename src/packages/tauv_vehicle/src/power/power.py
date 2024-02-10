@@ -31,6 +31,8 @@ class Power:
             startTime = rospy.Time.now()
 
             response = b''
+            parsed = None
+
             while rospy.Time.now() - startTime < rospy.Duration.from_sec(1):
                 response += ser.read(1)
                 if len(response) == 11:
