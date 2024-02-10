@@ -42,7 +42,7 @@ setup_args = generate_distutils_setup(
              'scripts/arduino',
              'scripts/oakd',
              'scripts/pinger_localizer',
-             'scripts/powerboard',
+             'scripts/power',
              ]
 )
 

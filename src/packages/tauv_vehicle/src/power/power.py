@@ -8,7 +8,7 @@ import struct
 class Commands(Enum):
     GetVoltage = 34
 
-class Power():
+class Power:
     def __init__(self):
         self._srv: rospy.Service = rospy.Service("vehicle/power/get_voltage", GetVoltage, self._handle_get_voltage)
 
