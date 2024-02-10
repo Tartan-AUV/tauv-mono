@@ -52,6 +52,7 @@ add_service_files(
   SetPose.srv
   RunMission.srv
   UpdateDynamicsParameterConfigs.srv
+  GetVoltage.srv
 )
 
 
