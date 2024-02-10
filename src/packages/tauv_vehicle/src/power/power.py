@@ -14,7 +14,7 @@ class Power:
 
     def _handle_get_voltage(self, req : GetVoltageRequest):
         try: 
-            ser = serial.Serial(rospy.get_param('~port'), baudrate=rospy.get_param('~baudrate'), timeout=1)
+            ser = serial.Serial(rospy.get_param('~port'), baudrate=rospy.get_param('~baudrate'), timeout=.1)
 
             bytes = struct.pack('f', 34) #34 = 0x22
 
@@ -26,9 +26,14 @@ class Power:
 
             ser.write(bytes)
 
-            
-            response = ser.read(1)
+            startTime = rospy.Time.now()
 
+            response = []
+            while rospy.Time.now() - startTime < 1:
+                response.append(ser.read(1))
+            
+
+            print(response)
 
             self._parse('f', response)
 
@@ -40,7 +45,6 @@ class Power:
 
     def _parse(self, format_string, response):
 
-            print(response)
             checksum = self._computeCheckSum(response[:-2])
 
             if checksum != struct.unpack('H', response[9:]): 
