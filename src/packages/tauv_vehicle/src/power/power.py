@@ -48,12 +48,14 @@ class Power():
 
                 return response
 
-
     def _computeCheckSum(self, data_bytes, base=256, modulus=65521):
         hash_value = 0
         for byte in data_bytes:
             hash_value = (hash_value * base + byte) % modulus
         return hash_value 
+
+    def start(self):
+        rospy.spin()
 
 def main():
     rospy.init_node('powerboard')
