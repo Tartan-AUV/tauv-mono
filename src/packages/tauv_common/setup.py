@@ -73,7 +73,8 @@ setup_args = generate_distutils_setup(
              'scripts/bucket_to_tf',
              'scripts/shape_detector',
              'scripts/albatross_state_estimation',
-             'scripts/power'],
+             'scripts/powerboard'],
+        
 
 )
 setup(**setup_args)
