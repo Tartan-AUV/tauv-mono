@@ -38,6 +38,7 @@ class Power:
 
     def _parse(self, format_string, response):
 
+            print(len(response))
             checksum = self._computeCheckSum(response[:-2])
 
             if checksum != struct.unpack('H', response[9:]): 
