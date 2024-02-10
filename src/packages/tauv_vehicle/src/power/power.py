@@ -30,7 +30,7 @@ class Power:
 
             response = b''
             while rospy.Time.now() - startTime < rospy.Duration.from_sec(1):
-                response.extend(ser.read(1))
+                response += ser.read(1)
             
             print(response)
 
