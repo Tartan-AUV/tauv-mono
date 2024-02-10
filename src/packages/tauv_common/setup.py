@@ -48,8 +48,7 @@ setup_args = generate_distutils_setup(
               'motion_client',
               'tauv_messages',
               'trajectories',
-              'albatross_state_estimation',
-              'power'],
+              'albatross_state_estimation'],
     # packages=find_packages(),
     package_dir={'': 'src'},
     requires=['rospy'],
@@ -72,8 +71,7 @@ setup_args = generate_distutils_setup(
              'scripts/darknet_transformer',
              'scripts/bucket_to_tf',
              'scripts/shape_detector',
-             'scripts/albatross_state_estimation',
-             'scripts/powerboard'],
+             'scripts/albatross_state_estimation'],
         
 
 )
