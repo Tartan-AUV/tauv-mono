@@ -2,6 +2,7 @@ size_t byteWritten = 0; // for incoming serial data
 int voltage_pin = A0;
 uint8_t buf[11];
 
+
 typedef enum { 
   TEST_CODE = 0x01,
   HEARTBEAT = 0xFF,
@@ -12,6 +13,14 @@ typedef enum {
 } CommandType;
 
 void setup() {
+  pinMode(12, OUTPUT);
+  pinMode(11, OUTPUT);
+  pinMode(10, OUTPUT);
+  pinMode(9, OUTPUT);
+  digitalWrite(12, HIGH);
+  digitalWrite(11, LOW);
+  digitalWrite(10, HIGH);
+  digitalWrite(9, LOW);
   Serial.begin(9600); // opens serial port, sets data rate to 9600 bps
 }
 

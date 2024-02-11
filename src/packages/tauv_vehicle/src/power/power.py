@@ -40,7 +40,7 @@ class Power:
                 print("byteRead: "+ str(byteRead)+" and response: "+str(response))
                 if len(response) == 11:
                     print("got here")
-                    parsed = self._parse('>f', response)
+                    parsed = self._parse('<i', response)
                     if parsed:
                         break
                     response = response[1:]
@@ -61,6 +61,8 @@ class Power:
 
             if commandID == 34:
                 voltage = struct.unpack(format_string, response[1:5])[0]
+                voltage = voltage / 1024 * 5
+                voltage = voltage * (470+160) / 160
                 print("voltage: "+str(voltage))
                 print("voltage bytes: "+str(response[1:5].hex()))
                 return GetVoltageResponse(voltage)
