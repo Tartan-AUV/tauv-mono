@@ -61,7 +61,7 @@ class Power:
 
             if commandID == 34:
                 voltage = struct.unpack(format_string, response[1:5])[0]
-                voltage = voltage / 1024 * 5
+                voltage = voltage / 1023.0 * 5.0
                 voltage = voltage * (470+160) / 160
                 print("voltage: "+str(voltage))
                 print("voltage bytes: "+str(response[1:5].hex()))
