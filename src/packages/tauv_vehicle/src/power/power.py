@@ -16,12 +16,12 @@ class Power:
         try: 
             ser = serial.Serial(rospy.get_param('~port'), baudrate=rospy.get_param('~baudrate'), timeout=.1)
 
-            bytes = struct.pack('c', 34) #34 = 0x22
+            bytes = struct.pack('c', b'\x22') #34 = 0x22
 
             bytes += b'\x00\x00\x00\x00\x00\x00\x00\x00'
             checksum = self._computeCheckSum(bytes)
 
-            checksum_bytes = struct.pack('<I', checksum)
+            checksum_bytes = struct.pack('H', checksum)
             bytes = bytes + checksum_bytes
 
             print(bytes)
