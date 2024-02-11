@@ -47,7 +47,7 @@ class Power:
             print(f"Error sending message: {e}")
 
     def _parse(self, format_string, response):
-
+            print(response)
             checksum = self._computeCheckSum(response[:-2])
 
             if checksum != struct.unpack('H', response[9:11]): 
