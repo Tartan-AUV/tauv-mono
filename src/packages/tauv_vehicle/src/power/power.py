@@ -35,6 +35,7 @@ class Power:
 
             while rospy.Time.now() - startTime < rospy.Duration.from_sec(1):
                 response += ser.read(1)
+                print(response)
                 if len(response) == 11:
                     parsed = self._parse('f', response)
                     if parsed:
@@ -47,7 +48,6 @@ class Power:
             print(f"Error sending message: {e}")
 
     def _parse(self, format_string, response):
-            print(response)
             checksum = self._computeCheckSum(response[:-2])
 
             if checksum != struct.unpack('H', response[9:11]): 
