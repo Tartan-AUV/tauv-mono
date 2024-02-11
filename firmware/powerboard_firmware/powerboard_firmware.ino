@@ -17,17 +17,13 @@ void setup() {
 
 struct RequestType {
   uint8_t command_id;
-  union {
-    //payload
-  };
+  uint8_t payload[8];
   uint16_t sumHash; 
 };
 
 struct ResponseType {
   uint8_t command_id;
-  union {
-    int voltage;
-  };
+  uint8_t payload[8];
   uint16_t sumHash;
 };
 
@@ -117,7 +113,7 @@ uint8_t *createResponse(struct RequestType request) {
   switch (request.command_id) {
     case GET_VOLTAGE: {
       response.command_id = GET_VOLTAGE;
-      response.voltage = analogRead(voltage_pin);
+      response.payload[0] = analogRead(voltage_pin);
 
       memcpy(response_array, &response,9);
       checksum = hash(response_array);

@@ -4,6 +4,7 @@ from tauv_msgs.srv import GetVoltage, GetVoltageRequest, GetVoltageResponse
 from enum import Enum
 import serial
 import struct
+import time
 
 class Commands(Enum):
     GetVoltage = 34
@@ -24,20 +25,22 @@ class Power:
             checksum_bytes = struct.pack('>H', checksum)
             bytes = bytes + checksum_bytes
 
-            print(bytes.hex())
-
+            print(bytes.hex())  
+            time.sleep(2)
             ser.write(bytes)
-
+            
             startTime = rospy.Time.now()
-
+            
             response = b''
             parsed = None
-
+            
             while rospy.Time.now() - startTime < rospy.Duration.from_sec(1):
-                response += ser.read(1)
-                print(response)
+                byteRead = ser.read(1)
+                response += byteRead
+                print("byteRead: "+ str(byteRead)+" and response: "+str(response))
                 if len(response) == 11:
-                    parsed = self._parse('f', response)
+                    print("got here")
+                    parsed = self._parse('>f', response)
                     if parsed:
                         break
                     response = response[1:]
@@ -49,25 +52,25 @@ class Power:
 
     def _parse(self, format_string, response):
             checksum = self._computeCheckSum(response[:-2])
-
-            if checksum != struct.unpack('H', response[9:11]): 
+            checkSumRecieved = struct.unpack('H', response[9:11])
+            if checksum != checkSumRecieved[0]: 
+                print("recieved checksum: "+str(checkSumRecieved))
                 return None
             
-            commandID = struct.unpack('B', response[0])
+            commandID = struct.unpack('B', response[0:1])[0]
 
             if commandID == 34:
-                response = GetVoltageResponse()
-                voltage = struct.unpack(format_string, response[1:5])
-                response.voltage = voltage
-
-                return response
+                voltage = struct.unpack(format_string, response[1:5])[0]
+                print("voltage: "+str(voltage))
+                print("voltage bytes: "+str(response[1:5].hex()))
+                return GetVoltageResponse(voltage)
 
     def _computeCheckSum(self, data_bytes, base=256, modulus=65521):
         hash_value = 0
         for byte in data_bytes:
             hash_value = (hash_value * base + byte) % modulus
 
-        print(hash_value)
+        #print(hash_value)
         return hash_value 
 
     def start(self):
