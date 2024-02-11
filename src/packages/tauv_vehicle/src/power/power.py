@@ -64,8 +64,11 @@ class Power:
 
     def _computeCheckSum(self, data_bytes, base=256, modulus=65521):
         hash_value = 0
+        assert(len(data_bytes) == 9)
         for byte in data_bytes:
             hash_value = (hash_value * base + byte) % modulus
+
+        print(hash_value)
         return hash_value 
 
     def start(self):
