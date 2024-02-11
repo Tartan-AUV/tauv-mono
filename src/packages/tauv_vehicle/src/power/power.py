@@ -21,10 +21,10 @@ class Power:
             bytes += b'\x00\x00\x00\x00\x00\x00\x00\x00'
             checksum = self._computeCheckSum(bytes)
 
-            checksum_bytes = struct.pack('H', checksum)
+            checksum_bytes = struct.pack('>H', checksum)
             bytes = bytes + checksum_bytes
 
-            print(bytes)
+            print(bytes.hex())
 
             ser.write(bytes)
 
@@ -64,7 +64,6 @@ class Power:
 
     def _computeCheckSum(self, data_bytes, base=256, modulus=65521):
         hash_value = 0
-        assert(len(data_bytes) == 9)
         for byte in data_bytes:
             hash_value = (hash_value * base + byte) % modulus
 
