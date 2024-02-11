@@ -24,7 +24,7 @@ class Power:
             checksum_bytes = struct.pack('H', checksum)
             bytes = bytes + checksum_bytes
 
-            print(bytes)
+            print(bytes.decode('hex'))
 
             ser.write(bytes)
 
