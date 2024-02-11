@@ -16,7 +16,7 @@ class Power:
         try: 
             ser = serial.Serial(rospy.get_param('~port'), baudrate=rospy.get_param('~baudrate'), timeout=.1)
 
-            bytes = struct.pack('f', 34) #34 = 0x22
+            bytes = struct.pack('c', 34) #34 = 0x22
 
             bytes += b'\x00\x00\x00\x00\x00\x00\x00\x00'
             checksum = self._computeCheckSum(bytes)
