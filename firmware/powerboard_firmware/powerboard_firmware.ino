@@ -76,9 +76,10 @@ void loop() {
   }
 }
 
-// hash function
-// @param buf 9 bytes char array with encoded message from jetson
-// @return 2 bytes computed from rabin fingerprint
+/** hash function
+ * @param buf 9 bytes char array with encoded message from jetson
+ * @return 2 bytes computed from rabin fingerprint
+ */
 uint16_t hash(uint8_t buf[9]) {
   uint32_t checksum = 0;
   uint32_t powfactor = 1;
@@ -95,20 +96,27 @@ bool checkSum(uint8_t buf[11]) {
 }
 
 struct RequestType *parse(uint8_t buf[11]) {
-  uint8_t buffer[9];
-  uint8_t response[11];
-  memcpy(buffer, buf, sizeof(uint8_t) * 9);
-
-  uint16_t sum = hash(buffer);
-  uint16_t checksum;
-  memcpy(&checksum, buf+9, sizeof(uint16_t));
 
   struct RequestType request;
 
   switch (buf[0]) {
-    case GET_VOLTAGE: {
+    case GET_VOLTAGE:
       request.command_id = GET_VOLTAGE;
-    }
+      break;
+    case HEARTBEAT:
+      request.command_id = HEARTBEAT;
+      break;
+    case SET_POWER:
+      request.command_id = SET_POWER;
+      break;
+    case THRUSTER_POWER:
+      request.command_id = THRUSTER_POWER;
+      request.payload[0] = buf[1];
+      break;
+    case THRUSTER_POWER_V:
+      request.command_id = THRUSTER_POWER_V;
+      request.payload[0] = buf[1];
+      break;
   }
 
   return &request;
@@ -118,17 +126,54 @@ uint8_t *createResponse(struct RequestType request) {
   struct ResponseType response;
   uint8_t response_array[11];
   uint16_t checksum;
+  
+  memset(response_array, 0x00, 11);
 
   switch (request.command_id) {
-    case GET_VOLTAGE: {
+    case GET_VOLTAGE:
       response.command_id = GET_VOLTAGE;
       response.payload[0] = analogRead(voltage_pin);
-
       memcpy(response_array, &response,9);
-      checksum = hash(response_array);
-      memcpy(response_array + 9, &checksum, sizeof(uint16_t));
-    }
+      break;
+    
+    case HEARTBEAT:
+      response_array[0] = HEARTBEAT;
+      memset(&response_array[1], 0xFF, 8);
+      break;
+    
+    case SET_POWER:
+      response.command_id = SET_POWER;
+      // TBD implementation
+      memcpy(response_array, &response, 9);
+      break;
+    
+    case THRUSTER_POWER:
+      response.command_id = THRUSTER_POWER;
+      uint8_t thruster_bool = request.payload[0];
+      if (thruster_bool == 0xFF) {
+        // Turn on thruster power
+      }
+      else if (thruster_bool == 0x00) {
+        // Turn of thruster power
+      }
+      memset(response_array, THRUSTER_POWER, 1);
+      break;
+    
+    case THRUSTER_POWER_V:
+      response.command_id = THRUSTER_POWER_V;
+      uint8_t thruster_v_bool = request.payload[0];
+      if (thruster_v_bool == 0xFF) {
+        // Turn on thruster power
+      }
+      else if (thruster_v_bool == 0x00) {
+        // Turn of thruster power
+      }
+      memset(response_array, THRUSTER_POWER, 1);
+      break;
   }
+
+  checksum = hash(response_array);
+  memcpy(response_array + 9, &checksum, sizeof(uint16_t));
 
   return response_array;
 }
