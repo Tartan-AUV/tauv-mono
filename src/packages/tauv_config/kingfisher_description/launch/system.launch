@@ -21,7 +21,7 @@
   <!--  Launch Vehicle / Cams   -->
   <!-- =======================  -->
 <!--  <include file="$(find tauv_common)/launch/transform_manager/retare_sub_position.launch"/>-->
-<!--  <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch"/>-->
+<!--  <include file="$(find tauv_common)/launch/darknet_ros/darknet_ros.launch"/>--> -->
   <group ns="$(arg namespace)">
     <param name="tf_namespace" value="$(arg namespace)" />
 
@@ -48,6 +48,29 @@
       <arg name="model_name" value="$(arg model_name)"/>
       <arg name="teleop" value="$(arg teleop)" />
     </include>
+
+    <node pkg="tauv_vision" type="centernet" name="centernet" output="screen">
+      <rosparam param="frame_ids">[oakd_bottom]</rosparam>-->
+    </node>
+
+    <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
+
+    <node
+        pkg="tauv_common"
+        type="global_map_cpp"
+        name="global_map"
+        output="screen"
+    >
+    </node>
+
+    <node
+        pkg="tauv_gui"
+        type="map_visualizer"
+        name="map_visualizer"
+        output="screen"
+    >
+        <rosparam command="load" file="$(find tauv_gui)/yaml/map_visualizer.yaml"/>
+    </node>
 
 <!--     <include file="$(find tauv_common)/launch/vision/vision.launch"> -->
 <!--           <arg name="config_pkg" value="$(arg config_pkg)" /> -->

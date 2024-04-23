@@ -2,29 +2,10 @@ detection_lifetime: 5.0
 map_lifetime: 100.0
 map_publish_rate: 1.0
 tags:
-  - torpedo_closed
-  - torpedo_open
-  - bin_earth_1
-  - bin_earth_2
-  - bin_abydos_1
-  - bin_abydos_2
-  - buoy_abydos_1
-  - buoy_abydos_2
-  - buoy_earth_1
-  - buoy_earth_2
-  - table_earth_1
-  - table_earth_2
-  - table_earth_3
-  - table_earth_4
-  - table_abydos_1
-  - table_abydos_2
-  - table_abydos_3
-  - table_abydos_4
-  - circle
-  - path_marker
-  - chevron
-  - lid
-  - gate
+  - torpedo_22_circle
+  - torpedo_22_trapezoid
+  - buoy_23_earth_1
+  - buoy_23_earth_2
 marker_types:
   frame:
     scale: 1.0
@@ -45,15 +26,27 @@ markers:
       type: "arrow"
       scale: 0.5
       opacity: 1
-  buoy_earth_1:
+  torpedo_22_circle:
+    detection:
+      axis: "+z"
     map:
       color: [0, 1, 0]
-  buoy_earth_2:
+      axis: "+z"
+  torpedo_22_trapezoid:
+    detection:
+      axis: "+x"
     map:
-      color: [ 0, 1, 0 ]
-  buoy_abydos_1:
+      color: [0, 0, 1]
+      axis: "+x"
+  torpedo_22_earth_1:
+    detection:
+      axis: "+z"
     map:
-      color: [ 0, 1, 0 ]
-  buoy_abydos_2:
+      color: [1, 1, 0]
+      axis: "+z"
+  torpedo_22_earth_2:
+    detection:
+      axis: "+z"
     map:
-      color: [ 0, 1, 0 ]
+      color: [0, 1, 1]
+      axis: "+z"
