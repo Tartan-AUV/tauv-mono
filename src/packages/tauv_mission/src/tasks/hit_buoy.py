@@ -3,6 +3,7 @@ import numpy as np
 from spatialmath import SE3, SO3
 from dataclasses import dataclass
 from tasks.task import Task, TaskResources, TaskStatus, TaskResult
+from tauv_util.spatialmath import flatten_se3
 from typing import Optional
 
 
@@ -63,6 +64,7 @@ class HitBuoy(Task):
 
             odom_t_buoy = buoy_detection.pose
             odom_t_buoy_aligned = odom_t_buoy * buoy_t_buoy_aligned
+            odom_t_buoy_aligned = flatten_se3(odom_t_buoy_aligned)
             odom_t_vehicle_goal = odom_t_buoy_aligned * buoy_aligned_t_vehicle_goal
 
             if np.linalg.norm(odom_t_vehicle.t - odom_t_vehicle_goal.t) < self._error_threshold:
@@ -79,7 +81,7 @@ class HitBuoy(Task):
             buoy_t_vehicle_target = SE3.Rt(SO3(), (x + buoy_aligned_t_vehicle_goal.t[0], buoy_aligned_t_vehicle_goal.t[1], buoy_aligned_t_vehicle_goal.t[2]))
             # target_t_vehicle_target = buoy_aligned_t_vehicle_target
 
-            odom_t_vehicle_target = odom_t_buoy * buoy_t_vehicle_target
+            odom_t_vehicle_target = odom_t_buoy_aligned * buoy_t_vehicle_target
 
             resources.transforms.set_a_to_b('kf/odom', 'buoy', odom_t_buoy)
 
@@ -103,7 +105,7 @@ class HitBuoy(Task):
             if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
                 break
 
-            if self._check_cancel(resources): return HitBuoyResult(status=HitBuoyStatus.FAILURE)
+            if self._check_cancel(resources): return HitBuoyResult(status=HitBuoyStatus.CANCELLED)
 
         return HitBuoyResult(status=HitBuoyStatus.SUCCESS)
 

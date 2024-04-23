@@ -44,15 +44,15 @@ class OAKDNode:
         self._color.setFps(self._fps)
 
         self._color_manip = self._pipeline.create(depthai.node.ImageManip)
-        self._color_manip.setResize(1280, 720)
-        self._color_manip.setMaxOutputFrameSize(1280 * 720 * 3)
+        self._color_manip.setResize(640, 360)
+        self._color_manip.setMaxOutputFrameSize(640 * 360 * 3)
 
         self._depth.setLeftRightCheck(False)
         self._depth.setExtendedDisparity(False)
         self._depth.setSubpixel(False)
-        self._depth.setOutputSize(1280, 720)
+        self._depth.setOutputSize(640, 360)
         self._depth.setDepthAlign(depthai.CameraBoardSocket.RGB)
-        self._depth.setOutputSize(1280, 720)
+        self._depth.setOutputSize(640, 360)
         self._depth.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         self._depth.initialConfig.setMedianFilter(depthai.MedianFilter.KERNEL_7x7)
 
@@ -91,7 +91,7 @@ class OAKDNode:
         self._depth_info.distortion_model = 'rational_polynomial'
         self._depth_info.D = np.array(self._calibration.getDistortionCoefficients(depthai.CameraBoardSocket.LEFT))
         self._color_info = CameraInfo()
-        self._color_info.K = np.ndarray.flatten(np.array(self._calibration.getCameraIntrinsics(depthai.CameraBoardSocket.RGB, resizeWidth=1280, resizeHeight=720)))
+        self._color_info.K = np.ndarray.flatten(np.array(self._calibration.getCameraIntrinsics(depthai.CameraBoardSocket.RGB, resizeWidth=640, resizeHeight=360)))
         self._color_info.distortion_model = 'rational_polynomial'
         self._color_info.D = np.array(self._calibration.getDistortionCoefficients(depthai.CameraBoardSocket.RGB))
 

@@ -24,6 +24,7 @@ from tasks.hit_buoy import HitBuoy as HitBuoyTask
 from tasks.detect_pinger import DetectPinger as DetectPingerTask
 from tasks.gate import Gate as GateTask
 from tasks.shoot_torpedo import ShootTorpedo as ShootTorpedoTask
+from tasks.torpedo import Torpedo as TorpedoTask
 
 class ArgumentParserError(Exception): pass
 
@@ -370,6 +371,31 @@ class TeleopMission:
         self._task = HitBuoyTask(args.tag, args.timeout, args.frequency, args.distance, args.error_a, args.error_b, args.error_threshold, args.shoot_torpedo)
         Thread(target=self._run_task, daemon=True).start()
 
+    def _handle_run_torpedo_task(self, args):
+        print('run_torpedo_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        if args.torpedo == -1:
+            args.torpedo = None
+
+        self._task = TorpedoTask(
+            'torpedo_22_trapezoid',
+            1000,
+            10,
+            10,
+            1,
+            0.5,
+            0.05,
+            0.05,
+            0.1,
+            0.05,
+            args.torpedo
+        )
+        Thread(target=self._run_task, daemon=True).start()
+
     def _handle_run_shoot_torpedo_task(self, args):
         if self._task is not None:
             return
@@ -522,6 +548,10 @@ class TeleopMission:
         run_hit_buoy_task.add_argument('shoot_torpedo', type=int)
         run_hit_buoy_task.set_defaults(func=self._handle_run_hit_buoy_task)
 
+        run_torpedo_task = subparsers.add_parser('run_torpedo_task')
+        run_torpedo_task.add_argument('torpedo', type=int)
+        run_torpedo_task.set_defaults(func=self._handle_run_torpedo_task)
+
         run_shoot_torpedo_task = subparsers.add_parser('run_shoot_torpedo_task')
         run_shoot_torpedo_task.add_argument('tag', type=str)
         run_shoot_torpedo_task.add_argument('torpedo', type=int)
@@ -547,6 +577,6 @@ class TeleopMission:
 
 
 def main():
-    rospy.init_node('teleop_mission')
+    rospy.init_node('teleop_mission', log_level=rospy.ERROR)
     n = TeleopMission()
     n.start()

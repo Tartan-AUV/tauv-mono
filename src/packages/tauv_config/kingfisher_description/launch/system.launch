@@ -49,14 +49,8 @@
       <arg name="teleop" value="$(arg teleop)" />
     </include>
 
-    <node pkg="tauv_vision" type="yolact" name="yolact" output="screen">
-      <rosparam param="weight_path">/shared/weights/lunar-water-358_3.pt</rosparam>
-      <rosparam param="model_config_path">/shared/weights/lunar-water-358_model_config.json</rosparam>
-      <rosparam param="class_config_path">/shared/weights/lunar-water-358_class_config.json</rosparam>
-      <rosparam param="frame_ids">[oakd_front]</rosparam>-->
-      <rosparam param="topk">100</rosparam>-->
-      <rosparam param="iou_threshold">0.1</rosparam>-->
-      <rosparam param="confidence_threshold">0.98</rosparam>-->
+    <node pkg="tauv_vision" type="centernet" name="centernet" output="screen">
+      <rosparam param="frame_ids">[oakd_bottom]</rosparam>-->
     </node>
 
     <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />

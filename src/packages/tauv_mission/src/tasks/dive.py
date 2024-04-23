@@ -18,10 +18,11 @@ class DiveResult(TaskResult):
 
 class Dive(Task):
 
-    def __init__(self, delay: float, y_offset: float):
+    def __init__(self, delay: float, x_offset: float, y_offset: float):
         super().__init__()
 
         self._delay: float = delay
+        self._x_offset = x_offset
         self._y_offset = y_offset
 
     def run(self, resources: TaskResources) -> DiveResult:
@@ -45,7 +46,7 @@ class Dive(Task):
         t = odom_t_vehicle.t.copy()
         t[2] = 1.0
         odom_t_vehicle_target = SE3.Rt(R, t)
-        odom_t_vehicle_target = odom_t_vehicle_target * SE3.Ty(self._y_offset)
+        odom_t_vehicle_target = odom_t_vehicle_target * SE3.Tx(self._x_offset) * SE3.Ty(self._y_offset)
 
         resources.motion.goto(odom_t_vehicle_target)
         # resources.motion.goto_relative_with_depth(SE2(), self._depth)
