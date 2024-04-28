@@ -76,9 +76,13 @@ class Controller:
         roll_error = orientation[0] - cmd.setpoint_roll
         pitch_error = orientation[1] - cmd.setpoint_pitch
 
-        z_effort = self._pids[0](z_error)
-        roll_effort = self._pids[1](roll_error)
-        pitch_effort = self._pids[2](pitch_error)
+        roll_velocity = euler_velocity[0]
+        pitch_velocity = euler_velocity[1]
+        z_velocity = linear_velocity[2]
+
+        z_effort = self._pids[0](z_error, z_velocity)
+        roll_effort = self._pids[1](roll_error, roll_velocity)
+        pitch_effort = self._pids[2](pitch_error, pitch_velocity)
 
         vd = np.array([
             cmd.a_x,

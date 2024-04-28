@@ -5,7 +5,7 @@
     <include file="$(find tauv_vehicle)/launch/xsens_imu_sync/xsens_imu_sync.launch" />
     <include file="$(find tauv_vehicle)/launch/teledyne_dvl/teledyne_dvl.launch"/>
     <include file="$(find tauv_vehicle)/launch/thrusters/thrusters.launch" />
-    <include file="$(find tauv_vehicle)/launch/arduino/arduino.launch" />
+<!--     <include file="$(find tauv_vehicle)/launch/arduino/arduino.launch" /> -->
 
     <node pkg="tauv_vehicle"
           type="oakd"
@@ -26,4 +26,14 @@
         <param name="id" value="10.0.0.13" />
         <param name="postprocess_depth" value="true" />
     </node>
+
+    <group ns="vehicle/arduino">
+        <node pkg="rosserial_python"
+              type="serial_node.py"
+              name="powerboard_arduino"
+              output="screen"
+        >
+            <param name="port" value="/dev/arduino"/>
+        </node>
+    </group>
 </launch>

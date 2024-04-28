@@ -9,8 +9,8 @@
 #include <ros/ros.h>
 #include <tauv_alarms/alarms.h>
 #include <tauv_alarms/alarm_client.h>
-#include <tauv_msgs/FluidDepth.h>
 #include <tauv_msgs/NavigationState.h>
+#include <std_msgs/Float32.h>
 #include <tauv_msgs/TeledyneDvlData.h>
 #include <tauv_msgs/XsensImuData.h>
 #include <tf/transform_broadcaster.h>
@@ -27,7 +27,7 @@ class StateEstimator {
 
     void handle_imu(const tauv_msgs::XsensImuData::ConstPtr& msg);
     void handle_dvl(const tauv_msgs::TeledyneDvlData::ConstPtr& msg);
-    void handle_depth(const tauv_msgs::FluidDepth::ConstPtr& msg);
+    void handle_depth(const std_msgs::Float32::ConstPtr& msg);
 
     class ImuMsg;
     class DvlMsg;
@@ -75,6 +75,9 @@ class StateEstimator {
     Eigen::Matrix<double, 9, 1> imu_covariance;
     Eigen::Vector3d dvl_covariance;
     double depth_covariance;
+    double euler_acceleration_filter_constant;
+
+    Eigen::Vector3d previous_angular_acceleration;
 
     void load_config();
 
@@ -130,7 +133,7 @@ public:
   ros::Time stamp;
   double depth;
 
-  DepthMsg(const tauv_msgs::FluidDepth::ConstPtr &msg);
+  DepthMsg(const std_msgs::Float32::ConstPtr &msg);
 };
 
 class StateEstimator::SensorMsg {
@@ -151,9 +154,10 @@ public:
     this->stamp = msg->header.stamp;
   }
 
-  SensorMsg(const tauv_msgs::FluidDepth::ConstPtr &msg) : msg(msg) {
+  SensorMsg(const std_msgs::Float32::ConstPtr &msg) : msg(msg) {
     this->type = Type::DEPTH;
-    this->stamp = msg->header.stamp;
+    this->stamp = ros::Time::now();
+//    this->stamp = msg->header.stamp;
   }
 
   const ImuMsg &as_imu() {

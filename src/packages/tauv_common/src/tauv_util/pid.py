@@ -96,7 +96,7 @@ class PID(object):
         self.output_limits = output_limits
         self.reset()
 
-    def __call__(self, input_, dt=None):
+    def __call__(self, input_, d_input_=None, dt=None):
         """
         Update the PID controller.
 
@@ -123,6 +123,8 @@ class PID(object):
         # Compute error terms
         error = self.setpoint - input_
         d_input = input_ - (self._last_input if (self._last_input is not None) else input_)
+        if d_input_ is not None:
+            d_input = d_input_
 
         # Check if must map the error
         if self.error_map is not None:

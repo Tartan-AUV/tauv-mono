@@ -33,6 +33,8 @@ StateEstimator::StateEstimator(ros::NodeHandle& n, ros::NodeHandle &pn) : n(n), 
   this->ekf.set_dvl_offset(this->dvl_offset);
   this->ekf.set_process_covariance(this->process_covariance);
 
+  this->previous_angular_acceleration = Eigen::Vector3d::Zero();
+
   this->checkpoints = boost::circular_buffer<StateEstimator::Checkpoint>(CHECKPOINT_BUFFER_SIZE);
   this->delayed_queue.reserve(DELAYED_QUEUE_SIZE);
   this->realtime_queue.reserve(REALTIME_QUEUE_SIZE);
@@ -85,6 +87,8 @@ void StateEstimator::load_config()
   this->depth_covariance = depth_covariance.front();
 
   this->n.getParam("tf_namespace", this->tf_namespace);
+
+  this->pn.getParam("euler_acceleration_filter_constant", this->euler_acceleration_filter_constant);
 }
 
 void StateEstimator::update(const ros::TimerEvent& e)
@@ -155,6 +159,8 @@ void StateEstimator::update(const ros::TimerEvent& e)
   this->ekf.get_state_fields(current_time.toSec(), position, velocity, acceleration, orientation, angular_velocity);
 
   Eigen::Vector3d angular_acceleration = (angular_velocity - this->last_angular_velocity) / (current_time - this->last_evaluation_time).toSec();
+  angular_acceleration = this->euler_acceleration_filter_constant * angular_acceleration + (1 - this->euler_acceleration_filter_constant) * (this->previous_angular_acceleration);
+  this->previous_angular_acceleration = angular_acceleration;
 
   this->last_evaluation_time = current_time;
   this->last_angular_velocity = angular_velocity;
@@ -230,16 +236,17 @@ void StateEstimator::handle_dvl(const tauv_msgs::TeledyneDvlData::ConstPtr& msg)
   }
 }
 
-void StateEstimator::handle_depth(const tauv_msgs::FluidDepth::ConstPtr& msg)
+void StateEstimator::handle_depth(const std_msgs::Float32::ConstPtr& msg)
 {
+  ros::Time time = ros::Time::now();
   if (!this->is_initialized) {
     this->is_initialized = true;
-    this->last_evaluation_time = msg->header.stamp - this->horizon_delay;
+    this->last_evaluation_time = time - this->horizon_delay;
   }
 
   boost::shared_ptr<SensorMsg> sensor_msg = boost::shared_ptr<SensorMsg>(new SensorMsg(msg));
 
-  if (msg->header.stamp < this->last_evaluation_time && this->checkpoints.full()) {
+  if (time < this->last_evaluation_time && this->checkpoints.full()) {
     this->delayed_queue.push(sensor_msg);
   } else {
     this->realtime_queue.push(sensor_msg);
@@ -362,12 +369,13 @@ StateEstimator::ImuMsg::ImuMsg(const tauv_msgs::XsensImuData::ConstPtr &msg) {
     this->stamp = msg->header.stamp;
     this->orientation = Eigen::Vector3d { msg->orientation.x, msg->orientation.y, msg->orientation.z };
     this->rate_of_turn = Eigen::Vector3d { msg->rate_of_turn.x, msg->rate_of_turn.y, msg->rate_of_turn.z };
-    // Eigen::Vector3d raw_linear_acceleration = Eigen::Vector3d { msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z };
-    // Eigen::Vector3d gravity { 0.0, 0.0, -9.806 };
-    // Eigen::Quaterniond orientation_quat = rpy_to_quat(orientation);
-    // Eigen::Vector3d body_gravity = orientation_quat.inverse().toRotationMatrix() * gravity;
-    Eigen::Vector3d linear_acceleration { 0, 0, 0 };
-    this->linear_acceleration = linear_acceleration;
+//     Eigen::Vector3d raw_linear_acceleration = Eigen::Vector3d { msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z };
+//     Eigen::Vector3d gravity { 0.0, 0.0, -9.806 };
+     Eigen::Vector3d free_acceleration = Eigen::Vector3d { msg->free_acceleration.x, msg->free_acceleration.y, msg->free_acceleration.z };
+     Eigen::Quaterniond orientation_quat = rpy_to_quat(orientation);
+     Eigen::Vector3d body_free_acceleration = orientation_quat.toRotationMatrix() * free_acceleration;
+//    Eigen::Vector3d linear_acceleration { 0, 0, 0 };
+    this->linear_acceleration = body_free_acceleration;
 }
 
 StateEstimator::DvlMsg::DvlMsg(const tauv_msgs::TeledyneDvlData::ConstPtr &msg) {
@@ -381,7 +389,7 @@ StateEstimator::DvlMsg::DvlMsg(const tauv_msgs::TeledyneDvlData::ConstPtr &msg) 
   this->altitute = msg->vertical_range;
 }
 
-StateEstimator::DepthMsg::DepthMsg(const tauv_msgs::FluidDepth::ConstPtr &msg) {
-  this->stamp = msg->header.stamp;
-  this->depth = msg->depth;
+StateEstimator::DepthMsg::DepthMsg(const std_msgs::Float32::ConstPtr &msg) {
+  this->stamp = ros::Time::now();
+  this->depth = msg->data;
 }
