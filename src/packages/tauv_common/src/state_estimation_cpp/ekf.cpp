@@ -73,6 +73,8 @@ void Ekf::handle_imu_measurement(double time,
   Eigen::Matrix<double, Eigen::Dynamic, 15> H = Eigen::Matrix<double, Eigen::Dynamic, 15>::Zero(9, 15);
   this->get_H(fields, H);
 
+  // Need to remove the gravity component from linear_acceleration
+
   Eigen::VectorXd y(9);
   y << orientation, rate_of_turn, linear_acceleration;
   y -= H * this->state;

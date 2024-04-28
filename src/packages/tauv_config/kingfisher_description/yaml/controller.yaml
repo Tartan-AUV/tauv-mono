@@ -1,10 +1,10 @@
 frequency: 50
 
 # z, roll, pitch
-kp: [1.0, 1.0, 1.0]
-ki: [0.0, 0.0, 1.0]
-kd: [1.0, 1.0, 1.0]
-tau: [0.1, 0.1, 0.1]
+kp: [5.0, 1.0, 1.0]
+ki: [0.0, 0.0, 0.0]
+kd: [0.01, 0.01, 0.01]
+tau: [1.0, 1.0, 1.0]
 limits: [[-1.0, 1.0], [-1.0, 1.0], [-1.0, 1.0]]
 
 # x, y, z, roll, pitch, yaw in N
@@ -22,12 +22,12 @@ dynamics:
 
   # x, y, z in body NED
   center_of_gravity: [0.0, 0.0, 0.0]
-  center_of_buoyancy: [0, 0.0, 0.02]
+  center_of_buoyancy: [0, 0.0, 0.0]
 
   # Ixx, Iyy, Izz, Ixy, Ixz, Iyz
-  moments: [0.1, 10.0, 10.0, 0.0, 0.0, 0.0]
+  moments: [1.0, 1.0, 10.0, 0.0, 0.0, 0.0]
 
   # x, y, z, roll, pitch, yaw
-  linear_damping: [100.0, 83.1339, 44.2445, 7.69374, 5.65474, 44]
+  linear_damping: [10.0, 10.0, 10.0, 0.0, 0.0, 0.0]
   quadratic_damping: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-  added_mass: [10.0, 10.0, 10.0, 0.0, 0.0, 10.0]
+  added_mass: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]

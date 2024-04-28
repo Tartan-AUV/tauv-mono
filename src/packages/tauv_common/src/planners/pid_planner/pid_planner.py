@@ -19,7 +19,7 @@ from scipy.spatial.transform import Rotation
 class PIDPlanner:
 
     def __init__(self):
-        self._use_roll_pitch = False
+        self._use_roll_pitch = True
 
         self._ac = AlarmClient()
         self._load_config()
@@ -76,18 +76,18 @@ class PIDPlanner:
 
         world_position_effort = np.zeros(3)
         for i in range(3):
-            world_position_effort[i] = self._pids[i](position_error[i]) + position_acceleration[i]
+            world_position_effort[i] = self._pids[i](position_error[i], tl(world_twist.linear)[i]) + position_acceleration[i]
         
         world_angular_effort = np.zeros(3)
         for i in range(3):
-            world_angular_effort[i] = self._pids[i+3](orientation_error[i]) + angular_acceleration[i]
+            world_angular_effort[i] = self._pids[i+3](orientation_error[i], tl(world_twist.angular)[i]) + angular_acceleration[i]
         
         R = Rotation.from_euler('ZYX', np.flip(current_orientation)).inv()
 
         body_position_effort = R.apply(world_position_effort)
 
-        body_position_effort = self._tau[0:3] * self._body_position_effort + (1 - self._tau[0:3]) * body_position_effort
-        world_angular_effort = self._tau[3:6] * self._world_angular_effort + (1 - self._tau[3:6]) * world_angular_effort
+        # body_position_effort = self._tau[0:3] * self._body_position_effort + (1 - self._tau[0:3]) * body_position_effort
+        # world_angular_effort = self._tau[3:6] * self._world_angular_effort + (1 - self._tau[3:6]) * world_angular_effort
 
         self._body_position_effort = body_position_effort
         self._body_angular_effort = world_angular_effort

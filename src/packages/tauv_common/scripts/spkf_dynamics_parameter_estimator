@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from dynamics_parameter_estimator import dynamics_parameter_estimator
+from spkf_dynamics_parameter_estimator import dynamics_parameter_estimator
 
 if __name__ == "__main__":
     dynamics_parameter_estimator.main()
