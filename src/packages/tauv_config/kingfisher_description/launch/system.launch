@@ -50,7 +50,7 @@
     </include>
 
     <node pkg="tauv_vision" type="centernet" name="centernet" output="screen">
-      <rosparam param="frame_ids">[oakd_front]</rosparam>-->
+      <rosparam param="frame_ids">[oakd_bottom]</rosparam>-->
     </node>
 
     <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
