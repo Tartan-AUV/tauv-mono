@@ -46,13 +46,14 @@ class HitBuoy(Task):
         buoy_aligned_t_vehicle_goal = SE3.Tx(-self._distance) * vehicle_t_torpedo.inv()
 
         if buoy_detection is None:
+            print("NOT FOUND")
             return HitBuoyResult(status=HitBuoyStatus.BUOY_NOT_FOUND)
 
         resources.motion.cancel()
 
         odom_t_buoy = buoy_detection.pose
 
-        if np.linalg.norm(odom_t_buoy.t - odom_t_vehicle.t) > 5:
+        if np.linalg.norm(odom_t_buoy.t - odom_t_vehicle.t) > 10:
             return HitBuoyResult(status=HitBuoyStatus.BUOY_NOT_FOUND)
 
         while rospy.Time.now() < timeout_time:
