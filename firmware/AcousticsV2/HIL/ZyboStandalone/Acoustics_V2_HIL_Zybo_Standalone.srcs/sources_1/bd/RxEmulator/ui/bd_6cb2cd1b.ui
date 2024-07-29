@@ -1,0 +1,33 @@
+{
+   "ActiveEmotionalView":"Default View",
+   "Default View_ScaleFactor":"1.67701",
+   "Default View_TopLeft":"-202,-452",
+   "ExpandedHierarchyInLayout":"",
+   "comment_0":"Make clock?
+",
+   "commentid":"comment_0|",
+   "font_comment_0":"6",
+   "guistr":"# # String gsaved with Nlview 7.7.1 2023-07-26 3bc4126617 VDI=43 GEI=38 GUI=JA:21.0 TLS
+#  -string -flagsOSRD
+preplace port S_AXI_LITE -pg 1 -lvl 0 -x -30 -y -170 -defaultsOSRD
+preplace port port-id_S_AXI_CLK -pg 1 -lvl 0 -x -30 -y -140 -defaultsOSRD
+preplace port port-id_DMA_MM2S_ACLK -pg 1 -lvl 0 -x -30 -y -90 -defaultsOSRD
+preplace port port-id_Reset -pg 1 -lvl 0 -x -30 -y 10 -defaultsOSRD
+preplace inst axi_dma_0 -pg 1 -lvl 1 -x 460 -y -100 -defaultsOSRD
+preplace inst axis_broadcaster_0 -pg 1 -lvl 2 -x 810 -y -30 -defaultsOSRD
+preplace inst ila_0 -pg 1 -lvl 3 -x 1160 -y -70 -defaultsOSRD
+preplace netloc S_AXI_CLK_1 1 0 1 -10 -140n
+preplace netloc Reset_1 1 0 2 290 -10 N
+preplace netloc Net 1 0 3 280 -190 660 -130 960
+preplace netloc S_AXI_LITE_1 1 0 1 290 -170n
+preplace netloc axi_dma_0_M_AXIS_MM2S 1 1 1 630 -110n
+preplace netloc axis_broadcaster_0_M00_AXIS 1 2 1 970 -80n
+preplace cgraphic comment_0 place left 140 30 textcolor 4 linecolor 3 linewidth 2
+levelinfo -pg 1 -30 460 810 1160 1260
+pagesize -pg 1 -db -bbox -sgen -210 -550 1450 880
+"
+}
+
+{
+   "/comment_0":"comment_0"
+}

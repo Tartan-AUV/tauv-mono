@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2024.1.1 (64-bit)
+# SW Build 5094488 on Fri Jun 14 08:57:50 MDT 2024
+# IP Build 5091682 on Fri Jun 14 16:55:04 MDT 2024
+# SharedData Build 5094118 on Fri Jun 14 01:09:43 MDT 2024
+# Start of session at: Sun Jul 28 21:19:29 2024
+# Process ID: 31919
+# Current directory: /home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/top_clk_wiz_0_0_synth_1
+# Command line: vivado -log top_clk_wiz_0_0.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source top_clk_wiz_0_0.tcl
+# Log file: /home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/top_clk_wiz_0_0_synth_1/top_clk_wiz_0_0.vds
+# Journal file: /home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/top_clk_wiz_0_0_synth_1/vivado.jou
+# Running On        :fedora
+# Platform          :unknown
+# Operating System  :unknown
+# Processor Detail  :12th Gen Intel(R) Core(TM) i7-12700H
+# CPU Frequency     :3531.202 MHz
+# CPU Physical cores:14
+# CPU Logical cores :20
+# Host memory       :33299 MB
+# Swap memory       :8589 MB
+# Total Virtual     :41889 MB
+# Available Virtual :32832 MB
+#-----------------------------------------------------------
+source top_clk_wiz_0_0.tcl -notrace

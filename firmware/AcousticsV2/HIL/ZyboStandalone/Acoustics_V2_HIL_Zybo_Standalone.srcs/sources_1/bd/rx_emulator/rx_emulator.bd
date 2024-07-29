@@ -1,0 +1,13 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x0",
+      "gen_directory": "../../../../Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/rx_emulator",
+      "name": "rx_emulator",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2024.1.1"
+    },
+    "design_tree": {}
+  }
+}

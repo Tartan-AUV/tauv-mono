@@ -1,0 +1,339 @@
+#-----------------------------------------------------------
+# Vivado v2024.1.1 (64-bit)
+# SW Build 5094488 on Fri Jun 14 08:57:50 MDT 2024
+# IP Build 5091682 on Fri Jun 14 16:55:04 MDT 2024
+# SharedData Build 5094118 on Fri Jun 14 01:09:43 MDT 2024
+# Start of session at: Sun Jul 28 21:19:29 2024
+# Process ID: 31925
+# Current directory: /home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/RxEmulator_inst_0_axis_broadcaster_0_0_synth_1
+# Command line: vivado -log RxEmulator_inst_0_axis_broadcaster_0_0.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source RxEmulator_inst_0_axis_broadcaster_0_0.tcl
+# Log file: /home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/RxEmulator_inst_0_axis_broadcaster_0_0_synth_1/RxEmulator_inst_0_axis_broadcaster_0_0.vds
+# Journal file: /home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/RxEmulator_inst_0_axis_broadcaster_0_0_synth_1/vivado.jou
+# Running On        :fedora
+# Platform          :unknown
+# Operating System  :unknown
+# Processor Detail  :12th Gen Intel(R) Core(TM) i7-12700H
+# CPU Frequency     :3919.530 MHz
+# CPU Physical cores:14
+# CPU Logical cores :20
+# Host memory       :33299 MB
+# Swap memory       :8589 MB
+# Total Virtual     :41889 MB
+# Available Virtual :32867 MB
+#-----------------------------------------------------------
+source RxEmulator_inst_0_axis_broadcaster_0_0.tcl -notrace
+INFO: [IP_Flow 19-6924] IPCACHE: Running cache check for IP inst: RxEmulator_inst_0_axis_broadcaster_0_0
+Command: synth_design -top RxEmulator_inst_0_axis_broadcaster_0_0 -part xc7z020clg400-1 -incremental_mode off -mode out_of_context
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7z020'
+INFO: [Device 21-403] Loading part xc7z020clg400-1
+INFO: [Device 21-9227] Part: xc7z020clg400-1 does not have CEAM library.
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 4 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 32018
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 2353.105 ; gain = 411.746 ; free physical = 1956 ; free virtual = 22735
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'RxEmulator_inst_0_axis_broadcaster_0_0' [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/synth/RxEmulator_inst_0_axis_broadcaster_0_0.v:53]
+INFO: [Synth 8-6157] synthesizing module 'top_RxEmulator_inst_0_axis_broadcaster_0_0' [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/hdl/top_RxEmulator_inst_0_axis_broadcaster_0_0.v:60]
+INFO: [Synth 8-6157] synthesizing module 'axis_broadcaster_v1_1_31_core' [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ipshared/807a/hdl/axis_broadcaster_v1_1_vl_rfs.v:58]
+INFO: [Synth 8-6157] synthesizing module 'axis_infrastructure_v1_1_1_util_vector2axis' [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ipshared/434f/hdl/axis_infrastructure_v1_1_vl_rfs.v:986]
+INFO: [Synth 8-6155] done synthesizing module 'axis_infrastructure_v1_1_1_util_vector2axis' (0#1) [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ipshared/434f/hdl/axis_infrastructure_v1_1_vl_rfs.v:986]
+INFO: [Synth 8-6157] synthesizing module 'axis_infrastructure_v1_1_1_util_axis2vector' [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ipshared/434f/hdl/axis_infrastructure_v1_1_vl_rfs.v:805]
+INFO: [Synth 8-6155] done synthesizing module 'axis_infrastructure_v1_1_1_util_axis2vector' (0#1) [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ipshared/434f/hdl/axis_infrastructure_v1_1_vl_rfs.v:805]
+INFO: [Synth 8-6155] done synthesizing module 'axis_broadcaster_v1_1_31_core' (0#1) [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ipshared/807a/hdl/axis_broadcaster_v1_1_vl_rfs.v:58]
+INFO: [Synth 8-6157] synthesizing module 'tdata_RxEmulator_inst_0_axis_broadcaster_0_0' [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/hdl/tdata_RxEmulator_inst_0_axis_broadcaster_0_0.v:48]
+INFO: [Synth 8-6155] done synthesizing module 'tdata_RxEmulator_inst_0_axis_broadcaster_0_0' (0#1) [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/hdl/tdata_RxEmulator_inst_0_axis_broadcaster_0_0.v:48]
+INFO: [Synth 8-6157] synthesizing module 'tuser_RxEmulator_inst_0_axis_broadcaster_0_0' [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/hdl/tuser_RxEmulator_inst_0_axis_broadcaster_0_0.v:49]
+INFO: [Synth 8-6155] done synthesizing module 'tuser_RxEmulator_inst_0_axis_broadcaster_0_0' (0#1) [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/hdl/tuser_RxEmulator_inst_0_axis_broadcaster_0_0.v:49]
+INFO: [Synth 8-6155] done synthesizing module 'top_RxEmulator_inst_0_axis_broadcaster_0_0' (0#1) [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/hdl/top_RxEmulator_inst_0_axis_broadcaster_0_0.v:60]
+INFO: [Synth 8-6155] done synthesizing module 'RxEmulator_inst_0_axis_broadcaster_0_0' (0#1) [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/synth/RxEmulator_inst_0_axis_broadcaster_0_0.v:53]
+WARNING: [Synth 8-7129] Port tuser[4] in module tuser_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tuser[3] in module tuser_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tuser[2] in module tuser_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tuser[1] in module tuser_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tuser[0] in module tuser_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[319] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[318] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[317] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[316] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[315] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[314] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[313] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[312] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[311] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[310] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[309] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[308] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[307] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[306] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[305] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[304] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[303] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[302] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[301] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[300] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[299] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[298] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[297] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[296] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[295] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[294] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[293] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[292] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[291] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[290] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[289] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[288] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[287] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[286] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[285] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[284] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[283] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[282] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[281] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[280] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[279] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[278] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[277] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[276] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[275] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[274] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[273] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[272] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[271] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[270] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[269] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[268] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[267] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[266] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[265] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[264] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[263] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[262] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[261] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[260] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[259] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[258] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[257] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[256] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[255] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[254] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[253] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[252] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[251] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[250] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[249] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[248] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[247] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[246] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[245] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[244] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[243] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[242] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[241] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[240] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[239] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[238] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[237] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[236] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[235] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[234] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[233] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[232] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[231] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[230] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[229] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[228] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[227] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[226] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+WARNING: [Synth 8-7129] Port tdata[225] in module tdata_RxEmulator_inst_0_axis_broadcaster_0_0 is either unconnected or has no load
+INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 2435.074 ; gain = 493.715 ; free physical = 1390 ; free virtual = 22173
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 2449.918 ; gain = 508.559 ; free physical = 1358 ; free virtual = 22142
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:05 ; elapsed = 00:00:05 . Memory (MB): peak = 2449.918 ; gain = 508.559 ; free physical = 1358 ; free virtual = 22142
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2449.918 ; gain = 0.000 ; free physical = 1350 ; free virtual = 22134
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/RxEmulator_inst_0_axis_broadcaster_0_0_ooc.xdc] for cell 'inst'
+Finished Parsing XDC File [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.gen/sources_1/bd/top/bd/RxEmulator_inst_0/ip/RxEmulator_inst_0_axis_broadcaster_0_0/RxEmulator_inst_0_axis_broadcaster_0_0_ooc.xdc] for cell 'inst'
+Parsing XDC File [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/RxEmulator_inst_0_axis_broadcaster_0_0_synth_1/dont_touch.xdc]
+Finished Parsing XDC File [/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/RxEmulator_inst_0_axis_broadcaster_0_0_synth_1/dont_touch.xdc]
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2546.668 ; gain = 0.000 ; free physical = 944 ; free virtual = 21728
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00.02 ; elapsed = 00:00:00.02 . Memory (MB): peak = 2546.668 ; gain = 0.000 ; free physical = 937 ; free virtual = 21721
+INFO: [Designutils 20-5008] Incremental synthesis strategy off
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:09 ; elapsed = 00:00:10 . Memory (MB): peak = 2546.668 ; gain = 605.309 ; free physical = 379 ; free virtual = 20757
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7z020clg400-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:09 ; elapsed = 00:00:10 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 379 ; free virtual = 20756
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+Applied set_property KEEP_HIERARCHY = SOFT for inst. (constraint file  /home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/RxEmulator_inst_0_axis_broadcaster_0_0_synth_1/dont_touch.xdc, line 9).
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:09 ; elapsed = 00:00:10 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 379 ; free virtual = 20756
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:10 ; elapsed = 00:00:10 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 409 ; free virtual = 20771
+---------------------------------------------------------------------------------
+INFO: [Synth 8-223] decloning instance 'inst/broadcaster_core/MI_SLOT[0].util_vector2axis' (axis_infrastructure_v1_1_1_util_vector2axis) to 'inst/broadcaster_core/MI_SLOT[1].util_vector2axis'
+INFO: [Synth 8-223] decloning instance 'inst/broadcaster_core/MI_SLOT[0].util_vector2axis' (axis_infrastructure_v1_1_1_util_vector2axis) to 'inst/broadcaster_core/MI_SLOT[2].util_vector2axis'
+INFO: [Synth 8-223] decloning instance 'inst/broadcaster_core/MI_SLOT[0].util_vector2axis' (axis_infrastructure_v1_1_1_util_vector2axis) to 'inst/broadcaster_core/MI_SLOT[3].util_vector2axis'
+INFO: [Synth 8-223] decloning instance 'inst/broadcaster_core/MI_SLOT[0].util_vector2axis' (axis_infrastructure_v1_1_1_util_vector2axis) to 'inst/broadcaster_core/MI_SLOT[4].util_vector2axis'
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Registers : 
+	                5 Bit    Registers := 1     
++---Muxes : 
+	   2 Input    1 Bit        Muxes := 1     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 220 (col length:60)
+BRAMs: 280 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 626 ; free virtual = 20688
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:15 ; elapsed = 00:00:16 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 492 ; free virtual = 20242
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:15 ; elapsed = 00:00:16 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 492 ; free virtual = 20242
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:16 ; elapsed = 00:00:16 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 492 ; free virtual = 20242
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:18 ; elapsed = 00:00:18 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 763 ; free virtual = 20513
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:18 ; elapsed = 00:00:18 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 763 ; free virtual = 20513
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:18 ; elapsed = 00:00:18 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 763 ; free virtual = 20513
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:18 ; elapsed = 00:00:18 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 763 ; free virtual = 20513
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:18 ; elapsed = 00:00:18 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 763 ; free virtual = 20513
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:18 ; elapsed = 00:00:18 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 763 ; free virtual = 20513
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++-+-----+------+
+| |Cell |Count |
++-+-----+------+
++-+-----+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:18 ; elapsed = 00:00:18 . Memory (MB): peak = 2554.672 ; gain = 613.312 ; free physical = 763 ; free virtual = 20513
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 40 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:17 ; elapsed = 00:00:17 . Memory (MB): peak = 2554.672 ; gain = 516.562 ; free physical = 763 ; free virtual = 20513
+Synthesis Optimization Complete : Time (s): cpu = 00:00:18 ; elapsed = 00:00:18 . Memory (MB): peak = 2554.680 ; gain = 613.312 ; free physical = 763 ; free virtual = 20513
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.01 . Memory (MB): peak = 2554.680 ; gain = 0.000 ; free physical = 763 ; free virtual = 20513
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2554.680 ; gain = 0.000 ; free physical = 1449 ; free virtual = 21199
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Synth Design complete | Checksum: f1b254e1
+INFO: [Common 17-83] Releasing license: Synthesis
+34 Infos, 101 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:24 ; elapsed = 00:00:22 . Memory (MB): peak = 2554.680 ; gain = 968.789 ; free physical = 1370 ; free virtual = 21120
+INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 1743.979; main = 1340.013; forked = 407.534
+INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 4292.098; main = 2554.676; forked = 1737.422
+INFO: [Common 17-1381] The checkpoint '/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/RxEmulator_inst_0_axis_broadcaster_0_0_synth_1/RxEmulator_inst_0_axis_broadcaster_0_0.dcp' has been generated.
+INFO: [Coretcl 2-1648] Added synthesis output to IP cache for IP RxEmulator_inst_0_axis_broadcaster_0_0, cache-ID = 068f197ccf2b32ce
+INFO: [Common 17-1381] The checkpoint '/home/gleb/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/Acoustics_V2_HIL_Zybo_Standalone.runs/RxEmulator_inst_0_axis_broadcaster_0_0_synth_1/RxEmulator_inst_0_axis_broadcaster_0_0.dcp' has been generated.
+INFO: [Vivado 12-24828] Executing command : report_utilization -file RxEmulator_inst_0_axis_broadcaster_0_0_utilization_synth.rpt -pb RxEmulator_inst_0_axis_broadcaster_0_0_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Sun Jul 28 21:19:58 2024...

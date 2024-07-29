@@ -1,0 +1,5 @@
+PETALINUX_VER=2024.1
+VALIDATE_HW_CHKSUM=1
+HARDWARE_PATH=/home/tauv/dev-shared/TAUV-ROS-Packages/firmware/AcousticsV2/HIL/ZyboStandalone/top_wrapper.xsa
+HDF_EXT=xsa
+YOCTO_SDK=735fa618a53dbe366cbc92a3279917c4d6424d4b01de737c06f028e7ecf2854c
