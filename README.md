@@ -40,7 +40,7 @@ Set your terminal shell to zsh instead of bash by running:
 sudo apt update && sudo apt install -y zsh
 chsh -s /bin/zsh
 ```
-After running the commands above, restart your terminal session.
+After running the commands above, restart your terminal session and select the option to populate `.zshrc` with recommended configuration.
 
 ### Set up catkin
 Set up `catkin build` (our build system) by running:
@@ -62,9 +62,9 @@ git clone --recurse-submodules git@github.com:Tartan-AUV/TAUV-ROS-Packages.git
 ```
 
 ## Editing the `~/.bashrc`
-If you followed the ROS installation tutorial, this line might already be in your `./bashrc` file. If not, you should:
+If you followed the ROS installation tutorial, this line might already be in your `./zshrc` file. If not, you should:
 ```bash
-echo "source /opt/ros/noetic/setup.zsh" >> ~/.bashrc
+echo "source /opt/ros/noetic/setup.zsh" >> ~/.zshrc
 ```
 
 # Building Your ROS Project
