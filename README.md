@@ -8,7 +8,7 @@ This is the monorepo for all TAUV ROS packages. Each package contains its own RO
 # VM Setup
 The code in this repo runs ROS Noetic on Ubuntu 20.04. Below find instructions for getting this environment installed on your computer. Either use Google or [the running setup debugging list](https://github.com/Tartan-AUV/TAUV-ROS-Packages/wiki/Installation-and-Setup-Debugging-Help) for issues encountered along the way.
 
-## Ubuntu 20.04 + ROS Noetic Install
+## Ubuntu 20.04 Setup
 The easiest way to get up and running is through virtualization of an Ubuntu 20.04 environment. An alternative and often higher-performance solution (if your hardware supports it) is dual-booting your native OS and Ubuntu 20.04. [Google Drive](https://drive.google.com/drive/folders/1KdAnfuahlqWfyaMwDTwxQsJ7HDAdvSMs?usp=sharing) containing VM images -- download and save it someplace safe!
 
 **M1 Mac Users**: Download [UTM VM Software](https://mac.getutm.app) and the `.utm` file from the Google Drive
@@ -27,6 +27,27 @@ These VMs have ROS Noetic installed on Ubuntu 20.04. The username, computer name
 ### Windows 11 Users
 TODO
 
+## Install ROS
+Once Ubuntu 20.04 is installed, install ROS noetic with [this tutorial](https://wiki.ros.org/noetic/Installation/Ubuntu). Make sure to install `ros-noetic-desktop-full` distribution.
+
+## GPU Drivers
+If you are dual-booting Ubuntu on a computer with a discrete graphics card, installing proprietary GPU drivers can significantly improve simulator performance.
+
+## Additional steps
+### Install ZSH
+Set your terminal shell to zsh instead of bash by running:
+```
+sudo apt update && sudo apt install -y zsh
+chsh -s /bin/zsh
+```
+After running the commands above, restart your terminal session.
+
+### Set up catkin
+Set up `catkin build` (our build system) by running:
+```
+sudo apt update && sudo apt install -y python3-catkin-tools python3-osrf-pycommon
+```
+
 ## Configure `git`
 Sign up for GitHub if you don't already have an account. Follow [this tutorial](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account#:~:text=In%20the%20%22Access%22%20section%20of,this%20key%20%22Personal%20laptop%22.) for adding an SSH key to your account. Once set up, configure your username and email:
 ```bash
@@ -43,15 +64,7 @@ git clone --recurse-submodules git@github.com:Tartan-AUV/TAUV-ROS-Packages.git
 ## Editing the `~/.bashrc`
 If you followed the ROS installation tutorial, this line might already be in your `./bashrc` file. If not, you should:
 ```bash
-echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
-```
-
-# Darknet installation
-To use darknet in sim, you will need to [build it from source](https://github.com/leggedrobotics/darknet_ros).
-```bash
-# <path to catkin_ws/src>
-git clone --recurse-submodules git@github.com:leggedrobotics/darknet_ros.git
-catkin build darknet_ros -DCMAKE_BUILD_TYPE=Release
+echo "source /opt/ros/noetic/setup.zsh" >> ~/.bashrc
 ```
 
 # Building Your ROS Project
@@ -64,8 +77,8 @@ source devel/setup.bash
     
 If the above `catkin build` command fails, try toubleshooting using these answers: https://github.com/catkin/catkin_tools/issues/525
 
-# The Setup Script - THIS NEEDS TO BE FIXED
-You need to `source devel/setup.zsh` every time you build and every time you open a terminal. This is annoying. Consider adding:
+# The Setup Script (DOES THIS EVEN WORK???)
+~~You need to `source devel/setup.zsh` every time you build and every time you open a terminal. This is annoying. Consider adding:
 ```bash
 source <path to TAUV-ROS-Packages/aliases.sh>
 tauvsh
@@ -74,7 +87,7 @@ to your `~/.zshrc`. This will automatically source it. The `aliases.sh` file exp
 
  * `tauvsh` sources devel/setup.zsh, allowing you to use ros shell commands.
  * `tauvclean` cleans the build and devel folders. Consider running if you have weird build errors and need to build from scratch
- * `tauvmake` builds the repo.
+ * `tauvmake` builds the repo.~~
 
 # Conventions
 We use NED for most things. (If you see ENU somewhere, flag it since we should update all code to be consistent with the NED frame system)
