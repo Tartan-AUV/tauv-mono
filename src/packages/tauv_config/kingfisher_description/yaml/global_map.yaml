@@ -51,27 +51,18 @@ tag_params: {
   DECAY_THRESHOLD: 0.3, #in practice should probably be around .25 but ~.6 for testing (higher => faster decay)
   recency_weight: 0.7,
   frequency_weight: 0.5,
-  torpedo_22_circle: {
+  torpedo_24: {
     expected_count: 1
   },
-  torpedo_22_star: {
-    expected_count: 1
+  torpedo_24_octagon: {
+    expected_count: 4
   },
-  torpedo_22_trapezoid: {
-    expected_count: 1
+  sample_24_nautilus: {
+    expected_count: 1,
   },
-  buoy_23_abydos_1: {
-    expected_count: 1
-  },
-  buoy_23_abydos_2: {
-    expected_count: 1
-  },
-  buoy_23_earth_1: {
-    expected_count: 1
-  },
-  buoy_23_earth_2: {
-    expected_count: 1
-  },
+  sample_24_coral: {
+    expected_count: 1,
+  }
 }
 
 kalman_params: {

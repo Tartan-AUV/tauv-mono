@@ -25,6 +25,8 @@ from tasks.detect_pinger import DetectPinger as DetectPingerTask
 from tasks.gate import Gate as GateTask
 from tasks.shoot_torpedo import ShootTorpedo as ShootTorpedoTask
 from tasks.torpedo import Torpedo as TorpedoTask
+from tasks.collect_sample import CollectSample as CollectSampleTask
+from tasks.torpedo_24 import Torpedo24 as Torpedo24Task
 
 class ArgumentParserError(Exception): pass
 
@@ -371,6 +373,26 @@ class TeleopMission:
         self._task = HitBuoyTask(args.tag, args.timeout, args.frequency, args.distance, args.error_a, args.error_b, args.error_threshold, args.shoot_torpedo)
         Thread(target=self._run_task, daemon=True).start()
 
+    def _handle_run_collect_sample_task(self, args):
+        print('run_collect_sample_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = CollectSampleTask(args.tag, args.timeout, args.frequency, args.distance, args.error_a, args.error_b, args.error_threshold)
+        Thread(target=self._run_task, daemon=True).start()
+
+    def _handle_run_torpedo_24_task(self, args):
+        print('run_torpedo_24_task')
+
+        if self._task is not None:
+            print('task in progress')
+            return
+
+        self._task = Torpedo24Task(args.timeout, args.frequency, False)
+        Thread(target=self._run_task, daemon=True).start()
+
     def _handle_run_torpedo_task(self, args):
         print('run_torpedo_task')
 
@@ -431,6 +453,25 @@ class TeleopMission:
 
     def _handle_cancel(self, args):
         self._motion.cancel()
+
+    def _handle_set_eater(self, args):
+        print(f'set_eater {args.direction}')
+
+        self._actuators.set_eater(args.direction)
+
+    def _handle_set_sphincter(self, args):
+        print(f'set_sphincter {args.open} {args.strength} {args.duration}')
+
+        self._actuators.set_sphincter(args.open, args.strength, args.duration)
+
+    def _handle_open_sphincter(self, args):
+        self._actuators.open_sphincter()
+
+    def _handle_close_sphincter(self, args):
+        self._actuators.close_sphincter()
+
+    def _handle_clear_map(self, args):
+        self._map.reset()
 
     def _build_parser(self) -> argparse.ArgumentParser:
         parser = ThrowingArgumentParser(prog="teleop_mission")
@@ -547,6 +588,22 @@ class TeleopMission:
         run_hit_buoy_task.add_argument('error_threshold', type=float)
         run_hit_buoy_task.add_argument('shoot_torpedo', type=int)
         run_hit_buoy_task.set_defaults(func=self._handle_run_hit_buoy_task)
+        
+        run_collect_sample_task = subparsers.add_parser('run_collect_sample_task')
+        run_collect_sample_task.add_argument('tag', type=str)
+        run_collect_sample_task.add_argument('timeout', type=float)
+        run_collect_sample_task.add_argument('frequency', type=float)
+        run_collect_sample_task.add_argument('distance', type=float)
+        run_collect_sample_task.add_argument('error_a', type=float)
+        run_collect_sample_task.add_argument('error_b', type=float)
+        run_collect_sample_task.add_argument('error_threshold', type=float)
+        run_collect_sample_task.set_defaults(func=self._handle_run_collect_sample_task)
+
+        run_torpedo_24_task = subparsers.add_parser('run_torpedo_24_task')
+        run_torpedo_24_task.add_argument('timeout', type=float)
+        run_torpedo_24_task.add_argument('frequency', type=float)
+        run_torpedo_24_task.set_defaults(func=self._handle_run_torpedo_24_task)
+
 
         run_torpedo_task = subparsers.add_parser('run_torpedo_task')
         run_torpedo_task.add_argument('torpedo', type=int)
@@ -572,6 +629,25 @@ class TeleopMission:
 
         cancel_task = subparsers.add_parser('cancel_task')
         cancel_task.set_defaults(func=self._handle_cancel_task)
+
+        set_eater = subparsers.add_parser('set_eater')
+        set_eater.add_argument('direction', type=float)
+        set_eater.set_defaults(func=self._handle_set_eater)
+
+        set_sphincter = subparsers.add_parser('set_sphincter')
+        set_sphincter.add_argument('strength', type=float)
+        set_sphincter.add_argument('duration', type=float)
+        set_sphincter.add_argument('--open', default=False, action="store_true")
+        set_sphincter.set_defaults(func=self._handle_set_sphincter)
+
+        open_sphincter = subparsers.add_parser('open_sphincter')
+        open_sphincter.set_defaults(func=self._handle_open_sphincter)
+
+        close_sphincter = subparsers.add_parser('close_sphincter')
+        close_sphincter.set_defaults(func=self._handle_close_sphincter)
+
+        clear_map = subparsers.add_parser('clear_map')
+        clear_map.set_defaults(func=self._handle_clear_map)
 
         return parser
 

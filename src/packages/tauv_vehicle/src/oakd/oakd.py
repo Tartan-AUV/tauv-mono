@@ -47,13 +47,12 @@ class OAKDNode:
         self._color_manip.setResize(640, 360)
         self._color_manip.setMaxOutputFrameSize(640 * 360 * 3)
 
-        self._depth.setLeftRightCheck(False)
+        self._depth.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_DENSITY)
+        self._depth.setLeftRightCheck(True)
         self._depth.setExtendedDisparity(False)
         self._depth.setSubpixel(False)
         self._depth.setOutputSize(640, 360)
         self._depth.setDepthAlign(depthai.CameraBoardSocket.RGB)
-        self._depth.setOutputSize(640, 360)
-        self._depth.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         self._depth.initialConfig.setMedianFilter(depthai.MedianFilter.KERNEL_7x7)
 
         if self._postprocess_depth:
@@ -145,7 +144,7 @@ class OAKDNode:
         self._tf_namespace = rospy.get_param('tf_namespace')
         self._frame = rospy.get_param('~frame')
         self._id = rospy.get_param('~id')
-        self._postprocess_depth = rospy.get_param('~postprocess_depth')
+        self._postprocess_depth = True
         self._fps = 10
         self._queue_size = 10
 

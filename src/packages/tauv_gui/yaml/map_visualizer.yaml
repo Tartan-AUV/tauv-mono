@@ -6,6 +6,10 @@ tags:
   - torpedo_22_trapezoid
   - buoy_23_earth_1
   - buoy_23_earth_2
+  - torpedo_24
+  - torpedo_24_octagon
+  - sample_24_coral
+  - sample_24_nautilus
 marker_types:
   frame:
     scale: 1.0
@@ -50,3 +54,17 @@ markers:
     map:
       color: [0, 1, 1]
       axis: "+z"
+  torpedo_24:
+    detection:
+      axis: "+x"
+      color: [0, 0, 1]
+    map:
+      axis: "+x"
+      color: [0, 1, 1]
+  torpedo_24_octagon:
+    detection:
+      axis: "+x"
+      color: [1, 0, 0]
+    map:
+      axis: "+x"
+      color: [1, 1, 0]

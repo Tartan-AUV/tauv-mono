@@ -29,16 +29,20 @@
     <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_front_static_publisher"
           args="0.508 0 -0.0508 1.57 0 1.57 $(arg namespace)/vehicle $(arg namespace)/oakd_front" />
 
-    <!--    11in forward, 0in right, 7in down-->
+    <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_front_base_static_publisher"
+          args="0.508 0 -0.0508 0 0 0 $(arg namespace)/vehicle $(arg namespace)/oakd_front_base" />
+
     <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_bottom_static_publisher"
-          args="0.508 0 -0.1 1.57 0 1.57 $(arg namespace)/vehicle $(arg namespace)/oakd_bottom" />
+          args="0.499 0 -0.15 1.57 0 0.279 $(arg namespace)/vehicle $(arg namespace)/oakd_bottom" />
 
-    <!--    6in forward, -2in right, 18in down-->
-    <node pkg="tf2_ros" type="static_transform_publisher" name="suction_static_publisher"
-          args="0.1524 -0.0508 0.4572 0 0 0 $(arg namespace)/vehicle $(arg namespace)/suction" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="sphincter_static_publisher"
+          args="0 0 0.25 -1.57 0 0 $(arg namespace)/oakd_bottom $(arg namespace)/sphincter" />
 
-    <node pkg="tf2_ros" type="static_transform_publisher" name="torpedo_static_publisher"
-          args="0.52 -0.15 -0.15 0 0 0 $(arg namespace)/vehicle $(arg namespace)/torpedo" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="torpedo_0_static_publisher"
+          args="0 -0.10 -0.083 0 0 0 $(arg namespace)/oakd_front_base $(arg namespace)/torpedo_0" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="torpedo_1_static_publisher"
+          args="0 -0.0935 -0.0965 0 0 0 $(arg namespace)/oakd_front_base $(arg namespace)/torpedo_1" />
 
     <!-- vehicle -> sonar transform (needs to actually be measured)-->
     <node pkg="tf2_ros" type="static_transform_publisher" name="sonar_static_publisher"

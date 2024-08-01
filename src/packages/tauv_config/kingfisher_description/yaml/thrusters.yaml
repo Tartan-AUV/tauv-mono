@@ -1,9 +1,9 @@
 maestro_port: /dev/maestro
 thruster_channels: [5, 4, 6, 0, 3, 7, 1, 2]
-servo_channels: [9, 10, 11, 12, 8, 13]
-servo_min_pwms: [700, 700, 700, 700, 700, 700]
-servo_max_pwms: [2300, 2300, 2300, 2300, 2300, 2300]
-servo_zero_pwms: [1500, 1500, 1500, 1500, 1500, 1500]
+servo_channels: [8, 9, 10, 11, 12, 13, 14, 15]
+servo_min_pwms: [700, 700, 700, 700, 700, 700, 700, 700]
+servo_max_pwms: [2300, 2300, 2300, 2300, 2300, 2300, 2300, 2300]
+servo_zero_pwms: [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500]
 
 default_battery_voltage: 16.0
 
@@ -13,7 +13,7 @@ negative_min_thrust: 1
 negative_max_thrust: 45
 positive_min_thrust: 1
 positive_max_thrust: 60
-thrust_inversions: [1, 1, 1, 1, -1, 1, -1, 1]
+thrust_inversions: [1, 1, 1, 1, -1, 1, 1, 1]
 
 # constant, voltage, voltage^2, pwm, pwm^2
 positive_thrust_coefficients: [2.179239e+02, 2.997305e+00, -4.674627e-02, -3.968255e-01, 1.520276e-04]
