@@ -57,7 +57,7 @@
         </include>
 
         <include>
-            <uri>model://gate</uri>
+            <uri>model://gate_24</uri>
             <pose>8 8 -0.1 0 0 3.14</pose>
         </include>
 
@@ -72,12 +72,12 @@
         </include>
 
         <include>
-            <uri>model://buoy_badge</uri>
+            <uri>model://buoy_24</uri>
             <pose>4 -3 -2.2 0 0 0.1</pose>
         </include>
 
         <include>
-            <uri>model://buoy_gun</uri>
+            <uri>model://buoy_24</uri>
             <pose>3.5 -4 -2.1 0 0 0.2</pose>
         </include>
 

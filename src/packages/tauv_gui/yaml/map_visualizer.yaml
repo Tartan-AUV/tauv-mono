@@ -2,14 +2,15 @@ detection_lifetime: 5.0
 map_lifetime: 100.0
 map_publish_rate: 1.0
 tags:
-  - torpedo_22_circle
-  - torpedo_22_trapezoid
-  - buoy_23_earth_1
-  - buoy_23_earth_2
   - torpedo_24
   - torpedo_24_octagon
   - sample_24_coral
   - sample_24_nautilus
+  - sample_24_worm
+  - buoy_24
+  - bin_24
+  - bin_24_red
+  - bin_24_blue
 marker_types:
   frame:
     scale: 1.0

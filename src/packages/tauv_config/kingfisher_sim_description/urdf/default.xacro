@@ -26,7 +26,7 @@
         <visual>
             <origin xyz="-0.1 0 0" rpy="0 0 1.57"/>
             <geometry>
-                <mesh filename="$(find kingfisher_sim_description)/meshes/kingfisher.dae" scale="1 1 1" />
+                <mesh filename="$(find kingfisher_sim_description)/meshes/KingfisherCoarseNoInsides.obj" scale="1 1 1" />
             </geometry>
         </visual>
 
