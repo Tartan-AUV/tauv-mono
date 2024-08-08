@@ -11,8 +11,8 @@
         <param name="tf_namespace" value="$(arg namespace)" />
 
         <include file="$(arg config_pkg)/launch/upload.launch">
-            <arg name="x" value="5" />
-            <arg name="y" value="5" />
+            <arg name="x" value="18.5" />
+            <arg name="y" value="10" />
             <arg name="namespace" value="$(arg namespace)" />
         </include>
 
