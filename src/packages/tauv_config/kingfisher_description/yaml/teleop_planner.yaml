@@ -21,6 +21,6 @@ axis_force_scales:
   pitch: -20.0
   yaw: -20.0
 axis_setpoint_scales:
-  z: 0.001
+  z: 0.010
   roll: -0.001
   pitch: -0.001
