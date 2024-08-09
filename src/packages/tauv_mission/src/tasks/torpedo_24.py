@@ -189,7 +189,7 @@ class Torpedo24(Task):
 
             print(f"close target detections: {close_target_detections}")
 
-            if len(close_target_detections) != 4:
+            if len(close_target_detections) < 4:
                 continue
 
             xy_positions = np.array([

@@ -11,10 +11,10 @@
         <param name="tf_namespace" value="$(arg namespace)" />
 
         <include file="$(arg config_pkg)/launch/upload.launch">
-            <arg name="x" value="19" />
-            <arg name="y" value="10.5" />
+            <arg name="x" value="0" />
+            <arg name="y" value="0" />
             <arg name="z" value="-0.5" />
-            <arg name="yaw" value="-1.5708" />
+            <arg name="yaw" value="0" />
             <arg name="namespace" value="$(arg namespace)" />
         </include>
 

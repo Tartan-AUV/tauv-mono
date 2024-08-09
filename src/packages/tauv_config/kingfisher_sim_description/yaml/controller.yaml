@@ -15,14 +15,14 @@ dynamics:
   mass: 28.0
 
   # m^3
-  volume: 0.028108
+  volume: 0.030
 
   # kg / m^3
   water_density: 1028.0
 
   # x, y, z in body NED
   center_of_gravity: [0.0, 0.0, 0.0]
-  center_of_buoyancy: [0.0, 0.0, 0.0]
+  center_of_buoyancy: [0.02, 0.0, 0.0]
 
   # Ixx, Iyy, Izz, Ixy, Ixz, Iyz
   moments: [1.0, 1.0, 10.0, 0.0, 0.0, 0.0]

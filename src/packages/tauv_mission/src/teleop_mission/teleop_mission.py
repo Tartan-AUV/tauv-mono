@@ -28,6 +28,7 @@ from tasks.torpedo import Torpedo as TorpedoTask
 from tasks.collect_sample import CollectSample as CollectSampleTask
 from tasks.torpedo_24 import Torpedo24 as Torpedo24Task
 from tasks.buoy_24 import CircleBuoy as CircleBuoyTask
+from tasks.approach_samples import  ApproachSamples as ApproachSamplesTask
 
 class ArgumentParserError(Exception): pass
 
@@ -445,6 +446,10 @@ class TeleopMission:
         self._task = CircleBuoyTask("buoy_24", 2.0, circle_ccw=True, waypoint_every_n_meters=0.75)
         Thread(target=self._run_task, daemon=True).start()
 
+    def _handle_approach_samples(self, args):
+        self._task = ApproachSamplesTask(["sample_24_coral", "sample_24_nautilus"])
+        Thread(target=self._run_task, daemon=True).start()
+
     def _run_task(self):
         self._task.run(self._task_resources)
         self._task = None
@@ -651,8 +656,11 @@ class TeleopMission:
         close_sphincter = subparsers.add_parser('close_sphincter')
         close_sphincter.set_defaults(func=self._handle_close_sphincter)
 
-        close_sphincter = subparsers.add_parser('circle_buoy')
-        close_sphincter.set_defaults(func=self._handle_circle_buoy)
+        circle_buoy = subparsers.add_parser('circle_buoy')
+        circle_buoy.set_defaults(func=self._handle_circle_buoy)
+
+        approach_samples = subparsers.add_parser('approach_samples')
+        approach_samples.set_defaults(func=self._handle_approach_samples)
 
         clear_map = subparsers.add_parser('clear_map')
         clear_map.set_defaults(func=self._handle_clear_map)
