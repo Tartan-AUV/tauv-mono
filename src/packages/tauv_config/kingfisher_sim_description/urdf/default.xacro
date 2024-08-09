@@ -24,7 +24,7 @@
         </inertial>
 
         <visual>
-            <origin xyz="-0.1 0 0" rpy="0 0 3.141592"/>
+            <origin xyz="0 0 0" rpy="0 0 3.141592"/>
             <geometry>
                 <mesh filename="$(find kingfisher_sim_description)/meshes/KingfisherCoarseNoInsides.obj" scale="1 1 1" />
             </geometry>
