@@ -131,7 +131,7 @@ class MotionClient:
 
         pose = start_pose @ relative_pose
 
-        self.goto(pose, params, flat=True, current_time=current_time)
+        self.goto(pose, params, flat=flat, current_time=current_time)
 
     def goto_relative_with_depth(self,
                                  relative_pose: SE2,

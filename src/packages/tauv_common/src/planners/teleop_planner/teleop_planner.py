@@ -36,7 +36,7 @@ class TeleopPlanner:
         self._parse_config()
 
         self._is_armed: bool = False
-        self._mode: Mode = Mode.FORCE
+        self._mode: Mode = Mode.AUTO
 
         self._joy_cmd: Optional[ControllerCommand] = None
         self._joy_cmd_timestamp: Optional[rospy.Time] = None
