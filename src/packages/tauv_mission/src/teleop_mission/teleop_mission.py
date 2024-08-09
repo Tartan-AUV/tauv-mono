@@ -27,6 +27,7 @@ from tasks.shoot_torpedo import ShootTorpedo as ShootTorpedoTask
 from tasks.torpedo import Torpedo as TorpedoTask
 from tasks.collect_sample import CollectSample as CollectSampleTask
 from tasks.torpedo_24 import Torpedo24 as Torpedo24Task
+from tasks.buoy_24 import CircleBuoy as CircleBuoyTask
 
 class ArgumentParserError(Exception): pass
 
@@ -439,6 +440,10 @@ class TeleopMission:
     def _handle_run_gate_task(self, args):
         self._task = GateTask()
         Thread(target=self._run_task, daemon=True).start()
+    
+    def _handle_circle_buoy(self, args):
+        self._task = CircleBuoyTask("buoy_24", 1.5, circle_ccw=True, waypoint_every_n_meters=0.75)
+        Thread(target=self._run_task, daemon=True).start()
 
     def _run_task(self):
         self._task.run(self._task_resources)
@@ -645,6 +650,9 @@ class TeleopMission:
 
         close_sphincter = subparsers.add_parser('close_sphincter')
         close_sphincter.set_defaults(func=self._handle_close_sphincter)
+
+        close_sphincter = subparsers.add_parser('circle_buoy')
+        close_sphincter.set_defaults(func=self._handle_circle_buoy)
 
         clear_map = subparsers.add_parser('clear_map')
         clear_map.set_defaults(func=self._handle_clear_map)
