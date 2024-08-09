@@ -2,7 +2,7 @@ has_torpedo: true
 has_marker: true
 has_arm: false
 has_suction: false
-has_eater: true
+has_eater: false
 has_sphincter: true
 torpedo_servo: 0
 marker_servo: 2
