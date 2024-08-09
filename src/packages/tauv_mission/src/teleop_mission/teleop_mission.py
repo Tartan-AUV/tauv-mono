@@ -277,7 +277,7 @@ class TeleopMission:
 
     def _handle_goto(self, args):
         print('goto')
-        pose = SE3.Rt(SO3.Rx(args.yaw), np.array([args.x, args.y, args.z]))
+        pose = SE3.Rt(SO3.Rx(np.deg2rad(args.yaw)), np.array([args.x, args.y, args.z]))
 
         self._motion.goto(pose)
 
@@ -290,7 +290,7 @@ class TeleopMission:
             )
         else:
             self._motion.goto_relative_with_depth(
-                SE2(args.x, args.y, args.yaw),
+                SE2(args.x, args.y, np.deg2rad(args.yaw)),
                 args.z
             )
 

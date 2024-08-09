@@ -67,6 +67,7 @@ class CircleBuoy(Task):
         vec_vehicle_to_bouy_hat = vec_vehicle_to_bouy / vec_vehicle_to_bouy_norm
         
         odom_r_goal = odom_r_vehicle + vec_vehicle_to_bouy_hat * (vec_vehicle_to_bouy_norm - self._circle_radius)
+
         
         # Final desired goal transform
         odom_t_goal = SE3.Rt(odom_R_goal, odom_r_goal)
@@ -97,7 +98,8 @@ class CircleBuoy(Task):
         circle_points = np.array([circle_fn(t) for t in eval_t_array])
 
         for odom_r_circle_point in circle_points:
-            odom_t_circle_point = SE3.Rt(odom_R_vehicle, odom_r_circle_point)
+            odom_r_circle_point_fixed_depth = np.array([odom_r_circle_point[0], odom_r_circle_point[1], 1.5])
+            odom_t_circle_point = SE3.Rt(odom_R_vehicle, odom_r_circle_point_fixed_depth)
             resources.motion.goto(odom_t_circle_point)
 
             while True:

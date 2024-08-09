@@ -11,7 +11,7 @@
 
     <link name="${ns}/base_link">
         <inertial>
-            <mass value="30"/>
+            <mass value="28"/>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <inertia
                     ixx="7"
@@ -24,7 +24,7 @@
         </inertial>
 
         <visual>
-            <origin xyz="-0.1 0 0" rpy="0 0 1.57"/>
+            <origin xyz="-0.1 0 0" rpy="0 0 3.141592"/>
             <geometry>
                 <mesh filename="$(find kingfisher_sim_description)/meshes/KingfisherCoarseNoInsides.obj" scale="1 1 1" />
             </geometry>
