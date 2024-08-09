@@ -28,7 +28,7 @@ class CircleBuoy(Task):
         self._circle_ccw = circle_ccw
         self._tag = tag # TODO: fix
 
-        arclength = 2 * np.pi * self._circle_radius / 2
+        arclength = 2 * np.pi * self._circle_radius
         waypoint_every_n_meters = waypoint_every_n_meters
         self._n_waypoints_along_circle_trajectory = int(arclength / waypoint_every_n_meters)
 
@@ -38,7 +38,8 @@ class CircleBuoy(Task):
         resources.motion.cancel()
 
         odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
-        buoy_detection = resources.map.find_closest(self._tag, odom_t_vehicle.t)
+        # buoy_detection = resources.map.find_closest(self._tag, odom_t_vehicle.t)
+        buoy_detection = resources.map.find_one(self._tag)
 
         if buoy_detection is None:
             print(">> !! BUOY NOT FOUND")
@@ -73,6 +74,7 @@ class CircleBuoy(Task):
         odom_t_goal = SE3.Rt(odom_R_goal, odom_r_goal)
 
         if vec_vehicle_to_bouy_norm > self._circle_radius:
+            print('approaching')
             resources.motion.goto(odom_t_goal)
 
             while True:
@@ -90,17 +92,34 @@ class CircleBuoy(Task):
         intersection_t = np.arctan2(odom_r_vehicle[1] - odom_r_bouy[1], odom_r_vehicle[0] - odom_r_bouy[0])
 
         if self._circle_ccw:
-            final_t= intersection_t - np.pi
+            final_t = intersection_t - 2 * np.pi
         else:
-            final_t= intersection_t + np.pi
+            final_t = intersection_t + 2 * np.pi
         
         eval_t_array = np.linspace(intersection_t, final_t, self._n_waypoints_along_circle_trajectory)
         circle_points = np.array([circle_fn(t) for t in eval_t_array])
 
+        print("STARTING CIRCLING")
+        print(f"Sub position {odom_r_vehicle}")
         for odom_r_circle_point in circle_points:
+            print('circling')
+            print(f'Buoy: {odom_r_bouy}')
+            print(f'Goal: {odom_r_circle_point}')
+            print(f'Diff norm: {np.linalg.norm(odom_r_circle_point - odom_r_bouy)}')
+            print(f'Diff vec: {odom_r_circle_point - odom_r_bouy}')
+            print()
             odom_r_circle_point_fixed_depth = np.array([odom_r_circle_point[0], odom_r_circle_point[1], 1.5])
-            odom_t_circle_point = SE3.Rt(odom_R_vehicle, odom_r_circle_point_fixed_depth)
-            resources.motion.goto(odom_t_circle_point)
+
+            odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
+            vec_vehicle_to_bouy = odom_r_bouy - odom_t_vehicle.t
+            vec_vehicle_to_bouy_planar = vec_vehicle_to_bouy * np.array([1, 1, 0])
+            vec_vehicle_to_bouy_planar /= np.linalg.norm(vec_vehicle_to_bouy_planar)
+
+            e3 = np.array([0, 0, 1])
+            odom_R_goal = np.array([vec_vehicle_to_bouy_planar, np.cross(e3, vec_vehicle_to_bouy_planar), e3]).T
+
+            odom_t_circle_point = SE3.Rt(odom_R_goal, odom_r_circle_point_fixed_depth)
+            resources.motion.goto(odom_t_circle_point, params=resources.motion.get_trajectory_params("rapid"))
 
             while True:
                 if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
@@ -108,6 +127,7 @@ class CircleBuoy(Task):
 
                 if self._check_cancel(resources): return CircleBuoyResult(CircleBuoyStatus.TIMEOUT)
 
+        print('done')
         return CircleBuoyResult(status=CircleBuoyStatus.SUCCESS)
 
     def _handle_cancel(self, resources: TaskResources):
