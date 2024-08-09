@@ -27,10 +27,10 @@ class KFIrvineSemis1(Mission):
         self._state = State.START
 
         ### START
-        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (4.57, 4.11, 0.75))
-        self._gate_t_octagon: SE3 = SE3.Rt(SO3(), (12.34, 4.11, 0))
+        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (4.11, 3.43, 0.75))
+        self._gate_t_octagon: SE3 = SE3.Rt(SO3(), (11.89, 1.37, 0))
 
-        self._wall_t_gate: SE3 = SE3.Rt(SO3(), (5.49, 0, 0))
+        self._wall_t_gate: SE3 = SE3.Rt(SO3(), (5.94, 0, 0))
 
         self._wall_t_vehicle_rear: SE3 = SE3.Rt(SO3(), (0.3048, 0, 0)) # how far rylan puts it out judged from space bw wall and back
         self._vehicle_rear_t_odom: SE3 = SE3.Rt(SO3(), (0.40, 0, 0))
@@ -62,7 +62,7 @@ class KFIrvineSemis1(Mission):
 
     def entrypoint(self) -> Optional[Task]:
         self._state = State.DIVE
-        return dive.Dive(2.0, 2, 0.0)
+        return dive.Dive(20.0, 2, 0.0)
 
     def transition(self, task: Task, task_result: TaskResult) -> Optional[Task]:
         if self._state == State.DIVE:
