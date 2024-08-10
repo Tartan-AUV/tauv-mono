@@ -21,17 +21,19 @@ class GateResult(TaskResult):
 
 class Gate(Task):
 
-    def __init__(self, course_t_gate: SE3):
+    def __init__(self, course_t_gate: SE3, gate_offset: float=2.0, gate_travel_depth: float=0.5):
         super().__init__()
 
         self._course_t_gate = course_t_gate
+        self._gate_offset = gate_offset
+        self.gate_travel_depth = gate_travel_depth
 
     def run(self, resources: TaskResources) -> GateResult:
         odom_t_course = resources.transforms.get_a_to_b('kf/odom', 'kf/course')
         odom_t_gate = odom_t_course * self._course_t_gate
 
-        gate_t_spin = SE3.Rt(SO3(), (-2, 0, 0.5))
-        gate_t_through = SE3.Rt(SO3(), (2, 0, 0.5))
+        gate_t_spin = SE3.Rt(SO3(), (-self._gate_offset, 0, self._gate_travel_depth))
+        gate_t_through = SE3.Rt(SO3(), (self._gate_offset, 0, self._gate_travel_depth))
 
         odom_t_spin = odom_t_gate * gate_t_spin
         odom_t_through = odom_t_gate * gate_t_through
