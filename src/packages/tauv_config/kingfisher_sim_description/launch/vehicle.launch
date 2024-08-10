@@ -4,6 +4,8 @@
     <arg name="show_bottom_disparity" default="false" />
     <arg name="show_bottom_color" default="false" />
 
+    <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
+
     <node
             ns="vehicle/oakd_front/stereo"
             pkg="stereo_image_proc"
@@ -25,7 +27,7 @@
         <rosparam param="approximate_sync">true</rosparam>
     </node>
 
-    <node
+    <!-- <node
         ns="vehicle/oakd_front/stereo"
         pkg="tauv_sim"
         type="disparity_to_depth"
@@ -33,6 +35,16 @@
         output="screen"
     >
         <remap from="depth" to="/kf/vehicle/oakd_front/depth/image_raw" />
+    </node> -->
+
+    <node
+        ns="vehicle/oakd_front/depth"
+        pkg="tauv_sim"
+        type="f1c_to_mono16"
+        name="f1c_to_mono16"
+        output="screen"
+    >
+        <remap from="depth" to="/camera/depth/image_raw" />
     </node>
 
     <node
@@ -43,6 +55,16 @@
         output="screen"
     >
         <remap from="depth" to="/kf/vehicle/oakd_bottom/depth/image_raw" />
+    </node>
+
+    <node
+        ns="vehicle/oakd_bottom/depth"
+        pkg="tauv_sim"
+        type="f1c_to_mono16"
+        name="f1c_to_mono16"
+        output="screen"
+    >
+        <remap from="depth" to="/camera2/depth/image_raw" />
     </node>
 
     <node

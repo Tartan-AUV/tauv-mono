@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from cameras import f1c_to_mono16
+
+if __name__ == "__main__":
+    f1c_to_mono16.main()
