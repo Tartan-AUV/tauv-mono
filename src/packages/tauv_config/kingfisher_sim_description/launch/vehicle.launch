@@ -27,12 +27,7 @@
         <rosparam param="approximate_sync">true</rosparam>
     </node>
 
-    <node pkg="nodelet" type="nodelet" name="nodelet1"
-        args="load depth_image_proc/convert_metic nodelet_manager">
-	    <remap from="/image_rect" to="/camera/depth/image_raw"/>
-    </node>
-
-    <node
+    <!-- <node
         ns="vehicle/oakd_front/stereo"
         pkg="tauv_sim"
         type="disparity_to_depth"
@@ -40,6 +35,16 @@
         output="screen"
     >
         <remap from="depth" to="/kf/vehicle/oakd_front/depth/image_raw" />
+    </node> -->
+
+    <node
+        ns="vehicle/oakd_front/depth"
+        pkg="tauv_sim"
+        type="f1c_to_mono16"
+        name="f1c_to_mono16"
+        output="screen"
+    >
+        <remap from="depth" to="/camera/depth/image_raw" />
     </node>
 
     <node
@@ -50,6 +55,16 @@
         output="screen"
     >
         <remap from="depth" to="/kf/vehicle/oakd_bottom/depth/image_raw" />
+    </node>
+
+    <node
+        ns="vehicle/oakd_bottom/depth"
+        pkg="tauv_sim"
+        type="f1c_to_mono16"
+        name="f1c_to_mono16"
+        output="screen"
+    >
+        <remap from="depth" to="/camera2/depth/image_raw" />
     </node>
 
     <node
