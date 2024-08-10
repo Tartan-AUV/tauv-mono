@@ -3,7 +3,7 @@ from spatialmath import SE3, SO3, SE2
 from math import pi
 from missions.mission import Mission
 from tasks.task import Task, TaskResult
-from tasks import dive, goto, gate, scan_rotate, yaw_roll, buoy_24, surface
+from tasks import dive, goto, gate, scan_rotate, yaw_roll, buoy_24, surface, scan_translate
 from enum import IntEnum
 
 class State(IntEnum):
@@ -16,6 +16,7 @@ class State(IntEnum):
     BUOY = 6
     GOTO_OCTAGON = 7
     OCTAGON_SURFACE = 8
+    BUOY_SCAN = 12
     OCTAGON_DIVE = 9
     OCTAGON_FACE_BUOY = 11
     FINAL_SURFACE = 10
@@ -27,8 +28,8 @@ class KFIrvineSemis1(Mission):
         self._state = State.START
 
         ### START
-        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (4.57, 4.11, 0.75))
-        self._gate_t_octagon: SE3 = SE3.Rt(SO3(), (12.34, 4.11, 0))
+        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (4.57, 3.43, 0.75))
+        self._gate_t_octagon: SE3 = SE3.Rt(SO3(), (12.34, 0.91, 0))
 
         self._wall_t_gate: SE3 = SE3.Rt(SO3(), (5.49, 0, 0))
 
@@ -62,15 +63,18 @@ class KFIrvineSemis1(Mission):
 
     def entrypoint(self) -> Optional[Task]:
         self._state = State.DIVE
-        return dive.Dive(2.0, 2, 0.0)
+        return dive.Dive(20.0, 2, 0.0)
 
     def transition(self, task: Task, task_result: TaskResult) -> Optional[Task]:
         if self._state == State.DIVE:
             if task_result.status == dive.DiveStatus.SUCCESS:
-                # self._state = State.ROLL
-                # return yaw_roll.YawRoll()
                 self._state = State.GOTO_GATE
                 return goto.Goto(self._odom_t_gate_approach_front)
+
+        # elif self._state == State.ROLL:
+        #     if task_result.status == yaw_roll.YawRollStatus.SUCCESS:
+        #         self._state = State.GOTO_GATE
+        #         return goto.Goto(self._odom_t_gate_approach_front)
 
         # elif self._state == State.ROLL:
         #     if task_result.status == yaw_roll.YawRollStatus.SUCCESS:
@@ -116,6 +120,17 @@ class KFIrvineSemis1(Mission):
             if task_result.status == buoy_24.CircleBuoyStatus.SUCCESS:
                 self._state = State.FINAL_SURFACE
                 return surface.Surface()
+            elif task_result.status == buoy_24.CircleBuoyStatus.BUOY_NOT_FOUND:
+                self._state = State.BUOY_SCAN
+                return scan_translate.ScanTranslate(self._odom_t_buoy_approach, [(-3, 0), (3, 0)])
+            elif task_result.status == buoy_24.CircleBuoyStatus.BUOY_NOT_FOUND:
+                self._state = State.BUOY_SCAN
+                return scan_translate.ScanTranslate(self._odom_t_buoy_approach, [(-3, 0), (3, 0)])
+
+        elif self._state == State.BUOY_SCAN:
+            if task_result.status == buoy_24.CircleBuoyStatus.SUCCESS:
+                self._state = State.BUOY
+                return buoy_24.CircleBuoy('buoy_24', circle_radius=2.5, waypoint_every_n_meters=0.75, circle_ccw=False)
 
         else:
             return None
