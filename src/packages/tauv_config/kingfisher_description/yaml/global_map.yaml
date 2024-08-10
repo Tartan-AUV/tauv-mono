@@ -62,6 +62,18 @@ tag_params: {
   },
   sample_24_coral: {
     expected_count: 1,
+  },
+  buoy_24: {
+    expected_count: 1,
+  },
+  bin_24: {
+    expected_count: 1,
+  },
+  bin_24_red: {
+    expected_count: 1,
+  },
+  bin_24_blue: {
+    expected_count: 1,
   }
 }
 

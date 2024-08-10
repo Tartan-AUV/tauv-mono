@@ -39,7 +39,7 @@ class CircleBuoy(Task):
         self._n_waypoints_along_circle_trajectory = int(2 * np.pi * self._circle_radius / waypoint_every_n_meters)
 
     def run(self, resources: TaskResources) -> CircleBuoyResult:
-        odom_t_course = resources.transforms.get_a_to_b('kf/odom', 'kf/course')
+        # odom_t_course = resources.transforms.get_a_to_b('kf/odom', 'kf/course')
         
         try:
             resources.map.reset()
@@ -98,6 +98,7 @@ class CircleBuoy(Task):
         for i, waypoint in enumerate(circle_waypoints):
             odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
             new_buoy_detection = resources.map.find_closest(self._tag, position=last_buoy_detection.pose.t)
+            resources.transforms.set_a_to_b('kf/odom', 'buoy/center', new_buoy_detection.pose)
             
             if new_buoy_detection is not None:
                 print(f"Buoy detections found. Updating buoy center for waypoints i > {i}/{len(circle_waypoints)}...")

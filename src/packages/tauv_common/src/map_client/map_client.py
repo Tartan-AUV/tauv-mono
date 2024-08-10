@@ -86,7 +86,7 @@ class MapClient:
             return None
 
         if not res.success:
-            rospy.logerr(f'received error from global_map/find_closest: {res.message}')
+            rospy.logerr(f'received error from global_map/find_closest')
             return None
 
         detection = MapDetection(

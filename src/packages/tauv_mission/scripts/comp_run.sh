@@ -16,7 +16,7 @@ export ROS_IP=10.0.0.10
 export ROS_MASTER_URI=http://10.0.0.10:11311
 
 # Set the session name
-MISSION_NAME="irvine_semis"
+MISSION_NAME="kf_buoy_dive_24"
 
 SESSION_NAME="TAUV_COMP"
 
