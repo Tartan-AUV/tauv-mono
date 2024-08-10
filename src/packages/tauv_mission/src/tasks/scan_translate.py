@@ -30,16 +30,16 @@ class ScanTranslate(Task):
         odom_t_start = odom_t_course * self._course_t_start
 
         for (y, z) in self._points:
-                start_t_vehicle_goal = SE3.Rt(SO3(), (0, y, z))
-                odom_t_vehicle_goal = odom_t_start * start_t_vehicle_goal
+            start_t_vehicle_goal = SE3.Rt(SO3(), (0, y, z))
+            odom_t_vehicle_goal = odom_t_start * start_t_vehicle_goal
 
-                resources.motion.goto(odom_t_vehicle_goal)
+            resources.motion.goto(odom_t_vehicle_goal)
 
-                while True:
-                    if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
-                        break
+            while True:
+                if resources.motion.wait_until_complete(timeout=rospy.Duration.from_sec(0.1)):
+                    break
 
-                    if self._check_cancel(resources): return ScanTranslateResult(ScanTranslateStatus.FAILURE)
+                if self._check_cancel(resources): return ScanTranslateResult(ScanTranslateStatus.FAILURE)
 
         return ScanTranslateResult(ScanTranslateStatus.SUCCESS)
 
