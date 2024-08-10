@@ -8,7 +8,7 @@ update_controller: true
 
 parameters:
  m:
-   initial: 28
+   initial: 35.5
    fixed: true
    min: 25
    max: 35
