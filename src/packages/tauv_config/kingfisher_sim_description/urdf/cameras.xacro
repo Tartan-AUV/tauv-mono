@@ -122,6 +122,51 @@
                 <distortionT2>${oakd_stereo_p2}</distortionT2>
             </plugin>
         </sensor>
+	
+	<sensor name="front_depth" type="depth">
+        <update_rate>10</update_rate>
+        <camera>
+	  <horizontal_fov>${oakd_color_hfov}</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <!-- <height>480</height> -->
+            <height>720</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>300</far>
+          </clip>
+        </camera>
+
+        <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
+          <baseline>0.2</baseline>
+          <alwaysOn>true</alwaysOn>
+          <!-- Keep this zero, update_rate in the parent <sensor> tag
+            will control the frame rate. -->
+          <updateRate>0.0</updateRate>
+          <cameraName>camera_ir</cameraName>
+          <imageTopicName>/camera/color/image_raw</imageTopicName>
+          <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>/camera/depth/image_raw</depthImageTopicName>
+          <depthImageCameraInfoTopicName>/camera/depth/camera_info</depthImageCameraInfoTopicName>
+          <pointCloudTopicName>/camera/depth/points</pointCloudTopicName>
+          <pointCloudCutoff>0.05</pointCloudCutoff>
+          <pointCloudCutoffMax>15.0</pointCloudCutoffMax>
+          <frameName>camera_link</frameName>
+          <distortionK1>0</distortionK1>
+          <distortionK2>0</distortionK2>
+          <distortionK3>0</distortionK3>
+          <distortionT1>0</distortionT1>
+          <distortionT2>0</distortionT2>
+          <CxPrime>0</CxPrime>
+          <Cx>0</Cx>
+          <Cy>0</Cy>
+          <focalLength>0</focalLength>
+          <hackBaseline>0</hackBaseline>
+        </plugin>
+      </sensor>
+
 
         <sensor type="camera" name="front_oakd_color">
             <camera name="front_oakd_color">
@@ -240,6 +285,50 @@
                 <distortionT2>${oakd_stereo_p2}</distortionT2>
             </plugin>
         </sensor>
+
+    <sensor name="bottom_depth" type="depth">
+        <update_rate>10</update_rate>
+        <camera>
+	  <horizontal_fov>${oakd_color_hfov}</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <!-- <height>480</height> -->
+            <height>720</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>300</far>
+          </clip>
+        </camera>
+        
+        <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
+          <baseline>0.2</baseline>
+          <alwaysOn>true</alwaysOn>
+          <!-- Keep this zero, update_rate in the parent <sensor> tag
+            will control the frame rate. -->
+          <updateRate>0.0</updateRate>
+          <cameraName>camera2_ir</cameraName>
+          <imageTopicName>/camera2/color/image_raw</imageTopicName>
+          <cameraInfoTopicName>/camera2/color/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>/camera2/depth/image_raw</depthImageTopicName>
+          <depthImageCameraInfoTopicName>/camera2/depth/camera_info</depthImageCameraInfoTopicName>
+          <pointCloudTopicName>/camera2/depth/points</pointCloudTopicName>
+          <pointCloudCutoff>0.05</pointCloudCutoff>
+          <pointCloudCutoffMax>15.0</pointCloudCutoffMax>
+          <frameName>camera2_link</frameName>
+          <distortionK1>0</distortionK1>
+          <distortionK2>0</distortionK2>
+          <distortionK3>0</distortionK3>
+          <distortionT1>0</distortionT1>
+          <distortionT2>0</distortionT2>
+          <CxPrime>0</CxPrime>
+          <Cx>0</Cx>
+          <Cy>0</Cy>
+          <focalLength>0</focalLength>
+          <hackBaseline>0</hackBaseline>
+        </plugin>
+      </sensor>
 
         <sensor type="camera" name="bottom_oakd_color">
             <camera name="bottom_oakd_color">
