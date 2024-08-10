@@ -2,8 +2,8 @@ params:
   default:
     v_max_linear: 0.5
     a_linear: 0.1
-    v_max_angular: 1.0
-    a_angular: 1.0
+    v_max_angular: 0.5
+    a_angular: 0.5
   rapid:
     v_max_linear: 0.5
     a_linear: 0.1
