@@ -36,7 +36,8 @@ class CircleBuoy(Task):
         self._tag = tag
         self._stare_timeout_s = stare_timeout_s
         self._circle_depth = circle_depth
-        
+        self._latch_buoy = latch_buoy
+
         self._n_waypoints_along_circle_trajectory = int(2 * np.pi * self._circle_radius / waypoint_every_n_meters)
 
     def run(self, resources: TaskResources) -> CircleBuoyResult:
@@ -110,7 +111,9 @@ class CircleBuoy(Task):
                 vec_last_to_new_detection = np.zeros(3)
             
             # Update circle points and go to adjusted waypoint
-            cumulative_offset += vec_last_to_new_detection
+            if not self._latch_buoy:
+                cumulative_offset += vec_last_to_new_detection
+
             adjusted_waypoint = waypoint + cumulative_offset
             
             vec_vehicle_to_adjusted_waypoint = last_buoy_detection.pose.t - adjusted_waypoint

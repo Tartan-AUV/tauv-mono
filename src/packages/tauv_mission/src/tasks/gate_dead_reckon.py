@@ -32,7 +32,7 @@ class Gate(Task):
         odom_t_gate = odom_t_course * self._course_t_gate
 
         gate_t_spin = SE3.Rt(SO3(), (-2, 0, 1.0))
-        gate_t_through = SE3.Rt(SO3(), (1, self._travel_offset_y, 1.0))
+        gate_t_through = SE3.Rt(SO3(), (0, self._travel_offset_y, 1.0))
 
         odom_t_spin = odom_t_gate * gate_t_spin
         odom_t_through = odom_t_gate * gate_t_through

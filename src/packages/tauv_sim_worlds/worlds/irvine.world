@@ -49,7 +49,7 @@
         <include>
             <uri>model://umd</uri>
             <name>ok</name>
-            <pose>10.83 -19.0 0 0 0 1.57</pose>
+            <pose>10.83 -17.0 0 0 0 1.57</pose>
         </include>
 
         <include>
@@ -59,7 +59,7 @@
 
         <include>
             <uri>model://gate_24</uri>
-            <pose>4.79 0.0 0 0 0 0</pose>
+            <pose>4.37 0.0 0 0 0 0</pose>
         </include>
 
 	<include>
@@ -70,7 +70,7 @@
 
         <include>
             <uri>model://buoy_24</uri>
-            <pose> 9.36 -4.12 -0.75 0 0 0</pose>
+            <pose> 9.18 4.12 -0.75 0 0 0</pose>
         </include>
 
         <include>
@@ -99,7 +99,7 @@
 
         <include>
             <uri>model://octagon</uri>
-            <pose>17.13 -4.12 -0.05 0 0 0</pose>
+            <pose>18.09 2.74 -0.05 0 0 0</pose>
         </include>
 
         <plugin name="sc_interface" filename="libuuv_sc_ros_interface_plugin.so"/>

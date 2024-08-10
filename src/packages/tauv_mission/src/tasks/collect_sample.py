@@ -115,9 +115,9 @@ class CollectSample(Task):
 
         rospy.sleep(5.0)
 
-        for _ in range(5):
-            resources.actuators.open_sphincter()
-            resources.actuators.close_sphincter()
+        # for _ in range(5):
+        #     resources.actuators.open_sphincter()
+        #     resources.actuators.close_sphincter()
 
         resources.actuators.open_sphincter()
 

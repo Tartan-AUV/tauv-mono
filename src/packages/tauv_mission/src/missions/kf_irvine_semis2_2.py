@@ -1,6 +1,8 @@
 from typing import Optional
 from spatialmath import SE3, SO3, SE2
 from math import pi
+
+from actuator_client import ActuatorClient
 from missions.mission import Mission
 from tasks.task import Task, TaskResult
 from tasks import dive, gate_dead_reckon, goto, goto_relative_with_depth, buoy_24, surface, buoy_24_dead_reckon
@@ -11,6 +13,7 @@ class State(IntEnum):
     START = 0
     GATE_DEAD_RECKON = 1
     GOTO_BUOY = 2
+    GOTO_TORPEDOS = 11
     SURVEY_BUOY = 9
     BUOY = 3
     GOTO_OCTAGON = 4
@@ -20,20 +23,22 @@ class State(IntEnum):
     FINAL_SURFACE = 8
 
 
-class KFIrvineSemis2(Mission):
+class KFIrvineSemis3(Mission):
 
     def __init__(self):
         self._state = State.START
 
         # Measurements in NED frame
-        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (4.80, -3.11, 0.75))
+        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (3.80, -3.11, 0.75))
         self._gate_t_octagon: SE3 = SE3.Rt(SO3(), (13.72, -2.74, 0))
+        self._gate_t_torpedo = SE3.Rt(SO3(), (9.54, -4.11, 0.9))
 
         self._wall_t_gate: SE3 = SE3.Rt(SO3(), (5.07, 0, 0))
 
         self._wall_t_vehicle_rear: SE3 = SE3.Rt(SO3(), (0.3048, 0, 0)) 
         self._vehicle_rear_t_course: SE3 = SE3.Rt(SO3(), (0.40, 0, 0))
 
+        self._actuators = ActuatorClient()
         self._wall_t_course: SE3 = self._wall_t_vehicle_rear * self._vehicle_rear_t_course
 
         # Transforms to course frame
@@ -43,7 +48,8 @@ class KFIrvineSemis2(Mission):
 
         self._course_t_buoy_approach = self._course_t_buoy * SE3.Rt(SO3.Rz(-1.57), (0, 3, 0))
         self._course_t_octagon_approach = self._course_t_octagon * SE3.Rt(SO3(), (0, 0, 0.75))
-        self._course_t_octagon_approach_face_buoy = self._course_t_octagon_approach * SE3.Rt(SO3(), (-5,0,0))
+        self._course_t_octagon_approach_face_buoy = self._course_t_octagon_approach * SE3.Rt(SO3(), (-6.86,0,0))
+        self._course_t_torpedo = self._course_t_gate * self._gate_t_torpedo
 
     def entrypoint(self) -> Optional[Task]:
         self._state = State.DIVE
@@ -58,7 +64,14 @@ class KFIrvineSemis2(Mission):
 
         elif self._state == State.GATE_DEAD_RECKON:
             if task_result.status == gate_dead_reckon.GateStatus.SUCCESS:
+                self._state = State.GOTO_TORPEDOS
+                return goto.Goto(self._course_t_torpedo, in_course=True)
+
+        elif self._state == State.GOTO_TORPEDOS:
+            if task_result.status == goto.GotoStatus.SUCCESS:
                 self._state = State.GOTO_OCTAGON
+                self._actuators.shoot_torpedo(1)
+                self._actuators.shoot_torpedo(0)
                 return goto.Goto(self._course_t_octagon_approach, in_course=True)
 
         elif self._state == State.GOTO_OCTAGON:
@@ -84,14 +97,14 @@ class KFIrvineSemis2(Mission):
         elif self._state == State.GOTO_BUOY:
             if task_result.status == goto.GotoStatus.SUCCESS:
                 self._state = State.BUOY
-                return buoy_24.CircleBuoy('buoy_24', circle_radius=1.8,
-                                                        circle_ccw=False,
-                                                        waypoint_every_n_meters=0.75,
-                                                        latch_buoy=False)
-                # return buoy_24_dead_reckon.CircleBuoyDeadReckon(self._course_t_buoy,
-                #                                                 circle_depth=0.88,
-                #                                                 n_torpedos=2,
-                #                                                 circle_radius=2.3)
+                # return buoy_24.CircleBuoy('buoy_24', circle_radius=3.0,
+                #                                         circle_ccw=False,
+                #                                         waypoint_every_n_meters=0.75,
+                #                                         latch_buoy=False)
+                return buoy_24_dead_reckon.CircleBuoyDeadReckon(self._course_t_buoy,
+                                                                circle_depth=0.88,
+                                                                n_torpedos=2,
+                                                                circle_radius=2.3)
 
         elif self._state == State.BUOY:
             if task_result.status == buoy_24.CircleBuoyStatus.SUCCESS:

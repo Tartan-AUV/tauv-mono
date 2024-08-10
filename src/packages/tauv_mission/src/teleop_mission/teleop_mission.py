@@ -445,7 +445,7 @@ class TeleopMission:
     
     def _handle_circle_buoy(self, args):
         self._task = CircleBuoyTask("buoy_24", args.radius, circle_ccw=True, waypoint_every_n_meters=0.3,
-                                    latch_buoy=args.latch_buoy)
+                                    latch_buoy=args.latch)
         Thread(target=self._run_task, daemon=True).start()
 
     def _handle_debug_depth(self, args):
@@ -663,6 +663,8 @@ class TeleopMission:
         close_sphincter.set_defaults(func=self._handle_close_sphincter)
 
         circle_buoy = subparsers.add_parser('circle_buoy')
+        circle_buoy.add_argument('radius', type=float)
+        circle_buoy.add_argument('latch', type=bool)
         circle_buoy.set_defaults(func=self._handle_circle_buoy)
 
         debug_depth = subparsers.add_parser('debug_depth')

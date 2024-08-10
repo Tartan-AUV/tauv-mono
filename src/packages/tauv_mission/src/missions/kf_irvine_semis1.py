@@ -27,7 +27,7 @@ class KFIrvineSemis1(Mission):
         self._state = State.START
 
         ### START
-        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (4.11, 3.43, 0.75))
+        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (1, 3.43, 0.75))
         self._gate_t_octagon: SE3 = SE3.Rt(SO3(), (11.89, 1.37, 0))
 
         self._wall_t_gate: SE3 = SE3.Rt(SO3(), (5.94, 0, 0))

@@ -26,7 +26,7 @@ class KFIrvineSemis2(Mission):
         self._state = State.START
 
         # Measurements in NED frame
-        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (4.80, -3.11, 0.75))
+        self._gate_t_buoy: SE3 = SE3.Rt(SO3(), (4.80, -4.11, 0.75))
         self._gate_t_octagon: SE3 = SE3.Rt(SO3(), (13.72, -2.74, 0))
 
         self._wall_t_gate: SE3 = SE3.Rt(SO3(), (5.07, 0, 0))
@@ -43,18 +43,18 @@ class KFIrvineSemis2(Mission):
 
         self._course_t_buoy_approach = self._course_t_buoy * SE3.Rt(SO3.Rz(-1.57), (0, 3, 0))
         self._course_t_octagon_approach = self._course_t_octagon * SE3.Rt(SO3(), (0, 0, 0.75))
-        self._course_t_octagon_approach_face_buoy = self._course_t_octagon_approach * SE3.Rt(SO3(), (-5,0,0))
+        self._course_t_octagon_approach_face_buoy = self._course_t_octagon_approach * SE3.Rt(SO3(), (-6.86,0,0))
 
     def entrypoint(self) -> Optional[Task]:
         self._state = State.DIVE
-        return dive.Dive(20.0, 2.0, 0.0) #TODO:FIX
+        return dive.Dive(20.0, 2.0, 0.0)
 
     def transition(self, task: Task, task_result: TaskResult) -> Optional[Task]:
         if self._state == State.DIVE:
             if task_result.status == dive.DiveStatus.SUCCESS:
                 self._state = State.GATE_DEAD_RECKON
                 return gate_dead_reckon.Gate(course_t_gate=self._course_t_gate,
-                                             travel_offset_y=0.75)
+                                             travel_offset_y=-0.75)
 
         elif self._state == State.GATE_DEAD_RECKON:
             if task_result.status == gate_dead_reckon.GateStatus.SUCCESS:
@@ -84,14 +84,13 @@ class KFIrvineSemis2(Mission):
         elif self._state == State.GOTO_BUOY:
             if task_result.status == goto.GotoStatus.SUCCESS:
                 self._state = State.BUOY
-                return buoy_24.CircleBuoy('buoy_24', circle_radius=1.8,
-                                                        circle_ccw=False,
-                                                        waypoint_every_n_meters=0.75,
-                                                        latch_buoy=False)
-                # return buoy_24_dead_reckon.CircleBuoyDeadReckon(self._course_t_buoy,
-                #                                                 circle_depth=0.88,
-                #                                                 n_torpedos=2,
-                #                                                 circle_radius=2.3)
+                # return buoy_24.CircleBuoy('buoy_24', circle_radius=3.0,
+                #                                         circle_ccw=False,
+                #                                         waypoint_every_n_meters=0.75,
+                #                                         latch_buoy=False)
+                return buoy_24_dead_reckon.CircleBuoyDeadReckon(self._course_t_buoy,
+                                                                circle_depth=0.7)
+
 
         elif self._state == State.BUOY:
             if task_result.status == buoy_24.CircleBuoyStatus.SUCCESS:

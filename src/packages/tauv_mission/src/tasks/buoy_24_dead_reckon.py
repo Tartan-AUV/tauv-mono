@@ -24,16 +24,19 @@ class CircleBuoyDeadReckon(Task):
                  circle_radius: float=1.5,
                  circle_ccw=True,
                  waypoint_every_n_meters=0.5,
-                 circle_depth=0.7):
+                 circle_depth=0.7,
+                 n_torpedos=0):
         super().__init__()
         
         self._circle_radius = circle_radius
         self._circle_ccw = circle_ccw
         self._circle_depth = circle_depth
+        self._n_torpedos = n_torpedos
 
         self._course_t_circle_center = course_t_circle_center
         
-        self._n_waypoints_along_circle_trajectory = int(2 * np.pi * self._circle_radius / waypoint_every_n_meters)
+        # self._n_waypoints_along_circle_trajectory = int(2 * np.pi * self._circle_radius / waypoint_every_n_meters)
+        self._n_waypoints_along_circle_trajectory = 4
 
     def run(self, resources: TaskResources) -> CircleBuoyDeadReckonResult:
         # Try to detect buoy and approach the circling position
@@ -75,12 +78,26 @@ class CircleBuoyDeadReckon(Task):
         
         t_circle_eval_array = np.linspace(t_intersection, t_final, self._n_waypoints_along_circle_trajectory)
         circle_waypoints = np.array([circle_fn(t) for t in t_circle_eval_array])
-        
+
+        circle_center_with_my_depth = np.array([odom_t_circle_center.t[0], odom_t_circle_center.t[1], self._circle_depth])
+        circle_waypoints = [
+            circle_center_with_my_depth + (odom_t_course * np.array([0, self._circle_radius, 0])).flatten(),
+            circle_center_with_my_depth + (odom_t_course * np.array([self._circle_radius, 0, 0])).flatten(),
+            circle_center_with_my_depth + (odom_t_course * np.array([0, -self._circle_radius, 0])).flatten(),
+            circle_center_with_my_depth + (odom_t_course * np.array([-self._circle_radius, 0, 0])).flatten(),
+            circle_center_with_my_depth + (odom_t_course * np.array([0, self._circle_radius, 0])).flatten()
+        ]
+
+
+
+        course_R_goal = SO3()
+        odom_R_goal = odom_t_course.R * course_R_goal
+
         for i, waypoint in enumerate(circle_waypoints):
             odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
             resources.transforms.set_a_to_b('kf/odom', 'buoy/center', odom_t_circle_center)
     
-            odom_t_waypoint = SE3.Rt(circling_point_orientation, waypoint)
+            odom_t_waypoint = SE3.Rt(odom_R_goal, waypoint)
 
             resources.motion.goto(odom_t_waypoint, params=resources.motion.get_trajectory_params("rapid"))
 
@@ -89,7 +106,11 @@ class CircleBuoyDeadReckon(Task):
                     break
 
                 if self._check_cancel(resources): return CircleBuoyDeadReckonResult(status=CircleBuoyDeadReckonStatus.CANCELLED)
-            
+
+            if i == 3:
+                for j in range(self._n_torpedos):
+                    resources.actuators.shoot_torpedo(j)
+
         print("Finished circling buoy")
         return CircleBuoyDeadReckonResult(status=CircleBuoyDeadReckonStatus.SUCCESS)
 
