@@ -444,7 +444,8 @@ class TeleopMission:
         Thread(target=self._run_task, daemon=True).start()
     
     def _handle_circle_buoy(self, args):
-        self._task = CircleBuoyTask("buoy_24", 2.0, circle_ccw=True, waypoint_every_n_meters=0.75)
+        self._task = CircleBuoyTask("buoy_24", args.radius, circle_ccw=True, waypoint_every_n_meters=0.3,
+                                    latch_buoy=args.latch_buoy)
         Thread(target=self._run_task, daemon=True).start()
 
     def _handle_debug_depth(self, args):

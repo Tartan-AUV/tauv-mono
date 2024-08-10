@@ -24,7 +24,7 @@ SESSION_NAME="TAUV_COMP"
 tmux new-session -d -s $SESSION_NAME -n "COMP"
 
 # Split the window into 4 equal panes
-tmux split-window -h -t $SESSION_NAME:0        # Split window vertically
+tmux split-window -h -t $SESSION_NAME:0         # Split window vertically
 tmux split-window -v -t $SESSION_NAME:0        # Split left pane horizontally
 tmux split-window -v -t $SESSION_NAME:0.2      # Split right pane horizontally
 

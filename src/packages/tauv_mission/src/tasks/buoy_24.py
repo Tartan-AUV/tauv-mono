@@ -27,7 +27,8 @@ class CircleBuoy(Task):
                  circle_ccw=True,
                  waypoint_every_n_meters=0.5,
                  stare_timeout_s=8,
-                 circle_depth=0.7):
+                 circle_depth=0.7,
+                 latch_buoy=False):
         super().__init__()
         
         self._circle_radius = circle_radius
