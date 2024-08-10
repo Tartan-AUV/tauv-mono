@@ -43,6 +43,7 @@ class CircleBuoy(Task):
         
         try:
             resources.map.reset()
+            print("Map reset for buoy_24 task")
         except rospy.ServiceException as e:
             print("Error calling map reset from buoy_24 task")
             return CircleBuoyResult(status=CircleBuoyStatus.ERROR)
