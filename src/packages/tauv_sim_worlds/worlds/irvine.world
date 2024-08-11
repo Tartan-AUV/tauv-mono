@@ -76,19 +76,19 @@
         <include>
 	    <name>table</name>
             <uri>model://table_24</uri>
-            <pose>17.13 -4.12 -3 0 0 0</pose>
+            <pose>18.09 2.74 -3 0 0 0</pose>
     	</include>
 
 	<include>
 	    <name>nautilus</name>
 	    <uri>model://sample_24_nautilus</uri>
-	    <pose>18.15 1.15 -1.4 0 0 0</pose>
+	    <pose>18.09 3 -1.2 -1.4 0 0 0</pose>
 	</include>
 
 	<include>
 	    <name>coral</name>
 	    <uri>model://sample_24_coral</uri>
-	    <pose>18 1 -1.4 0 0 0</pose>
+	    <pose>18.09 2.5 -1.2 0 0 0</pose>
 	</include>
 
 	<include>

@@ -22,6 +22,7 @@ from tasks.scan_rotate import ScanRotate as ScanRotateTask
 from tasks.scan_translate import ScanTranslate as ScanTranslateTask
 from tasks.hit_buoy import HitBuoy as HitBuoyTask
 from tasks.detect_pinger import DetectPinger as DetectPingerTask
+from tasks.barrel_roll import BarrelRoll as BarrelRollTask
 from tasks.gate import Gate as GateTask
 from tasks.shoot_torpedo import ShootTorpedo as ShootTorpedoTask
 from tasks.torpedo import Torpedo as TorpedoTask
@@ -483,6 +484,10 @@ class TeleopMission:
     def _handle_open_sphincter(self, args):
         self._actuators.open_sphincter()
 
+    def _handle_barrel_roll(self, args):
+        self._task = BarrelRollTask()
+        Thread(target=self._run_task, daemon=True).start()
+
     def _handle_close_sphincter(self, args):
         self._actuators.close_sphincter()
 
@@ -604,7 +609,10 @@ class TeleopMission:
         run_hit_buoy_task.add_argument('error_threshold', type=float)
         run_hit_buoy_task.add_argument('shoot_torpedo', type=int)
         run_hit_buoy_task.set_defaults(func=self._handle_run_hit_buoy_task)
-        
+
+        barrel_roll = subparsers.add_parser('barrel_roll')
+        barrel_roll.set_defaults(func=self._handle_barrel_roll)
+
         run_collect_sample_task = subparsers.add_parser('run_collect_sample_task')
         run_collect_sample_task.add_argument('tag', type=str)
         run_collect_sample_task.add_argument('timeout', type=float)

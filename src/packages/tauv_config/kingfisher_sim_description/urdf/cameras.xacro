@@ -52,326 +52,96 @@
     </joint>
 
     <gazebo reference="${ns}/front_oakd_link">
-        <sensor type="multicamera" name="front_oakd_stereo">
-            <camera name="front_oakd_left">
-                <pose>0 ${oakd_stereo_baseline / 2} 0 0 0 0</pose>
-                <horizontal_fov>${oakd_stereo_hfov}</horizontal_fov>
-                <image>
-                    <width>${oakd_stereo_width}</width>
-                    <height>${oakd_stereo_height}</height>
-                    <format>R8G8B8</format>
-                </image>
-                <clip>
-                  <near>0.02</near>
-                  <far>300</far>
-                </clip>
-                <noise>
-                  <type>gaussian</type>
-                  <mean>0.0</mean>
-                  <stddev>0.007</stddev>
-                </noise>
-                <distortion>
-                    <k1>${oakd_stereo_k1}</k1>
-                    <k2>${oakd_stereo_k2}</k2>
-                    <k3>${oakd_stereo_k3}</k3>
-                    <p1>${oakd_stereo_p1}</p1>
-                    <p2>${oakd_stereo_p2}</p2>
-                    <center>0.5 0.5</center>
-                </distortion>
+        <sensor name="oakd_front" type="depth">
+            <update_rate>10</update_rate>
+            <camera>
+          <horizontal_fov>${oakd_color_hfov}</horizontal_fov>
+              <image>
+                <width>640</width>
+                <height>360</height>
+                <format>R8G8B8</format>
+              </image>
+              <clip>
+                <near>0.05</near>
+                <far>300</far>
+              </clip>
+                <visualize>true</visualize>
             </camera>
 
-            <camera name="front_oakd_right">
-                <pose>0 ${-oakd_stereo_baseline / 2} 0 0 0 0</pose>
-                <horizontal_fov>${oakd_stereo_hfov}</horizontal_fov>
-                <image>
-                    <width>${oakd_stereo_width}</width>
-                    <height>${oakd_stereo_height}</height>
-                    <format>R8G8B8</format>
-                </image>
-                <clip>
-                    <near>0.02</near>
-                    <far>300</far>
-                </clip>
-                <noise>
-                    <type>gaussian</type>
-                    <mean>0.0</mean>
-                    <stddev>0.007</stddev>
-                </noise>
-                <distortion>
-                    <k1>${oakd_stereo_k1}</k1>
-                    <k2>${oakd_stereo_k2}</k2>
-                    <k3>${oakd_stereo_k3}</k3>
-                    <p1>${oakd_stereo_p1}</p1>
-                    <p2>${oakd_stereo_p2}</p2>
-                    <center>0.5 0.5</center>
-                </distortion>
-            </camera>
-
-            <plugin name="front_oakd_stereo_controller" filename="libgazebo_ros_multicamera.so">
-                <alwaysOn>true</alwaysOn>
-                <updateRate>10.0</updateRate>
-                <cameraName>vehicle/oakd_front/stereo</cameraName>
-                <imageTopicName>image_raw</imageTopicName>
-                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-                <frameName>oakd_front</frameName>
-                <hackBaseline>${oakd_stereo_baseline}</hackBaseline>
-                <distortionK1>${oakd_stereo_k1}</distortionK1>
-                <distortionK2>${oakd_stereo_k2}</distortionK2>
-                <distortionK3>${oakd_stereo_k3}</distortionK3>
-                <distortionT1>${oakd_stereo_p1}</distortionT1>
-                <distortionT2>${oakd_stereo_p2}</distortionT2>
-            </plugin>
-        </sensor>
-	
-	<sensor name="front_depth" type="depth">
-        <update_rate>10</update_rate>
-        <camera>
-	  <horizontal_fov>${oakd_color_hfov}</horizontal_fov>
-          <image>
-            <width>1280</width>
-            <!-- <height>480</height> -->
-            <height>720</height>
-            <format>R8G8B8</format>
-          </image>
-          <clip>
-            <near>0.05</near>
-            <far>300</far>
-          </clip>
-        </camera>
-
-        <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
-          <baseline>0.2</baseline>
-          <alwaysOn>true</alwaysOn>
-          <!-- Keep this zero, update_rate in the parent <sensor> tag
-            will control the frame rate. -->
-          <updateRate>0.0</updateRate>
-          <cameraName>camera_ir</cameraName>
-          <imageTopicName>/camera/color/image_raw</imageTopicName>
-          <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
-          <depthImageTopicName>/camera/depth/image_raw</depthImageTopicName>
-          <depthImageCameraInfoTopicName>/camera/depth/camera_info</depthImageCameraInfoTopicName>
-          <pointCloudTopicName>/camera/depth/points</pointCloudTopicName>
-          <pointCloudCutoff>0.05</pointCloudCutoff>
-          <pointCloudCutoffMax>3.5</pointCloudCutoffMax>
-          <frameName>camera_link</frameName>
-          <distortionK1>0</distortionK1>
-          <distortionK2>0</distortionK2>
-          <distortionK3>0</distortionK3>
-          <distortionT1>0</distortionT1>
-          <distortionT2>0</distortionT2>
-          <CxPrime>0</CxPrime>
-          <Cx>0</Cx>
-          <Cy>0</Cy>
-          <focalLength>0</focalLength>
-          <hackBaseline>0</hackBaseline>
-        </plugin>
-      </sensor>
-
-
-        <sensor type="camera" name="front_oakd_color">
-            <camera name="front_oakd_color">
-                <horizontal_fov>${oakd_color_hfov}</horizontal_fov>
-                <image>
-                    <width>${oakd_color_width}</width>
-                    <height>${oakd_color_height}</height>
-                    <format>R8G8B8</format>
-                </image>
-                <clip>
-                    <near>0.02</near>
-                    <far>300</far>
-                </clip>
-                <noise>
-                    <type>gaussian</type>
-                    <mean>0.0</mean>
-                    <stddev>0.007</stddev>
-                </noise>
-                <distortion>
-                    <k1>${oakd_color_k1}</k1>
-                    <k2>${oakd_color_k2}</k2>
-                    <k3>${oakd_color_k3}</k3>
-                    <p1>${oakd_color_p1}</p1>
-                    <p2>${oakd_color_p2}</p2>
-                    <center>0.5 0.5</center>
-                    <distortionModel>plumb_bob</distortionModel>
-                </distortion>
-            </camera>
-
-            <plugin name="front_oakd_color_controller" filename="libgazebo_ros_camera.so">
-                <alwaysOn>true</alwaysOn>
-                <updateRate>10.0</updateRate>
-                <cameraName>vehicle/oakd_front/color</cameraName>
-                <imageTopicName>image_raw</imageTopicName>
-                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-                <frameName>oakd_front</frameName>
-                <distortionK1>${oakd_color_k1}</distortionK1>
-                <distortionK2>${oakd_color_k2}</distortionK2>
-                <distortionK3>${oakd_color_k3}</distortionK3>
-                <distortionT1>${oakd_color_p1}</distortionT1>
-                <distortionT2>${oakd_color_p2}</distortionT2>
+            <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
+              <baseline>0.2</baseline>
+              <alwaysOn>true</alwaysOn>
+              <!-- Keep this zero, update_rate in the parent <sensor> tag
+                will control the frame rate. -->
+              <updateRate>0.0</updateRate>
+              <cameraName>oakd_front</cameraName>
+              <imageTopicName>/kf/vehicle/oakd_front/color/image_raw</imageTopicName>
+              <cameraInfoTopicName>/kf/vehicle/oakd_front/color/camera_info</cameraInfoTopicName>
+              <depthImageTopicName>/kf/vehicle/oakd_front/depth/image_very_raw</depthImageTopicName>
+              <depthImageCameraInfoTopicName>/kf/vehicle/oakd_front/depth/camera_info</depthImageCameraInfoTopicName>
+              <pointCloudTopicName>/kf/vehicle/oakd_front/depth/points</pointCloudTopicName>
+              <pointCloudCutoff>0.05</pointCloudCutoff>
+              <pointCloudCutoffMax>3.5</pointCloudCutoffMax>
+              <frameName>${ns}/front_oakd_link</frameName>
+              <distortionK1>0</distortionK1>
+              <distortionK2>0</distortionK2>
+              <distortionK3>0</distortionK3>
+              <distortionT1>0</distortionT1>
+              <distortionT2>0</distortionT2>
+              <CxPrime>0</CxPrime>
+              <Cx>0</Cx>
+              <Cy>0</Cy>
+              <focalLength>0</focalLength>
+              <hackBaseline>0</hackBaseline>
             </plugin>
 
-            <visualize>true</visualize>
         </sensor>
     </gazebo>
 
     <gazebo reference="${ns}/bottom_oakd_link">
-        <sensor type="multicamera" name="bottom_oakd_stereo">
-            <camera name="bottom_oakd_left">
-                <pose>0 ${oakd_stereo_baseline / 2} 0 0 0 0</pose>
-                <horizontal_fov>${oakd_stereo_hfov}</horizontal_fov>
-                <image>
-                    <width>${oakd_stereo_width}</width>
-                    <height>${oakd_stereo_height}</height>
-                    <format>R8G8B8</format>
-                </image>
-                <clip>
-                    <near>0.02</near>
-                    <far>300</far>
-                </clip>
-                <noise>
-                    <type>gaussian</type>
-                    <mean>0.0</mean>
-                    <stddev>0.007</stddev>
-                </noise>
-                <distortion>
-                    <k1>${oakd_stereo_k1}</k1>
-                    <k2>${oakd_stereo_k2}</k2>
-                    <k3>${oakd_stereo_k3}</k3>
-                    <p1>${oakd_stereo_p1}</p1>
-                    <p2>${oakd_stereo_p2}</p2>
-                    <center>0.5 0.5</center>
-                </distortion>
+        <sensor name="oakd_bottom" type="depth">
+            <update_rate>10</update_rate>
+            <camera>
+            <horizontal_fov>${oakd_color_hfov}</horizontal_fov>
+              <image>
+                <width>640</width>
+                <height>360</height>
+                <format>R8G8B8</format>
+              </image>
+              <clip>
+                <near>0.05</near>
+                <far>300</far>
+              </clip>
+                <visualize>true</visualize>
             </camera>
 
-            <camera name="bottom_oakd_right">
-                <pose>0 ${-oakd_stereo_baseline / 2} 0 0 0 0</pose>
-                <horizontal_fov>${oakd_stereo_hfov}</horizontal_fov>
-                <image>
-                    <width>${oakd_stereo_width}</width>
-                    <height>${oakd_stereo_height}</height>
-                    <format>R8G8B8</format>
-                </image>
-                <clip>
-                    <near>0.02</near>
-                    <far>300</far>
-                </clip>
-                <noise>
-                    <type>gaussian</type>
-                    <mean>0.0</mean>
-                    <stddev>0.007</stddev>
-                </noise>
-                <distortion>
-                    <k1>${oakd_stereo_k1}</k1>
-                    <k2>${oakd_stereo_k2}</k2>
-                    <k3>${oakd_stereo_k3}</k3>
-                    <p1>${oakd_stereo_p1}</p1>
-                    <p2>${oakd_stereo_p2}</p2>
-                    <center>0.5 0.5</center>
-                </distortion>
-            </camera>
-
-            <plugin name="bottom_oakd_stereo_controller" filename="libgazebo_ros_multicamera.so">
-                <alwaysOn>true</alwaysOn>
-                <updateRate>10.0</updateRate>
-                <cameraName>vehicle/oakd_bottom/stereo</cameraName>
-                <imageTopicName>image_raw</imageTopicName>
-                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-                <frameName>oakd_bottom</frameName>
-                <hackBaseline>${oakd_stereo_baseline}</hackBaseline>
-                <distortionK1>${oakd_stereo_k1}</distortionK1>
-                <distortionK2>${oakd_stereo_k2}</distortionK2>
-                <distortionK3>${oakd_stereo_k3}</distortionK3>
-                <distortionT1>${oakd_stereo_p1}</distortionT1>
-                <distortionT2>${oakd_stereo_p2}</distortionT2>
-            </plugin>
-        </sensor>
-
-    <sensor name="bottom_depth" type="depth">
-        <update_rate>10</update_rate>
-        <camera>
-	  <horizontal_fov>${oakd_color_hfov}</horizontal_fov>
-          <image>
-            <width>1280</width>
-            <!-- <height>480</height> -->
-            <height>720</height>
-            <format>R8G8B8</format>
-          </image>
-          <clip>
-            <near>0.05</near>
-            <far>300</far>
-          </clip>
-        </camera>
-        
-        <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
-          <baseline>0.2</baseline>
-          <alwaysOn>true</alwaysOn>
-          <!-- Keep this zero, update_rate in the parent <sensor> tag
-            will control the frame rate. -->
-          <updateRate>0.0</updateRate>
-          <cameraName>camera2_ir</cameraName>
-          <imageTopicName>/camera2/color/image_raw</imageTopicName>
-          <cameraInfoTopicName>/camera2/color/camera_info</cameraInfoTopicName>
-          <depthImageTopicName>/camera2/depth/image_raw</depthImageTopicName>
-          <depthImageCameraInfoTopicName>/camera2/depth/camera_info</depthImageCameraInfoTopicName>
-          <pointCloudTopicName>/camera2/depth/points</pointCloudTopicName>
-          <pointCloudCutoff>0.05</pointCloudCutoff>
-          <pointCloudCutoffMax>3.5</pointCloudCutoffMax>
-          <frameName>camera2_link</frameName>
-          <distortionK1>0</distortionK1>
-          <distortionK2>0</distortionK2>
-          <distortionK3>0</distortionK3>
-          <distortionT1>0</distortionT1>
-          <distortionT2>0</distortionT2>
-          <CxPrime>0</CxPrime>
-          <Cx>0</Cx>
-          <Cy>0</Cy>
-          <focalLength>0</focalLength>
-          <hackBaseline>0</hackBaseline>
-        </plugin>
-      </sensor>
-
-        <sensor type="camera" name="bottom_oakd_color">
-            <camera name="bottom_oakd_color">
-                <horizontal_fov>${oakd_color_hfov}</horizontal_fov>
-                <image>
-                    <width>${oakd_color_width}</width>
-                    <height>${oakd_color_height}</height>
-                    <format>R8G8B8</format>
-                </image>
-                <clip>
-                    <near>0.02</near>
-                    <far>300</far>
-                </clip>
-                <noise>
-                    <type>gaussian</type>
-                    <mean>0.0</mean>
-                    <stddev>0.007</stddev>
-                </noise>
-                <distortion>
-                    <k1>${oakd_color_k1}</k1>
-                    <k2>${oakd_color_k2}</k2>
-                    <k3>${oakd_color_k3}</k3>
-                    <p1>${oakd_color_p1}</p1>
-                    <p2>${oakd_color_p2}</p2>
-                    <center>0.5 0.5</center>
-                </distortion>
-            </camera>
-
-            <plugin name="bottom_oakd_color_controller" filename="libgazebo_ros_camera.so">
-                <alwaysOn>true</alwaysOn>
-                <updateRate>10.0</updateRate>
-                <cameraName>vehicle/oakd_bottom/color</cameraName>
-                <imageTopicName>image_raw</imageTopicName>
-                <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-                <frameName>oakd_bottom</frameName>
-                <distortionK1>${oakd_color_k1}</distortionK1>
-                <distortionK2>${oakd_color_k2}</distortionK2>
-                <distortionK3>${oakd_color_k3}</distortionK3>
-                <distortionT1>${oakd_color_p1}</distortionT1>
-                <distortionT2>${oakd_color_p2}</distortionT2>
+            <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
+              <baseline>0.2</baseline>
+              <alwaysOn>true</alwaysOn>
+              <!-- Keep this zero, update_rate in the parent <sensor> tag
+                will control the frame rate. -->
+              <updateRate>0.0</updateRate>
+              <cameraName>oakd_bottom</cameraName>
+              <imageTopicName>/kf/vehicle/oakd_bottom/color/image_raw</imageTopicName>
+              <cameraInfoTopicName>/kf/vehicle/oakd_bottom/color/camera_info</cameraInfoTopicName>
+              <depthImageTopicName>/kf/vehicle/oakd_bottom/depth/image_very_raw</depthImageTopicName>
+              <depthImageCameraInfoTopicName>/kf/vehicle/oakd_bottom/depth/camera_info</depthImageCameraInfoTopicName>
+              <pointCloudTopicName>/kf/vehicle/oakd_bottom/depth/points</pointCloudTopicName>
+              <pointCloudCutoff>0.05</pointCloudCutoff>
+              <pointCloudCutoffMax>3.5</pointCloudCutoffMax>
+              <frameName>${ns}/front_oakd_link</frameName>
+              <distortionK1>0</distortionK1>
+              <distortionK2>0</distortionK2>
+              <distortionK3>0</distortionK3>
+              <distortionT1>0</distortionT1>
+              <distortionT2>0</distortionT2>
+              <CxPrime>0</CxPrime>
+              <Cx>0</Cx>
+              <Cy>0</Cy>
+              <focalLength>0</focalLength>
+              <hackBaseline>0</hackBaseline>
             </plugin>
 
-            <visualize>true</visualize>
         </sensor>
     </gazebo>
 </robot>

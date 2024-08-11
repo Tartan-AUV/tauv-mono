@@ -2,6 +2,8 @@ import rospy
 import numpy as np
 from typing import Optional
 
+from std_srvs.srv import SetBool, SetBoolResponse
+
 from dynamics.dynamics import Dynamics
 from geometry_msgs.msg import WrenchStamped, Vector3
 from tauv_msgs.msg import ControllerCommand, NavigationState, ControllerDebug
@@ -35,6 +37,10 @@ class Controller:
             Ma=self._Ma,
         )
 
+        self._in_barrel_roll = False
+        self._total_barrel_roll_angle = 0
+        self._last_roll = 0
+
         self._build_pids()
 
         self._navigation_state_sub: rospy.Subscriber = rospy.Subscriber('gnc/navigation_state', NavigationState, self._handle_navigation_state)
@@ -43,7 +49,7 @@ class Controller:
         self._wrench_pub: rospy.Publisher = rospy.Publisher('gnc/target_wrench', WrenchStamped, queue_size=10)
         self._tune_dynamics_srv: rospy.Service = rospy.Service('gnc/tune_dynamics', TuneDynamics, self._handle_tune_dynamics)
         self._tune_controller_srv: rospy.Service = rospy.Service('gnc/tune_controller', TuneController, self._handle_tune_controller)
-
+        self._do_barrel_roll: rospy.Service = rospy.Service('gnc/do_barrel_roll', SetBool, self._handle_do_barrel_roll)
 
     def start(self):
         rospy.Timer(rospy.Duration.from_sec(self._dt), self._update)
@@ -60,6 +66,23 @@ class Controller:
         orientation = tl(state.orientation)
         euler_velocity = tl(state.euler_velocity)
         linear_velocity = tl(state.linear_velocity)
+
+        roll = orientation[0]
+
+        if self._in_barrel_roll:
+            self._total_barrel_roll_angle += abs((roll - self._last_roll + np.pi) % (2*np.pi) - np.pi)
+            print(self._total_barrel_roll_angle)
+            if abs(self._total_barrel_roll_angle) < 2 * np.pi:
+                cmd.use_setpoint_roll = False
+                cmd.use_f_roll = True
+                cmd.f_roll = -20
+
+            else:
+                self._in_barrel_roll = False
+                self._total_barrel_roll_angle = 0
+
+
+        self._last_roll = orientation[0]
 
         eta = np.concatenate((
             position,
@@ -157,6 +180,11 @@ class Controller:
 
     def _handle_controller_command(self, msg: ControllerCommand):
         self._controller_command = msg
+
+    def _handle_do_barrel_roll(self, msg):
+        self._in_barrel_roll = True
+        response = "barrel rolling"
+        return SetBoolResponse(success=True, message=response)
 
     def _handle_tune_dynamics(self, req: TuneDynamicsRequest) -> TuneDynamicsResponse:
         if req.tuning.update_mass:
