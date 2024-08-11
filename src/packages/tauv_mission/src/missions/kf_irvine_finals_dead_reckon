@@ -26,42 +26,33 @@ class State(IntEnum):
 
     # buoy
     BUOY_GOTO = 3
-    BUOY_SURVEY = 4
-    BUOY_VISION = 5
-    BUOY_DEAD_RECKON = 6
+    BUOY_DEAD_RECKON = 4
+    BUOY_CIRCLE = 5
 
     # torpedo
-    TORPEDO_GOTO = 7
-    TORPEDO_SURVEY = 8
-    TORPEDO_VISION = 9
-    TORPEDO_DEAD_RECKON = 10
+    TORPEDO_GOTO = 6
+    TORPEDO_DEAD_RECKON = 7
 
     # octagon
-    OCTAGON_GOTO = 11
-    OCTAGON_SURFACE = 12
-    OCTAGON_DIVE = 13
-    SAMPLE_SURVEY = 14
-    SAMPLE_PICKUP_VISION = 15
-    SAMPLE_PICKUP_DEAD_RECKON = 16
-    SAMPLE_DROP = 17
+    OCTAGON_GOTO = 8
+    OCTAGON_SURFACE = 9
+    OCTAGON_DIVE = 10
+    SAMPLE_PICKUP_DEAD_RECKON = 11
+    SAMPLE_DROP = 12
 
     # marker
-    MARKER_GOTO = 18
-    MARKER_SURVEY = 19
-    MARKER_VISION = 20
-    MARKER_DEAD_RECKON = 21
+    MARKER_GOTO = 13
+    MARKER_DEAD_RECKON = 24
 
     # end run
-    STYLE_GOTO = 22
-    STYLE = 23
-    FINAL_SURFACE = 24
+    STYLE_GOTO = 15
+    STYLE = 16
+    FINAL_SURFACE = 17
 
 class KFIrvineFinals(Mission):
     def __init__(self):
         # initializing
         self._state = State.START
-        self._pinger = None # used for torpedo/octagon logic: True = torpedo, False = octagon
-        self._sphincter = None # used to track open/closed state of sphincter: True = open, False = closed
         self._actuators = ActuatorClient()
 
         # transformation of coordinates to course frame
@@ -124,7 +115,8 @@ class KFIrvineFinals(Mission):
 
         elif self._state == State.TORPEDO_DEAD_RECKON:
             if task_result.status == goto.GotoStatus.SUCCESS:
-                # CALL TORPEDO DEAD RECKON TASK
+                self._actuators.shoot_torpedo(1)
+                self._actuators.shoot_torpedo(0)
                 self._state = State.OCTAGON_GOTO
                 return goto.Goto(self._course_t_octagon_approach, in_course=True)
             
@@ -136,7 +128,7 @@ class KFIrvineFinals(Mission):
             
         elif self._state == State.SAMPLE_PICKUP_DEAD_RECKON:
             if task_result.status == goto.GotoStatus.SUCCESS:
-                # CALL GRABBER DEAD RECKON TASK
+                self._actuators.close_sphincter()
                 self._state = State.OCTAGON_SURFACE
                 return goto_relative_with_depth.GotoRelativeWithDepth(SE2(), 0)
 
@@ -146,10 +138,8 @@ class KFIrvineFinals(Mission):
                 return goto.Goto(self._course_t_octagon_approach, in_course=True)
 
         elif self._state == State.OCTAGON_DIVE:
-            if task_result.status == goto.GotoStatus.SUCCESS:
-                if self._sphincter:                            # DROP
-                    self._actuators.open_sphincter()
-                    self._sphincter = False
+            if task_result.status == goto.GotoStatus.SUCCESS:     
+                self._actuators.open_sphincter()
                 self._state = State.MARKER_GOTO
                 return goto.Goto(self._course_t_marker_approach, in_course=True)
             
@@ -163,7 +153,8 @@ class KFIrvineFinals(Mission):
 
         elif self._state == State.MARKER_DEAD_RECKON:
             if task_result.status == goto.GotoStatus.SUCCESS:
-                # CALL MARKER DEAD RECKON TASK
+                self._actuators.drop_marker(0)
+                self._actuators.drop_marker(1)
                 self._state = State.BUOY_GOTO
                 return goto.Goto(self._course_t_buoy_approach, in_course=True)
             
@@ -176,7 +167,12 @@ class KFIrvineFinals(Mission):
 
         elif self._state == State.BUOY_DEAD_RECKON:
             if task_result.status == goto.GotoStatus.SUCCESS:
-                # CALL BUOY DEAD RECKON TASK
+                self._state == State.BUOY_CIRCLE
+                return buoy_24_dead_reckon.CircleBuoyDeadReckon(self._course_t_buoy, 
+                 circle_radius=1.5, circle_ccw=True, waypoint_every_n_meters=0.5, 
+                 circle_depth=0.7,n_torpedos=0)
+            
+        elif self._state == State.BUOY_CIRCLE:
                 self._state = State.STYLE_GOTO
                 return goto.Goto(self._course_t_style, in_course=True)
         
