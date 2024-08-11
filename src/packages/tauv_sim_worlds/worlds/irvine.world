@@ -49,7 +49,7 @@
         <include>
             <uri>model://umd</uri>
             <name>ok</name>
-            <pose>10.83 -17.0 0 0 0 1.57</pose>
+            <pose>10.83 -7.0 0 0 0 1.57</pose>
         </include>
 
         <include>

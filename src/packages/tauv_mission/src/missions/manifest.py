@@ -10,6 +10,7 @@ def get_mission_by_name(name: str) -> Optional[Type[Mission]]:
          "irvine_semis": missions.kf_irvine_semis1.KFIrvineSemis1,
         "kf_buoy_dive_24": missions.kf_buoy_dive_24.KFBuoyDive24,
         "irvine_semis_2": missions.kf_irvine_semis2.KFIrvineSemis2,
-        "irvine_semis_3": missions.kf_irvine_semis2_2.KFIrvineSemis3
+        "irvine_semis_3": missions.kf_irvine_semis2_2.KFIrvineSemis3,
+        "irvine_finals": missions.kf_irvine_finals_dead_reckon.KFIrvineFinals
     }
     return missions_by_name.get(name)

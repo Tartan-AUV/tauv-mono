@@ -2,19 +2,27 @@ from typing import Optional
 from spatialmath import SE3, SO3, SE2
 from math import pi
 import yaml
+import platform
 
 from actuator_client import ActuatorClient
 from missions.mission import Mission
 from missions.coordinates import Course
 from tasks.task import Task, TaskResult
-from tasks import dive, gate_dead_reckon, goto, goto_relative_with_depth, surface, buoy_24_dead_reckon
+from tasks import dive, gate_dead_reckon, goto, goto_relative_with_depth, surface, buoy_24_dead_reckon, barrel_roll
 from enum import IntEnum
 
 # variables 
 COURSE = 'finals_sample' # from irvine_24.yaml: 'finals_sample', 'finals_practice', or 'finals'
 GATE_SIDE = -1 # -1 = left, 1 = right
+# HAS TO BE CCW
 
-with open('irvine_24.yaml', 'r') as file:
+if platform.machine() == 'aarch64':
+    tauv_ros_packages_dir = "/shared/tauv_ws/src/TAUV-ROS-Packages/"
+else:
+    tauv_ros_packages_dir = "/home/gleb/catkin_ws/src/TAUV-ROS-Packages/"
+
+yaml_dir = tauv_ros_packages_dir + "src/packages/tauv_mission/src/missions/irvine_24.yaml"
+with open(yaml_dir, 'r') as file:
     data = yaml.safe_load(file)
 coords = Course(**data[COURSE])
 
@@ -29,7 +37,7 @@ class State(IntEnum):
     BUOY_DEAD_RECKON = 4
     BUOY_CIRCLE = 5
 
-    # torpedo
+    # torpedo:
     TORPEDO_GOTO = 6
     TORPEDO_DEAD_RECKON = 7
 
@@ -58,18 +66,19 @@ class KFIrvineFinals(Mission):
         # transformation of coordinates to course frame
         self._wall_t_rear: SE3 = SE3.Rt(SO3(), (coords._wall_t_rear.x, coords._wall_t_rear.y, coords._wall_t_rear.z))
         self._rear_t_course: SE3 = SE3.Rt(SO3(), (coords._rear_t_course.x, coords._rear_t_course.y, coords._rear_t_course.z))
-        self._wall_t_course: SE3 = self._wall_t_vehicle_rear * self._vehicle_rear_t_course
+        self._wall_t_course: SE3 = self._wall_t_rear * self._rear_t_course
         self._wall_t_ref: SE3 = SE3.Rt(SO3(), (coords._wall_t_ref.x, coords._wall_t_ref.y, coords._wall_t_ref.z))
         self._ref_t_gate: SE3 = SE3.Rt(SO3(), (coords._ref_t_gate.x, coords._ref_t_gate.y, coords._ref_t_gate.z))
-        self._wall_t_gate: SE3 = self._wall_t_gate * SE3.Rt(SO3.Rz(coords._ref_t_gate.deg, unit='deg'), [0, 0, 0])
+        self._wall_t_gate: SE3 = self._wall_t_ref * SE3.Rt(SO3.Rz(coords._ref_t_gate.deg, unit='deg'), [0, 0, 0])
         self._course_t_ref = self._wall_t_course.inv() * self._wall_t_ref
+
         self._course_t_gate = self._wall_t_course.inv() * self._wall_t_gate
         self._gate_offset_y = GATE_SIDE*0.75
 
         # buoy
-        self._ref_t_bouy: SE3 = SE3.Rt(SO3(), (coords._ref_t_bouy.x, coords._ref_t_bouy.y, coords._ref_t_bouy.z))
-        self._course_t_buoy = self._course_t_ref * self._ref_t_bouy
-        self._course_t_buoy_approach = self._course_t_buoy * SE3.Rt(SO3.Rz(coords._bouy_t_approach.deg), (coords._bouy_t_approach.x, coords._bouy_t_approach.y, coords._bouy_t_approach.z))
+        self._ref_t_buoy: SE3 = SE3.Rt(SO3(), (coords._ref_t_buoy.x, coords._ref_t_buoy.y, coords._ref_t_buoy.z))
+        self._course_t_buoy = self._course_t_ref * self._ref_t_buoy
+        self._course_t_buoy_approach = self._course_t_buoy * SE3.Rt(SO3.Rz(coords._buoy_t_approach.deg), (coords._buoy_t_approach.x, coords._buoy_t_approach.y, coords._buoy_t_approach.z))
 
         # torpedo
         self._ref_t_torpedo: SE3 = SE3.Rt(SO3.Rz(coords._ref_t_torpedo.deg, unit='deg'), (coords._ref_t_torpedo.x, coords._ref_t_torpedo.y, coords._ref_t_torpedo.z))
@@ -80,7 +89,7 @@ class KFIrvineFinals(Mission):
         # octagon
         self._ref_t_octagon: SE3 = SE3.Rt(SO3(), (coords._ref_t_octagon.x, coords._ref_t_octagon.y, coords._ref_t_octagon.z))
         self._course_t_octagon = self._course_t_ref * self._ref_t_octagon
-        self._course_t_octagon_approach = self._course_t_octagon * SE3.Rt(SO3.Rz(coords._octogon_t_approach.deg), (coords._octogon_t_approach.x, coords._octogon_t_approach.y, coords._octogon_t_approach.z)) 
+        self._course_t_octagon_approach = self._course_t_octagon * SE3.Rt(SO3.Rz(coords._octagon_t_approach.deg), (coords._octagon_t_approach.x, coords._octagon_t_approach.y, coords._octagon_t_approach.z)) 
 
         # marker
         self._ref_t_marker: SE3 = SE3.Rt(SO3(), (coords._ref_t_marker.x, coords._ref_t_marker.y, coords._ref_t_marker.z))
@@ -92,7 +101,8 @@ class KFIrvineFinals(Mission):
 
     def entrypoint(self) -> Optional[Task]:
         self._state = State.DIVE
-        return dive.Dive(20.0, 2.0, 0.0) 
+        dive_delay = 20.0 if platform.machine() == 'aarch64' else 1.0
+        return dive.Dive(dive_delay, 2.0, 0.0)
     
     def transition(self, task: Task, task_result: TaskResult) -> Optional[Task]:
         
@@ -110,7 +120,7 @@ class KFIrvineFinals(Mission):
         ########### TORPEDO ############
         elif self._state == State.TORPEDO_GOTO:
             if task_result.status == goto.GotoStatus.SUCCESS:
-                self._state == State.TORPEDO_DEAD_RECKON
+                self._state = State.TORPEDO_DEAD_RECKON
                 return goto.Goto(self._course_t_torpedo_approach, in_course=True)
 
         elif self._state == State.TORPEDO_DEAD_RECKON:
@@ -148,7 +158,7 @@ class KFIrvineFinals(Mission):
         ########### MARKER ############
         elif self._state == State.MARKER_GOTO:
             if task_result.status == goto.GotoStatus.SUCCESS:
-                self._state == State.MARKER_DEAD_RECKON
+                self._state = State.MARKER_DEAD_RECKON
                 return goto.Goto(self._course_t_marker_approach, in_course=True)
 
         elif self._state == State.MARKER_DEAD_RECKON:
@@ -162,15 +172,15 @@ class KFIrvineFinals(Mission):
         ########### BUOY ############
         elif self._state == State.BUOY_GOTO:
             if task_result.status == goto.GotoStatus.SUCCESS:
-                self._state == State.BUOY_DEAD_RECKON
+                self._state = State.BUOY_DEAD_RECKON
                 return goto.Goto(self._course_t_buoy_approach, in_course=True)
 
         elif self._state == State.BUOY_DEAD_RECKON:
             if task_result.status == goto.GotoStatus.SUCCESS:
-                self._state == State.BUOY_CIRCLE
+                self._state = State.BUOY_CIRCLE
                 return buoy_24_dead_reckon.CircleBuoyDeadReckon(self._course_t_buoy, 
-                 circle_radius=1.5, circle_ccw=True, waypoint_every_n_meters=0.5, 
-                 circle_depth=0.7,n_torpedos=0)
+                 circle_radius=2.5, circle_ccw=True, waypoint_every_n_meters=1.0,
+                 circle_depth=0.7, n_torpedos=0)
             
         elif self._state == State.BUOY_CIRCLE:
                 self._state = State.STYLE_GOTO

@@ -49,7 +49,7 @@
         <include>
             <uri>model://umd</uri>
             <name>ok</name>
-            <pose>10.83 -17.0 0 0 0 1.57</pose>
+            <pose>10.83 -7.0 0 0 0 1.57</pose>
         </include>
 
         <include>
@@ -59,13 +59,13 @@
 
         <include>
             <uri>model://gate_24</uri>
-            <pose>3.85 0.0 0 0 0 -0.175</pose>
+            <pose>3.85 0.0 0 0 0 0.175</pose>
         </include>
 
 	<include>
 	    <name>bin</name>
 	    <uri>model://bin_24</uri>
-	    <pose>10.97 -10.97 -2.1 0 0 1.1</pose>
+	    <pose>14.824 10.97 -3 0 0 1.1</pose>
 	</include>
 
         <include>
