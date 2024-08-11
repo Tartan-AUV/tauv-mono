@@ -7,7 +7,7 @@ from actuator_client import ActuatorClient
 from missions.mission import Mission
 from missions.coordinates import Course
 from tasks.task import Task, TaskResult
-from tasks import dive, gate_dead_reckon, goto, scan_translate, torpedo_24, collect_sample, goto_relative_with_depth, buoy_24, surface, buoy_24_dead_reckon
+from tasks import dive, gate_dead_reckon, goto, goto_relative_with_depth, surface, buoy_24_dead_reckon
 from enum import IntEnum
 
 # variables 
