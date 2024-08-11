@@ -1,0 +1,97 @@
+# course: 
+finals_sample:
+  # constants
+  _wall_t_rear:
+    x: 0.32   # length of rylan's arm
+  _rear_t_course:
+    x: 0.4    # distance from back face plate to IMU
+  _wall_t_ref:
+    x: 4.572
+  _ref_t_gate: 
+    deg: -10  # just rotational adjustment
+  # task distance in NED from ref (center of the gate): x, y, z, deg
+  _ref_t_buoy: 
+    x: 5.4864
+    y: -1.8288
+    z: 0.75   # 7ft - 3-4ft
+  _buoy_t_approach:
+    y: -2
+    deg: 90
+  _ref_t_octagon: 
+    x: 13.716
+    y: -11.8872
+  _octagon_t_approach:
+    z: 1.4
+    deg: 0
+  _ref_t_torpedo:
+    x: 10.9728
+    y: 0.9144
+    z: 0.9    # 7ft - 2-3ft
+    deg: 30
+  _torpedo_t_approach:
+    x: -0.75
+    deg: 30
+  _ref_t_marker:
+    x: 10.9728
+    y: -10.9728
+    z: 1.9812 # 7ft - 6in
+    deg: -90
+  _marker_t_approach:
+    x: 0
+    y: 0
+    z: 0
+    deg: 0
+  _gate_t_style:
+    x: 3
+    y: 0
+    z: 0
+    deg: 0
+
+finals_practice:
+  # constants
+  _wall_t_rear:
+    x: 0.32   # length of rylan's arm
+  _rear_t_course:
+    x: 0.4    # distance from back face plate to IMU
+  _wall_t_ref:
+    x: 5.49
+  _ref_t_gate:
+    deg: -0  # just rotational adjustment
+  # task distance in NED from ref (center of the gate): x, y, z, deg
+  _ref_t_buoy:
+    x: 5.21
+    y: -3.29
+    z: 0.75   # 7ft - 3-4ft
+  _buoy_t_approach:
+    y: -2
+    deg: 90
+  _ref_t_octagon:
+    x: 12.07
+    y: -10.97
+  _octagon_t_approach:
+    z: 1.4
+    deg: 0
+  _ref_t_torpedo:
+    x: 9.60
+    y: -1.1
+    z: 0.9    # 7ft - 2-3ft
+    deg: 0
+  _torpedo_t_approach:
+    x: -0.75
+    deg: 0
+  _ref_t_marker:
+    x: 6.31
+    y: -8.23
+    z: 1.9812 # 7ft - 6in
+    deg: -90
+  _marker_t_approach:
+    x: 0
+    y: 0
+    z: -0.5
+    deg: 0
+  _gate_t_style:
+    x: 2
+
+finals:
+
+

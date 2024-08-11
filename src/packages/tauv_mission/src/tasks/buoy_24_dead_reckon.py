@@ -45,18 +45,18 @@ class CircleBuoyDeadReckon(Task):
 
         odom_t_circle_center = odom_t_course * self._course_t_circle_center
 
-        vec_vehicle_to_bouy = odom_t_circle_center.t - odom_t_vehicle.t
-        vec_vehicle_to_bouy_norm = np.linalg.norm(vec_vehicle_to_bouy)
+        vec_vehicle_to_buoy = odom_t_circle_center.t - odom_t_vehicle.t
+        vec_vehicle_to_buoy_norm = np.linalg.norm(vec_vehicle_to_buoy)
 
-        if vec_vehicle_to_bouy_norm > 10.0:
-            print(f"We think buoy is > 10m (real: {vec_vehicle_to_bouy_norm : .1f} m) away")
+        if vec_vehicle_to_buoy_norm > 10.0:
+            print(f"We think buoy is > 10m (real: {vec_vehicle_to_buoy_norm : .1f} m) away")
         
-        vec_vehicle_to_bouy_hat = vec_vehicle_to_bouy / vec_vehicle_to_bouy_norm
-        circling_point_start = odom_t_circle_center.t - self._circle_radius * vec_vehicle_to_bouy_hat
-        circling_point_orientation = SO3.Rz(atan2(vec_vehicle_to_bouy[1], vec_vehicle_to_bouy[0]))
+        vec_vehicle_to_buoy_hat = vec_vehicle_to_buoy / vec_vehicle_to_buoy_norm
+        circling_point_start = odom_t_circle_center.t - self._circle_radius * vec_vehicle_to_buoy_hat
+        circling_point_orientation = SO3.Rz(atan2(vec_vehicle_to_buoy[1], vec_vehicle_to_buoy[0]))
         odom_t_circling_point = SE3.Rt(circling_point_orientation, circling_point_start)
         
-        print(f"Approach buoy from {vec_vehicle_to_bouy_norm :.2f}m away")
+        print(f"Approach buoy from {vec_vehicle_to_buoy_norm :.2f}m away")
         resources.motion.goto(odom_t_circling_point, params=resources.motion.get_trajectory_params("rapid"))
 
         while True:
@@ -81,21 +81,27 @@ class CircleBuoyDeadReckon(Task):
 
         circle_center_with_my_depth = np.array([odom_t_circle_center.t[0], odom_t_circle_center.t[1], self._circle_depth])
         circle_waypoints = [
-            circle_center_with_my_depth + (odom_t_course * np.array([0, self._circle_radius, 0])).flatten(),
-            circle_center_with_my_depth + (odom_t_course * np.array([self._circle_radius, 0, 0])).flatten(),
-            circle_center_with_my_depth + (odom_t_course * np.array([0, -self._circle_radius, 0])).flatten(),
-            circle_center_with_my_depth + (odom_t_course * np.array([-self._circle_radius, 0, 0])).flatten(),
-            circle_center_with_my_depth + (odom_t_course * np.array([0, self._circle_radius, 0])).flatten()
+            circle_center_with_my_depth + (odom_t_course * np.array([self._circle_radius, self._circle_radius, 0])).flatten(),
+            circle_center_with_my_depth + (odom_t_course * np.array([self._circle_radius, -self._circle_radius, 0])).flatten(),
+            circle_center_with_my_depth + (odom_t_course * np.array([-self._circle_radius, -self._circle_radius, 0])).flatten(),
+            circle_center_with_my_depth + (odom_t_course * np.array([-self._circle_radius, self._circle_radius, 0])).flatten(),
         ]
 
+        min_i = 0
+        min_dist = float('inf')
 
+        for i in range(4):
+            waypoint_norm = np.linalg.norm(odom_t_vehicle.t - circle_waypoints[i])
+            if waypoint_norm < min_dist:
+                min_dist = waypoint_norm
+                min_i = i
 
         course_R_goal = SO3()
         odom_R_goal = odom_t_course.R * course_R_goal
 
-        for i, waypoint in enumerate(circle_waypoints):
-            odom_t_vehicle = resources.transforms.get_a_to_b('kf/odom', 'kf/vehicle')
-            resources.transforms.set_a_to_b('kf/odom', 'buoy/center', odom_t_circle_center)
+        for j in range(5):
+            idx = (min_i + j) % 4
+            waypoint = circle_waypoints[idx]
     
             odom_t_waypoint = SE3.Rt(odom_R_goal, waypoint)
 
@@ -107,9 +113,6 @@ class CircleBuoyDeadReckon(Task):
 
                 if self._check_cancel(resources): return CircleBuoyDeadReckonResult(status=CircleBuoyDeadReckonStatus.CANCELLED)
 
-            if i == 3:
-                for j in range(self._n_torpedos):
-                    resources.actuators.shoot_torpedo(j)
 
         print("Finished circling buoy")
         return CircleBuoyDeadReckonResult(status=CircleBuoyDeadReckonStatus.SUCCESS)
