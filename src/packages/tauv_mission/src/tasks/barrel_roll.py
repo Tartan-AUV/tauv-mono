@@ -22,7 +22,7 @@ class BarrelRollResult(TaskResult):
 
 
 class BarrelRoll(Task):
-    def __init__(self, n_roll_waypoints=8):
+    def __init__(self, n_roll_waypoints=9):
         super().__init__()
 
         self._n_roll_waypoints = n_roll_waypoints
@@ -32,6 +32,7 @@ class BarrelRoll(Task):
         do_barrel_roll()
         time.sleep(4)
         do_barrel_roll()
+        time.sleep(4)
 
         return BarrelRollResult(status=BarrelRollStatus.SUCCESS)
 

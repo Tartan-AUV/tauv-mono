@@ -62,11 +62,6 @@
             <pose>3.85 0.0 0 0 0 0.175</pose>
         </include>
 
-	<include>
-	    <name>bin</name>
-	    <uri>model://bin_24</uri>
-	    <pose>14.824 10.97 -3 0 0 1.1</pose>
-	</include>
 
         <include>
             <uri>model://buoy_24</uri>

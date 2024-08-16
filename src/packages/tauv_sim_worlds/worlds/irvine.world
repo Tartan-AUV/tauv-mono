@@ -65,7 +65,7 @@
 	<include>
 	    <name>bin</name>
 	    <uri>model://bin_24</uri>
-	    <pose>13.5 -3.5 -2.1 0 0 1.1</pose>
+	    <pose>13.5 -3.5 -2.0 0 0 1.1</pose>
 	</include>
 
         <include>
