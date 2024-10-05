@@ -1,5 +1,5 @@
 # TAUV-MONO
-[![Build Status](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages.svg?token=FrwKiSXG1hQbYsyh6LNc&branch=master)](https://travis-ci.com/Tartan-AUV/TAUV-ROS-Packages)
+![build](https://github.com/Tartan-AUV/tauv-mono/.github/workflows/build.yml/badge.svg)
 
 This is the monorepo for all vehicle code, infrastructure, and tools. 
 
