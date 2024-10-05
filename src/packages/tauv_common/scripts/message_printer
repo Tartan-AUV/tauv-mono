@@ -1,5 +1,0 @@
-#!/usr/bin/env python3
-from tauv_messages import message_printer
-
-if __name__ == "__main__":
-    message_printer.main()

@@ -1,6 +1,0 @@
-# Service definition for ROS retear service --
-# Responsible for setting the world_ned -> odom_ned tf transform
-
-geometry_msgs/Pose retear_pose
----
-bool success

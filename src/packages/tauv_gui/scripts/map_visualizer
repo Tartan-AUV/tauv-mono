@@ -1,5 +1,0 @@
-#!/usr/bin/env python3
-from map_visualizer import map_visualizer
-
-if __name__ == "__main__":
-    map_visualizer.main()

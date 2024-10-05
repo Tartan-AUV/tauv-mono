@@ -1,0 +1,18 @@
+<launch>
+    <arg name="x"     default="0"/>
+    <arg name="y"     default="0"/>
+    <arg name="z"     default="-2"/>
+    <arg name="roll"  default="0"/>
+    <arg name="pitch" default="0"/>
+    <arg name="yaw"   default="1.57"/>
+    <arg name="namespace"   default="ns"/>
+
+    <!-- Toggle camera usage for easier time running sim on low-power hardware -->
+    <arg name="simulate_cameras" default="true"/> 
+
+    <param name="robot_description"
+           command="$(find xacro)/xacro '$(find kingfisher_sim_description)/urdf/default.xacro' namespace:=$(arg namespace) simulate_cameras:=$(arg simulate_cameras)" />
+
+    <node name="urdf_spawner" pkg="uuv_descriptions" type="spawn_model" respawn="false" output="screen"
+          args="-urdf -x $(arg x) -y $(arg y) -z $(arg z) -R $(arg roll) -P $(arg pitch) -Y $(arg yaw) -model $(arg namespace) -param robot_description"/>
+</launch>

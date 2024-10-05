@@ -1,0 +1,15 @@
+FROM ubuntu:20.04
+
+# Set the timezone environment variable
+ENV TZ=America/New_York
+
+# Set the DEBIAN_FRONTEND to noninteractive to avoid prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install pip and torch
+RUN apt update && apt install -y \
+    python3-pip
+
+RUN python3 -m pip install \
+    torch \
+    torchvision

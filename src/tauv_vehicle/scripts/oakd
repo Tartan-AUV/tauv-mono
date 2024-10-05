@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from oakd import oakd
+
+if __name__ == "__main__":
+    oakd.main()

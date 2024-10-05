@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+from planners.mpc_planner import mpc_planner
+
+
+if __name__ == "__main__":
+    mpc_planner.main()

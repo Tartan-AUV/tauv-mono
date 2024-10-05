@@ -1,0 +1,13 @@
+hsv_ranges:
+  - [0, 30, 10, 255, 10, 255]
+  - [150, 180, 10, 255, 10, 255]
+close_size: 5
+open_size: 5
+area_threshold: 1000
+suction_mask_width: 200
+border_mask_width: 10
+contour_approximation_factor: 0.02
+angle_threshold: 0.2
+depth_window_size: 200
+table_depth: 3
+estimate_table_depth: false

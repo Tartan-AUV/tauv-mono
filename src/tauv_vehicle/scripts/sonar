@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+
+from sonar import sonar
+
+if __name__ == "__main__":
+    sonar.main()

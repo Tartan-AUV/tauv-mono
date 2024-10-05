@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from vision.depth_estimation.depth_estimation import depth_estimation
+
+if __name__ == "__main__":
+    depth_estimation.main()

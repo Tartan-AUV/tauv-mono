@@ -1,6 +1,0 @@
-available_planners:
-    teleop:
-        topic_prefix: "teleop"
-    keyboard:
-        topic_prefix: "keyboard"
-

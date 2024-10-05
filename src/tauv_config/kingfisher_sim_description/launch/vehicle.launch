@@ -1,0 +1,66 @@
+<launch>
+    <arg name="show_front_disparity" default="false" />
+    <arg name="show_front_color" default="false" />
+    <arg name="show_bottom_disparity" default="false" />
+    <arg name="show_bottom_color" default="false" />
+
+    <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
+
+    <node
+        ns="vehicle/oakd_front/depth"
+        pkg="tauv_sim"
+        type="f1c_to_mono16"
+        name="f1c_to_mono16"
+        output="screen"
+    >
+        <remap from="input_depth" to="/kf/vehicle/oakd_front/depth/image_very_raw" />
+        <remap from="output_depth" to="/kf/vehicle/oakd_front/depth/image_raw" />
+    </node>
+
+
+    <node
+        ns="vehicle/oakd_bottom/depth"
+        pkg="tauv_sim"
+        type="f1c_to_mono16"
+        name="f1c_to_mono16"
+        output="screen"
+    >
+        <remap from="input_depth" to="/kf/vehicle/oakd_bottom/depth/image_very_raw" />
+        <remap from="output_depth" to="/kf/vehicle/oakd_bottom/depth/image_raw" />
+    </node>
+
+    <node
+        pkg="topic_tools"
+        type="relay"
+        name="oakd_front_depth_info_relay"
+        output="screen"
+        args="/kf/vehicle/oakd_front/stereo/left/camera_info /kf/vehicle/oakd_front/depth/camera_info"
+    />
+
+    <node
+            pkg="topic_tools"
+            type="relay"
+            name="oakd_bottom_depth_info_relay"
+            output="screen"
+            args="/kf/vehicle/oakd_bottom/stereo/left/camera_info /kf/vehicle/oakd_bottom/depth/camera_info"
+    />
+
+
+    <group if="$(arg show_front_color)">
+        <node pkg="image_view"
+              type="image_view"
+              name="front_color_view"
+        >
+            <remap from="image" to="/kf/vehicle/oakd_front/color/image_raw"/>
+        </node>
+    </group>
+
+    <group if="$(arg show_bottom_color)">
+        <node pkg="image_view"
+              type="image_view"
+              name="bottom_color_view"
+        >
+            <remap from="image" to="/kf/vehicle/oakd_bottom/color/image_raw"/>
+        </node>
+    </group>
+</launch>

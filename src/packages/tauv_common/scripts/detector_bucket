@@ -1,5 +1,0 @@
-#!/usr/bin/env python3
-from vision.detector_bucket.detector_bucket import detector_bucket
-
-if __name__ == "__main__":
-    detector_bucket.main()

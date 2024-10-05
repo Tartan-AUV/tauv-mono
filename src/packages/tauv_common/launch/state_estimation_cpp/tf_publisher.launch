@@ -1,6 +1,0 @@
-<launch>
-    <node pkg="tf" type="static_transform_publisher" name="odom_ned_to_odom_enu" args="0 0 0 1.57 0 3.14 odom_ned odom_enu 5"/> 
-    <node pkg="tf" type="static_transform_publisher" name="vehicle_ned_to_vehicle_enu" args="0 0 0 1.57 0 3.14 vehicle_ned vehicle_enu 5"/> 
-    <node pkg="tf" type="static_transform_publisher" name="dvl_ned_to_dvl_enu" args="0 0 0 1.57 0 3.14 dvl_ned dvl_enu 5"/> 
-    <node pkg="tf" type="static_transform_publisher" name="vehicle_ned_to_imu_ned" args="0 0 0 0 3.14 0 vehicle_ned imu_enu 5"/> 
-</launch>

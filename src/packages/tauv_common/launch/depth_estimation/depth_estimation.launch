@@ -1,6 +1,0 @@
-<launch>
-    <group ns="depth_stuff">
-        <node pkg="tauv_common" type="depth_estimation" name="depth_estimation" output ="screen">
-        </node>
-    </group>
-</launch>

@@ -1,3 +1,0 @@
-string camera_name
----
-sensor_msgs/CameraInfo camera_info

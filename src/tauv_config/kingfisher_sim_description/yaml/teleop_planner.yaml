@@ -1,0 +1,26 @@
+button_ids:
+  arm: 0
+  estop: 1
+  mode_auto: 3
+  mode_force: 2
+  hold_roll: 4
+  hold_pitch: 5
+  hold_z: 6
+axis_ids:
+  x: 4
+  y: 0
+  z: 1
+  roll: 6
+  pitch: 7
+  yaw: 3
+axis_force_scales:
+  x: 100.0
+  y: -100.0
+  z: 100.0
+  roll: -100.0
+  pitch: -100.0
+  yaw: -100.0
+axis_setpoint_scales:
+  z: 0.01
+  roll: -0.01
+  pitch: -0.01

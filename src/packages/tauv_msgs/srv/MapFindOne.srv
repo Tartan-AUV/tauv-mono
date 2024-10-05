@@ -1,4 +1,0 @@
-string tag
----
-tauv_msgs/FeatureDetection detection
-bool success

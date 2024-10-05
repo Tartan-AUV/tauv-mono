@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from accumulator import accumulator
+
+if __name__ == "__main__":
+    accumulator.main()

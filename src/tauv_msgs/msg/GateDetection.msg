@@ -1,0 +1,3 @@
+geometry_msgs/Point leftCorner
+geometry_msgs/Point rightCorner
+geometry_msgs/Point centerPoint

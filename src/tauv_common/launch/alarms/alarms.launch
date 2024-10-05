@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="tauv_common" type="alarm_server" name="alarm_server" output="screen" />
+</launch>

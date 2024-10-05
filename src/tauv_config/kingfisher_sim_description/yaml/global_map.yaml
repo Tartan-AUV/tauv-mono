@@ -1,0 +1,35 @@
+tracker_params: {
+  default: {
+    mahalanobis_threshold: 10,
+    DECAY_THRESHOLD: 0.25, #in practice should probably be around .25 but ~.6 for testing
+    matching_weights: {
+      tag_weight: 100,
+      distance_weight: 1,
+      orientation_weight: 0.2,
+      recency_weight: 0.2,
+      frequency_weight: 0.1,
+      oversaturation_penalty: 5
+    },
+    recency_weight: 0.7,
+    frequency_weight: 0.5,
+  },
+  torpedo_22_bootlegger_circle: {
+    mahalanobis_threshold: 5,
+    expected_count: 1
+  },
+  torpedo_22_bootlegger_trapezoid: {
+    mahalanobis_threshold: 5,
+    expected_count: 1
+  },
+}
+
+kalman_params: {
+  default: {
+    A: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    B: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    H: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    P: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    R: [0.001, 0, 0, 0, 0.001, 0, 0, 0, 0.001],
+    Q: [0.000001, 0, 0, 0, 0.000001, 0, 0, 0, 0.000001]
+  }
+}

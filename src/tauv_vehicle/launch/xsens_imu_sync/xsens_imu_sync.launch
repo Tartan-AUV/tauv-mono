@@ -1,0 +1,8 @@
+<launch>
+    <arg name="model_name" default="kingfisher"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+    <node pkg="tauv_vehicle" type="xsens_imu_sync" name="xsens_imu_sync" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/yaml/xsens_imu_sync.yaml" />
+    </node>
+</launch>

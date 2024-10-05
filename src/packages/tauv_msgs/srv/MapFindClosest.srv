@@ -1,5 +1,0 @@
-string tag
-geometry_msgs/Point point
----
-tauv_msgs/FeatureDetection detection
-bool success

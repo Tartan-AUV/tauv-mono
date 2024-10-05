@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from sonar_map_publisher import sonar_map_publisher
+
+if __name__ == "__main__":
+    sonar_map_publisher.main()

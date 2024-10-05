@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from depth_sensor import depth_sensor
+
+if __name__ == "__main__":
+    depth_sensor.main()

@@ -1,0 +1,7 @@
+Header header
+
+float64 state_of_charge
+float64 voltage
+float64 average_current
+float64 remaining_capacity
+float64 full_capacity
