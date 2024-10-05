@@ -1,0 +1,6 @@
+numpy
+matplotlib
+scipy
+depthai
+opencv-python
+tqdm
