@@ -1,0 +1,9 @@
+.idea
+__pycache__/
+.DS_STORE
+wandb/
+weights/
+models/
+img/
+yolo_pose/scripts/out/
+*.pyc

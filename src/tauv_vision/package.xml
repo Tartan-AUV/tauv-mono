@@ -1,0 +1,9 @@
+<package format="2">
+  <name>tauv_vision</name>
+  <version>0.0.0</version>
+  <description>
+    Vision code for TartanAUV
+  </description>
+  <maintainer email="theo@chemel.net">Theo Chemel</maintainer>
+  <license>Apache-2.0</license>
+</package>
