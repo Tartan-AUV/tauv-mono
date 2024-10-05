@@ -1,5 +1,4 @@
 *cmake-build-debug*
-*.idea*
 *.pyc
 *.o
 *.swp
