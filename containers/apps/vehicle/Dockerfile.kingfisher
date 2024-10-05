@@ -1,0 +1,61 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+# Install vehicle-specific libraries
+RUN apt-get update && \
+    apt-mark hold libopencv libopencv-core4.2 libopencv-dev && \ 
+    sudo apt-get install -y \
+    gstreamer1.0-tools \
+    gstreamer1.0-alsa \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-libav \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-good1.0-dev && \
+    apt-mark unhold libopencv libopencv-core4.2 libopencv-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && apt-get install -y \
+    libjpeg-dev \
+    zlib1g-dev \
+    libpython3-dev \
+    libopenblas-dev \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# install cv bridge (todo: copied over from orin-base, why this complicated)
+RUN mkdir -p cv_bridge_ws/src && \
+    cd cv_bridge_ws/src && \
+    git clone --recursive https://github.com/ros-perception/vision_opencv.git && \
+    cd vision_opencv && \
+    git checkout noetic
+
+SHELL ["/bin/bash", "-c"]  # todo: move up
+
+RUN cd cv_bridge_ws && \
+    source /opt/ros/noetic/setup.bash && \
+    catkin config --install --install-space /opt/tauv/packages && \
+    catkin build cv_bridge -DCMAKE_BUILD_TYPE=Release && \
+    source /opt/tauv/packages/setup.bash
+
+# this is sus, but pip install depthai-sdk doesn't work
+RUN python3 -m pip install --extra-index-url https://artifacts.luxonis.com/artifactory/luxonis-python-snapshot-local/ depthai
+
+RUN apt-get update && apt-get install -y \
+    ros-noetic-rosserial-python
+
+RUN echo 'source /opt/ros/noetic/setup.bash' >> /root/.bashrc
+RUN echo 'source /opt/tauv/packages/setup.bash' >> /root/.bashrc
+RUN echo 'source /shared/tauv_ws/devel/setup.bash' >> /root/.bashrc
+
+WORKDIR /
+
+CMD ["tail", "-f", "/dev/null"]

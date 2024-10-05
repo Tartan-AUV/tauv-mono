@@ -1,0 +1,89 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+
+# install bootstrap tools
+RUN apt update && apt install -y \
+    curl \
+    gnupg \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# bootstrap rosdep
+RUN rm -rf /etc/ros/rosdep/sources.list.d/20-default.list
+
+# install ros packages
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros-latest.list'
+RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add -
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ros-noetic-ros-base=1.5.0-1* \
+    ros-noetic-gazebo-ros-control \
+    ros-noetic-fkie-multimaster \
+    ros-noetic-imu-transformer \
+    ros-noetic-jsk-recognition-msgs \
+    ros-noetic-vision-msgs \
+    ros-noetic-phidgets-ik \
+    ros-noetic-imu-filter-madgwick \
+    ros-noetic-image-transport \
+    ros-noetic-robot-localization \
+    ros-noetic-catkin \
+    ros-noetic-xacro \
+    python3-catkin-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# install random stuff
+RUN sudo apt-get update && apt-get install -y \
+	autoconf \
+	bc \
+	build-essential \
+	g++-8 \
+	gcc-8 \
+	clang-8 \
+	lld-8 \
+	gettext-base \
+	gfortran-8 \
+	iputils-ping \
+	libbz2-dev \
+	libc++-dev \
+	libcgal-dev \
+	libffi-dev \
+	libfreetype6-dev \
+	libhdf5-dev \
+	libjpeg-dev \
+	liblzma-dev \
+	libncurses5-dev \
+	libncursesw5-dev \
+	libpng-dev \
+	libreadline-dev \
+	libssl-dev \
+	libsqlite3-dev \
+	libxml2-dev \
+	libxslt-dev \
+	locales \
+	moreutils \
+	openssl \
+	python-openssl \
+	rsync \
+	scons \  
+	libopenblas-dev \
+    libi2c-dev \
+    cmake \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get clean && apt-get autoremove -y
+
+RUN python3 -m pip install --upgrade numpy
+
+# install python packages
+RUN python3 -m pip install \
+    numpy \
+    scipy \
+    bitstring \
+    smbus2 \
+    grpcio-tools \
+    Pillow \
+    matplotlib \
+    spatialmath-python \
+    aiohttp \
+    protobuf
+

@@ -1,0 +1,19 @@
+FROM dorowu/ubuntu-desktop-lxde-vnc:focal
+
+# Set the timezone environment variable
+ENV TZ=America/New_York
+
+# Set the DEBIAN_FRONTEND to noninteractive to avoid prompts
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Remove unsigned repo
+RUN sed -i '/http:\/\/dl.google.com\/linux\/chrome\/deb/d' /etc/apt/sources.list /etc/apt/sources.list.d/*.list
+
+
+# Install pip and torch
+RUN apt update && apt install -y \
+    python3-pip
+
+RUN python3 -m pip install \
+    torch==2.0.* \
+    torchvision==0.14.1 
