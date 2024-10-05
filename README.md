@@ -1,5 +1,5 @@
 # TAUV-MONO
-![build](https://github.com/Tartan-AUV/tauv-mono/actions/workflows/build.yml/badge.svg)
+![build](https://github.com/Tartan-AUV/tauv-mono/actions/workflows/build.yaml/badge.svg)
 
 This is the monorepo for all vehicle code, infrastructure, and tools. 
 
