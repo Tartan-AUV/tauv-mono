@@ -18,6 +18,6 @@ RUN echo 'source /shared/tauv_ws/devel/setup.bash' >> /root/.bashrc
 
 
 # ENTYPOINT
-COPY entrypoint-workstation.sh /entrypoint.sh
+COPY apps/surface/entrypoint-workstation.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash"]
