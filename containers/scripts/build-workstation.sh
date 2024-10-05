@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# todo: TAG IMAGES WITH COMMIT HASH
+
 set -e
 
 if [ -n "$GITHUB_WORKSPACE" ]; then
