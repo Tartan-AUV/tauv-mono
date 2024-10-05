@@ -1,5 +1,5 @@
 import rospy
-from src.tauv_common.src.motion.trajectories.trajectories import TrajectoryStatus, Trajectory
+from motion.trajectories.trajectories import TrajectoryStatus, Trajectory
 
 from tauv_msgs.srv import GetTrajectoryResponse, GetTrajectoryRequest
 from geometry_msgs.msg import Pose, Vector3, Quaternion, Point, Twist, PoseStamped
@@ -11,9 +11,9 @@ from collections import Iterable
 from tauv_util.types import tl, tm
 
 # imports for optimal spline lib:
-from src.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalTrajectory import OptimalTrajectory
-from src.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalSplineGen import Waypoint, compute_min_derivative_spline
-from src.tauv_common.src.motion.trajectories.python_optimal_splines.TrajectoryWaypoint import TrajectoryWaypoint
+from motion.trajectories.python_optimal_splines.OptimalTrajectory import OptimalTrajectory
+from motion.trajectories.python_optimal_splines.OptimalSplineGen import Waypoint, compute_min_derivative_spline
+from motion.trajectories.python_optimal_splines.TrajectoryWaypoint import TrajectoryWaypoint
 
 # math
 from math import sin, cos, atan2, sqrt, ceil

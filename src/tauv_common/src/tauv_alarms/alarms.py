@@ -6,7 +6,7 @@
 # 
 # Generated on Tue Nov  8 01:06:09 2022
 
-from src.tauv_common.src.tauv_alarms.alarm_util import AlarmMeta, AlarmType, FailureLevel
+from tauv_alarms.alarm_util import AlarmMeta, AlarmType, FailureLevel
 
 class Alarm(metaclass=AlarmMeta):
     UNKNOWN_ALARMS = AlarmType(

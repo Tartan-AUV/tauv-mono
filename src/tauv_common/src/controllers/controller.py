@@ -12,7 +12,13 @@ from tauv_util.types import tl, tm
 from tauv_util.pid import PID, pi_clip
 from tauv_util.transforms import euler_velocity_to_axis_velocity
 
+
+
 from tauv_alarms import Alarm, AlarmClient
+
+import sys
+print("PATHS PATHS PATHS")
+print("\n".join(sys.path))
 
 
 class Controller:

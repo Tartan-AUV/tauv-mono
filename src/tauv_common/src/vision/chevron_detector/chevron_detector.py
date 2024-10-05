@@ -11,7 +11,7 @@ from tauv_msgs.msg import FeatureDetections, FeatureDetection
 from tauv_util.transforms import tf2_transform_to_homogeneous, tf2_transform_to_quat, multiply_quat, quat_to_rpy
 from geometry_msgs.msg import Point, Quaternion
 from math import cos, sin
-from src.tauv_common.src.vision.chevron_detector.chevron_detector_processing import *
+from vision.chevron_detector.chevron_detector_processing import *
 from scipy.spatial.transform import Rotation
 
 

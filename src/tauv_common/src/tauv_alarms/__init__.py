@@ -1,2 +1,2 @@
-from src.tauv_common.src.tauv_alarms.alarm_client import AlarmClient
-from src.tauv_common.src.tauv_alarms.alarms import Alarm
+from tauv_alarms.alarm_client import AlarmClient
+from tauv_alarms.alarms import Alarm

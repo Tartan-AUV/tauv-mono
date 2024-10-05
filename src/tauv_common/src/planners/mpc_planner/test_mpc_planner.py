@@ -10,7 +10,7 @@ from tauv_msgs.srv import GetTrajRequest, GetTrajResponse
 from tauv_util.types import tl, tm
 from tauv_util.transforms import rpy_to_quat
 
-from src.tauv_common.src.planners.mpc_planner.mpc_planner import MPCPlanner
+from planners.mpc_planner.mpc_planner import MPCPlanner
 
 
 class TestMPCPlanner(unittest.TestCase):

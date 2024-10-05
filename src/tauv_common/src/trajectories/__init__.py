@@ -1,2 +1,2 @@
-from src.tauv_common.src.trajectories.trajectory import Trajectory
-from src.tauv_common.src.trajectories.constant_acceleration_trajectory import ConstantAccelerationTrajectory, ConstantAccelerationTrajectoryParams
+from trajectories.trajectory import Trajectory
+from trajectories.constant_acceleration_trajectory import ConstantAccelerationTrajectory, ConstantAccelerationTrajectoryParams

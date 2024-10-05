@@ -1,1 +1,1 @@
-from src.tauv_common.src.map_client.map_client import MapClient
+from map_client.map_client import MapClient

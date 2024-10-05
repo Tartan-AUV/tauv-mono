@@ -1,5 +1,5 @@
 import unittest
-from tauv_common.src.planners.mpc_planner.mpc import MPC
+from planners.mpc_planner.mpc import MPC
 import numpy as np
 
 

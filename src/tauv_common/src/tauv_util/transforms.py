@@ -4,8 +4,7 @@ from geometry_msgs.msg import Pose, Twist, Vector3, Quaternion
 from scipy.spatial.transform import Rotation
 import tf2_ros as tf2
 
-from src.tauv_common.src.tauv_util.types import tl, tm
-
+from tauv_util.types import tl, tm
 
 def quat_to_rpy(orientation: Quaternion) -> np.array:
     return np.flip(Rotation.from_quat(tl(orientation)).as_euler('ZYX'))

@@ -7,7 +7,7 @@ import numpy as np
 from numpy import NaN
 from skspatial.objects import Plane, Line
 from scipy.spatial.transform import Rotation
-from src.tauv_common.src.vision.shape_detector.adaptive_color_thresholding import get_adaptive_color_thresholding, GetAdaptiveColorThresholdingParams
+from vision.shape_detector.adaptive_color_thresholding import get_adaptive_color_thresholding, GetAdaptiveColorThresholdingParams
 
 import math
 import itertools
