@@ -33,5 +33,5 @@ jobs:
         run: |
           docker run \
             -v  ${{ github.workspace }}:/catkin_ws \
-            tauv/x86-nvidia-ci:e1bd9d8 \
+            tauv/x86-nvidia-ci:${{ COMMIT_HASH }} \
             /bin/bash -c "source /opt/ros/noetic/setup.bash && cd catkin_ws && catkin build"
