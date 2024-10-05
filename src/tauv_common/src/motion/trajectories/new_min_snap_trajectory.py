@@ -11,11 +11,11 @@ from tauv_msgs.srv import GetTrajectoryRequest, GetTrajectoryResponse
 from tauv_util.types import tl, tm
 from tauv_util.transforms import quat_to_rpy, rpy_to_quat, twist_world_to_body, twist_body_to_world
 
-from .pyscurve import ScurvePlanner, Trajectory as ScurveTrajectory
-from .trajectories import Trajectory, TrajectoryStatus
-from .python_optimal_splines.OptimalTrajectory import OptimalTrajectory
-from .python_optimal_splines.OptimalSplineGen import Waypoint, compute_min_derivative_spline
-from .python_optimal_splines.TrajectoryWaypoint import TrajectoryWaypoint
+from src.packages.tauv_common.src.motion.trajectories.pyscurve import ScurvePlanner, Trajectory as ScurveTrajectory
+from src.packages.tauv_common.src.motion.trajectories.trajectories import Trajectory, TrajectoryStatus
+from src.packages.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalTrajectory import OptimalTrajectory
+from src.packages.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalSplineGen import Waypoint, compute_min_derivative_spline
+from src.packages.tauv_common.src.motion.trajectories.python_optimal_splines.TrajectoryWaypoint import TrajectoryWaypoint
 
 class NewMinSnapTrajectory(Trajectory):
 

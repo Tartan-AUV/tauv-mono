@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
-from .PSO import *
+from src.packages.tauv_common.src.vision.debluer.PSO import *
 
 # shows histogram of all 3 channels 
 def color_hist(img):

@@ -1,7 +1,7 @@
 import logging
 import os
-from .scurve import ScurvePlanner
-from .trajectory import Trajectory, plot_trajectory
+from src.packages.tauv_common.src.motion.trajectories.pyscurve.pyscurve.scurve import ScurvePlanner
+from src.packages.tauv_common.src.motion.trajectories.pyscurve.pyscurve.trajectory import Trajectory, plot_trajectory
 
 
 DEBUG = False

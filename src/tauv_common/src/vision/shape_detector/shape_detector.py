@@ -12,11 +12,11 @@ from tauv_util.cameras import CameraIntrinsics, CameraDistortion
 import message_filters
 from transform_client import TransformClient
 from spatialmath import SE3
-from .circle_detection import GetCirclePosesParams, get_circle_poses
-from .path_marker_detection import GetPathMarkerPosesParams, get_path_marker_poses
-from .chevron_detection import GetChevronPosesParams, get_chevron_poses
-from .lid_detection import GetLidPosesParams, get_lid_poses
-from .adaptive_color_thresholding import GetAdaptiveColorThresholdingParams, get_adaptive_color_thresholding
+from src.packages.tauv_common.src.vision.shape_detector.circle_detection import GetCirclePosesParams, get_circle_poses
+from src.packages.tauv_common.src.vision.shape_detector.path_marker_detection import GetPathMarkerPosesParams, get_path_marker_poses
+from src.packages.tauv_common.src.vision.shape_detector.chevron_detection import GetChevronPosesParams, get_chevron_poses
+from src.packages.tauv_common.src.vision.shape_detector.lid_detection import GetLidPosesParams, get_lid_poses
+from src.packages.tauv_common.src.vision.shape_detector.adaptive_color_thresholding import GetAdaptiveColorThresholdingParams, get_adaptive_color_thresholding
 
 
 class ShapeDetector:

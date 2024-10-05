@@ -1,3 +1,0 @@
-[submodule "src/packages/tauv_vision"]
-	path = src/packages/tauv_vision
-	url = git@github.com:Tartan-AUV/TAUV-Vision.git

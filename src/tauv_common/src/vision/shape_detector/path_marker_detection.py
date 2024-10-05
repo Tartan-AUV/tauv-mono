@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Optional
 from math import pi, atan2
 
-from .contour_filtering import filter_contours_by_bbox
+from src.packages.tauv_common.src.vision.shape_detector.contour_filtering import filter_contours_by_bbox
 from tauv_util.cameras import CameraIntrinsics
 
 

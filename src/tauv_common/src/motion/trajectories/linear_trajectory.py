@@ -7,8 +7,8 @@ from tauv_msgs.srv import GetTrajectoryRequest, GetTrajectoryResponse
 from tauv_util.types import tl, tm
 from tauv_util.transforms import linear_distance, yaw_distance, quat_to_rpy, rpy_to_quat, twist_world_to_body, twist_body_to_world
 
-from .trajectories import Trajectory, TrajectoryStatus
-from .pyscurve import ScurvePlanner
+from src.packages.tauv_common.src.motion.trajectories.trajectories import Trajectory, TrajectoryStatus
+from src.packages.tauv_common.src.motion.trajectories.pyscurve import ScurvePlanner
 
 
 class Waypoint:

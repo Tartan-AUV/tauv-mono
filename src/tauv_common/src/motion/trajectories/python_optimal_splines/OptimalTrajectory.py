@@ -1,8 +1,8 @@
-from . import OptimalSplineGen
+from src.packages.tauv_common.src.motion.trajectories.python_optimal_splines import OptimalSplineGen
 import numpy as np
 import scipy.optimize
 from math import factorial, sqrt
-from . import OptimalMultiSplineGen
+from src.packages.tauv_common.src.motion.trajectories.python_optimal_splines import OptimalMultiSplineGen
 
 
 class OptimalTrajectory:
