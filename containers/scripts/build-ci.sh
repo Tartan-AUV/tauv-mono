@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [ -n "$GITHUB_WORKSPACE" ]; then
   # If inside GitHub Actions, use GITHUB_WORKSPACE as the repo root
   REPO_ROOT="$GITHUB_WORKSPACE"
