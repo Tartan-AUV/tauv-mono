@@ -2,5 +2,9 @@ ARG BASE_IMAGE
 
 FROM ${BASE_IMAGE}
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-noetic-desktop-full=1.5.0-1* \
+    && rm -rf /var/lib/apt/lists/*
+
 SHELL ["/bin/bash", "-c"]
 RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
