@@ -4,8 +4,8 @@ import cv2
 from dataclasses import dataclass
 from typing import Optional
 
-from src.packages.tauv_common.src.vision.shape_detector.contour_filtering import filter_contours_by_bbox, filter_contours_by_defects, fit_ellipse_contour
-from src.packages.tauv_common.src.vision.shape_detector.plane_fitting import fit_plane
+from src.tauv_common.src.vision.shape_detector.contour_filtering import filter_contours_by_bbox, filter_contours_by_defects, fit_ellipse_contour
+from src.tauv_common.src.vision.shape_detector.plane_fitting import fit_plane
 from tauv_util.cameras import CameraIntrinsics
 
 

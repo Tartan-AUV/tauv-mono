@@ -1,5 +1,5 @@
-from src.packages.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalTrajectory import OptimalTrajectory
-from src.packages.tauv_common.src.motion.trajectories.python_optimal_splines.TrajectoryWaypoint import TrajectoryWaypoint
+from src.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalTrajectory import OptimalTrajectory
+from src.tauv_common.src.motion.trajectories.python_optimal_splines.TrajectoryWaypoint import TrajectoryWaypoint
 import numpy as np
 from scipy.spatial.transform import Rotation
 from nav_msgs.msg import Path

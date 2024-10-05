@@ -9,7 +9,7 @@ from tauv_util.types import tl, tm
 from tauv_util.transforms import quat_to_rpy, rpy_to_quat, twist_body_to_world, twist_world_to_body
 from scipy.spatial.transform import Rotation
 
-from src.packages.tauv_common.src.planners.mpc_planner.mpc.mpc import MPC
+from src.tauv_common.src.planners.mpc_planner.mpc.mpc import MPC
 
 from tauv_alarms import Alarm, AlarmClient
 

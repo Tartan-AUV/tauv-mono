@@ -1,7 +1,7 @@
 import rospy
 
-from src.packages.tauv_common.src.tauv_alarms.alarm_util import AlarmType, FailureLevel
-from src.packages.tauv_common.src.tauv_alarms.alarms import Alarm
+from src.tauv_common.src.tauv_alarms.alarm_util import AlarmType, FailureLevel
+from src.tauv_common.src.tauv_alarms.alarms import Alarm
 from tauv_msgs.msg import AlarmReport, AlarmWithMessage, ReadableAlarmReport
 from tauv_msgs.srv import SyncAlarms
 from threading import Lock

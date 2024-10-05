@@ -3,7 +3,7 @@ from math import factorial
 import osqp
 from scipy import sparse
 
-from src.packages.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalSpline import OptimalSpline
+from src.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalSpline import OptimalSpline
 
 
 # This code is influenced by the implementation here: https://github.com/symao/minimum_snap_trajectory_generation,

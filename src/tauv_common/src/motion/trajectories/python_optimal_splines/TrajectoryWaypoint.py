@@ -1,4 +1,4 @@
-from src.packages.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalSplineGen import Waypoint
+from src.tauv_common.src.motion.trajectories.python_optimal_splines.OptimalSplineGen import Waypoint
 
 
 class TrajectoryWaypoint:

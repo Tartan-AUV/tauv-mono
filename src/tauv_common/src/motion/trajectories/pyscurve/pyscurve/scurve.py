@@ -1,7 +1,7 @@
 import numpy as np
-from src.packages.tauv_common.src.motion.trajectories.pyscurve.pyscurve.trajectory import Trajectory, PlanningError, EPSILON
-from src.packages.tauv_common.src.motion.trajectories.pyscurve.pyscurve.trajectory import ACCELERATION_ID, SPEED_ID, POSITION_ID
-from src.packages.tauv_common.src.motion.trajectories.pyscurve.pyscurve.planner import TrajectoryPlanner
+from src.tauv_common.src.motion.trajectories.pyscurve.pyscurve.trajectory import Trajectory, PlanningError, EPSILON
+from src.tauv_common.src.motion.trajectories.pyscurve.pyscurve.trajectory import ACCELERATION_ID, SPEED_ID, POSITION_ID
+from src.tauv_common.src.motion.trajectories.pyscurve.pyscurve.planner import TrajectoryPlanner
 import logging
 
 
