@@ -1,4 +1,4 @@
-FROM dorowu/ubuntu-desktop-lxde-vnc:focal
+FROM ubuntu:20.04
 
 # Set the timezone environment variable
 ENV TZ=America/New_York
