@@ -2,4 +2,5 @@ ARG BASE_IMAGE
 
 FROM ${BASE_IMAGE}
 
-CMD ["/bin/bash"]
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
