@@ -1,12 +1,12 @@
-name: Build Project
+name: Build TAUV ROS Packages
 
 on:
   push:
     branches:
-      - gleb/restructure
+      - develop
   pull_request:
     branches:
-      - gleb/restructure
+      - develop
 
 jobs:
   build:
