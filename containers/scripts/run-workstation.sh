@@ -17,8 +17,8 @@ echo "Using shared folder: $SHARED_DIR"
 
 echo "Starting container, VNC address: http://tauv-dev.lan.local.cmu.edu:60$(id -u | rev | cut -c1-3 | rev)/vnc.html"
 
-CONTAINERS_DIR="$(dirname "$(dirname "$(realpath "${BASH_SOURCE[0]}")")")"
-TAUV_MONO_DIR="$(dirname "$(dirname "$CONTAINER_DIR")")"
+SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+TAUV_MONO_DIR=$(realpath "$SCRIPT_DIR/../../")
 
 rocker \
 	--nvidia \
