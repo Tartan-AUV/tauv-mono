@@ -6,12 +6,12 @@ set -e
 
 if [ -n "$GITHUB_WORKSPACE" ]; then
   # If inside GitHub Actions, use GITHUB_WORKSPACE as the repo root
-  REPO_ROOT="$GITHUB_WORKSPACE"
+  CONTAINERS_DIR="$GITHUB_WORKSPACE/containers"
 else
-  REPO_ROOT=$(pwd)
+  CONTAINERS_DIR="$(dirname "$(dirname "$(realpath "${BASH_SOURCE[0]}")")")"
 fi
 
-cd $REPO_ROOT/containers
+cd $CONTAINERS_DIR
 
 docker build --file platform/Dockerfile.x86-nvidia-turbovnc --tag tauv/x86-nvidia-turbovnc-platform .
 docker build --build-arg BASE_IMAGE=tauv/x86-nvidia-turbovnc-platform --file common/Dockerfile.common --tag tauv/x86-nvidia-common .
