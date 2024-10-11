@@ -25,21 +25,29 @@ class OAKDNode:
 
         self._xout_color = self._pipeline.create(depthai.node.XLinkOut)
         self._xout_depth = self._pipeline.create(depthai.node.XLinkOut)
+        self._xout_left = self._pipeline.create(depthai.node.XLinkOut)
+        self._xout_right = self._pipeline.create(depthai.node.XLinkOut)
 
         self._xout_color.setStreamName('rgb')
         self._xout_depth.setStreamName('depth')
+        self._xout_left.setStreamName('left')
+        self._xout_right.setStreamName('right')
 
         self._left.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_720_P)
         self._left.setBoardSocket(depthai.CameraBoardSocket.LEFT)
+        self._left.setFocalLength(255)
         self._left.setFps(self._fps)
 
         self._right.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_720_P)
         self._right.setBoardSocket(depthai.CameraBoardSocket.RIGHT)
+        self._right.setFocalLength(255)
         self._right.setFps(self._fps)
 
         self._color.setBoardSocket(depthai.CameraBoardSocket.RGB)
         self._color.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_1080_P)
+        self._color.setFocalLength(255)
         self._color.setInterleaved(False)
+
         self._color.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
         self._color.setFps(self._fps)
 
@@ -70,6 +78,8 @@ class OAKDNode:
 
         self._left.out.link(self._depth.left)
         self._right.out.link(self._depth.right)
+        self._left.out.link(self._xout_left.input)
+        self._right.out.link(self._xout_right.input)
         self._depth.depth.link(self._xout_depth.input)
         self._color.isp.link(self._color_manip.inputImage)
         self._color_manip.out.link(self._xout_color.input)
@@ -101,19 +111,26 @@ class OAKDNode:
         self._time_offset = rospy.Time.now() - rospy.Time.from_sec(depthai_time.total_seconds())
         rospy.loginfo(f'Time offset: {self._time_offset}')
 
+        print('HELLO FROM OAKD.PY\n\n\n')
         self._depth_pub = rospy.Publisher(f'vehicle/{self._frame}/depth/image_raw', Image, queue_size=self._queue_size)
         self._color_pub = rospy.Publisher(f'vehicle/{self._frame}/color/image_raw', Image, queue_size=self._queue_size)
         self._depth_info_pub = rospy.Publisher(f'vehicle/{self._frame}/depth/camera_info', CameraInfo, queue_size=1, latch=True)
         self._color_info_pub = rospy.Publisher(f'vehicle/{self._frame}/color/camera_info', CameraInfo, queue_size=1, latch=True)
+        self._left_pub = rospy.Publisher(f'vehicle/{self._frame}/left/image_raw', Image, queue_size=self._queue_size)
+        self._right_pub = rospy.Publisher(f'vehicle/{self._frame}/right/image_raw', Image, queue_size=self._queue_size)
 
     def start(self):
         rgb_queue = self._device.getOutputQueue(name='rgb', maxSize=1, blocking=False)
         depth_queue = self._device.getOutputQueue(name='depth', maxSize=1, blocking=False)
+        left_queue = self._device.getOutputQueue(name='left', maxSize=1, blocking=False)
+        right_queue = self._device.getOutputQueue(name='right', maxSize=1, blocking=False)
 
         while not rospy.is_shutdown():
             try:
                 rgb = rgb_queue.tryGet()
                 depth = depth_queue.tryGet()
+                left = left_queue.tryGet()
+                right = right_queue.tryGet()
             except Exception:
                 continue
 
@@ -137,6 +154,25 @@ class OAKDNode:
                     img.header.seq = depth.getSequenceNum()
                     img.header.stamp = self._time_offset + rospy.Time.from_sec(depth.getTimestamp().total_seconds())
                     self._depth_pub.publish(img)
+                except CvBridgeError as e:
+                    rospy.loginfo(f'OAKD frame error: {e}')
+
+            if left is not None:
+                try:
+                    img = self._bridge.cv2_to_imgmsg(left.getCvFrame(), encoding='mono8')
+                    img.header.frame_id = self._frame
+                    img.header.seq = left.getSequenceNum()
+                    img.header.stamp = self._time_offset + rospy.Time.from_sec(left.getTimestamp().total_seconds())
+                    self._left_pub.publish(img)
+                except CvBridgeError as e:
+                    rospy.loginfo(f'OAKD frame error: {e}')
+            if right is not None:
+                try:
+                    img = self._bridge.cv2_to_imgmsg(right.getCvFrame(), encoding='mono8')
+                    img.header.frame_id = self._frame
+                    img.header.seq = right.getSequenceNum()
+                    img.header.stamp = self._time_offset + rospy.Time.from_sec(right.getTimestamp().total_seconds())
+                    self._right_pub.publish(img)
                 except CvBridgeError as e:
                     rospy.loginfo(f'OAKD frame error: {e}')
 
