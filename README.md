@@ -12,8 +12,6 @@ We use NED for most things. (If you see ENU somewhere, flag it since we should u
 
 TODO: move this somewhere else
 
-asdfasdfasdfasdf
-
 # ROS Packages
 
 ## Dependencies
