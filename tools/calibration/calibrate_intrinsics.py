@@ -26,6 +26,10 @@ if __name__ == '__main__':
     board.setLegacyPattern(True)
 
     detector_params = cv2.aruco.DetectorParameters()
+    detector_params.adaptiveThreshConstant = 8
+    detector_params.adaptiveThreshWinSizeMin = 3
+    detector_params.adaptiveThreshWinSizeMax = 23
+    detector_params.useAruco3Detection = True
     detector = cv2.aruco.CharucoDetector(board, detectorParams=detector_params)
 
     images = args.image_path.glob('*.png')
@@ -33,21 +37,30 @@ if __name__ == '__main__':
     all_object_points = []
     all_image_points = []
 
-    n = 0
+    coverage = None
+
     for image_path in tqdm(images, desc="Processing Images: "):
         image = cv2.imread(image_path)
+        detector = cv2.aruco.CharucoDetector(board, detectorParams=detector_params)
         charuco_corners, charuco_ids, marker_corners, marker_ids = detector.detectBoard(image)
+        n = len(charuco_ids) if charuco_ids is not None else 0
+        print(f'Found {n} markers in {image_path}')
 
         if charuco_ids is None:
             charuco_ids = []
         if charuco_corners is None:
             charuco_corners = []
 
-        if len(charuco_corners) and len(charuco_ids):
+        if len(charuco_corners) and len(charuco_ids)>10:
             obj_points, image_points = board.matchImagePoints(charuco_corners, charuco_ids)
             all_object_points.append(obj_points)
             all_image_points.append(image_points)
             cv2.aruco.drawDetectedCornersCharuco(image, charuco_corners, charuco_ids)
+            if coverage is None:
+                coverage = np.ones_like(image)
+            for image_point in image_points:
+                cv2.circle(coverage, tuple(map(int, image_point[0])), 2, (255, 0, 0), 3)
+            cv2.imshow('coverage', coverage)
         cv2.imshow('image', image)
         cv2.waitKey(1)
 
