@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import rospy
 import depthai
 from sensor_msgs.msg import Image, CameraInfo
@@ -9,9 +10,13 @@ from cv_bridge import CvBridge, CvBridgeError
 # node to create oakd ros nodes from oakd api
 # publishes depth map and color image
 
+logger = logging.getLogger(__name__)
+
 class OAKDNode:
     def __init__(self):
         self._load_config()
+
+        logging.basicConfig(level=logging.DEBUG)  # todo: parse rosparams
 
         self._pipeline = depthai.Pipeline()
 
@@ -131,6 +136,7 @@ class OAKDNode:
                 depth = depth_queue.tryGet()
                 left = left_queue.tryGet()
                 right = right_queue.tryGet()
+                logger.debug(f'RGB: {rgb is not None}, Depth: {depth is not None}, Left: {left is not None}, Right: {right is not None}')
             except Exception:
                 continue
 
