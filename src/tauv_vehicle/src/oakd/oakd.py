@@ -155,9 +155,11 @@ class OAKDNode:
             seq_num = messages['color'].getSequenceNum()
             sync_needed = False
             for msg in messages.values():
+                print(f'{msg.getSequenceNum()}', end=' ')
                 if msg.getSequenceNum() != seq_num:
                     sync_needed = True
                     break
+            print()
             if sync_needed:
                 self._sync(queues)
 
@@ -180,6 +182,7 @@ class OAKDNode:
 
         for topic, queue in queues.items():
             messages[topic] = queue.get()
+            rospy.logwarn(f'OAKD stream {topic} at {messages[topic].getSequenceNum()}')
 
         max_seq_num = max([frame.getSequenceNum() for frame in messages.values()])
 
@@ -195,6 +198,7 @@ class OAKDNode:
                     continue
                 msg = queue.get()
                 if msg.getSequenceNum() == max_seq_num:
+                    rospy.loginfo(f'OAKD synced {topic} at {msg.getSequenceNum()}')
                     synced_topics.append(topic)
             counter += 1
 
@@ -210,8 +214,7 @@ class OAKDNode:
         self._id = rospy.get_param('~id')
         self._postprocess_depth = True
         self._publish_mono = True
-        print('BANG BANG BANG')
-        self._fps = 1
+        self._fps = 3
         self._queue_size = 10
 
 def main():
