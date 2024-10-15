@@ -5,6 +5,7 @@ from typing import Dict
 
 import rospy
 import depthai
+from Cython.Compiler.Naming import self_cname
 from sensor_msgs.msg import Image, CameraInfo
 import numpy as np
 from cv_bridge import CvBridge, CvBridgeError
@@ -31,23 +32,27 @@ class OAKDNode:
         self._xout_color.setStreamName('color')
         self._xout_depth.setStreamName('depth')
 
-        self._left.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_720_P)
+        self._left.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_800_P)
         self._left.setBoardSocket(depthai.CameraBoardSocket.LEFT)
         self._left.setFps(self._fps)
+        self._left.initialControl.setManualFocus(255)
 
-        self._right.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_720_P)
+        self._right.setResolution(depthai.MonoCameraProperties.SensorResolution.THE_800_P)
         self._right.setBoardSocket(depthai.CameraBoardSocket.RIGHT)
         self._right.setFps(self._fps)
+        self._right.initialControl.setManualFocus(255)
 
         self._color.setBoardSocket(depthai.CameraBoardSocket.RGB)
-        self._color.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_1080_P)
+        self._color.setResolution(depthai.ColorCameraProperties.SensorResolution.THE_12_MP)
         self._color.setInterleaved(False)
         self._color.setColorOrder(depthai.ColorCameraProperties.ColorOrder.RGB)
         self._color.setFps(self._fps)
+        self._color.initialControl.setManualFocus(255)
 
-        self._color_manip = self._pipeline.create(depthai.node.ImageManip)
-        self._color_manip.setResize(640, 360)
-        self._color_manip.setMaxOutputFrameSize(640 * 360 * 3)
+        if self._color_downsample_res:
+            self._color_manip = self._pipeline.create(depthai.node.ImageManip)
+            self._color_manip.setResize(*self._color_downsample_res)
+            self._color_manip.setMaxOutputFrameSize(self._color_downsample_res[0] * self._color_downsample_res[1] * 3)
 
         self._depth.setDefaultProfilePreset(depthai.node.StereoDepth.PresetMode.HIGH_DENSITY)
         self._depth.setLeftRightCheck(True)
@@ -73,8 +78,11 @@ class OAKDNode:
         self._left.out.link(self._depth.left)
         self._right.out.link(self._depth.right)
         self._depth.depth.link(self._xout_depth.input)
-        self._color.isp.link(self._color_manip.inputImage)
-        self._color_manip.out.link(self._xout_color.input)
+        if self._color_downsample_res:
+            self._color.isp.link(self._color_manip.inputImage)
+            self._color_manip.out.link(self._xout_color.input)
+        else:
+            self._color.isp.link(self._xout_color.input)
 
         if self._publish_mono:
             self._xout_left = self._pipeline.create(depthai.node.XLinkOut)
@@ -131,7 +139,7 @@ class OAKDNode:
     def start(self):
         queues = dict()
         for topic in self._topics:
-            queues[topic] = self._device.getOutputQueue(topic, self._queue_size, blocking=False)
+            queues[topic] = self._device.getOutputQueue(topic, self._queue_size, blocking=True)
 
         messages: Dict[str, depthai.ImgFrame] = dict()
 
@@ -214,7 +222,8 @@ class OAKDNode:
         self._id = rospy.get_param('~id')
         self._postprocess_depth = True
         self._publish_mono = True
-        self._fps = 3
+        self._color_downsample_res = None
+        self._fps = 1
         self._queue_size = 10
 
 def main():
