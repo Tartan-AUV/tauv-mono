@@ -6,20 +6,31 @@
 #define MESSAGES_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "vehicle_config.h"
+#include "util.h"
+#include "xsens.h"
 
 typedef struct {
-
+    XsensIMUFrame   ImuFrames[CAN_XSENS_IMU_FRAMES_MAX];
+    size_t          NImuFrames;
 } CAN100HzMessage;
+
+void CAN100HzMessage_Init(CAN100HzMessage *m);
 
 typedef struct {
     // ESCs
-    float esc_rpm[CONF_N_ESCS];
-    bool esc_enable[CONF_N_ESCS];
+    float EscRpm[CONF_N_ESCS];
+    bool EscEnable[CONF_N_ESCS];
 
     // ...
 } Eth100HzMessage;
+
+typedef struct {
+    float Pressure;
+    float Temperature;
+} XsensEnvironmentalMessage;
 
 
 #endif //MESSAGES_H

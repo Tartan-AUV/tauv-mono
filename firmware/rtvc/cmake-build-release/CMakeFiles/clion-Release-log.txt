@@ -1,0 +1,5 @@
+"C:\Users\Gleb Ryabtsev\AppData\Local\Programs\CLion\bin\cmake\win\x64\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Release "-DCMAKE_MAKE_PROGRAM=C:/Users/Gleb Ryabtsev/AppData/Local/Programs/CLion/bin/ninja/win/x64/ninja.exe" -G Ninja -S C:\dev\tauv-mono\firmware\rtvc -B C:\dev\tauv-mono\firmware\rtvc\cmake-build-release
+-- Maximum optimization for speed
+-- Configuring done (0.3s)
+-- Generating done (0.1s)
+-- Build files have been written to: C:/dev/tauv-mono/firmware/rtvc/cmake-build-release

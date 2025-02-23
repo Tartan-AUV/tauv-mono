@@ -1,4 +1,0 @@
-../Core/Src/vesc.c:7:10:vesc_get_can_msg_id	2
-../Core/Src/vesc.c:18:14:vesc_get_duty_payload	1
-../Core/Src/vesc.c:23:14:vesc_get_rpm_payload	2
-../Core/Src/vesc.c:39:14:vesc_get_current_payload	1

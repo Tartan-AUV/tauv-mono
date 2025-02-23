@@ -11,11 +11,13 @@
 /* MESSAGE DEFINITIONS */
 
 typedef struct {
-
+    const XsensIMUFrame *imuFrames;
+    const size_t nXsensImuFrames;
 } Eth100HzInputMessage;
 
 
 /* TASK DECLARATION */
-void eth_100hz_task(const Eth100HzInputMessage* input_message, Eth100HzMessage* output_message);
+void Task_Eth100Hz_Init();
+void Task_Eth100Hz(const Eth100HzInputMessage* inputMessage, Eth100HzMessage* outputMessage);
 
 #endif // ETH100HZ_H

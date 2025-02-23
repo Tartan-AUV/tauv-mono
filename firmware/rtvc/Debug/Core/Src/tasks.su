@@ -1,4 +1,0 @@
-../Core/Src/tasks.c:12:6:task1hz	4	static
-../Core/Src/tasks.c:16:6:task10hz	4	static
-../Core/Src/tasks.c:20:6:task100hz	56	static
-../Core/Src/tasks.c:39:6:task1000hz	4	static

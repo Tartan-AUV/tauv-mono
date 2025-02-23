@@ -18,6 +18,7 @@ typedef struct {
 
 /* TASK DECLARATION */
 
-void can_100hz_task(const CAN100HzInputMessage* input_msg, CAN100HzMessage* output_msg);
+void Task_CAN100Hz_Init();
+void Task_CAN100Hz(const CAN100HzInputMessage* inputMsg, CAN100HzMessage* outputMsg);
 
 #endif // CAN100HZ_H

@@ -4,15 +4,19 @@
 
 #pragma once
 
+/* Tasks init */
+
+void TasksInit();
+
 /* Task function declarations */
 
-void task1hz();
+void Task_1Hz();
 
-void task10hz();
+void Task_10Hz();
 
-void task100hz();
+void Task_100Hz();
 
-void task1000hz();
+void Task_1000Hz();
 
 /* Same-frequency buffer structures */
 

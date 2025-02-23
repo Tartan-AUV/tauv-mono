@@ -23,6 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "vehicle_config.h"
+#include "logging.h"
 #include "tasks.h"
 #include "vesc.h"
 /* USER CODE END Includes */
@@ -45,15 +47,20 @@
 /* Private variables ---------------------------------------------------------*/
 CAN_HandleTypeDef hcan1;
 
+UART_HandleTypeDef huart3;
+
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 osTimerId task100hz_handle;
+
+ip_addr_t jetsonAddr;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_CAN1_Init(void);
+static void MX_USART3_UART_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -95,8 +102,42 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_CAN1_Init();
+  MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
+
+  LogInitSerial(&huart3);
+  printf("  _______         _                      _    ___      __  \n\r"
+		 " |__   __|       | |                /\  | |  | \ \    / /  \n\r"
+		 "    | | __ _ _ __| |_ __ _ _ __    /  \ | |  | |\ \  / / 	 \n\r"
+		 "    | |/ _` | '__| __/ _` | '_ \  / /\ \| |  | | \ \/ /    \n\r"
+		 "    | | (_| | |  | || (_| | | | |/ ____ \ |__| |  \  /     \n\r"
+		 "    |_|\__,_|_|   \__\__,_|_| |_/_/    \_\____/    \/      \n\r"
+		 " \n\r"
+		 " Real-Time Vehicle Controller Rev. A\n\r"
+	     " TartanAUV, Carnegie Mellon University\n\r"
+		 " Author: Gleb Ryabtsev, 2025\n\r"
+	     "\n\r");
+
+  IP4_ADDR(&jetsonAddr, 10, 0, 0, 20);
+
+  TasksInit();
+
+  // todo: move this somewhere else
   HAL_CAN_Start(&hcan1);
+  HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
+  CAN_FilterTypeDef filterConfig;
+
+  filterConfig.FilterActivation = ENABLE;
+  filterConfig.FilterBank = 0;
+  filterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+  filterConfig.FilterIdHigh = 0x0000;
+  filterConfig.FilterIdLow = 0x0000;
+  filterConfig.FilterMaskIdHigh = 0x0000;
+  filterConfig.FilterMaskIdLow = 0x0000;
+  filterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+  filterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+
+  HAL_CAN_ConfigFilter(&hcan1, &filterConfig);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -108,9 +149,10 @@ int main(void)
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
-//  osTimerDef(Task100HzTimer, task100hz);
-//  task100hz_handle = osTimerCreate(osTimer(Task100HzTimer), osTimerPeriodic, NULL);
-//  volatile osStatus s = osTimerStart(task100hz_handle, 10);
+  // todo move into tasks.c
+  osTimerDef(Task100HzTimer, Task_100Hz);
+  task100hz_handle = osTimerCreate(osTimer(Task100HzTimer), osTimerPeriodic, NULL);
+  volatile osStatus s = osTimerStart(task100hz_handle, 10);
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -210,11 +252,11 @@ static void MX_CAN1_Init(void)
 
   /* USER CODE END CAN1_Init 1 */
   hcan1.Instance = CAN1;
-  hcan1.Init.Prescaler = 36;
+  hcan1.Init.Prescaler = 6;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
   hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
   hcan1.Init.TimeSeg1 = CAN_BS1_12TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_5TQ;
   hcan1.Init.TimeTriggeredMode = DISABLE;
   hcan1.Init.AutoBusOff = DISABLE;
   hcan1.Init.AutoWakeUp = DISABLE;
@@ -228,6 +270,41 @@ static void MX_CAN1_Init(void)
   /* USER CODE BEGIN CAN1_Init 2 */
 
   /* USER CODE END CAN1_Init 2 */
+
+}
+
+/**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
 
 }
 
@@ -247,6 +324,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
@@ -269,53 +347,15 @@ void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
   MX_LWIP_Init();
+
+  INFO("LWiP initialization done.");
   /* USER CODE BEGIN 5 */
+
+//  LogInitEthernet();
+
   /* Infinite loop */
   for(;;)
   {
-	uint32_t rpm = 10000;
-	HAL_StatusTypeDef status;
-	/* ESC TX */
-	for (size_t i = 0; i < 1; ++i)
-	{
-		const CAN_TxHeaderTypeDef esc_header = {
-			.StdId = 0,
-			.ExtId = vesc_get_can_msg_id(VESC_SET_RPM, (uint8_t) 79),
-			.IDE = CAN_ID_EXT,
-			.RTR = CAN_RTR_DATA,
-			.DLC = 4,
-			.TransmitGlobalTime = DISABLE,
-		};
-
-		uint8_t payload[4];
-		vesc_get_rpm_payload(rpm, payload, sizeof(payload));
-
-		uint32_t mailbox;
-
-		HAL_CAN_AddTxMessage(&hcan1, &esc_header, payload, &mailbox);
-	}
-    osDelay(1000);
-
-    rpm = 0;
-	/* ESC TX */
-	for (size_t i = 0; i < 1; ++i)
-	{
-		const CAN_TxHeaderTypeDef esc_header = {
-			.StdId = 0,
-			.ExtId = vesc_get_can_msg_id(VESC_SET_RPM, (uint8_t) 79),
-			.IDE = CAN_ID_EXT,
-			.RTR = CAN_RTR_DATA,
-			.DLC = 4,
-			.TransmitGlobalTime = DISABLE,
-		};
-
-		uint8_t payload[4];
-		vesc_get_rpm_payload(rpm, payload, sizeof(payload));
-
-		uint32_t mailbox;
-
-		HAL_CAN_AddTxMessage(&hcan1, &esc_header, payload, &mailbox);
-	}
 	osDelay(1000);
   }
   /* USER CODE END 5 */

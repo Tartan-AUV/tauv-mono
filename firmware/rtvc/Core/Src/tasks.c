@@ -5,37 +5,55 @@
 #include "tasks.h"
 
 #include "messages.h"
-
 #include "can100hz.h"
 #include "eth100hz.h"
 
-void task1hz() {
+/* PFP */
+void Task_100Hz_Init();
+
+void TasksInit()
+{
+    CAN_RxQueueInit();
+
+    Task_100Hz_Init();
+    Task_CAN100Hz_Init();
+    Task_Eth100Hz_Init();
+}
+
+void Task_1Hz() {
 
 }
 
-void task10hz() {
+void Task_10Hz() {
 
 }
 
-void task100hz() {
-    /* Input message buffers */
-    CAN100HzInputMessage can_100hz_input_msg;
-    Eth100HzInputMessage eth_100hz_input_msg;
+// Persistent messages
+static CAN100HzMessage can100HzMsg;
 
-    /* Output message buffers */
-    CAN100HzMessage can_100hz_msg;
-    Eth100HzMessage eth_100hz_msg;
+void Task_100Hz_Init()
+{
+    CAN100HzMessage_Init(&can100HzMsg);
+}
 
-    /* Execute tasks */
-    eth_100hz_task(&eth_100hz_input_msg, &eth_100hz_msg);
+void Task_100Hz() {
 
-    can_100hz_input_msg = (CAN100HzInputMessage) {
-        &eth_100hz_msg
+    const Eth100HzInputMessage eth100HzInputMsg = {
+        .imuFrames = can100HzMsg.ImuFrames,
+        .nXsensImuFrames = can100HzMsg.NImuFrames,
+    };
+    Eth100HzMessage eth100HzMsg;
+
+    Task_Eth100Hz(&eth100HzInputMsg, &eth100HzMsg);
+
+    const CAN100HzInputMessage can100HzInputMsg = {
+        .eth_100hz_msg = &eth100HzMsg,
     };
 
-    can_100hz_task(&can_100hz_input_msg, &can_100hz_msg);
+    Task_CAN100Hz(&can100HzInputMsg, &can100HzMsg);
+
 }
 
-void task1000hz() {
+void Task_1000Hz() {
 
 }
