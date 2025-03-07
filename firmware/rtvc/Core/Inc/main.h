@@ -31,17 +31,17 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lan8742.h"
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
 /* USER CODE BEGIN ET */
-
+extern CAN_HandleTypeDef hcan1;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
-extern lan8742_Object_t LAN8742;
+
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/

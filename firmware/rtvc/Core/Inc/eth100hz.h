@@ -3,8 +3,10 @@
 /* Author: Gleb Ryabtsev */
 
 /* INCLUDES */
-#include "tasks.h"
-#include "vehicle_config.h"
+#ifndef ETH100HZ_H
+#define ETH100HZ_H
+
+#include "messages.h"
 
 /* MESSAGE DEFINITIONS */
 
@@ -12,15 +14,8 @@ typedef struct {
 
 } Eth100HzInputMessage;
 
-typedef struct {
-    // ESCs
-    float esc_rpm[CONF_N_ESCS];
-    bool esc_enable[CONF_N_ESCS];
-    
-    // ...
-} Eth100HzMessage;
-
 
 /* TASK DECLARATION */
+void eth_100hz_task(const Eth100HzInputMessage* input_message, Eth100HzMessage* output_message);
 
-RegularTaskStatus_t eth_100hz_task(const Eth100HzInputMessage *input_message, Eth100HzMessage *output_message);
+#endif // ETH100HZ_H

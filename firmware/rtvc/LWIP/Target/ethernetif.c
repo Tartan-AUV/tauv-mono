@@ -428,7 +428,7 @@ static err_t low_level_output(struct netif *netif, struct pbuf *p)
       if(HAL_ETH_GetError(&heth) & HAL_ETH_ERROR_BUSY)
       {
         /* Wait for descriptors to become available */
-        osSemaphoreWait(TxPktSemaphore, ETHIF_TX_TIMEOUT);
+        osSemaphoreWait(  TxPktSemaphore, ETHIF_TX_TIMEOUT);
         HAL_ETH_ReleaseTxPacket(&heth);
         errval = ERR_BUF;
       }

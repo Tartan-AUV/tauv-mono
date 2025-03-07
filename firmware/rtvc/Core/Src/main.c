@@ -23,7 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "lan8742.h"
+#include "tasks.h"
+#include "vesc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -42,15 +43,17 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+CAN_HandleTypeDef hcan1;
 
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
-
+osTimerId task100hz_handle;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_CAN1_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -91,8 +94,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_CAN_Start(&hcan1);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -104,7 +108,9 @@ int main(void)
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
+//  osTimerDef(Task100HzTimer, task100hz);
+//  task100hz_handle = osTimerCreate(osTimer(Task100HzTimer), osTimerPeriodic, NULL);
+//  volatile osStatus s = osTimerStart(task100hz_handle, 10);
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -117,7 +123,6 @@ int main(void)
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
@@ -190,14 +195,52 @@ void SystemClock_Config(void)
 }
 
 /**
+  * @brief CAN1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CAN1_Init(void)
+{
+
+  /* USER CODE BEGIN CAN1_Init 0 */
+
+  /* USER CODE END CAN1_Init 0 */
+
+  /* USER CODE BEGIN CAN1_Init 1 */
+
+  /* USER CODE END CAN1_Init 1 */
+  hcan1.Instance = CAN1;
+  hcan1.Init.Prescaler = 36;
+  hcan1.Init.Mode = CAN_MODE_NORMAL;
+  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_12TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_2TQ;
+  hcan1.Init.TimeTriggeredMode = DISABLE;
+  hcan1.Init.AutoBusOff = DISABLE;
+  hcan1.Init.AutoWakeUp = DISABLE;
+  hcan1.Init.AutoRetransmission = ENABLE;
+  hcan1.Init.ReceiveFifoLocked = DISABLE;
+  hcan1.Init.TransmitFifoPriority = DISABLE;
+  if (HAL_CAN_Init(&hcan1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN CAN1_Init 2 */
+
+  /* USER CODE END CAN1_Init 2 */
+
+}
+
+/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
   */
 static void MX_GPIO_Init(void)
 {
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
@@ -206,8 +249,9 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
@@ -229,8 +273,50 @@ void StartDefaultTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    volatile int32_t status = LAN8742_GetLinkState(&LAN8742);
+	uint32_t rpm = 10000;
+	HAL_StatusTypeDef status;
+	/* ESC TX */
+	for (size_t i = 0; i < 1; ++i)
+	{
+		const CAN_TxHeaderTypeDef esc_header = {
+			.StdId = 0,
+			.ExtId = vesc_get_can_msg_id(VESC_SET_RPM, (uint8_t) 79),
+			.IDE = CAN_ID_EXT,
+			.RTR = CAN_RTR_DATA,
+			.DLC = 4,
+			.TransmitGlobalTime = DISABLE,
+		};
+
+		uint8_t payload[4];
+		vesc_get_rpm_payload(rpm, payload, sizeof(payload));
+
+		uint32_t mailbox;
+
+		HAL_CAN_AddTxMessage(&hcan1, &esc_header, payload, &mailbox);
+	}
     osDelay(1000);
+
+    rpm = 0;
+	/* ESC TX */
+	for (size_t i = 0; i < 1; ++i)
+	{
+		const CAN_TxHeaderTypeDef esc_header = {
+			.StdId = 0,
+			.ExtId = vesc_get_can_msg_id(VESC_SET_RPM, (uint8_t) 79),
+			.IDE = CAN_ID_EXT,
+			.RTR = CAN_RTR_DATA,
+			.DLC = 4,
+			.TransmitGlobalTime = DISABLE,
+		};
+
+		uint8_t payload[4];
+		vesc_get_rpm_payload(rpm, payload, sizeof(payload));
+
+		uint32_t mailbox;
+
+		HAL_CAN_AddTxMessage(&hcan1, &esc_header, payload, &mailbox);
+	}
+	osDelay(1000);
   }
   /* USER CODE END 5 */
 }
@@ -248,7 +334,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 0 */
 
   /* USER CODE END Callback 0 */
-  if (htim->Instance == TIM3) {
+  if (htim->Instance == TIM3)
+  {
     HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */

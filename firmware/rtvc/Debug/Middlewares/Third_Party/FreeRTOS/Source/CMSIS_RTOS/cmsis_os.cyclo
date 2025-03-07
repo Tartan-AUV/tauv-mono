@@ -11,10 +11,10 @@
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:284:10:osThreadSetPriority	1
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:300:12:osThreadGetPriority	2
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:322:10:osDelay	2
-../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:357:11:osTimerCreate	1
-../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:404:10:osTimerStart	1
-../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:443:10:osTimerStop	1
-../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:472:10:osTimerDelete	1
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:357:11:osTimerCreate	4
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:404:10:osTimerStart	6
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:443:10:osTimerStop	5
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:472:10:osTimerDelete	3
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:502:9:osSignalSet	5
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:543:9:osSignalWait	8
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c:597:11:osMutexCreate	2

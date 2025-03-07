@@ -2,8 +2,7 @@
 /* Task Declarations & Utilities */
 /* Author: Gleb Ryabtsev */
 
-#include "can100hz.h"
-#include "eth100hz.h"
+#pragma once
 
 /* Task function declarations */
 
@@ -26,7 +25,7 @@ typedef struct {} MessageBuffer1000Hz;
 
 /* Utilities */
 
-typedef enum {
+typedef enum TaskStatus {
     TASK_RESULT_OK,
     TASK_RESULT_ERR
 } RegularTaskStatus_t;

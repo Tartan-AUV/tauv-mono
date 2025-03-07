@@ -23,6 +23,7 @@
 ../Middlewares/Third_Party/FreeRTOS/Source/tasks.c:2947:6:vTaskSwitchContext	32	static,ignoring_inline_asm
 ../Middlewares/Third_Party/FreeRTOS/Source/tasks.c:3020:6:vTaskPlaceOnEventList	24	static,ignoring_inline_asm
 ../Middlewares/Third_Party/FreeRTOS/Source/tasks.c:3037:6:vTaskPlaceOnUnorderedEventList	32	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/tasks.c:3063:7:vTaskPlaceOnEventListRestricted	32	static,ignoring_inline_asm
 ../Middlewares/Third_Party/FreeRTOS/Source/tasks.c:3094:12:xTaskRemoveFromEventList	32	static,ignoring_inline_asm
 ../Middlewares/Third_Party/FreeRTOS/Source/tasks.c:3162:6:vTaskRemoveFromUnorderedEventList	32	static,ignoring_inline_asm
 ../Middlewares/Third_Party/FreeRTOS/Source/tasks.c:3196:6:vTaskSetTimeOutState	24	static,ignoring_inline_asm

@@ -51,7 +51,7 @@
 #define MEM_ALIGNMENT 4
 /*----- Default Value for MEM_SIZE: 1600 ---*/
 #define MEM_SIZE 16360
-/*----- Default Value for F7/H7 devices: 0x30044000 -----*/
+/*----- Default Value for F7 devices: 0x20048000 -----*/
 #define LWIP_RAM_HEAP_POINTER 0x20044000
 /*----- Default Value for MEMP_NUM_TCP_SEG: 16 ---*/
 #define MEMP_NUM_TCP_SEG 17
