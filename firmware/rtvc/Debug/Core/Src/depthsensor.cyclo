@@ -1,0 +1,2 @@
+../Core/Src/depthsensor.c:14:6:depth_sensor_init	2
+../Core/Src/depthsensor.c:43:6:depth_sensor_task	1

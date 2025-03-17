@@ -6,6 +6,7 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Core/Src/can100hz.c \
+../Core/Src/depthsensor.c \
 ../Core/Src/eth100hz.c \
 ../Core/Src/freertos.c \
 ../Core/Src/main.c \
@@ -20,6 +21,7 @@ C_SRCS += \
 
 OBJS += \
 ./Core/Src/can100hz.o \
+./Core/Src/depthsensor.o \
 ./Core/Src/eth100hz.o \
 ./Core/Src/freertos.o \
 ./Core/Src/main.o \
@@ -34,6 +36,7 @@ OBJS += \
 
 C_DEPS += \
 ./Core/Src/can100hz.d \
+./Core/Src/depthsensor.d \
 ./Core/Src/eth100hz.d \
 ./Core/Src/freertos.d \
 ./Core/Src/main.d \
@@ -54,7 +57,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/can100hz.cyclo ./Core/Src/can100hz.d ./Core/Src/can100hz.o ./Core/Src/can100hz.su ./Core/Src/eth100hz.cyclo ./Core/Src/eth100hz.d ./Core/Src/eth100hz.o ./Core/Src/eth100hz.su ./Core/Src/freertos.cyclo ./Core/Src/freertos.d ./Core/Src/freertos.o ./Core/Src/freertos.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/stm32f7xx_hal_msp.cyclo ./Core/Src/stm32f7xx_hal_msp.d ./Core/Src/stm32f7xx_hal_msp.o ./Core/Src/stm32f7xx_hal_msp.su ./Core/Src/stm32f7xx_hal_timebase_tim.cyclo ./Core/Src/stm32f7xx_hal_timebase_tim.d ./Core/Src/stm32f7xx_hal_timebase_tim.o ./Core/Src/stm32f7xx_hal_timebase_tim.su ./Core/Src/stm32f7xx_it.cyclo ./Core/Src/stm32f7xx_it.d ./Core/Src/stm32f7xx_it.o ./Core/Src/stm32f7xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f7xx.cyclo ./Core/Src/system_stm32f7xx.d ./Core/Src/system_stm32f7xx.o ./Core/Src/system_stm32f7xx.su ./Core/Src/tasks.cyclo ./Core/Src/tasks.d ./Core/Src/tasks.o ./Core/Src/tasks.su ./Core/Src/vesc.cyclo ./Core/Src/vesc.d ./Core/Src/vesc.o ./Core/Src/vesc.su
+	-$(RM) ./Core/Src/can100hz.cyclo ./Core/Src/can100hz.d ./Core/Src/can100hz.o ./Core/Src/can100hz.su ./Core/Src/depthsensor.cyclo ./Core/Src/depthsensor.d ./Core/Src/depthsensor.o ./Core/Src/depthsensor.su ./Core/Src/eth100hz.cyclo ./Core/Src/eth100hz.d ./Core/Src/eth100hz.o ./Core/Src/eth100hz.su ./Core/Src/freertos.cyclo ./Core/Src/freertos.d ./Core/Src/freertos.o ./Core/Src/freertos.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/stm32f7xx_hal_msp.cyclo ./Core/Src/stm32f7xx_hal_msp.d ./Core/Src/stm32f7xx_hal_msp.o ./Core/Src/stm32f7xx_hal_msp.su ./Core/Src/stm32f7xx_hal_timebase_tim.cyclo ./Core/Src/stm32f7xx_hal_timebase_tim.d ./Core/Src/stm32f7xx_hal_timebase_tim.o ./Core/Src/stm32f7xx_hal_timebase_tim.su ./Core/Src/stm32f7xx_it.cyclo ./Core/Src/stm32f7xx_it.d ./Core/Src/stm32f7xx_it.o ./Core/Src/stm32f7xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f7xx.cyclo ./Core/Src/system_stm32f7xx.d ./Core/Src/system_stm32f7xx.o ./Core/Src/system_stm32f7xx.su ./Core/Src/tasks.cyclo ./Core/Src/tasks.d ./Core/Src/tasks.o ./Core/Src/tasks.su ./Core/Src/vesc.cyclo ./Core/Src/vesc.d ./Core/Src/vesc.o ./Core/Src/vesc.su
 
 .PHONY: clean-Core-2f-Src
 

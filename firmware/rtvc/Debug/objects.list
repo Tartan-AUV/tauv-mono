@@ -1,4 +1,5 @@
 "./Core/Src/can100hz.o"
+"./Core/Src/depthsensor.o"
 "./Core/Src/eth100hz.o"
 "./Core/Src/freertos.o"
 "./Core/Src/main.o"

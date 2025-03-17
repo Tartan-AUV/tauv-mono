@@ -21,5 +21,10 @@ typedef struct {
     // ...
 } Eth100HzMessage;
 
+typedef struct {
+    float pressure_reading;
+    float temperature_reading;
+} DepthSensorMessage;
+
 
 #endif //MESSAGES_H
