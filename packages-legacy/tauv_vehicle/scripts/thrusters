@@ -1,5 +1,0 @@
-#!/usr/bin/env python3
-from thrusters import thrusters
-
-if __name__ == "__main__":
-  thrusters.main()

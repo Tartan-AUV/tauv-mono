@@ -1,6 +1,0 @@
-#!/usr/bin/env python
-import thruster_managers
-
-
-if __name__ == "__main__":
-    thruster_managers.thruster_allocator.main()

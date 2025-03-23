@@ -1,5 +1,0 @@
-#!/usr/bin/env python3
-from grad_dynamics_parameter_estimator import grad_dynamics_parameter_estimator
-
-if __name__ == "__main__":
-    grad_dynamics_parameter_estimator.main()

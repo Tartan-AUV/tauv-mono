@@ -1,8 +1,0 @@
-<launch>
-  <arg name="model_name" default="kingfisher"/>
-  <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
-
-  <node pkg="tauv_vehicle" type="teledyne_dvl" name="teledyne_dvl" output="log">
-    <rosparam command="load" file="$(arg config_pkg)/yaml/dvl.yaml" />
-  </node>
-</launch>

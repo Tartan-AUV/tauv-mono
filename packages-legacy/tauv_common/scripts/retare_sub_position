@@ -1,5 +1,0 @@
-#!/usr/bin/env python3
-from transform_manager import retare_sub_position
-
-if __name__ == "__main__":
-    retare_sub_position.main()

@@ -1,5 +1,0 @@
-#!/usr/bin/env python3
-from vision.darknet_transformer import darknet_transformer
-
-if __name__ == "__main__":
-    darknet_transformer.main()
