@@ -1,0 +1,2 @@
+port: /dev/xsens_imu
+baudrate: 115200

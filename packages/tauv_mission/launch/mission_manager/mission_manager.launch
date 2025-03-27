@@ -1,0 +1,11 @@
+<launch>
+    <arg name="namespace" default="kf"/>
+    <arg name="config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
+
+    <group ns="$(arg namespace)">
+	<rosparam param="tf_namespace">"$(arg namespace)"</rosparam>
+        <node pkg="tauv_mission" type="mission_manager" name="mission_manager" output="screen" />
+	
+        <rosparam command="load" ns="motion" file="$(arg config_pkg)/yaml/motion.yaml" />
+    </group>
+</launch>

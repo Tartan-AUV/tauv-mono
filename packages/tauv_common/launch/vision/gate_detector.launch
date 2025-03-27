@@ -1,0 +1,30 @@
+<launch>
+    <arg name="model_name" default="kingfisher_sim"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+    <arg name="tf" default=""></arg>
+    <param name="tf_namespace" value="$(arg tf)"/>
+
+    <group ns="kf">
+        <node pkg="tauv_common" type="gate_detector" name="gate_detector" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/yaml/gate_detector.yaml" />
+            <remap from="color" to="vehicle/oakd_front/color/image_raw"/>
+            <remap from="depth" to="vehicle/oakd_front/depth/image_raw"/>
+            <remap from="camera_info" to="vehicle/oakd_front/depth/camera_info"/>
+        </node>
+
+<!--         <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" /> -->
+<!--      -->
+<!--         <node -->
+<!--                 pkg="tauv_common" -->
+<!--                 type="global_map_cpp" -->
+<!--                 name="global_map" -->
+<!--                 output="screen" -->
+<!--         > -->
+<!--         </node> -->
+<!--      -->
+<!--          <include file="$(find tauv_common)/launch/vision/map_test.launch"/> -->
+    </group>
+<!--        <rosparam command="load"-->
+<!--                  file="$(find tauv_gui)/yaml/map_visualizer.yaml" />-->
+
+</launch>

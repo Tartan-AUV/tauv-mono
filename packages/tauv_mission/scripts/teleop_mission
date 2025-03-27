@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+from teleop_mission import teleop_mission
+
+if __name__ == "__main__":
+    teleop_mission.main()
+
+

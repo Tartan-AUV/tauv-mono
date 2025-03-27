@@ -1,0 +1,201 @@
+frequency: 50
+
+batch_size: 50
+
+min_z: 0.5
+
+update_controller: true
+
+parameters:
+ m:
+   initial: 30
+   fixed: true
+   min: 25
+   max: 35
+   lr: 1
+ v:
+   initial: 0.03
+   fixed: false
+   min: 0.02
+   max: 0.04
+   lr: 1e-6
+ gx:
+   initial: 0
+   fixed: true
+   min: -0.01
+   max: 0.01
+   lr: 1
+ gy:
+   initial: 0
+   fixed: true
+   min: -0.01
+   max: 0.01
+   lr: 1
+ gz:
+   initial: 0
+   fixed: true
+   min: -0.01
+   max: 0.01
+   lr: 1
+ bx:
+   initial: 0.0
+   fixed: false
+   min: -0.01
+   max: 0.05
+   lr: 1e-3
+ by:
+   initial: 0
+   fixed: true
+   min: -0.01
+   max: 0.01
+   lr: 1
+ bz:
+   initial: -0.13
+   fixed: true
+   min: -0.2
+   max: -0.01
+   lr: 1e-6
+ Ixx:
+   initial: 7
+   fixed: true
+   min: 4
+   max: 10
+   lr: 1
+ Ixy:
+   initial: 0
+   fixed: true
+   min: 0
+   max: 0
+   lr: 1
+ Ixz:
+   initial: 0
+   fixed: true
+   min: 0
+   max: 0
+   lr: 1
+ Iyy:
+   initial: 7
+   fixed: true
+   min: 4
+   max: 10
+   lr: 1
+ Iyz:
+   initial: 0
+   fixed: true
+   min: 0
+   max: 0
+   lr: 1
+ Izz:
+   initial: 4
+   fixed: true
+   min: 4
+   max: 10
+   lr: 1
+ dlu:
+   initial: 62
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dlv:
+   initial: 83
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dlw:
+   initial: 44
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dlp:
+   initial: 7
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dlq:
+   initial: 5
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dlr:
+   initial: 3
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dqu:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dqv:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dqw:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dqp:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dqq:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ dqr:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ amu:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ amv:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ amw:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ amp:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ amq:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1
+ amr:
+   initial: 0
+   fixed: true
+   min: 1
+   max: 100
+   lr: 1

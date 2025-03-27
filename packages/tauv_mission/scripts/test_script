@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+from test_mission_scripts import new_min_snap_traj
+
+if __name__ == "__main__":
+    new_min_snap_traj.main()
+# from test_mission_scripts import hold
+#
+# if __name__ == "__main__":
+#     hold.main()

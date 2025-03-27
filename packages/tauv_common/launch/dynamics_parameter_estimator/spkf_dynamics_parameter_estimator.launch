@@ -1,0 +1,14 @@
+<launch>
+    <arg name="config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
+
+    <group ns="kf">
+        <node
+                pkg="tauv_common"
+                type="spkf_dynamics_parameter_estimator"
+                name="spkf_dynamics_parameter_estimator"
+                output="screen"
+        >
+            <rosparam command="load" file="$(arg config_pkg)/yaml/spkf_dynamics_parameter_estimator.yaml" />
+        </node>
+    </group>
+</launch>

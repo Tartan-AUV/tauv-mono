@@ -1,0 +1,28 @@
+<launch>
+    <arg name="namespace" default="kf"/>
+    <arg name="config_pkg" default="$(eval find('kingfisher_sim_description'))"/>
+
+    <arg name="launch_vision" default="true" />
+    <arg name="teleop" default="true" />
+
+    <include file="$(find tauv_sim_worlds)/launch/umd.launch" />
+
+    <group ns="$(arg namespace)">
+        <param name="tf_namespace" value="$(arg namespace)" />
+
+        <include file="$(arg config_pkg)/launch/upload.launch">
+            <arg name="x" value="5" />
+            <arg name="y" value="5" />
+            <arg name="namespace" value="$(arg namespace)" />
+        </include>
+
+        <include file="$(arg config_pkg)/launch/vehicle.launch"/>
+
+        <include file="$(arg config_pkg)/launch/system.launch">
+            <arg name="config_pkg" value="$(arg config_pkg)"/>
+            <arg name="namespace" value="$(arg namespace)" />
+            <arg name="teleop" value="$(arg teleop)" />
+            <arg name="launch_vision" value="$(arg launch_vision)" />
+        </include>
+    </group>
+</launch>

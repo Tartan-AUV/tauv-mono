@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:navigation_state_sensor namespace="${ns}">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:navigation_state_sensor>
+</robot>

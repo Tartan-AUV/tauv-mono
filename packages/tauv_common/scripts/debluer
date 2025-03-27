@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from vision.debluer import debluer
+
+if __name__ == "__main__":
+    debluer.main()

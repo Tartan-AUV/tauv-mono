@@ -1,0 +1,80 @@
+<launch>
+    <arg name="namespace" />
+    <arg name="config_pkg" />
+    <arg name="teleop" />
+    <arg name="launch_vision" default="false"/>
+
+    <include file="$(find tauv_common)/launch/alarms/alarms.launch" />
+
+    <include file="$(arg config_pkg)/launch/transforms.launch">
+        <arg name="namespace" value="$(arg namespace)" />
+    </include>
+
+    <node pkg="tauv_common" type="thruster_manager" name="thruster_manager" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/yaml/thruster_manager.yaml" />
+    </node>
+
+    <node pkg="tauv_common" type="controller" name="controller" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/yaml/controller.yaml" />
+    </node>
+
+    <node pkg="tauv_common" type="pid_planner" name="pid_planner" output="screen">
+        <rosparam command="load" file="$(arg config_pkg)/yaml/pid_planner.yaml" />
+        <remap if="$(arg teleop)" from="gnc/controller_command" to="gnc/planner_command" />
+    </node>
+
+    <group if="$(arg teleop)">
+        <node
+                pkg="tauv_common"
+                type="teleop_planner"
+                name="teleop_planner"
+                output="screen"
+        >
+            <rosparam command="load" file="$(arg config_pkg)/yaml/teleop_planner.yaml" />
+        </node>
+
+        <node
+                pkg="joy"
+                type="joy_node"
+                name="joy_node"
+                output="screen"
+        >
+            <rosparam param="autorepeat_rate">20</rosparam>
+        </node>
+    </group>
+
+    <!-- <node pkg="tauv_vision" type="yolact" name="yolact" output="screen" if="$(arg launch_vision)"> -->
+    <!--   <rosparam param="model_config_path">/home/tauv/weights/lunar-water-358_model_config.json</rosparam> -->
+    <!--   <rosparam param="class_config_path">/home/tauv/weights/lunar-water-358_class_config.json</rosparam> -->
+    <!--   <rosparam param="weight_path">/home/tauv/weights/lunar-water-358_3.pt</rosparam> -->
+    <!--   <rosparam param="frame_ids">[oakd_front]</rosparam>--> -->
+    <!--   <rosparam param="topk">100</rosparam>--> -->
+    <!--   <rosparam param="iou_threshold">0.1</rosparam>--> -->
+    <!--   <rosparam param="confidence_threshold">0.95</rosparam>--> -->
+    <!-- </node> -->
+    <node pkg="tauv_vision" type="centernet" name="centernet" output="screen">
+      <rosparam param="frame_ids">[oakd_front, oakd_bottom]</rosparam>-->
+    </node>
+
+    <rosparam command="load" file="$(arg config_pkg)/yaml/global_map.yaml" />
+
+    <node
+        pkg="tauv_common"
+        type="global_map_cpp"
+        name="global_map"
+        output="screen"
+    >
+    </node>
+
+    <node
+        pkg="tauv_gui"
+        type="map_visualizer"
+        name="map_visualizer"
+        output="screen"
+    >
+        <rosparam command="load" file="$(find tauv_gui)/yaml/map_visualizer.yaml"/>
+    </node>
+
+    <rosparam command="load" file="$(arg config_pkg)/yaml/actuators.yaml" ns="actuators" />
+    <rosparam command="load" file="$(arg config_pkg)/yaml/motion.yaml" ns="motion" />
+</launch>

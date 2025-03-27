@@ -1,0 +1,30 @@
+<launch>
+    <arg name="namespace"/>
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_0_static_publisher"
+          args="0.197 0.081 -0.01 -0.785 0 1.571 $(arg namespace)/vehicle $(arg namespace)/thruster_0" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_1_static_publisher"
+          args="0.197 -0.081 -0.01 0.785 0 1.571 $(arg namespace)/vehicle $(arg namespace)/thruster_1" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_2_static_publisher"
+          args="-0.197 0.081 -0.01 -2.356 0 -1.571 $(arg namespace)/vehicle $(arg namespace)/thruster_2" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_3_static_publisher"
+          args="-0.197 -0.081 -0.01 2.356 0 -1.571 $(arg namespace)/vehicle $(arg namespace)/thruster_3" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_4_static_publisher"
+          args="0.061 0.228 0.0 0 1.571 0 $(arg namespace)/vehicle $(arg namespace)/thruster_4" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_5_static_publisher"
+          args="0.061 -0.228 0.0 0 1.571 0 $(arg namespace)/vehicle $(arg namespace)/thruster_5" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_6_static_publisher"
+          args="-0.061 0.228 0.0 0.0 1.571 0 $(arg namespace)/vehicle $(arg namespace)/thruster_6" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="thruster_7_static_publisher"
+          args="-0.061 -0.228 0.0 0.0 1.571 0 $(arg namespace)/vehicle $(arg namespace)/thruster_7" />
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="oakd_front_static_publisher"
+          args="0.2 0 0 1.57 0 1.57 $(arg namespace)/vehicle $(arg namespace)/oakd_front" />
+</launch>

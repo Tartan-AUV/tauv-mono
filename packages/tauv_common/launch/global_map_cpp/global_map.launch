@@ -1,0 +1,10 @@
+<launch>
+    <arg name="config_pkg" default="$(eval find('kingfisher_description'))"/>
+    <arg name="debug" default="none" />
+
+<!--     <group ns="global_map">-->
+
+    <!--for testing-->
+    <include file="$(find tauv_common)/launch/vision/map_test.launch"/>
+<!--     </group>-->
+</launch>

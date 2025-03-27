@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="2">
+    <name>kingfisher_description</name>
+    <version>0.1.0</version>
+    <description>The kingfisher_description package</description>
+
+    <maintainer email="theo@chemel.net">Theo Chemel</maintainer>
+
+    <author email="theo@chemel.net">Theo Chemel</author>
+
+    <license>Apache-2.0</license>
+
+    <buildtool_depend>catkin</buildtool_depend>
+</package>

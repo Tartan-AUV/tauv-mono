@@ -1,0 +1,22 @@
+<launch>
+    <arg name="model_name" default="kingfisher"/>
+    <arg name="config_pkg" default="$(eval find(arg('model_name') + '_description'))"/>
+
+    <group ns="gnc">
+        <node pkg="tauv_common" type="state_estimation" name="state_estimation" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/state_estimation.yaml" />
+            <remap from="pose" to="/gnc/pose" />
+            <remap from="odom" to="/gnc/odom" />
+            <remap from="imu" to="/xsens_imu/data" />
+            <remap from="dvl" to="/teledyne_dvl/data" />
+            <remap from="depth" to="/depth_sensor/depth" />
+        </node>
+
+        <node pkg="tauv_common" type="tuning_planner" name="tuning_planner" output="screen">
+            <rosparam command="load" file="$(arg config_pkg)/tuning_planner.yaml" />
+            <remap from="joy" to="/joy" />
+            <remap from="wrench" to="/thrusters/wrench" />
+            <remap from="arm" to="/thrusters/arm" />
+        </node>
+    </group>
+</launch>

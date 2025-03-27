@@ -1,0 +1,13 @@
+<launch>
+    <arg name="namespace" default="kf"/>
+    <group ns="$(arg namespace)">
+        <node
+            pkg="tauv_gui"
+            type="map_visualizer"
+            name="map_visualizer"
+            output="screen"
+        >
+            <rosparam file="$(find tauv_gui)/yaml/map_visualizer.yaml" />
+        </node>
+    </group>
+</launch>

@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from tauv_alarms import watchdog
+
+if __name__ == "__main__":
+    watchdog.main()

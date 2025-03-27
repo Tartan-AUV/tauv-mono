@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+from vision.shape_detector import shape_detector
+
+if __name__ == "__main__":
+    shape_detector.main()
