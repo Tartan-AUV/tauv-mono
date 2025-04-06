@@ -1,0 +1,14 @@
+[connection]
+id=osprey-lan-0
+type=ethernet
+interface-name=eno1
+
+[ipv4]
+method=manual
+addresses=10.0.0.20/24
+gateway=10.0.0.1
+ignore-auto-dns=false
+never-default=false
+
+[ipv6]
+method=ignore
