@@ -1,6 +1,0 @@
-#!/usr/bin/env python3
-from albatross_state_estimation import albatross_state_estimation
-
-if __name__ == "__main__":
-    albatross_state_estimation.main()
-

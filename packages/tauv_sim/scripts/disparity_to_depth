@@ -1,5 +1,0 @@
-#!/usr/bin/env python3
-from cameras import disparity_to_depth
-
-if __name__ == "__main__":
-    disparity_to_depth.main()

@@ -1,6 +1,0 @@
-#!/usr/bin/env python3
-from planners.tuning_planner import tuning_planner
-
-
-if __name__ == "__main__":
-    tuning_planner.main()

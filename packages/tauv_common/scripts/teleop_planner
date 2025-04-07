@@ -1,6 +1,0 @@
-#!/usr/bin/env python3
-from planners.teleop_planner import teleop_planner
-
-
-if __name__ == "__main__":
-    teleop_planner.main()

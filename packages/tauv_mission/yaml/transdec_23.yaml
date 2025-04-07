@@ -1,8 +1,0 @@
-course_a:
-  pinger_frequency: 30000
-course_b:
-  pinger_frequency: 40000
-course_c:
-  pinger_frequency: 35000
-course_d:
-  pinger_frequency: 25000

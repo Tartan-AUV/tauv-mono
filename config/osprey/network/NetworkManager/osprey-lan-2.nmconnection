@@ -1,0 +1,13 @@
+[connection]
+id=osprey-lan-2
+type=ethernet
+interface-name=enP5p1s0f1
+
+[ipv4]
+method=manual
+addresses=10.0.2.10/24
+gateway=10.0.2.10
+never-default=true
+
+[ipv6]
+method=ignore
