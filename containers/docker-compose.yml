@@ -1,7 +1,13 @@
 services:
-  osprey-orin-dev:
-    image: tartanauv/tauv-orin-base:r36.4.3
+  osprey-dev:
+    image: tartanauv/osprey-dev:latest
     network_mode: host
-    stdin_open: true  # equivalent to -i
-    tty: true         # equivalent to -t
-    container_name: tauv_gen_2_container
+    stdin_open: true
+    tty: true
+    container_name: osprey-dev
+    volumes:
+      - /home/tauv/tauv-mono/packages:/ros_ws/src/tauv-packages
+      - /home/tauv/ros-artifacts/install:/ros_ws/install
+      - /home/tauv/ros-artifacts/logs:/ros_ws/logs
+      - /home/tauv/ros_artifacts/build:/ros_ws/build
+  
