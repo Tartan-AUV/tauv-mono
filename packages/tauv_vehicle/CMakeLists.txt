@@ -8,6 +8,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 # Add FlatBuffers
 find_path(FLATBUFFERS_INCLUDE_DIR NAMES flatbuffers/flatbuffers.h)
@@ -46,6 +47,7 @@ foreach(SCHEMA ${SCHEMA_FILES})
     OUTPUT ${GENERATED_HEADER}
     COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE} 
             --cpp 
+            --gen-object-api
             -o ${GENERATED_INCLUDES_DIR}
             --scoped-enums
             ${SCHEMA}
@@ -72,6 +74,7 @@ ament_target_dependencies(
   "rclcpp"
   "rclpy"
   "std_msgs"
+  "sensor_msgs"
 )
 
 # Install executables

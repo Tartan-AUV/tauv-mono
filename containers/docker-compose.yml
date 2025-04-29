@@ -5,6 +5,14 @@ services:
     stdin_open: true
     tty: true
     container_name: osprey-dev
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1 # alternatively, use `count: all` for all GPUs
+              capabilities: [gpu]
+    runtime: nvidia
     volumes:
       - /home/tauv/tauv-mono/packages:/ros_ws/src/tauv-packages
       - /home/tauv/ros-artifacts/install:/ros_ws/install

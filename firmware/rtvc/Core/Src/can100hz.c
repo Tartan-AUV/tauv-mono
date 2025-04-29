@@ -88,7 +88,7 @@ void Task_CAN100Hz(const CAN100HzInputMessage* inputMsg, CAN100HzMessage* output
 					{
 						// previous frame is incomplete, need to ignore
 						xsensImuFrameStatus = 0;
-						WARN("IMU Frame Error (SampleTime)!");
+						WARN("IMU Frame Error (SmpleTime)!");
 					}
 					xsensImuFrameStatus |= XSENS_RECVD_SAMPLE_TIME;
 					imuFrames[currImuMsgIdx].SampleTime = CAN_MsgParse_Xsens_SampleTime(canRxMsg.data);

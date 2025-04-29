@@ -2,7 +2,8 @@
 
 FIRMWARE_DIR="$(pwd)/../../../"
 
-cp -r "$FIRMWARE_DIR/flatcc/include/flatcc" "$FIRMWARE_DIR/rtvc/Middlewares/flatcc/include/"
+mkdir -p "$FIRMWARE_DIR/rtvc/Middlewares/flatcc/include/flatcc"
+cp -r "$FIRMWARE_DIR/flatcc/include/flatcc" "$FIRMWARE_DIR/rtvc/Middlewares/flatcc/include"
 
 cd ./include
 
