@@ -26,18 +26,15 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
     if (HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &msg.header, msg.data) == HAL_OK)
     {
-    	uint8_t devType = CAN_DEVICE_TYPE_FROM_ID(msg.header.ExtId);
+    	uint32_t msgId = msg.header.ExtId;
 
     	BaseType_t xHigherPriorityTaskWoken;
 
-    	switch (devType) {
-    	case CAN_DEVICE_TYPE_XSENS:
+    	if (msgId < 0x80) {
+    		// XSens
     		xQueueSendToBackFromISR(can100HzRxQueue, &msg, &xHigherPriorityTaskWoken);
-    		break;
-    	case CAN_DEVICE_TYPE_VESC:
-    		break;
-    	default:
-    		break;
+    	} else {
+    		// VESC
     	}
     }
 }
