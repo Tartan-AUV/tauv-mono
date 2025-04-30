@@ -32,7 +32,8 @@ file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
 
 # List all schema files
 set(SCHEMA_FILES
-  ${SCHEMA_DIR}/eth_msg_rtvc_jetson.fbs
+  ${SCHEMA_DIR}/rtvc.fbs
+  # Add more schema files as needed
 )
 
 # Generate custom command to compile schemas
@@ -46,9 +47,6 @@ foreach(SCHEMA ${SCHEMA_FILES})
     OUTPUT ${GENERATED_HEADER}
     COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE} 
             --cpp 
-            --cpp-std c++11
-            --gen-all
-            --gen-object-api
             -o ${GENERATED_INCLUDES_DIR}
             --scoped-enums
             ${SCHEMA}

@@ -1,10 +1,12 @@
 #!/bin/bash
 
-FIRMWARE_DIR="$(pwd)/../../../"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+REPO_DIR="$SCRIPT_DIR/../../../../"
+FLATCC_INCLUDE="$REPO_DIR/firmware/rtvc/Middlewares/flatcc/include/flatcc"
 
-mkdir -p "$FIRMWARE_DIR/rtvc/Middlewares/flatcc/include/flatcc"
-cp -r "$FIRMWARE_DIR/flatcc/include/flatcc" "$FIRMWARE_DIR/rtvc/Middlewares/flatcc/include"
+mkdir -p "$FLATCC_INCLUDE"
+cp -r "$REPO_DIR/firmware/flatcc/include/flatcc" "$REPO_DIR/firmware/rtvc/Middlewares/flatcc/include"
 
 cd ./include
 
-"$FIRMWARE_DIR"/flatcc/bin/flatcc -rwc "$FIRMWARE_DIR"/schemas/rtvc.fbs
+"$REPO_DIR"/firmware/flatcc/bin/flatcc -rwc "$REPO_DIR"/packages/tauv_vehicle/schemas/eth_msg_rtvc_jetson.fbs
