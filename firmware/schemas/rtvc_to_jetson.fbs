@@ -1,0 +1,20 @@
+namespace RTVC.Tx;
+
+include "util.fbs"
+
+union EthMsg {
+    Eth100HzMsg,
+}
+
+table Eth100HzMsg {
+    imu_data:[XsensIMUFrame];
+}
+
+struct XsensIMUFrame {
+  sample_time:uint64;
+  orientation:Quat;
+  rate_of_turn:Vec3;
+  free_acceleration:Vec3;
+}
+
+root_type EthMsg;
