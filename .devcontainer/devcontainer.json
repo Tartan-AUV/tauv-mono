@@ -1,0 +1,36 @@
+
+{
+  "name": "tauv-desktop-dev",
+  "envFile": ".devcontainer/devcontainer.env",
+  "build": {
+    "dockerfile": "../containers/desktop-dev.Dockerfile",
+    "context": "..",
+    "runArgs": ["--env-file",".devcontainer/devcontainer.env"],
+    "args": {
+      "USERNAME": "${localEnv:USER}",
+      "USER_UID": "${localEnv:UID}",
+      "USER_GID": "${localEnv:GID}"
+    }
+  },
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/tauv-mono,type=bind",
+    "source=${localWorkspaceFolder}/packages,target=/ros_ws/src,type=bind",
+    "source=colcon_build,target=/ros_ws/build,type=volume",
+    "source=colcon_install,target=/ros_ws/install,type=volume",
+    "source=colcon_log,target=/ros_ws/log,type=volume"
+  ],
+  "remoteUser": "${localEnv:USER}",
+  "postCreateCommand": "pre-commit install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-vscode.cpptools",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.cmake-tools",
+        "foxundermoon.shell-format"
+      ]
+    }
+  },
+  "runArgs": ["--env-file",".devcontainer/devcontainer.env"]
+}

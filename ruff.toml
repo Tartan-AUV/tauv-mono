@@ -1,0 +1,15 @@
+[tool.ruff]
+line-length = 88
+target-version = "py310"  # Or py312 if you're using that
+fix = true
+lint.select = [
+  "F",    # Pyflakes (errors)
+  "E",    # pycodestyle (formatting)
+  "W",    # pycodestyle warnings
+  "I",    # isort
+  "UP",   # pyupgrade
+  "C90",  # mccabe (complexity)
+  "B",    # bugbear
+  "C4",   # comprehensions
+]
+exclude = ["build", "dist", ".venv"]
