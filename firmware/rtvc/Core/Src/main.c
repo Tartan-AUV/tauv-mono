@@ -121,7 +121,7 @@ int main(void)
 		 " \n\r"
 		 " Real-Time Vehicle Controller Rev. A\n\r"
 	     " TartanAUV, Carnegie Mellon University\n\r"
-		 " Author: Gleb Ryabtsev, 2025\n\r"
+		 " Authors: Gleb Ryabtsev, Victor Zayakov, 2025\n\r"
 	     "\n\r");
 
   IP4_ADDR(&jetsonAddr, 10, 0, 0, 20);
