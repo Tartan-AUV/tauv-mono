@@ -1,6 +1,12 @@
 namespace TAUV_FB;
 
-table ThrusterCommand {
-  rpm:[float32];
-  enabled:[bool];
+struct Eth50HzTxMsg {
+  thruster_command: ThrusterCommand;
 }
+
+struct ThrusterCommand {
+  rpm:[float32:8];
+  enabled:[bool:8];
+}
+
+root_type Eth50HzTxMsg;

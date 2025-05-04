@@ -35,6 +35,7 @@ file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
 # List all schema files
 set(SCHEMA_FILES
   ${SCHEMA_DIR}/eth_msg_rtvc_jetson.fbs
+  ${SCHEMA_DIR}/eth_msg_jetson_rtvc.fbs
 )
 
 # Generate custom command to compile schemas
