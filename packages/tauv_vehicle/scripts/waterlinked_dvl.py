@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import rclpy
 from rclpy.node import Node
 import asyncio
@@ -26,8 +28,7 @@ class WaterlinkedDVL(Node):
         self.writer = None
         self.awaiting_ack = False
 
-        self.packet_publisher = self.create_publisher(WaterlinkedDvlFrame, "dvl/frame", 10)
-        self.create_service(Trigger, "calibrate_gyro", self.calibrate_gyro_callback)
+        self.packet_publisher = self.create_publisher(WaterlinkedDvlFrame, "dvl_frame", 10)
 
     async def connect(self):
         address = self.get_parameter("address").get_parameter_value().string_value
@@ -51,12 +52,15 @@ class WaterlinkedDVL(Node):
             return
 
         config = {
-            "speed_of_sound": self.get_parameter("speed_of_sound").get_parameter_value().double_value,
-            "acoustic_enabled": True,
-            "dark_mode_enabled": False,
-            "mounting_rotation_offset": self.get_parameter("mounting_rotation_offset_deg").get_parameter_value().double_value,
-            "range_mode": self.get_parameter("range_mode").get_parameter_value().string_value,
-            "periodic_cycling_enabled": self.get_parameter("periodic_cycling_enable").get_parameter_value().bool_value
+            "command":"set_config",
+            "parameters": {
+                "speed_of_sound": self.get_parameter("speed_of_sound").get_parameter_value().double_value,
+                "acoustic_enabled": True,
+                "dark_mode_enabled": False,
+                "mounting_rotation_offset": self.get_parameter("mounting_rotation_offset_deg").get_parameter_value().double_value,
+                "range_mode": self.get_parameter("range_mode").get_parameter_value().string_value,
+                "periodic_cycling_enabled": self.get_parameter("periodic_cycling_enable").get_parameter_value().bool_value
+            }
         }
 
         config_json = json.dumps(config)
@@ -75,15 +79,15 @@ class WaterlinkedDVL(Node):
                 response_line = await asyncio.wait_for(self.reader.readline(), timeout=response_timeout)
                 response = response_line.decode('utf-8').strip()
                 self.awaiting_ack = False
-                self.get_logger().info(f"Received response: {response}")
 
                 try:
                     response_data = json.loads(response)
-                    if response_data.get("response_to") == "set_config" and response_data.get("success") is True:
-                        self.get_logger().info("Configuration upload successful.")
-                        return
-                    else:
-                        self.get_logger().warn("Unexpected or failed config response.")
+                    if response_data.get("response_to") == "set_config" :
+                        if response_data.get("success") is True:
+                            self.get_logger().info("Configuration upload successful.")
+                            return
+                        else:
+                            self.get_logger().warn("Unexpected or failed config response.")
                 except json.JSONDecodeError:
                     self.get_logger().error("Failed to parse JSON response.")
 
@@ -93,6 +97,8 @@ class WaterlinkedDVL(Node):
                 self.get_logger().error(f"Error during config upload: {e}")
                 self.awaiting_ack = False
                 return
+
+            
 
         self.awaiting_ack = False
         self.get_logger().error("Failed to receive valid response within connection timeout.")
@@ -131,57 +137,17 @@ class WaterlinkedDVL(Node):
                 flat_cov = [c for row in packet["covariance"] for c in row]
                 msg.covariance = flat_cov
                 # Transducers (assumes fixed size of 4)
-                for t in packet["transducers"]:
-                    msg.transducer_velocity.append(float(t["velocity"]))
-                    msg.transducer_distance.append(float(t["distance"]))
-                    msg.transducer_rssi.append(float(t["rssi"]))
-                    msg.transducer_nsd.append(float(t["nsd"]))
-                    msg.transducer_beam_valid.append(bool(t["beam_valid"]))
+                for i, t in enumerate(packet["transducers"]):
+                    msg.transducer_velocity[i] = float(t["velocity"])
+                    msg.transducer_distance[i] = float(t["distance"])
+                    msg.transducer_rssi[i] = float(t["rssi"])
+                    msg.transducer_nsd[i] = float(t["nsd"])
+                    msg.transducer_beam_valid[i] = bool(t["beam_valid"])
 
                 self.packet_publisher.publish(msg)
         except Exception as e:
             self.get_logger().error(f"Failed to handle packet: {e}")
 
-    def calibrate_gyro_callback(self, request, response):
-        if not self.writer:
-            self.get_logger().error("Not connected. Cannot send calibrate_gyro command.")
-            response.success = False
-            response.message = "Not connected to device."
-            return response
-
-        async def send_calibration():
-            try:
-                self.awaiting_ack = True
-                self.writer.write(b'{"command":"calibrate_gyro"}\n')
-                await self.writer.drain()
-
-                response_timeout = self.get_parameter("response_timeout").get_parameter_value().double_value
-                response_line = await asyncio.wait_for(self.reader.readline(), timeout=response_timeout)
-                self.awaiting_ack = False
-
-                message = response_line.decode('utf-8').strip()
-                data = json.loads(message)
-                if data.get("response_to") == "calibrate_gyro" and data.get("success") is True:
-                    response.success = True
-                    response.message = "Gyro calibration successful."
-                else:
-                    response.success = False
-                    response.message = data.get("error_message", "Unknown error.")
-
-            except asyncio.TimeoutError:
-                self.awaiting_ack = False
-                self.get_logger().error("Timeout waiting for calibrate_gyro response")
-                response.success = False
-                response.message = "Timeout"
-            except Exception as e:
-                self.awaiting_ack = False
-                self.get_logger().error(f"Failed to calibrate gyro: {e}")
-                response.success = False
-                response.message = str(e)
-
-        future = asyncio.run_coroutine_threadsafe(send_calibration(), asyncio.get_event_loop())
-        future.result()
-        return response
 
 
 def main(args=None):
@@ -190,8 +156,9 @@ def main(args=None):
 
     async def runner():
         await node.connect()
-        asyncio.create_task(node.listen_for_packets())
         await node.upload_config()
+
+        asyncio.create_task(node.listen_for_packets())
 
         while rclpy.ok():
             await asyncio.sleep(0.1)
