@@ -1,15 +1,13 @@
 
 {
   "name": "tauv-desktop-dev",
-  "envFile": ".devcontainer/devcontainer.env",
   "build": {
     "dockerfile": "../containers/desktop-dev.Dockerfile",
     "context": "..",
-    "runArgs": ["--env-file",".devcontainer/devcontainer.env"],
     "args": {
       "USERNAME": "${localEnv:USER}",
       "USER_UID": "${localEnv:UID}",
-      "USER_GID": "${localEnv:GID}"
+      "USER_GID": "${localEnv:GID:1000}"
     }
   },
   "mounts": [
@@ -32,5 +30,4 @@
       ]
     }
   },
-  "runArgs": ["--env-file",".devcontainer/devcontainer.env"]
 }

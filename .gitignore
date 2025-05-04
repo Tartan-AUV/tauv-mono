@@ -28,6 +28,4 @@ logs/
 .idea/
 
 ### Colcon Cache ###
-.colcon_build/
-.colcon_install/
-.colcon_log/
+ros_artifacts/

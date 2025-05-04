@@ -20,11 +20,6 @@ RUN apt-get update && apt-get install -y \
     libflatbuffers2 flatbuffers-compiler \
     && rm -rf /var/lib/apt/lists/*
 
-# Create user with matching UID/GID
-RUN groupadd --gid ${USER_GID} ${USERNAME} \
-    && useradd --uid ${USER_UID} --gid ${USER_GID} -m ${USERNAME} \
-    && usermod -aG sudo ${USERNAME}
-
 # Python tools in venv
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
@@ -47,9 +42,8 @@ RUN git config --system --add safe.directory /tauv-mono
 
 # Setup environment for the user
 WORKDIR /tauv-mono
-USER ${USERNAME}
 
-RUN echo "source /opt/ros/jazzy/setup.bash" >> /home/${USERNAME}/.bashrc \
-    && echo "cd /ros_ws" >> /home/${USERNAME}/.bashrc
+RUN echo "source /opt/ros/jazzy/setup.bash" >> /root/.bashrc \
+    && echo "cd /ros_ws" >> /root/.bashrc
 
 CMD [ "bash" ]
