@@ -7,6 +7,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "tauv_vehicle/generated/eth_msg_rtvc_jetson_generated.h"
+#include "tauv_vehicle/generated/eth_msg_jetson_rtvc_generated.h"
 
 #include "geometry_msgs/msg/quaternion.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
@@ -15,22 +16,34 @@
 using boost::asio::ip::udp;
 using namespace TAUV_FB;
 
-class UdpListenerNode : public rclcpp::Node {
+class UdpCommNode : public rclcpp::Node {
 public:
-  UdpListenerNode()
-      : Node("udp_listener_node"),
-        socket_(io_context_, udp::endpoint(udp::v4(), 11003)) {
+  UdpCommNode()
+      : Node("udp_comm_node"),
+        // Receive socket, for receiving messages at 100 Hz
+        recv_socket_(io_context_, udp::endpoint(udp::v4(), 11003)),
+        // Send socket, for sending messages at 50 Hz
+        send_socket_(io_context_, udp::endpoint(udp::v4(), 0)),
+        // Sets target address and port
+        send_endpoint_(boost::asio::ip::make_address("192.168.0.1"), 12003) {
+
     imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
 
     start_receive();
 
     std::cout << "Ayo!\n";
 
+    // Run a 50 Hz timer for sending messages
+    send_timer_ = this->create_wall_timer(
+      std::chrono::milliseconds(20),
+      std::bind(&UdpCommNode::sendCallback, this)
+    );
+
     // Spin up io_context in background
     io_thread_ = std::thread([this]() { io_context_.run(); });
   }
 
-  ~UdpListenerNode() {
+  ~UdpCommNode() {
     io_context_.stop();
     if (io_thread_.joinable())
       io_thread_.join();
@@ -114,9 +127,52 @@ private:
     return imu_msg;
   }
 
+
+  // Sends ESC commands
+  void sendCallback() {
+
+    // temporary constants, for sending test messages
+    std::vector<float> rpms    = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+    std::vector<uint8_t> enbls = {0, 0, 0, 0, 0, 0, 0, 0};
+
+    // Make FlatBufferBuilder
+    flatbuffers::FlatBufferBuilder builder(1024);
+
+    // Create the two vectors
+    auto rpm_vec    = builder.CreateVector(rpms);
+    auto enable_vec = builder.CreateVector(enables);
+
+    // Build the ThrusterCommand table
+    auto thruster_cmd_offset = CreateThrusterCommand(builder, rpm_vec, enable_vec);
+
+    // Finish the buffer
+    builder.Finish(thruster_cmd_offset);
+
+    // Send it out
+    auto buf = builder.GetBufferPointer();
+    auto size = builder.GetSize();
+
+    boost::system::error_code ec;
+    send_socket_.send_to(
+      boost::asio::buffer(buf, size),
+      send_endpoint_,
+      0,
+      ec
+    );
+    if (ec) {
+      RCLCPP_WARN(this->get_logger(),
+                  "Failed to send ThrusterCommand: %s",
+                  ec.message().c_str());
+    }
+
+  }
+
+
   boost::asio::io_context io_context_;
-  udp::socket socket_;
+  udp::socket recv_socket_;
+  udp::socket send_socket_;
   udp::endpoint remote_endpoint_;
+  udp::endpoint send_endpoint_;
   std::array<char, 1024> recv_buffer_;
   std::thread io_thread_;
 
@@ -125,7 +181,7 @@ private:
 
 int main(int argc, char *argv[]) {
   rclcpp::init(argc, argv);
-  auto node = std::make_shared<UdpListenerNode>();
+  auto node = std::make_shared<UdpCommNode>();
   rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;
