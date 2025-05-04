@@ -1,0 +1,13 @@
+namespace RTVC.Rx;
+
+union EthMsg {
+
+}
+
+table ThrusterCommand {
+  rpm:[float32];
+  enabled:[bool];
+}
+
+
+

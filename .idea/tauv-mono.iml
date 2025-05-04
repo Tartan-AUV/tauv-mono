@@ -9,7 +9,6 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/tauv_sim_gazebo_plugins/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/packages/tauv_vehicle/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/packages/tauv_vision/src" isTestSource="false" />
-      <excludeFolder url="file://$MODULE_DIR$/packages/tauv_msgs" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.10" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

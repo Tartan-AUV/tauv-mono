@@ -5,32 +5,31 @@
 #ifndef CAN_H
 #define CAN_H
 
-#include "stm32f7xx_hal.h"
 #include "FreeRTOS.h"
 #include "queue.h"
+#include "stm32f7xx_hal.h"
 
 /* Configuration */
 #define CAN_100HZ_QUEUE_LENGTH 64
 
-// CAN Message ID structure
-#define CAN_ID_DEVICE_TYPE_MSK 	0x000000F0
-#define CAN_ID_DEVICE_ID_MSK 	0x0000000F
-#define CAN_ID_MSG_TYPE_MSK		0x0000FF00
+/* CAN Messsage IDs */
 
-#define CAN_DEVICE_TYPE_FROM_ID(ext_id)	(uint8_t) ((0x000000F0 & (ext_id)) >> 4)
-#define CAN_DEVICE_ID_FROM_ID(ext_id) 	(uint8_t)  (0x0000000F & (ext_id))
-#define CAN_MSG_TYPE_FROM_ID(ext_id)	(uint8_t) ((0x0000FF00 & (ext_id)) >> 8)
-
-// CAN Device types
-#define CAN_DEVICE_TYPE_XSENS	0x1
-#define CAN_DEVICE_TYPE_VESC    0x2
+// XSens
+// 400 Hz
+#define CAN_MSG_ID_XSENS_SAMPLE_TIME 0x1
+#define CAN_MSG_ID_XSENS_ORIENTATION_QUATERNION 0x2
+#define CAN_MSG_ID_XSENS_RATE_OF_TURN 0x3
+#define CAN_MSG_ID_XSENS_FREE_ACCELERATION 0x4
+// 10 Hz
+#define CAN_MSG_ID_XSENS_TEMPERATURE 0x5
+#define CAN_MSG_ID_XSENS_PRESSURE 0x6
 
 extern QueueHandle_t can100HzRxQueue;
 
 /* CAN Parse */
 typedef struct {
-    CAN_RxHeaderTypeDef header;
-    uint8_t data[8];
+  CAN_RxHeaderTypeDef header;
+  uint8_t data[8];
 } CANRxMessage_t;
 
 // Initialize the message queue(s)
@@ -39,4 +38,4 @@ void CAN_RxQueueInit();
 // CAN ISR Override
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan);
 
-#endif //CAN_H
+#endif // CAN_H

@@ -1,0 +1,6 @@
+namespace TAUV_FB;
+
+table ThrusterCommand {
+  rpm:[float32];
+  enabled:[bool];
+}
