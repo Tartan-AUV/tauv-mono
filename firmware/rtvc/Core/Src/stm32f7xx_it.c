@@ -223,9 +223,11 @@ void ETH_IRQHandler(void)
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim) {
   // Time-keeping for time stamping
   if (htim->Instance == TIM5 && htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
-	 uint32_t cnt = __HAL_TIM_GET_COUNTER(htim);
-	 __HAL_TIM_SET_COUNTER(htim, cnt - 1000000);
+
 	 timestamp_secs += 1;
+
+	 uint32_t next = __HAL_TIM_GET_COUNTER(htim) - 1000000;
+	 __HAL_TIM_SET_COUNTER(htim, next);
   }
 }
 /* USER CODE END 1 */
