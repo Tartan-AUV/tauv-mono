@@ -23,9 +23,9 @@ public:
         // Receive socket, for receiving messages at 100 Hz
         recv_socket_(io_context_, udp::endpoint(udp::v4(), 11003)),
         // Send socket, for sending messages at 50 Hz
-        send_socket_(io_context_, udp::endpoint(udp::v4(), 0)),
+        send_socket_(io_context_, udp::endpoint(udp::v4(), 11004)),
         // Sets target address and port
-        send_endpoint_(boost::asio::ip::make_address("192.168.0.1"), 12003) {
+        send_endpoint_(boost::asio::ip::make_address("10.0.0.21"), 11004) {
 
     imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
 
@@ -51,7 +51,7 @@ public:
 
 private:
   void start_receive() {
-    socket_.async_receive_from(
+    recv_socket_.async_receive_from(
         boost::asio::buffer(recv_buffer_), remote_endpoint_,
         [this](boost::system::error_code ec, std::size_t bytes_recvd) {
           packet_callback(ec, bytes_recvd);
@@ -132,25 +132,34 @@ private:
   void sendCallback() {
 
     // temporary constants, for sending test messages
-    std::vector<float> rpms    = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
-    std::vector<uint8_t> enbls = {0, 0, 0, 0, 0, 0, 0, 0};
+    float rpms[8]    = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+    uint8_t enables[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
-    // Make FlatBufferBuilder
-    flatbuffers::FlatBufferBuilder builder(1024);
+    // 2) Build the FlatBuffer
+    flatbuffers::FlatBufferBuilder builder(256);
 
-    // Create the two vectors
-    auto rpm_vec    = builder.CreateVector(rpms);
-    auto enable_vec = builder.CreateVector(enables);
+    // Note: For fixed-length arrays inside structs, we still wrap them in
+    // dynamic FlatBuffer vectors, then pack into the struct field.
+    auto rpm_vec    = builder.CreateVector(rpms, 8);
+    auto enbl_vec   = builder.CreateVector(enbls, 8);
 
-    // Build the ThrusterCommand table
-    auto thruster_cmd_offset = CreateThrusterCommand(builder, rpm_vec, enable_vec);
+    // 3) Create the inner ThrusterCommand struct/table
+    auto thr_cmd_offset =
+      CreateThrusterCommand(builder,
+                            rpm_vec,
+                            enbl_vec);
 
-    // Finish the buffer
-    builder.Finish(thruster_cmd_offset);
+    // 4) Create the top-level Eth50HzTxMsg
+    auto tx_msg_offset =
+      CreateEth50HzTxMsg(builder,
+                        thr_cmd_offset);
 
-    // Send it out
-    auto buf = builder.GetBufferPointer();
-    auto size = builder.GetSize();
+    builder.Finish(tx_msg_offset);
+
+    // 5) Ship it off over UDP (via your asio strand)
+    auto buf  = std::make_shared<std::vector<uint8_t>>(
+                  builder.GetBufferPointer(),
+                  builder.GetBufferPointer() + builder.GetSize());
 
     boost::system::error_code ec;
     send_socket_.send_to(
@@ -177,6 +186,7 @@ private:
   std::thread io_thread_;
 
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher_;
+  rclcpp::TimerBase::SharedPtr  send_timer_;
 };
 
 int main(int argc, char *argv[]) {

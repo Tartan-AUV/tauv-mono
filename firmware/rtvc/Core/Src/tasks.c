@@ -7,6 +7,7 @@
 #include "messages.h"
 #include "can100hz.h"
 #include "eth100hz.h"
+#include "eth50hz.h"
 
 #include "timekeeping.h"
 #include "logging.h"
@@ -21,6 +22,9 @@ void TasksInit()
     Task_100Hz_Init();
     Task_CAN100Hz_Init();
     Task_Eth100Hz_Init();
+
+    // 50 Hz ethernet task (receives from Jetson)
+    Task_Eth50Hz_Init();
 }
 
 void Task_1Hz() {
