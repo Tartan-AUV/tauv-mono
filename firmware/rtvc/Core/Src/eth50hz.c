@@ -14,9 +14,20 @@
 
 static struct udp_pcb udpPcb50hz;
 
-/* Global storage for the latest ESC/thruster command */
-static float   g_thruster_rpms[CONF_N_ESCS];
-static uint8_t g_thruster_enabled[CONF_N_ESCS];
+/* Initialize a receive queue for Eth 50Hz */
+QueueHandle_t eth50HzRxQueue;
+
+static StaticQueue_t eth50HzRxQueueStruct;
+static uint8_t eth50HzRxQueueBuffer[ETH_50HZ_QUEUE_LENGTH * sizeof(CANRxMessage_t)];
+
+void Eth50Hz_RxQueueInit()
+{
+
+    eth50HzRxQueue = xQueueCreateStatic(ETH_50HZ_QUEUE_LENGTH,
+    				   	   	   	         sizeof(Eth50HzMessage),
+										 eth50HzRxQueueBuffer,
+										 &eth50HzRxQueueStruct);
+}
 
 /* Task and callback definitions */
 
@@ -54,14 +65,16 @@ void Eth50Hz_Callback(void *arg,
     TAUV_FB_Eth50HzTxMsg_table_t msg = TAUV_FB_Eth50HzTxMsg_as_root(buf_aligned);
     TAUV_FB_ThrusterCommand_struct_t cmd = TAUV_FB_Eth50HzTxMsg_thruster_command(msg);
 
-    printf("\n");
+    Eth50HzMessage queue_msg;
+
     // 3) Pull out rpm and enabled arrays, clamp to MAX_THRUSTERS
     for (size_t i = 0; i < CONF_N_ESCS; ++i) {
-        g_thruster_rpms   [i] = TAUV_FB_ThrusterCommand_rpm_get(cmd, i);
-        g_thruster_enabled[i] = TAUV_FB_ThrusterCommand_enabled_get(cmd, i);
-        printf(" enabled: %d", g_thruster_enabled[i]);
+        queue_msg.EscRpm   [i] = TAUV_FB_ThrusterCommand_rpm_get(cmd, i);
+        queue_msg.EscEnable[i] = TAUV_FB_ThrusterCommand_enabled_get(cmd, i);
     }
-    printf("\n");
+
+    // Send received message to back of receive queue
+    xQueueSendToBackFromISR(eth50HzRxQueue, &queue_msg, NULL);
 
     pbuf_free(p);
 
