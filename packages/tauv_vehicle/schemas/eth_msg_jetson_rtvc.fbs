@@ -1,6 +1,6 @@
 namespace TAUV_FB;
 
-struct Eth50HzTxMsg {
+table Eth50HzTxMsg {
   thruster_command: ThrusterCommand;
 }
 

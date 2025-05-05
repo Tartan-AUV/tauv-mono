@@ -9,5 +9,5 @@ cp -r "$REPO_DIR/firmware/flatcc/include/flatcc" "$REPO_DIR/firmware/rtvc/Middle
 
 cd ./include
 
-"$REPO_DIR"/firmware/flatcc/bin/flatcc -rwc "$REPO_DIR"/packages/tauv_vehicle/schemas/eth_msg_rtvc_jetson.fbs
-"$REPO_DIR"/firmware/flatcc/bin/flatcc -rwc "$REPO_DIR"/packages/tauv_vehicle/schemas/eth_msg_jetson_rtvc.fbs
+"$REPO_DIR"/firmware/flatcc/bin/flatcc -a "$REPO_DIR"/packages/tauv_vehicle/schemas/eth_msg_rtvc_jetson.fbs
+"$REPO_DIR"/firmware/flatcc/bin/flatcc -a "$REPO_DIR"/packages/tauv_vehicle/schemas/eth_msg_jetson_rtvc.fbs

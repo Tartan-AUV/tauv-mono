@@ -132,48 +132,32 @@ private:
   void sendCallback() {
 
     // temporary constants, for sending test messages
-    float rpms[8]    = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
-    uint8_t enables[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+    float rpms[8]    = {1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f};
+    uint8_t enables[8] = {1, 1, 1, 1, 1, 1, 1, 1};
 
-    // 2) Build the FlatBuffer
-    flatbuffers::FlatBufferBuilder builder(256);
+    // Create the top-level Eth50HzTxMsg
+    Eth50HzTxMsgT msg_obj;
+    msg_obj.thruster_command = std::make_unique<ThrusterCommand>(rpms, enables);
 
-    // Note: For fixed-length arrays inside structs, we still wrap them in
-    // dynamic FlatBuffer vectors, then pack into the struct field.
-    auto rpm_vec    = builder.CreateVector(rpms, 8);
-    auto enbl_vec   = builder.CreateVector(enbls, 8);
-
-    // 3) Create the inner ThrusterCommand struct/table
-    auto thr_cmd_offset =
-      CreateThrusterCommand(builder,
-                            rpm_vec,
-                            enbl_vec);
-
-    // 4) Create the top-level Eth50HzTxMsg
-    auto tx_msg_offset =
-      CreateEth50HzTxMsg(builder,
-                        thr_cmd_offset);
-
-    builder.Finish(tx_msg_offset);
-
-    // 5) Ship it off over UDP (via your asio strand)
-    auto buf  = std::make_shared<std::vector<uint8_t>>(
-                  builder.GetBufferPointer(),
-                  builder.GetBufferPointer() + builder.GetSize());
-
-    boost::system::error_code ec;
-    send_socket_.send_to(
-      boost::asio::buffer(buf, size),
-      send_endpoint_,
-      0,
-      ec
+    flatbuffers::FlatBufferBuilder builder;
+    builder.Finish(Eth50HzTxMsg::Pack(builder, &msg_obj));
+    // copy payload bytes into a heap‐allocated vector
+    auto buf = std::make_shared<std::vector<char>>(
+      reinterpret_cast<char*>(builder.GetBufferPointer()),
+      reinterpret_cast<char*>(builder.GetBufferPointer() + builder.GetSize())
     );
-    if (ec) {
-      RCLCPP_WARN(this->get_logger(),
-                  "Failed to send ThrusterCommand: %s",
-                  ec.message().c_str());
-    }
+    std::cout << "this is def new shit\n";
 
+
+    // Ship it off over UDP (via asio strand
+    io_context_.post([this, buf]()
+    {
+        boost::system::error_code ec;
+        send_socket_.send_to(boost::asio::buffer(*buf), send_endpoint_, 0, ec);
+        std::cout << "i'm sending stuff\n";
+        if (ec)
+          RCLCPP_WARN(this->get_logger(), "UDP send error: %s", ec.message().c_str());
+    });
   }
 
 
