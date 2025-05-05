@@ -46,7 +46,7 @@ void Task_100Hz_Init()
 void Task_100Hz() {
 
 	Timestamp_t ts = get_timestamp();
-	INFO("Secs: %d, usecs: %d\n", ts.secs, ts.usecs);
+	//INFO("Secs: %d, usecs: %d\n", ts.secs, ts.usecs);
 
     const Eth100HzInputMessage eth100HzInputMsg = {
         .imuFrames = can100HzMsg.ImuFrames,

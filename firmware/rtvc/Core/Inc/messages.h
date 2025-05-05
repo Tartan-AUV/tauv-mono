@@ -30,7 +30,7 @@ typedef struct {
     float EscRpm[CONF_N_ESCS];
     bool EscEnable[CONF_N_ESCS];
 
-} ThrusterCommand;
+} Eth50HzMessage;
 
 typedef struct {
     float Pressure;
