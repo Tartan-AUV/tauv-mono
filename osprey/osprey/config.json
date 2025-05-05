@@ -1,0 +1,10 @@
+{
+    "url": "https://tartanauv.onshape.com/documents/c69cf578a739bb23e6cde5a1/v/c681b18628814030cdbd846c/e/46722bf26b9825f17826ff90",
+    "output_format": "urdf",
+    "draw_frames": "true",
+    "robot": "osprey",
+    "simplify_stls": true,
+    // Maximum size of the STL files in MB (default: 3)
+    "max_stl_size": 1
+
+}

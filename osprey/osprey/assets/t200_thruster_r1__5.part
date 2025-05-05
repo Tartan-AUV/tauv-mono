@@ -1,0 +1,14 @@
+{
+    "configuration": "default",
+    "documentId": "1e2562e09cc0e439afb00e44",
+    "documentMicroversion": "c2ca2d8d9948d5839078536f",
+    "documentVersion": "c2b2c343162e8f542309b58a",
+    "elementId": "6cf6c3f2e8fc35bd94d4c251",
+    "fullConfiguration": "default",
+    "id": "MDWSpQo7UNM893vuU",
+    "isStandardContent": false,
+    "name": "T200-THRUSTER-R1 <2>",
+    "partId": "JFH",
+    "suppressed": false,
+    "type": "Part"
+}
