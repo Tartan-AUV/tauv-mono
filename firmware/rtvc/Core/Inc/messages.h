@@ -21,7 +21,9 @@ void CAN100HzMessage_Init(CAN100HzMessage *m);
 
 typedef struct {
     // ESCs
-    XsensIMUFrame   ImuFrames[CAN_XSENS_IMU_FRAMES_MAX];
+    float EscRpm[CONF_N_ESCS];
+    bool EscEnable[CONF_N_ESCS];
+    // And more...
 
 } Eth100HzMessage;
 
@@ -31,6 +33,11 @@ typedef struct {
     bool EscEnable[CONF_N_ESCS];
 
 } Eth50HzMessage;
+
+typedef struct {
+	float EscRpm;
+	bool EscEnable;
+} CAN50HzMessage;
 
 typedef struct {
     float Pressure;

@@ -25,6 +25,8 @@ void TasksInit()
 
     // 50 Hz ethernet task (receives from Jetson)
     Task_Eth50Hz_Init();
+    // Top-level 50 Hz task
+    Task_50Hz_Init();
 }
 
 void Task_1Hz() {
@@ -61,6 +63,25 @@ void Task_100Hz() {
     };
 
     Task_CAN100Hz(&can100HzInputMsg, &can100HzMsg);
+
+}
+
+// Persistent ethernet message
+static Eth50HzMessage eth50HzMsg;
+
+void Task_50Hz_Init()
+{
+	Eth50HzMessage_Init(&eth50HzMsg);
+}
+
+void Task_50Hz() {
+
+	const CAN50HzInputMessage can50HzInputMsg = {
+
+	};
+	Task_CAN50Hz();
+
+	Task_Eth50Hz();
 
 }
 
