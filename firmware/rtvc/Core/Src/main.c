@@ -159,6 +159,10 @@ int main(void)
   osTimerDef(Task100HzTimer, Task_100Hz);
   task100hz_handle = osTimerCreate(osTimer(Task100HzTimer), osTimerPeriodic, NULL);
   volatile osStatus s = osTimerStart(task100hz_handle, 10);
+
+  osTimerDef(Task50HzTimer, Task_50Hz);
+  task50hz_handle = osTimerCreate(osTimer(Task50HzTimer), osTimerPeriodic, NULL);
+  volatile osStatus s_50hz = osTimerStart(task50hz_handle, 20);
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
