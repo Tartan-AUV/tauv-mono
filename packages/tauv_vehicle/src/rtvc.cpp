@@ -12,6 +12,7 @@
 #include "geometry_msgs/msg/quaternion.hpp"
 #include "geometry_msgs/msg/vector3.hpp"
 #include "sensor_msgs/msg/imu.hpp"
+#include "tauv_msgs/msg/rpm_command.hpp"
 
 using boost::asio::ip::udp;
 using namespace TAUV_FB;
@@ -30,7 +31,7 @@ public:
     imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
 
     rpm_command_subscriber_ = this->create_subscription<tauv_msgs::msg::RpmCommand>(
-                                "rpm_command", 10, std::bind(&UdpCommNode::rpm_command_callback, this, _1)); 
+                                "rpm_command", 10, std::bind(&UdpCommNode::rpm_command_callback, this, std::placeholders::_1)); 
 
     start_receive();
 
@@ -135,8 +136,8 @@ private:
     return imu_msg;
   }
 
-  void thrust_command_callback(const tauv_msgs::msg::RpmCommand::SharedPtr msg) {
-    for (i = 0; i < msg->rpms.size; ++i) {
+  void rpm_command_callback(const tauv_msgs::msg::RpmCommand::SharedPtr msg) {
+    for (size_t i = 0; i < msg->rpms.size; ++i) {
       rpms[i] = msg->rpms[i];
       enables[i] = msg->enables[i];
     }
@@ -147,7 +148,7 @@ private:
 
     // Create the top-level Eth50HzTxMsg
     Eth50HzTxMsgT msg_obj;
-    msg_obj.thruster_command = std::make_unique<ThrustCommand>(rpms, enables);
+    msg_obj.thruster_command = std::make_unique<RpmCommand>(rpms, enables);
 
     flatbuffers::FlatBufferBuilder builder;
     builder.Finish(Eth50HzTxMsg::Pack(builder, &msg_obj));

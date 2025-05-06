@@ -78,6 +78,7 @@ ament_target_dependencies(
   "rclcpp"
   "rclpy"
   "std_msgs"
+  "tauv_msgs"
   "sensor_msgs"
 )
 
