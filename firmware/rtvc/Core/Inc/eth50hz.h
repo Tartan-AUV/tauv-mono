@@ -11,8 +11,6 @@
 #include "queue.h"
 #include "stm32f7xx_hal.h"
 
-extern QueueHandle_t eth50HzRxQueue;
-
 /* Message Definitions */
 
 typedef struct {

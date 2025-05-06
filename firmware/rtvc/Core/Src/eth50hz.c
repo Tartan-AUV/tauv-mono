@@ -9,16 +9,17 @@
 #include "eth_msg_jetson_rtvc_verifier.h"
 #include "udp.h"
 #include "vehicle_config.h"
+#include "logging.h"
 
 #define RX_BUFFER_SIZE_BYTES 128
 
 static struct udp_pcb udpPcb50hz;
 
 /* Initialize a receive queue for Eth 50Hz */
-QueueHandle_t eth50HzRxQueue;
+static QueueHandle_t eth50HzRxQueue;
 
 static StaticQueue_t eth50HzRxQueueStruct;
-static uint8_t eth50HzRxQueueBuffer[ETH_50HZ_QUEUE_LENGTH * sizeof(CANRxMessage_t)];
+static uint8_t eth50HzRxQueueBuffer[ETH_50HZ_QUEUE_LENGTH * sizeof(Eth50HzMessage)];
 
 void Eth50Hz_RxQueueInit()
 {
@@ -41,6 +42,7 @@ void Eth50Hz_Callback(void *arg,
 	(void)pcb;
 	(void)addr;
 	(void)port;
+
 
 	uint8_t *buf = (uint8_t *)p->payload;
 	size_t   len = p->len;
@@ -74,13 +76,14 @@ void Eth50Hz_Callback(void *arg,
     }
 
     // Send received message to back of receive queue
-    xQueueSendToBackFromISR(eth50HzRxQueue, &queue_msg, NULL);
+    xQueueSendToBack(eth50HzRxQueue, &queue_msg, NULL);
 
     pbuf_free(p);
 
 }
 
 void Task_Eth50Hz_Init() {
+	Eth50Hz_RxQueueInit();
 
 	// Init UDP
 	err_t retval;
@@ -96,7 +99,7 @@ void Task_Eth50Hz(const Eth50HzInputMessage *inputMessage,
 
 	Eth50HzMessage ethRxMsg;
 	size_t ethMsgCounter = 0;
-	while (xQueueReceive(eth50HzRxQueue, &ethRxMsg, 0) == pdTRUE) {
+	while (xQueueReceive(eth50HzRxQueue, &ethRxMsg, 0) != errQUEUE_EMPTY && ethMsgCounter < ETH_50HZ_QUEUE_LENGTH) {
 
 		msgArray[ethMsgCounter] = ethRxMsg;
 		++ethMsgCounter;

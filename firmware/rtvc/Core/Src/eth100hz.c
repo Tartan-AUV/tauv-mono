@@ -7,9 +7,13 @@
 #include "eth_msg_rtvc_jetson_builder.h"
 #include "udp.h"
 #include "vehicle_config.h"
+#include "logging.h"
+#include "timekeeping.h"
 
 static flatcc_builder_t builder;
 static struct udp_pcb udpPcb100hz;
+
+int count = 0;
 
 /* Task definition */
 
@@ -54,4 +58,8 @@ void Task_Eth100Hz(const Eth100HzInputMessage *inputMessage,
   udp_sendto(&udpPcb100hz, p, &jetsonAddr, JETSON_100HZ_PORT);
   pbuf_free(p);
   flatcc_builder_reset(&builder);
+
+  Timestamp_t ts = get_timestamp();
+  printf("time: %d, n_frames: %d\n\r", ts.secs, inputMessage->nXsensImuFrames);
+  ++count;
 }
