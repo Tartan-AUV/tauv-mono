@@ -88,3 +88,20 @@ void Task_Eth50Hz_Init() {
 	assert(retval == ERR_OK);
 	udp_recv(&udpPcb50hz, Eth50Hz_Callback, NULL);
 }
+
+void Task_Eth50Hz(const Eth50HzInputMessage *inputMessage,
+                   Eth50HzOutputMessage *outputMessage) {
+
+	Eth50HzMessage *msgArray = outputMessage->OutMsgs;
+
+	Eth50HzMessage ethRxMsg;
+	size_t ethMsgCounter = 0;
+	while (xQueueReceive(eth50HzRxQueue, &ethRxMsg, 0) == pdTRUE) {
+
+		msgArray[ethMsgCounter] = ethRxMsg;
+		++ethMsgCounter;
+
+	}
+	outputMessage->NumEscMsgs = ethMsgCounter;
+
+}

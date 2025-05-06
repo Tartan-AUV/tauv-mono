@@ -12,16 +12,15 @@
 #include "util.h"
 #include "xsens.h"
 
+
 typedef struct {
     XsensIMUFrame   ImuFrames[CAN_XSENS_IMU_FRAMES_MAX];
     size_t          NImuFrames;
 } CAN100HzMessage;
 
-void CAN100HzMessage_Init(CAN100HzMessage *m);
-
 typedef struct {
     // ESCs
-    float EscRpm[CONF_N_ESCS];
+    int32_t EscRpm[CONF_N_ESCS];
     bool EscEnable[CONF_N_ESCS];
     // And more...
 
@@ -29,14 +28,16 @@ typedef struct {
 
 typedef struct {
     // ESCs
-    float EscRpm[CONF_N_ESCS];
+    int32_t EscRpm[CONF_N_ESCS];
     bool EscEnable[CONF_N_ESCS];
 
 } Eth50HzMessage;
 
 typedef struct {
-	float EscRpm;
-	bool EscEnable;
+	// Placeholder code
+	// Fill this struct if you want to receive data on RTVC
+	// over CAN at 50HZ
+	char placeholder;
 } CAN50HzMessage;
 
 typedef struct {
@@ -44,5 +45,16 @@ typedef struct {
     float Temperature;
 } XsensEnvironmentalMessage;
 
+/* Configuration */
+#define ETH_50HZ_QUEUE_LENGTH 32
+
+typedef struct {
+	Eth50HzMessage OutMsgs[ETH_50HZ_QUEUE_LENGTH];
+	size_t NumEscMsgs;
+} Eth50HzOutputMessage;
+
+
+void CAN100HzMessage_Init(CAN100HzMessage *m);
+void Eth50HzMessage_Init(Eth50HzOutputMessage *m);
 
 #endif //MESSAGES_H

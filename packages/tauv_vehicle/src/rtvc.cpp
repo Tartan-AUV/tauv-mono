@@ -132,7 +132,7 @@ private:
   void sendCallback() {
 
     // temporary constants, for sending test messages
-    float rpms[8]    = {1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f};
+    int32_t rpms[8]    = {1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f, 1.f};
     uint8_t enables[8] = {1, 1, 1, 1, 1, 1, 1, 1};
 
     // Create the top-level Eth50HzTxMsg
