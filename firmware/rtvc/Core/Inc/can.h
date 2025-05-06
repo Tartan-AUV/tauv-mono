@@ -24,6 +24,9 @@
 #define CAN_MSG_ID_XSENS_TEMPERATURE 51
 #define CAN_MSG_ID_XSENS_PRESSURE 52
 
+// VESC Base ID
+#define VESC_BASE_CAN_ID 127
+
 extern QueueHandle_t can100HzRxQueue;
 
 /* CAN Parse */

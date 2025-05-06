@@ -11,21 +11,20 @@
 #include "queue.h"
 #include "stm32f7xx_hal.h"
 
-/* Configuration */
-#define ETH_50HZ_QUEUE_LENGTH 32
+extern QueueHandle_t eth50HzRxQueue;
 
 /* Message Definitions */
 
-//typedef struct {
-//    float EscRpm[CONF_N_ESCS];
-//    bool EscEnable[CONF_N_ESCS];
-//} Eth50HzInputMessage;
+typedef struct {
+	// Placeholder, change this code if you want to send messages to the Jetson
+	// over Ethernet at 50Hz
+	char placeholder;
+} Eth50HzInputMessage;
 
 /* TASK DECLARATION */
 
-// Initialize the message queue(s)
-void Eth50Hz_RxQueueInit();
-
+void Eth50Hz_RxQueueInit(); // Initialize the message queue(s)
 void Task_Eth50Hz_Init();
+void Task_Eth50Hz(const Eth50HzInputMessage *inputMessage, Eth50HzOutputMessage *outputMessage);
 
 #endif // ETH50HZ_H

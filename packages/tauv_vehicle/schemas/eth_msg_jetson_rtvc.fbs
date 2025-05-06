@@ -5,7 +5,7 @@ table Eth50HzTxMsg {
 }
 
 struct ThrusterCommand {
-  rpm:[float32:8];
+  rpm:[int32:8];
   enabled:[bool:8];
 }
 

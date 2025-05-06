@@ -8,6 +8,7 @@
 #include "can100hz.h"
 #include "eth100hz.h"
 #include "eth50hz.h"
+#include "can50hz.h"
 
 #include "timekeeping.h"
 #include "logging.h"
@@ -37,6 +38,30 @@ void Task_10Hz() {
 
 }
 
+// Persistent Ethernet message
+static Eth50HzOutputMessage eth50HzOutputMsg;
+
+void Task_50Hz_Init()
+{
+	Eth50HzMessage_Init(&eth50HzOutputMsg);
+}
+
+void Task_50Hz() {
+
+	const CAN50HzInputMessage can50HzInputMsg = {
+		.outputMsg = eth50HzOutputMsg,
+	};
+	CAN50HzMessage can50HzMsg;
+
+	Task_CAN50Hz(&can50HzInputMsg, &can50HzMsg);
+
+	const Eth50HzInputMessage eth50HzInputMsg = {
+		.placeholder = 0,
+	};
+	Task_Eth50Hz(&eth50HzInputMsg, &eth50HzOutputMsg);
+
+}
+
 // Persistent messages
 static CAN100HzMessage can100HzMsg;
 
@@ -62,25 +87,6 @@ void Task_100Hz() {
     };
 
     Task_CAN100Hz(&can100HzInputMsg, &can100HzMsg);
-
-}
-
-// Persistent ethernet message
-static Eth50HzMessage eth50HzMsg;
-
-void Task_50Hz_Init()
-{
-	Eth50HzMessage_Init(&eth50HzMsg);
-}
-
-void Task_50Hz() {
-
-	const CAN50HzInputMessage can50HzInputMsg = {
-
-	};
-	Task_CAN50Hz();
-
-	Task_Eth50Hz();
 
 }
 

@@ -14,6 +14,12 @@ void Task_1Hz();
 
 void Task_10Hz();
 
+void Task_50Hz_Init();
+
+void Task_50Hz();
+
+void Task_100Hz_Init();
+
 void Task_100Hz();
 
 void Task_1000Hz();
