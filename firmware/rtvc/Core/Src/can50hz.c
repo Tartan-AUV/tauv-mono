@@ -7,6 +7,7 @@
 #include "can.h"
 #include "portmacro.h"
 #include "vesc.h"
+#include "logging.h"
 
 void Task_CAN50Hz(const CAN50HzInputMessage *inputMessage, CAN50HzMessage *outputMessage) {
 
@@ -38,6 +39,7 @@ void Task_CAN50Hz(const CAN50HzInputMessage *inputMessage, CAN50HzMessage *outpu
 
 			uint32_t mailbox;
 
+			printf("Sending CAN 50Hz\n");
 			HAL_CAN_AddTxMessage(&hcan1, &esc_header, payload, &mailbox);
 		}
 	}

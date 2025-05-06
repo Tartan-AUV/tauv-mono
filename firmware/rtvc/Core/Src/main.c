@@ -54,6 +54,7 @@ UART_HandleTypeDef huart3;
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 osTimerId task100hz_handle;
+osTimerId task50hz_handle;
 
 ip_addr_t jetsonAddr;
 /* USER CODE END PV */
