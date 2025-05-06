@@ -29,6 +29,9 @@ public:
 
     imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
 
+    thrust_command_subscriber_ = this->create_subscription<tauv_msgs::msg::ThrusterCommand>(
+                                "thruster_command", 10, std::bind(&UdpCommNode::thrust_command_callback, this, _1)); 
+
     start_receive();
 
     std::cout << "Ayo!\n";
@@ -50,6 +53,11 @@ public:
   }
 
 private:
+
+  // rpm and enable arrays
+  int32_t rpms[8]    = {0, 0, 0, 0, 0, 0, 0, 0};
+  uint8_t enables[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+
   void start_receive() {
     recv_socket_.async_receive_from(
         boost::asio::buffer(recv_buffer_), remote_endpoint_,
@@ -127,13 +135,12 @@ private:
     return imu_msg;
   }
 
+  void thrust_command_callback(const tauv_msgs::msg::Rpm) {
+
+  }
 
   // Sends ESC commands
   void sendCallback() {
-
-    // temporary constants, for sending test messages
-    int32_t rpms[8]    = {10, 10, 10, 10, 10, 10, 10, 10};
-    uint8_t enables[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
     // Create the top-level Eth50HzTxMsg
     Eth50HzTxMsgT msg_obj;
@@ -170,6 +177,7 @@ private:
   std::thread io_thread_;
 
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher_;
+  rclcpp::Subscription<tauv_msgs::msg::ThrusterCommand>::SharedPtr thurst_command_subscriber_;
   rclcpp::TimerBase::SharedPtr  send_timer_;
 };
 
