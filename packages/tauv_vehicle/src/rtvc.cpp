@@ -29,8 +29,8 @@ public:
 
     imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
 
-    thrust_command_subscriber_ = this->create_subscription<tauv_msgs::msg::ThrusterCommand>(
-                                "thruster_command", 10, std::bind(&UdpCommNode::thrust_command_callback, this, _1)); 
+    rpm_command_subscriber_ = this->create_subscription<tauv_msgs::msg::RpmCommand>(
+                                "rpm_command", 10, std::bind(&UdpCommNode::rpm_command_callback, this, _1)); 
 
     start_receive();
 
@@ -135,8 +135,11 @@ private:
     return imu_msg;
   }
 
-  void thrust_command_callback(const tauv_msgs::msg::Rpm) {
-
+  void thrust_command_callback(const tauv_msgs::msg::RpmCommand::SharedPtr msg) {
+    for (i = 0; i < msg->rpms.size; ++i) {
+      rpms[i] = msg->rpms[i];
+      enables[i] = msg->enables[i];
+    }
   }
 
   // Sends ESC commands
@@ -144,7 +147,7 @@ private:
 
     // Create the top-level Eth50HzTxMsg
     Eth50HzTxMsgT msg_obj;
-    msg_obj.thruster_command = std::make_unique<ThrusterCommand>(rpms, enables);
+    msg_obj.thruster_command = std::make_unique<ThrustCommand>(rpms, enables);
 
     flatbuffers::FlatBufferBuilder builder;
     builder.Finish(Eth50HzTxMsg::Pack(builder, &msg_obj));
@@ -177,7 +180,7 @@ private:
   std::thread io_thread_;
 
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher_;
-  rclcpp::Subscription<tauv_msgs::msg::ThrusterCommand>::SharedPtr thurst_command_subscriber_;
+  rclcpp::Subscription<tauv_msgs::msg::RpmCommand>::SharedPtr rpm_command_subscriber_;
   rclcpp::TimerBase::SharedPtr  send_timer_;
 };
 
