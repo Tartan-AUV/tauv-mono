@@ -9,13 +9,6 @@
 #include "util.h"
 
 // MT CAN message dictionary
-#define CAN_MSG_ID_XSENS_SAMPLE_TIME 0x1
-#define CAN_MSG_ID_XSENS_ORIENTATION_QUATERNION 0x2
-#define CAN_MSG_ID_XSENS_RATE_OF_TURN 0x3
-#define CAN_MSG_ID_XSENS_FREE_ACCELERATION 0x4
-#define CAN_MSG_ID_XSENS_TEMPERATURE 0x5
-#define CAN_MSG_ID_XSENS_PRESSURE 0x6
-
 #define CAN_XSENS_FRAME_N_MSGS 4
 #define CAN_XSENS_IMU_FRAMES_MAX                                               \
   (CAN_100HZ_QUEUE_LENGTH / CAN_XSENS_FRAME_N_MSGS + 1)
