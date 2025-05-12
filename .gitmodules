@@ -1,0 +1,3 @@
+[submodule "firmware/flatcc"]
+	path = firmware/flatcc
+	url = https://github.com/dvidelabs/flatcc.git
