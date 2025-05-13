@@ -137,7 +137,7 @@ private:
   }
 
   void rpm_command_callback(const tauv_msgs::msg::RpmCommand::SharedPtr msg) {
-    for (size_t i = 0; i < msg->rpms.size; ++i) {
+    for (size_t i = 0; i < msg->rpms.size(); ++i) {
       rpms[i] = msg->rpms[i];
       enables[i] = msg->enables[i];
     }
@@ -148,7 +148,7 @@ private:
 
     // Create the top-level Eth50HzTxMsg
     Eth50HzTxMsgT msg_obj;
-    msg_obj.thruster_command = std::make_unique<RpmCommand>(rpms, enables);
+    msg_obj.thruster_command = std::make_unique<ThrusterCommand>(rpms, enables);
 
     flatbuffers::FlatBufferBuilder builder;
     builder.Finish(Eth50HzTxMsg::Pack(builder, &msg_obj));
