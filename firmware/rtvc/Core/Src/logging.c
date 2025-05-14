@@ -15,6 +15,7 @@
 #include "stm32f7xx_hal.h"
 #include "cmsis_os.h"
 #include "netif.h"
+#include "core_cm7.h"
 
 // Private typedefs
 typedef struct {
@@ -40,6 +41,7 @@ SemaphoreHandle_t serialMutex;
 // Function prototypes
 void LogSerialTask();
 void LogEthernetTask();
+// static void ITM_SendString(const char *s);
 
 
 void LogInitSerial(UART_HandleTypeDef *huart)
@@ -133,6 +135,11 @@ void LogSerialTask()
 
             HAL_UART_Transmit(logUartHandle_p, (uint8_t *)levelStr, strlen(levelStr), HAL_MAX_DELAY);
             HAL_UART_Transmit(logUartHandle_p, (uint8_t *)msg.msg, msg.len, HAL_MAX_DELAY);
+
+// #ifdef ENABLE_ITM_LOGGING
+//         	ITM_SendString(levelStr);
+//         	ITM_SendString(msg.msg);
+// #endif
         }
     }
 }
@@ -157,7 +164,22 @@ int _write(int file, char *data, int len)  // override default syscall
         }
     } else {
         HAL_UART_Transmit(logUartHandle_p, (uint8_t*)data, len, HAL_MAX_DELAY);
-    }
+    // #ifdef ENABLE_ITM_LOGGING
+//         	ITM_SendString(levelStr);
+//         	ITM_SendString(msg.msg);
+// #endif
+}
 
     return len;
 }
+
+// static void ITM_SendString(const char *s)
+// {
+// 	if (!(CoreDebug->DEMCR & CoreDebug_DEMCR_TRCENA_Msk))
+// 		return;
+//
+// 	while (*s) {
+// 		while (!(ITM->TCR & ITM_TCR_ITMENA_Msk) || !(ITM->TER & 1));
+// 		ITM->STIM[0].u8 = *s++;
+// 	}
+// }

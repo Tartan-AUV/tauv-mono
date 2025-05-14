@@ -20,6 +20,9 @@ typedef uint8_t LogDest_t;
 #define LOG_DEST_SERIAL 0x02
 #define LOG_DEST_ALL 	0x04
 
+// Use ITM for Serial
+#define ENABLE_ITM_LOGGING
+
 // Logging levels
 typedef uint8_t LogLevel_t;
 #define LOG_LEVEL_NONE   0
