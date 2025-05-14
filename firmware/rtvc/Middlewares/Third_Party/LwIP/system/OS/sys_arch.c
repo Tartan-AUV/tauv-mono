@@ -30,8 +30,6 @@
  *
  */
 
-#include <errno.h>
-
 /* lwIP includes. */
 #include "lwip/debug.h"
 #include "lwip/def.h"
@@ -44,6 +42,7 @@
 #include "cmsis_os.h"
 
 #if defined(LWIP_PROVIDE_ERRNO)
+int errno;
 #endif
 
 /*-----------------------------------------------------------------------------------*/
