@@ -29,6 +29,3 @@ target_include_directories(flatccrt_arm PUBLIC
         ../../../flatcc/include)
 
 target_link_libraries(flatccrt_arm INTERFACE)
-
-install(TARGETS flatccrt_arm
-        DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/lib)

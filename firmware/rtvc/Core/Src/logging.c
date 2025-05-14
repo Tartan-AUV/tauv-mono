@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #include "stm32f7xx_hal.h"
 #include "cmsis_os.h"
