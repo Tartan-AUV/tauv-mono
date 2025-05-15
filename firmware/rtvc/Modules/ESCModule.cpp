@@ -9,20 +9,14 @@
  *      TODO
  *
  *****************************************************************************/
-
-#include "Task50Hz.hpp"
-
-#include "Eth50HzModule.hpp"
+ #include "ESCModule.hpp"
 
 using namespace TAUV;
 
-bool Task50Hz::init() {
-  eth_50hz_module.init(); // todo check retval
-  esc_module.init(resources.esc_left_uart, resources.esc_right_uart);
-  return true;
+ModuleInitResult ESCModule::init(UART_HandleTypeDef *left_uart, UART_HandleTypeDef *right_uart) {
+  this->left_uart = left_uart;
+  this->right_uart = right_uart;
 }
+ModuleRunResult ESCModule::run() {
 
-void TAUV::Task50Hz::run() {
-  eth_50hz_module.run();  // todo check retval
-  esc_module.run();
 }

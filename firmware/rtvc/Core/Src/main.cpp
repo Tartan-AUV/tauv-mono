@@ -358,9 +358,13 @@ void StartDefaultTask(void const * argument)
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
 
-  TAUV::Task50Hz task50hz{};
-  task50hz.init();
-  task50hz.start("task50hz", 20);
+  TAUV::Task50Hz::Resources task_50hz_resources{
+    .esc_left_uart = nullptr,
+    .esc_right_uart = &huart3
+  };
+  TAUV::Task50Hz task_50_hz{task_50hz_resources};
+  task_50_hz.init();
+  task_50_hz.start("task50hz", 20);
 
   /* Infinite loop */
   for(;;)

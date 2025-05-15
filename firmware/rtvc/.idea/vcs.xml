@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/../.." vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../flatcc" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Middlewares/Third_Party/flatbuffers" vcs="Git" />
   </component>
 </project>

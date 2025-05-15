@@ -45,11 +45,6 @@ set(SCHEMA_FILES
 )
 
 set(GENERATED_HEADERS ""
-        Util/UdpSocket.hpp
-        Tasks/Task.hpp
-        Tasks/IntervalTask.hpp
-        Tasks/Task50Hz.cpp
-        Tasks/Task50Hz.hpp
 )
 foreach(SCHEMA ${SCHEMA_FILES})
     get_filename_component(SCHEMA_NAME ${SCHEMA} NAME_WE)
@@ -85,9 +80,15 @@ add_executable(${CMAKE_PROJECT_NAME}
         Util/Singleton.hpp
         Util/StaticQueue.hpp
         Tasks/IntervalTask.hpp
-        Tasks/Task.hpp
         Tasks/Task50Hz.hpp
         Tasks/Task50Hz.cpp
+        Util/UdpSocket.hpp
+        Tasks/Task.hpp
+        Modules/ESCModule.cpp
+        Modules/ESCModule.hpp
+        Drivers/VESC/buffer.cpp
+        Drivers/VESC/crc.cpp
+        Drivers/VESC/VESC_UART.cpp
         ${GENERATED_HEADERS}
 )
 
@@ -103,9 +104,10 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-        Modules/
-        Util/
-        Tasks/
+        Modules
+        Util
+        Tasks
+        Drivers/VESC
         ${GENERATED_INCLUDES_DIR}
         Middlewares/Third_Party/flatbuffers/include
 )
