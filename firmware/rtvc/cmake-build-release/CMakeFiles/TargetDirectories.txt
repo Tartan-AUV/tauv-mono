@@ -1,3 +1,0 @@
-C:/dev/tauv-mono/firmware/rtvc/cmake-build-release/CMakeFiles/rtvc.elf.dir
-C:/dev/tauv-mono/firmware/rtvc/cmake-build-release/CMakeFiles/edit_cache.dir
-C:/dev/tauv-mono/firmware/rtvc/cmake-build-release/CMakeFiles/rebuild_cache.dir
