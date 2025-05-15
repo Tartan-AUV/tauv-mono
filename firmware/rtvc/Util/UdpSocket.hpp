@@ -27,11 +27,11 @@ class UdpSocket {
 public:
     using ReceiveCallback = std::function<void(const ip_addr_t& from_addr, uint16_t from_port, const uint8_t* data, uint16_t len)>;
 
-    explicit UdpSocket() {
-        pcb_ = udp_new();
-        if (!pcb_) {
-          Error_Handler();
-        }
+    void init() {
+      pcb_ = udp_new();
+      if (!pcb_) {
+        Error_Handler();
+      }
     }
 
     ~UdpSocket() {
@@ -81,6 +81,6 @@ private:
         pbuf_free(p);
     }
 
-    udp_pcb* pcb_;
+    udp_pcb* pcb_ = nullptr;
     ReceiveCallback rx_callback_;
 };

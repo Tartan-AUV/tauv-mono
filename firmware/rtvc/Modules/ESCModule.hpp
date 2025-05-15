@@ -11,6 +11,8 @@
  *****************************************************************************/
 
 #pragma once
+#include <ranges>
+
 #include "ESCInterface.hpp"
 #include "ModuleBase.hpp"
 #include "VESC_UART.hpp"
@@ -25,14 +27,13 @@ class ESCModule : public ModuleBase<ESCInterface, ESCMessage> {
   const char *getName() const override { return "ESC"; }
   float getFrequency() const override { return 50.0f; }
 
-  ModuleInitResult init(UART_HandleTypeDef *left_uart, UART_HandleTypeDef *right_uart);
+  ModuleInitResult init(const std::array<UART_HandleTypeDef *, Config::Thrusters::num_groups> &uarts);
 
   ModuleRunResult run() override;
 
  private:
-  VESC::VESC_UART driver{};
-  UART_HandleTypeDef *left_uart;
-  UART_HandleTypeDef *right_uart;
+  std::array<UART_HandleTypeDef *, Config::Thrusters::num_groups> uarts{};
+  std::array<VESC::VESC_UART, Config::Thrusters::num_groups> drivers{};
 };
 
 }  // namespace TAUV

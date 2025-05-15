@@ -16,13 +16,14 @@
 
 using namespace TAUV;
 
-bool Task50Hz::init() {
+bool Task50Hz::init(std::unique_ptr<Resources> resources) {
+  resources_ = std::move(resources);
   eth_50hz_module.init(); // todo check retval
-  esc_module.init(resources.esc_left_uart, resources.esc_right_uart);
+  esc_module.init(resources_->uarts);
   return true;
 }
 
-void TAUV::Task50Hz::run() {
+void Task50Hz::run() {
   eth_50hz_module.run();  // todo check retval
   esc_module.run();
 }

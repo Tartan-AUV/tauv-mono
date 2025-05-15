@@ -47,8 +47,6 @@ extern "C" {
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim5;
 
-UART_HandleTypeDef huart3;
-
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 ip_addr_t jetsonAddr;
@@ -57,7 +55,6 @@ ip_addr_t jetsonAddr;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_USART3_UART_Init(void);
 static void MX_TIM5_Init(void);
 void StartDefaultTask(void const * argument);
 
@@ -67,6 +64,8 @@ void StartDefaultTask(void const * argument);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+static TAUV::Task50Hz task_50_hz{};
 /* USER CODE END 0 */
 
 /**
@@ -98,7 +97,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART3_UART_Init();
   MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   // ITM_Init();
@@ -138,7 +136,7 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 512);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 8192);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -267,41 +265,6 @@ static void MX_TIM5_Init(void)
 }
 
 /**
-  * @brief USART3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_USART3_UART_Init(void)
-{
-
-  /* USER CODE BEGIN USART3_Init 0 */
-
-  /* USER CODE END USART3_Init 0 */
-
-  /* USER CODE BEGIN USART3_Init 1 */
-
-  /* USER CODE END USART3_Init 1 */
-  huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
-  huart3.Init.WordLength = UART_WORDLENGTH_8B;
-  huart3.Init.StopBits = UART_STOPBITS_1;
-  huart3.Init.Parity = UART_PARITY_NONE;
-  huart3.Init.Mode = UART_MODE_TX_RX;
-  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-  huart3.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart3.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-  if (HAL_UART_Init(&huart3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART3_Init 2 */
-
-  /* USER CODE END USART3_Init 2 */
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -357,13 +320,9 @@ void StartDefaultTask(void const * argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
-
-  TAUV::Task50Hz::Resources task_50hz_resources{
-    .esc_left_uart = nullptr,
-    .esc_right_uart = &huart3
-  };
-  TAUV::Task50Hz task_50_hz{task_50hz_resources};
-  task_50_hz.init();
+  TAUV::Task50Hz::Resources resources_50hz{};
+  resources_50hz.uarts = {  };
+  task_50_hz.init(TODO)
   task_50_hz.start("task50hz", 20);
 
   /* Infinite loop */

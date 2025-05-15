@@ -27,13 +27,10 @@ namespace TAUV {
 class Task50Hz final : public IntervalTask {
  public:
   struct Resources {
-    UART_HandleTypeDef *esc_left_uart;
-    UART_HandleTypeDef *esc_right_uart;
+    std::array<UART_HandleTypeDef*, Config::Thrusters::esc_groups.size()> uarts;
   };
 
-  explicit Task50Hz(const Resources &resources) : resources(resources) {}
-
-  bool init();
+  bool init(std::unique_ptr<Resources> resources);
 
  private:
   void run() override;
@@ -51,7 +48,7 @@ class Task50Hz final : public IntervalTask {
   ESCModule esc_module{esc_interface_, esc_msg_, };
 
   // Resources
-  Resources resources;
+  std::unique_ptr<Resources> resources_ = nullptr;
 };
 
 }

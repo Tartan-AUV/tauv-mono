@@ -1,0 +1,41 @@
+file(REMOVE_RECURSE
+  "rtvc.map"
+  "CMakeFiles/rtvc.dir/Core/Src/freertos.c.obj"
+  "CMakeFiles/rtvc.dir/Core/Src/freertos.c.obj.d"
+  "CMakeFiles/rtvc.dir/Core/Src/main.cpp.obj"
+  "CMakeFiles/rtvc.dir/Core/Src/main.cpp.obj.d"
+  "CMakeFiles/rtvc.dir/Core/Src/stm32f7xx_hal_msp.c.obj"
+  "CMakeFiles/rtvc.dir/Core/Src/stm32f7xx_hal_msp.c.obj.d"
+  "CMakeFiles/rtvc.dir/Core/Src/stm32f7xx_hal_timebase_tim.c.obj"
+  "CMakeFiles/rtvc.dir/Core/Src/stm32f7xx_hal_timebase_tim.c.obj.d"
+  "CMakeFiles/rtvc.dir/Core/Src/stm32f7xx_it.c.obj"
+  "CMakeFiles/rtvc.dir/Core/Src/stm32f7xx_it.c.obj.d"
+  "CMakeFiles/rtvc.dir/Core/Src/syscalls.c.obj"
+  "CMakeFiles/rtvc.dir/Core/Src/syscalls.c.obj.d"
+  "CMakeFiles/rtvc.dir/Core/Src/sysmem.c.obj"
+  "CMakeFiles/rtvc.dir/Core/Src/sysmem.c.obj.d"
+  "CMakeFiles/rtvc.dir/Drivers/VESC/VESC_UART.cpp.obj"
+  "CMakeFiles/rtvc.dir/Drivers/VESC/VESC_UART.cpp.obj.d"
+  "CMakeFiles/rtvc.dir/Drivers/VESC/buffer.cpp.obj"
+  "CMakeFiles/rtvc.dir/Drivers/VESC/buffer.cpp.obj.d"
+  "CMakeFiles/rtvc.dir/Drivers/VESC/crc.cpp.obj"
+  "CMakeFiles/rtvc.dir/Drivers/VESC/crc.cpp.obj.d"
+  "CMakeFiles/rtvc.dir/LWIP/App/lwip.c.obj"
+  "CMakeFiles/rtvc.dir/LWIP/App/lwip.c.obj.d"
+  "CMakeFiles/rtvc.dir/LWIP/Target/ethernetif.c.obj"
+  "CMakeFiles/rtvc.dir/LWIP/Target/ethernetif.c.obj.d"
+  "CMakeFiles/rtvc.dir/Modules/ESCModule.cpp.obj"
+  "CMakeFiles/rtvc.dir/Modules/ESCModule.cpp.obj.d"
+  "CMakeFiles/rtvc.dir/Modules/Eth50HzModule.cpp.obj"
+  "CMakeFiles/rtvc.dir/Modules/Eth50HzModule.cpp.obj.d"
+  "CMakeFiles/rtvc.dir/Tasks/Task50Hz.cpp.obj"
+  "CMakeFiles/rtvc.dir/Tasks/Task50Hz.cpp.obj.d"
+  "CMakeFiles/rtvc.dir/startup_stm32f767xx.s.obj"
+  "rtvc.elf"
+  "rtvc.pdb"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang ASM C CXX)
+  include(CMakeFiles/rtvc.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

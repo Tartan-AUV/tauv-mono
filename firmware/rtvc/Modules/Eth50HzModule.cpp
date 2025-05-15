@@ -17,6 +17,7 @@
 using namespace TAUV;
 
 ModuleInitResult Eth50HzModule::init() {  // TODO: move everything in the constructor that can fail into init!
+  sock_.init();
   sock_.bind(Config::Network::jetson_50hz_port);
   sock_.set_receive_callback(
       [this](const ip_addr_t& addr, uint16_t port, const uint8_t* data,

@@ -13,10 +13,26 @@
 
 using namespace TAUV;
 
-ModuleInitResult ESCModule::init(UART_HandleTypeDef *left_uart, UART_HandleTypeDef *right_uart) {
-  this->left_uart = left_uart;
-  this->right_uart = right_uart;
-}
-ModuleRunResult ESCModule::run() {
+ModuleInitResult ESCModule::init(const std::array<UART_HandleTypeDef *, Config::Thrusters::num_groups> &uarts) {
+  this->uarts = uarts;
 
+  // Verify ESCs are accessible
+  for (size_t esc_idx = 0; esc_idx < Config::Thrusters::number_escs; ++esc_idx) {
+    size_t group_idx = Config::Thrusters::esc_group_idx_map[esc_idx];
+    size_t group_elem_idx = Config::Thrusters::esc_group_elem_idx_map[esc_idx];
+    const auto& grp = Config::Thrusters::esc_groups[group_idx];
+
+    bool result = drivers[group_idx].getFWversion(grp.vesc_ids[group_elem_idx]);
+    if (!result) {
+      // todo error
+      return ModuleInitResult::FATAL;
+    }
+    // todo: verify fw compat and log version
+  }
+
+  return ModuleInitResult::OK;
+}
+
+ModuleRunResult ESCModule::run() {
+  return ModuleRunResult::OK;
 }
