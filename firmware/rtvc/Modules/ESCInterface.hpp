@@ -38,6 +38,10 @@ public:
     return eth_50hz_msg.esc_enable;
   }
 
+  bool is_valid() const {
+    return eth_50hz_msg.valid;
+  }
+
 private:
   // Messages
   const Eth50HzMessage &eth_50hz_msg;

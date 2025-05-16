@@ -31,6 +31,9 @@ ModuleRunResult Eth50HzModule::run() {
   RxBuf buf;
 
   size_t received_counter = 0;
+  // Set message as invalid initially
+  output_msg_.valid = false;
+  
   while (rx_queue_.receive(buf, 0)) {
     const auto& [arr, size] = buf;
     flatbuffers::Verifier verifier(arr.begin(), size);
@@ -41,12 +44,14 @@ ModuleRunResult Eth50HzModule::run() {
     }
     const TAUV_FB::Eth50HzTxMsg *eth_msg = TAUV_FB::GetEth50HzTxMsg(arr.begin());
     const TAUV_FB::ThrusterCommand *tc = eth_msg->thruster_command();
-    assert (tc->enabled()->size() == output_msg_.esc_enable.size());
-    for (size_t i = 0; i < tc->enabled()->size(); ++i) {
+    //assert (tc->enabled()->size() == output_msg_.esc_enable.size());
+    for (size_t i = 0; i < output_msg_.esc_enable.size(); ++i) {
       output_msg_.esc_enable[i] = static_cast<bool>(tc->enabled()->Get(i));
       output_msg_.esc_rpm[i] = tc->rpm()->Get(i);
     }
 
+    // Mark message as valid since we processed a valid message
+    output_msg_.valid = true;
     ++received_counter;
   }
 

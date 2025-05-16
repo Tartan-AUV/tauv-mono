@@ -89,6 +89,10 @@ add_executable(${CMAKE_PROJECT_NAME}
         Drivers/VESC/buffer.cpp
         Drivers/VESC/crc.cpp
         Drivers/VESC/VESC_UART.cpp
+        Tasks/LoggingTask.cpp
+        Tasks/LoggingTask.hpp
+        Util/Logging.hpp
+        Util/Logging.cpp
         ${GENERATED_HEADERS}
 )
 
