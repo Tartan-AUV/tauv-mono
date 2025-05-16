@@ -85,17 +85,26 @@ public:
   void error(const char* format, ...);
   void fatal(const char* format, ...);
 
+  // Generic printf-style function with configurable log level
+  void printf(LogLevel level, const char* format, ...);
+  
+  // Raw printf-style function without severity marker
+  void rawPrintf(const char* format, ...);
+  
+  // Helper method for raw logging without severity (needed for printf)
+  void logRaw(const char* format, va_list args);
+  
   // Get UART handle
   UART_HandleTypeDef* getUartHandle() const;
-
-private:
+  
+  private:
   Logging();
   ~Logging();
-
+  
   // Prevent copying and assignment
   Logging(const Logging&) = delete;
   Logging& operator=(const Logging&) = delete;
-
+  
   // Helper method for formatted logging
   void log(LogLevel level, const char* format, va_list args);
 
@@ -131,3 +140,6 @@ private:
 #define LOG_FATAL(...)    TAUV::Logging::getInstance().fatal(__VA_ARGS__)
 
 } // namespace TAUV
+
+// Global printf function that uses the Logging system
+extern "C" int printf(const char* format, ...);

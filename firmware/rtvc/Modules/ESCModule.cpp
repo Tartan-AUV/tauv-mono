@@ -40,7 +40,20 @@
     size_t group_elem_idx = Config::Thrusters::esc_group_elem_idx_map[esc_idx];
     const auto& grp = Config::Thrusters::esc_groups[group_idx];
  
-    bool result = drivers[group_idx].getFWversion(grp.vesc_ids[group_elem_idx]);
+    bool result = false;
+    // Check if this ESC is directly connected to UART
+    if (grp.vesc_ids[group_elem_idx] == grp.uart_connected_id) {
+      // Use the overload without canId for directly connected ESC
+      result = drivers[group_idx].getFWversion();
+      LOG_DEBUG("ESCModule: Using direct UART communication for ESC %d (group %d, ID %d)",
+               esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
+    } else {
+      // Use the overload with canId for ESCs accessed via CAN bus
+      result = drivers[group_idx].getFWversion(grp.vesc_ids[group_elem_idx]);
+      LOG_DEBUG("ESCModule: Using CAN communication for ESC %d (group %d, ID %d)",
+               esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
+    }
+    
     if (!result) {
       LOG_ERROR("ESCModule: Failed to get firmware version for ESC %d (group %d, ID %d)",
                 esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
@@ -102,7 +115,16 @@ ModuleRunResult ESCModule::run() {
     }
 
     // Set the RPM for the current ESC
-    bool result = drivers[group_idx].setRPM(rpm_values[esc_idx], grp.vesc_ids[group_elem_idx]);
+    bool result = false;
+    // Check if this ESC is directly connected to UART
+    if (grp.vesc_ids[group_elem_idx] == grp.uart_connected_id) {
+      // Use the overload without canId for directly connected ESC
+      result = drivers[group_idx].setRPM(rpm_values[esc_idx]);
+    } else {
+      // Use the overload with canId for ESCs accessed via CAN bus
+      result = drivers[group_idx].setRPM(rpm_values[esc_idx], grp.vesc_ids[group_elem_idx]);
+    }
+    
     if (!result) {
       LOG_ERROR("ESCModule: Failed to set RPM %d for ESC %d (group %d, ID %d)",
                 rpm_values[esc_idx], esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);

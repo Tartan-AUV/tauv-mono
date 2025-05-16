@@ -110,6 +110,20 @@ void Logging::fatal(const char* format, ...) {
   va_end(args);
 }
 
+void Logging::printf(LogLevel level, const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  log(level, format, args);
+  va_end(args);
+}
+
+void Logging::rawPrintf(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  logRaw(format, args);
+  va_end(args);
+}
+
 void Logging::log(LogLevel level, const char* format, va_list args) {
   // Skip if level is below minimum
   if (level < min_level_) {
@@ -145,6 +159,35 @@ void Logging::log(LogLevel level, const char* format, va_list args) {
   queueMessage(buffer, total_len);
   
   xSemaphoreGive(mutex_);
+  }
+}
+
+void Logging::logRaw(const char* format, va_list args) {
+  if (xSemaphoreTake(mutex_, portMAX_DELAY) == pdTRUE) {
+    
+    // Format the message without severity or timestamp
+    char buffer[MAX_LOG_LENGTH];
+    int msg_len = vsnprintf(buffer, MAX_LOG_LENGTH, format, args);
+    
+    if (msg_len < 0) {
+      // Error in formatting
+      xSemaphoreGive(mutex_);
+      return;
+    }
+    
+    // Add newline if needed
+    int total_len = msg_len;
+    if (total_len + 2 < MAX_LOG_LENGTH && buffer[total_len - 1] != '\n') {
+      buffer[total_len] = '\r';
+      buffer[total_len + 1] = '\n';
+      buffer[total_len + 2] = '\0';
+      total_len += 2;
+    }
+    
+    // Queue the message
+    queueMessage(buffer, total_len);
+    
+    xSemaphoreGive(mutex_);
   }
 }
 
@@ -190,4 +233,15 @@ bool Logging::queueMessage(const char* message, size_t length) {
 
 uint32_t Logging::getTimestamp() {
   return xTaskGetTickCount() * portTICK_PERIOD_MS;
+}
+
+// Global printf function implementation that overrides standard printf
+extern "C" int printf(const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  
+  TAUV::Logging::getInstance().logRaw(format, args);
+  
+  va_end(args);
+  return 0; // Return value doesn't matter in this embedded context
 }

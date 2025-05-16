@@ -44,7 +44,7 @@ ModuleRunResult Eth50HzModule::run() {
     }
     const TAUV_FB::Eth50HzTxMsg *eth_msg = TAUV_FB::GetEth50HzTxMsg(arr.begin());
     const TAUV_FB::ThrusterCommand *tc = eth_msg->thruster_command();
-    //assert (tc->enabled()->size() == output_msg_.esc_enable.size());
+    assert (tc->enabled()->size() == output_msg_.esc_enable.size());
     for (size_t i = 0; i < output_msg_.esc_enable.size(); ++i) {
       output_msg_.esc_enable[i] = static_cast<bool>(tc->enabled()->Get(i));
       output_msg_.esc_rpm[i] = tc->rpm()->Get(i);

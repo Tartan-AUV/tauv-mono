@@ -29,6 +29,7 @@ extern "C" {
 #include "Task50Hz.hpp"
 #include "Logging.hpp"
 #include "LoggingTask.hpp"
+#include "lwip/inet.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -449,16 +450,31 @@ void ITM_Init(void) {
 void StartDefaultTask(void const * argument)
 {
   /* init code for LWIP */
+  LOG_INFO("Initializing LWIP network stack...");
   MX_LWIP_Init();
+  LOG_INFO("LWIP initialization complete");
+  printf("Network stack initialized. IP configuration: %s", ip4addr_ntoa(netif_ip4_addr(netif_default)));
+  
   /* USER CODE BEGIN 5 */
+  LOG_INFO("Establishing connection to Jetson at %s", ip4addr_ntoa(&jetsonAddr));
   auto resources_50hz = std::make_unique<TAUV::Task50Hz::Resources>();
-  resources_50hz->uarts = { &huart4, &huart4 };
+  resources_50hz->uarts = { &huart4, &huart5 };
   task_50_hz.init(std::move(resources_50hz));
   task_50_hz.start("task50hz", 20);
+  printf("Communication tasks started successfully\r\n");
 
   /* Infinite loop */
   for(;;)
   {
+    // Periodically check connection status
+    if (netif_is_up(netif_default) && !ip4_addr_isany_val(*netif_ip4_addr(netif_default))) {
+      static bool connection_logged = false;
+      if (!connection_logged) {
+        printf("Network connection established\r\n");
+        LOG_INFO("Network connection stable with IP: %s", ip4addr_ntoa(netif_ip4_addr(netif_default)));
+        connection_logged = true;
+      }
+    }
 	osDelay(1000);
   }
   /* USER CODE END 5 */

@@ -22,7 +22,7 @@ namespace TAUV::Config {
 
 namespace Thrusters {
 
-static constexpr size_t number_escs = 4;
+static constexpr size_t number_escs = 8;
 static constexpr size_t escs_per_group_max = 4;
 
 // Expected ESC firmware version
@@ -31,25 +31,28 @@ static constexpr uint8_t expected_fw_minor = 5;
 
 struct ESC_Group {
   std::array<uint8_t, escs_per_group_max> vesc_ids;
+  uint8_t uart_connected_id; // The VESC ID to which UART is physically connected
 };
 
 static constexpr std::array<ESC_Group, 2> esc_groups{
-  // ESC_Group{
-  //   .vesc_ids = {128, 129, 130, 131}
-  // },
   ESC_Group{
-    .vesc_ids = {132, 133, 134, 135}
+    .vesc_ids = {128, 129, 130, 131},
+    .uart_connected_id = 128
+  },
+  ESC_Group{
+    .vesc_ids = {132, 133, 134, 135},
+    .uart_connected_id = 132
   },
 };
 
 static constexpr size_t num_groups = esc_groups.size();
 
 static constexpr std::array<size_t, number_escs> esc_group_idx_map{
-  0, 0, 0, 0 // , 1, 1, 1, 1
+  0, 0, 0, 0, 1, 1, 1, 1
 };
 
 static constexpr std::array<size_t, number_escs> esc_group_elem_idx_map{
-  0, 1, 2, 3 // , 0, 1, 2, 3
+  0, 1, 2, 3, 0, 1, 2, 3
 };
 
 }  // namespace Thrusters
