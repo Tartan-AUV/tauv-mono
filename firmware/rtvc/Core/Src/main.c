@@ -17,16 +17,13 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-extern "C" {
 #include "main.h"
-
 #include "cmsis_os.h"
 #include "lwip.h"
-}
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Task50Hz.hpp"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,7 +51,7 @@ UART_HandleTypeDef huart3;
 
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
-ip_addr_t jetsonAddr;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,7 +70,6 @@ void StartDefaultTask(void const * argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-static TAUV::Task50Hz task_50_hz{};
 /* USER CODE END 0 */
 
 /**
@@ -110,23 +106,7 @@ int main(void)
   MX_UART4_Init();
   MX_UART5_Init();
   /* USER CODE BEGIN 2 */
-  // ITM_Init();
 
-  HAL_TIM_OC_Start_IT(&htim5, TIM_CHANNEL_1);
-
-  printf("  _______         _                      _    ___      __  \n\r"
-		 " |__   __|       | |                /\  | |  | \ \    / /  \n\r"
-		 "    | | __ _ _ __| |_ __ _ _ __    /  \ | |  | |\ \  / / 	 \n\r"
-		 "    | |/ _` | '__| __/ _` | '_ \  / /\ \| |  | | \ \/ /    \n\r"
-		 "    | | (_| | |  | || (_| | | | |/ ____ \ |__| |  \  /     \n\r"
-		 "    |_|\__,_|_|   \__\__,_|_| |_/_/    \_\____/    \/      \n\r"
-		 " \n\r"
-		 " Real-Time Vehicle Controller Rev. A\n\r"
-	     " TartanAUV, Carnegie Mellon University\n\r"
-		 " Authors: Gleb Ryabtsev, Victor Zayakov, 2025\n\r"
-	     "\n\r");
-
-  IP4_ADDR(&jetsonAddr, 10, 0, 0, 20);
   /* USER CODE END 2 */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -138,7 +118,7 @@ int main(void)
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
-  // todo move into tasks.c
+  /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -151,6 +131,7 @@ int main(void)
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
 
   /* Start scheduler */
@@ -268,8 +249,7 @@ static void MX_TIM5_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN TIM5_Init 2 */
-  // This line enables Timer 5
-  TIM5->CR1 |= TIM_CR1_CEN;
+
   /* USER CODE END TIM5_Init 2 */
   HAL_TIM_MspPostInit(&htim5);
 
@@ -405,23 +385,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void ITM_Init(void) {
-  // Enable trace and debug
-  CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 
-  // Unlock ITM
-  ITM->LAR  = 0xC5ACCE55;
-
-  // Enable ITM Stimulus Port 0
-  ITM->TER |= (1UL << 0);
-
-  // Enable ITM with trace bus ID = 1
-  ITM->TCR = ITM_TCR_ITMENA_Msk |      // Enable ITM
-             ITM_TCR_TSENA_Msk  |      // Enable timestamping (optional)
-             ITM_TCR_SWOENA_Msk |      // Enable SWO output
-             ITM_TCR_SYNCENA_Msk |     // Enable sync packets
-             (1 << ITM_TCR_TraceBusID_Pos);  // Trace bus ID
-}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -436,15 +400,10 @@ void StartDefaultTask(void const * argument)
   /* init code for LWIP */
   MX_LWIP_Init();
   /* USER CODE BEGIN 5 */
-  auto resources_50hz = std::make_unique<TAUV::Task50Hz::Resources>();
-  resources_50hz->uarts = { &huart4, &huart4 };
-  task_50_hz.init(std::move(resources_50hz));
-  task_50_hz.start("task50hz", 20);
-
   /* Infinite loop */
   for(;;)
   {
-	osDelay(1000);
+    osDelay(1);
   }
   /* USER CODE END 5 */
 }

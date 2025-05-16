@@ -13,7 +13,7 @@
 #pragma once
 
 extern "C" {
-#import "stm32f7xx_hal.h"
+#include "stm32f7xx_hal.h"
 }
 
 #include <array>
@@ -22,7 +22,7 @@ namespace TAUV::Config {
 
 namespace Thrusters {
 
-static constexpr size_t number_escs = 8;
+static constexpr size_t number_escs = 4;
 static constexpr size_t escs_per_group_max = 4;
 
 struct ESC_Group {
@@ -30,9 +30,9 @@ struct ESC_Group {
 };
 
 static constexpr std::array<ESC_Group, 2> esc_groups{
-  ESC_Group{
-    .vesc_ids = {128, 129, 130, 131}
-  },
+  // ESC_Group{
+  //   .vesc_ids = {128, 129, 130, 131}
+  // },
   ESC_Group{
     .vesc_ids = {132, 133, 134, 135}
   },
@@ -41,11 +41,11 @@ static constexpr std::array<ESC_Group, 2> esc_groups{
 static constexpr size_t num_groups = esc_groups.size();
 
 static constexpr std::array<size_t, number_escs> esc_group_idx_map{
-  0, 0, 0, 0, 1, 1, 1, 1
+  0, 0, 0, 0 // , 1, 1, 1, 1
 };
 
 static constexpr std::array<size_t, number_escs> esc_group_elem_idx_map{
-  0, 1, 2, 3, 0, 1, 2, 3
+  0, 1, 2, 3 // , 0, 1, 2, 3
 };
 
 }  // namespace Thrusters

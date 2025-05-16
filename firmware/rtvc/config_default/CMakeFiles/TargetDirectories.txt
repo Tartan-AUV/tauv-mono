@@ -1,9 +1,0 @@
-/home/gleb/dev/tauv-mono/firmware/rtvc/config_default/CMakeFiles/generate_flatbuffers.dir
-/home/gleb/dev/tauv-mono/firmware/rtvc/config_default/CMakeFiles/rtvc.dir
-/home/gleb/dev/tauv-mono/firmware/rtvc/config_default/CMakeFiles/edit_cache.dir
-/home/gleb/dev/tauv-mono/firmware/rtvc/config_default/CMakeFiles/rebuild_cache.dir
-/home/gleb/dev/tauv-mono/firmware/rtvc/config_default/cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir
-/home/gleb/dev/tauv-mono/firmware/rtvc/config_default/cmake/stm32cubemx/CMakeFiles/FreeRTOS.dir
-/home/gleb/dev/tauv-mono/firmware/rtvc/config_default/cmake/stm32cubemx/CMakeFiles/LwIP.dir
-/home/gleb/dev/tauv-mono/firmware/rtvc/config_default/cmake/stm32cubemx/CMakeFiles/edit_cache.dir
-/home/gleb/dev/tauv-mono/firmware/rtvc/config_default/cmake/stm32cubemx/CMakeFiles/rebuild_cache.dir
