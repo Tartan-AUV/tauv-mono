@@ -18,6 +18,11 @@
   LOG_INFO("ESCModule: Initializing with %d UART groups", Config::Thrusters::num_groups);
   this->uarts = uarts;
  
+  // Wait for ESCs to initialize
+  if (Config::Thrusters::init_delay_ms > 0) {
+    HAL_Delay(Config::Thrusters::init_delay_ms);
+  }
+ 
   for (size_t group_idx = 0; group_idx < Config::Thrusters::num_groups; ++group_idx) {
     if (uarts[group_idx] == nullptr) {
       LOG_ERROR("ESCModule: UART handle for group %d is null", group_idx);

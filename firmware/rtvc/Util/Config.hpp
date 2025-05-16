@@ -29,6 +29,9 @@ static constexpr size_t escs_per_group_max = 4;
 static constexpr uint8_t expected_fw_major = 6;
 static constexpr uint8_t expected_fw_minor = 5;
 
+// ESC initialization delay in milliseconds
+static constexpr uint32_t init_delay_ms = 500;
+
 struct ESC_Group {
   std::array<uint8_t, escs_per_group_max> vesc_ids;
   uint8_t uart_connected_id; // The VESC ID to which UART is physically connected
