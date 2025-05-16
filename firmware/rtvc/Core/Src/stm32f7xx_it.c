@@ -46,7 +46,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
-
+extern void MTI300_UART_IRQHandler(UART_HandleTypeDef *huart);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -62,7 +62,29 @@ extern TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
+/* 
+ * Add this to your stm32f7xx_it.c file in the appropriate
+ * UART IRQ handler for the IMU UART (e.g. USART2_IRQHandler).
+ * Replace USART2_IRQHandler with your actual UART IRQ handler.
+ *
+ * extern "C" is needed because the C++ MTI300::uartRxCallback needs to be 
+ * called from C code.
+ */
 
+/* 
+// At the top of the file, add this declaration
+extern void MTI300_UART_IRQHandler(UART_HandleTypeDef *huart);
+
+// In the UART IRQ handler (replace USART2 with your actual UART), add this:
+void USART2_IRQHandler(void)
+{
+  // First call the HAL UART IRQ handler
+  HAL_UART_IRQHandler(&huart2);
+  
+  // Then call the MTI300 UART IRQ handler
+  MTI300_UART_IRQHandler(&huart2);
+}
+*/
 /******************************************************************************/
 /*           Cortex-M7 Processor Interruption and Exception Handlers          */
 /******************************************************************************/

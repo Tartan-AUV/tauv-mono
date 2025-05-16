@@ -82,6 +82,8 @@ add_executable(${CMAKE_PROJECT_NAME}
         Tasks/IntervalTask.hpp
         Tasks/Task50Hz.hpp
         Tasks/Task50Hz.cpp
+        Tasks/Task100Hz.hpp
+        Tasks/Task100Hz.cpp
         Util/UdpSocket.hpp
         Tasks/Task.hpp
         Modules/ESCModule.cpp
@@ -94,6 +96,8 @@ add_executable(${CMAKE_PROJECT_NAME}
         Util/Logging.hpp
         Util/Logging.cpp
         ${GENERATED_HEADERS}
+        Drivers/XSens/Mti300.cpp
+        Drivers/XSens/Mti300.hpp
 )
 
 add_dependencies(${CMAKE_PROJECT_NAME} generate_flatbuffers)
@@ -112,6 +116,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         Util
         Tasks
         Drivers/VESC
+        Drivers/XSens
         ${GENERATED_INCLUDES_DIR}
         Middlewares/Third_Party/flatbuffers/include
 )
