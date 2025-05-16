@@ -25,6 +25,10 @@ namespace Thrusters {
 static constexpr size_t number_escs = 4;
 static constexpr size_t escs_per_group_max = 4;
 
+// Expected ESC firmware version
+static constexpr uint8_t expected_fw_major = 6;
+static constexpr uint8_t expected_fw_minor = 5;
+
 struct ESC_Group {
   std::array<uint8_t, escs_per_group_max> vesc_ids;
 };

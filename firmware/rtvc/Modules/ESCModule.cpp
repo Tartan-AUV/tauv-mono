@@ -15,24 +15,24 @@
  using namespace TAUV;
  
  ModuleInitResult ESCModule::init(const std::array<UART_HandleTypeDef *, Config::Thrusters::num_groups> &uarts) {
-  LOG_INFO("ESCModule: Initializing with %zu UART groups", Config::Thrusters::num_groups);
+  LOG_INFO("ESCModule: Initializing with %d UART groups", Config::Thrusters::num_groups);
   this->uarts = uarts;
  
   for (size_t group_idx = 0; group_idx < Config::Thrusters::num_groups; ++group_idx) {
     if (uarts[group_idx] == nullptr) {
-      LOG_ERROR("ESCModule: UART handle for group %zu is null", group_idx);
+      LOG_ERROR("ESCModule: UART handle for group %d is null", group_idx);
       return ModuleInitResult::FATAL;
     }
     bool result = drivers[group_idx].setUART(uarts[group_idx]);
     if (!result) {
-      LOG_ERROR("ESCModule: Failed to set UART for driver group %zu", group_idx);
+      LOG_ERROR("ESCModule: Failed to set UART for driver group %d", group_idx);
       return ModuleInitResult::FATAL;
     }
-    LOG_DEBUG("ESCModule: UART set for driver group %zu", group_idx);
+    LOG_DEBUG("ESCModule: UART set for driver group %d", group_idx);
   }
  
   // Verify ESCs are accessible
-  LOG_INFO("ESCModule: Verifying ESC connectivity for %zu ESCs", Config::Thrusters::number_escs);
+  LOG_INFO("ESCModule: Verifying ESC connectivity for %d ESCs", Config::Thrusters::number_escs);
   size_t accessible_count = 0;
   
   for (size_t esc_idx = 0; esc_idx < Config::Thrusters::number_escs; ++esc_idx) {
@@ -42,21 +42,35 @@
  
     bool result = drivers[group_idx].getFWversion(grp.vesc_ids[group_elem_idx]);
     if (!result) {
-      LOG_ERROR("ESCModule: Failed to get firmware version for ESC %zu (group %zu, ID %d)", 
+      LOG_ERROR("ESCModule: Failed to get firmware version for ESC %d (group %d, ID %d)",
                 esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
       // For now, we continue without returning FATAL, but this should be addressed
       // return ModuleInitResult::FATAL;
     } else {
       accessible_count++;
-      // todo: verify fw compat and log version
+      
+      // Log and check firmware version
+      auto& fw_version = drivers[group_idx].fw_version;
+      LOG_INFO("ESCModule: ESC %d (group %d, ID %d) firmware version: %d.%d",
+              esc_idx, group_idx, grp.vesc_ids[group_elem_idx], 
+              fw_version.major, fw_version.minor);
+      
+      // Check if firmware version matches expected version
+      if (fw_version.major != Config::Thrusters::expected_fw_major || 
+          fw_version.minor != Config::Thrusters::expected_fw_minor) {
+        LOG_WARNING("ESCModule: ESC %d (group %d, ID %d) has unexpected firmware version %d.%d (expected %d.%d)",
+                    esc_idx, group_idx, grp.vesc_ids[group_elem_idx], 
+                    fw_version.major, fw_version.minor,
+                    Config::Thrusters::expected_fw_major, Config::Thrusters::expected_fw_minor);
+      }
     }
   }
   
   if (accessible_count < Config::Thrusters::number_escs) {
-    LOG_WARNING("ESCModule: Only %zu of %zu ESCs are accessible", 
+    LOG_WARNING("ESCModule: Only %d of %d ESCs are accessible",
                 accessible_count, Config::Thrusters::number_escs);
   } else {
-    LOG_INFO("ESCModule: All %zu ESCs successfully initialized", Config::Thrusters::number_escs);
+    LOG_INFO("ESCModule: All %d ESCs successfully initialized", Config::Thrusters::number_escs);
   }
 
   return ModuleInitResult::OK;
@@ -83,18 +97,18 @@ ModuleRunResult ESCModule::run() {
 
     // Check for abnormal RPM values that might indicate a problem
     if (std::abs(rpm_values[esc_idx]) > 10000) {  // Assuming 10000 RPM is an unreasonable value
-      LOG_WARNING("ESCModule: Unusually high RPM requested for ESC %zu: %d RPM", 
+      LOG_WARNING("ESCModule: Unusually high RPM requested for ESC %d: %d RPM",
                   esc_idx, rpm_values[esc_idx]);
     }
 
     // Set the RPM for the current ESC
     bool result = drivers[group_idx].setRPM(rpm_values[esc_idx], grp.vesc_ids[group_elem_idx]);
     if (!result) {
-      LOG_ERROR("ESCModule: Failed to set RPM %d for ESC %zu (group %zu, ID %d)", 
+      LOG_ERROR("ESCModule: Failed to set RPM %d for ESC %d (group %d, ID %d)",
                 rpm_values[esc_idx], esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
       all_commands_successful = false;
     } else {
-      LOG_DEBUG("ESCModule: Successfully set RPM %d for ESC %zu (group %zu, ID %d)",
+      LOG_DEBUG("ESCModule: Successfully set RPM %d for ESC %d (group %d, ID %d)",
                 rpm_values[esc_idx], esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
     }
   }

@@ -27,6 +27,8 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Task50Hz.hpp"
+#include "Logging.hpp"
+#include "LoggingTask.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,6 +57,7 @@ UART_HandleTypeDef huart3;
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 ip_addr_t jetsonAddr;
+static TAUV::LoggingTask logging_task{};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -113,6 +116,18 @@ int main(void)
   ITM_Init();
 
   HAL_TIM_OC_Start_IT(&htim5, TIM_CHANNEL_1);
+
+  // Initialize logging system
+  if (!TAUV::Logging::getInstance().init(&huart3, TAUV::LogOutputMode::LOG_OUTPUT_MODE_UART)) {
+    // If logging initialization failed, still try to output error
+    printf("ERROR: Failed to initialize logging system\r\n");
+  }
+
+  // Initialize and start logging task
+  if (!logging_task.init() || !logging_task.start("LogTask", osPriorityHigh)) {
+    // If task failed to start, output error
+    printf("ERROR: Failed to start logging task\r\n");
+  }
 
   printf("  _______         _                      _    ___      __  \n\r"
 		 " |__   __|       | |                /\  | |  | \ \    / /  \n\r"
@@ -480,6 +495,10 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+  
+  // Log the error if logging is initialized
+  LOG_FATAL("System error occurred! Halting system.");
+  
   while (1)
   {
   }
