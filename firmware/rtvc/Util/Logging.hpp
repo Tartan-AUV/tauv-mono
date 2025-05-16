@@ -24,6 +24,7 @@ extern "C" {
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "semphr.h"
+#include "cmsis_os.h"
 }
 
 namespace TAUV {
@@ -35,6 +36,13 @@ enum class LogLevel {
   LOG_LEVEL_ERROR,
   LOG_LEVEL_FATAL,
   LOG_LEVEL_NONE  // Special value to disable logging
+};
+
+// Defines output mode for logging
+enum class LogOutputMode {
+  LOG_OUTPUT_MODE_UART,   // Output to UART
+  LOG_OUTPUT_MODE_ITM,    // Output to ITM (SWD/SWDIO)
+  LOG_OUTPUT_MODE_ITM_UART    // Output to both UART and ITM
 };
 
 // Structure to hold a log message
@@ -58,14 +66,17 @@ public:
     return instance;
   }
 
-  // Initialize the logging system (simplified to only handle UART)
-  bool init(UART_HandleTypeDef* uart_handle);
+  // Initialize the logging system with specified UART and output mode
+  bool init(UART_HandleTypeDef* uart_handle, LogOutputMode mode = LogOutputMode::LOG_OUTPUT_MODE_UART);
 
   // Set the minimum log level
   void setLogLevel(LogLevel level);
 
   // Get the current log level
   LogLevel getLogLevel() const;
+
+  // Get current output mode
+  LogOutputMode getOutputMode() const;
 
   // Log functions for different severity levels
   void debug(const char* format, ...);
@@ -97,9 +108,10 @@ private:
   static QueueHandle_t message_queue_;
 
   // FreeRTOS mutex for thread safety
-  xSemaphoreHandle mutex_;
+  SemaphoreHandle_t mutex_;
   StaticSemaphore_t mutex_buffer_;
   LogLevel min_level_ = LogLevel::LOG_LEVEL_INFO;
+  LogOutputMode output_mode_ = LogOutputMode::LOG_OUTPUT_MODE_UART;
   UART_HandleTypeDef* uart_handle_ = nullptr;
 
   // Timestamp for log messages

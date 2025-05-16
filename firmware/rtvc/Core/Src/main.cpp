@@ -67,7 +67,7 @@ static void MX_UART5_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
-
+void ITM_Init(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -110,7 +110,7 @@ int main(void)
   MX_UART4_Init();
   MX_UART5_Init();
   /* USER CODE BEGIN 2 */
-  // ITM_Init();
+  ITM_Init();
 
   HAL_TIM_OC_Start_IT(&htim5, TIM_CHANNEL_1);
 

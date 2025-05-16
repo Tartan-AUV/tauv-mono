@@ -27,11 +27,13 @@ class UdpSocket {
 public:
     using ReceiveCallback = std::function<void(const ip_addr_t& from_addr, uint16_t from_port, const uint8_t* data, uint16_t len)>;
 
-    void init() {
+    bool init() {
       pcb_ = udp_new();
       if (!pcb_) {
         Error_Handler();
+        return false;
       }
+      return true;
     }
 
     ~UdpSocket() {
@@ -41,15 +43,18 @@ public:
         }
     }
 
-    void bind(uint16_t port) {
+    bool bind(uint16_t port) {
         if (udp_bind(pcb_, IP_ADDR_ANY, port) != ERR_OK) {
           Error_Handler();
+          return false;
         }
+        return true;
     }
 
-    void set_receive_callback(ReceiveCallback cb) {
+    bool set_receive_callback(ReceiveCallback cb) {
         rx_callback_ = std::move(cb);
         udp_recv(pcb_, &UdpSocket::udp_rx_trampoline, this);
+        return true;
     }
 
     void send(const ip_addr_t& dest_ip, uint16_t dest_port, const uint8_t* data, uint16_t len) {

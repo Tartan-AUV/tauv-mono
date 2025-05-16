@@ -32,14 +32,6 @@ class VESC_UART {
     mc_fault_code error;
   };
 
-  /** Struct to hold the nunchuck values to send over UART */
-  struct nunchuckPackage {
-    int valueX;
-    int valueY;
-    bool upperButton;  // valUpperButton
-    bool lowerButton;  // valLowerButton
-  };
-
   struct FWversionPackage {
     uint8_t major;
     uint8_t minor;
@@ -57,18 +49,20 @@ class VESC_UART {
   /** Variabel to hold measurements returned from VESC */
   dataPackage data;
 
-  /** Variabel to hold nunchuck values */
-  nunchuckPackage nunchuck;
-
   /** Variable to hold firmware version */
   FWversionPackage fw_version;
 
   /**
    * @brief      Set the serial port for uart communication
    * @param      port  - Reference to Serial port (pointer)
+   * @return     True if successful, otherwise false
    */
-  void setUART(UART_HandleTypeDef *h) {
+  bool setUART(UART_HandleTypeDef *h) {
+    if (h == nullptr) {
+      return false;
+    }
     this->huart = h;
+    return true;
   }
 
   /**
@@ -102,77 +96,77 @@ class VESC_UART {
   bool getVescValues(uint8_t canId);
 
   /**
-   * @brief      Sends values for joystick and buttons to the nunchuck app
-   */
-  void setNunchuckValues(void);
-  /**
-   * @brief      Sends values for joystick and buttons to the nunchuck app
-   * @param      canId  - The CAN ID of the VESC
-   */
-  void setNunchuckValues(uint8_t canId);
-
-  /**
    * @brief      Set the current to drive the motor
    * @param      current  - The current to apply
+   * @return     True if successful, otherwise false
    */
-  void setCurrent(float current);
-
+  bool setCurrent(float current);
+  
   /**
    * @brief      Set the current to drive the motor
    * @param      current  - The current to apply
    * @param      canId  - The CAN ID of the VESC
+   * @return     True if successful, otherwise false
    */
-  void setCurrent(float current, uint8_t canId);
-
+  bool setCurrent(float current, uint8_t canId);
+  
   /**
    * @brief      Set the current to brake the motor
    * @param      brakeCurrent  - The current to apply
+   * @return     True if successful, otherwise false
    */
-  void setBrakeCurrent(float brakeCurrent);
-
+  bool setBrakeCurrent(float brakeCurrent);
+  
   /**
    * @brief      Set the current to brake the motor
    * @param      brakeCurrent  - The current to apply
    * @param      canId  - The CAN ID of the VESC
+   * @return     True if successful, otherwise false
    */
-  void setBrakeCurrent(float brakeCurrent, uint8_t canId);
-
+  bool setBrakeCurrent(float brakeCurrent, uint8_t canId);
+  
   /**
    * @brief      Set the rpm of the motor
    * @param      rpm  - The desired RPM (actually eRPM = RPM * poles)
+   * @return     True if successful, otherwise false
    */
-  void setRPM(float rpm);
-
+  bool setRPM(float rpm);
+  
   /**
    * @brief      Set the rpm of the motor
    * @param      rpm  - The desired RPM (actually eRPM = RPM * poles)
    * @param      canId  - The CAN ID of the VESC
+   * @return     True if successful, otherwise false
    */
-  void setRPM(float rpm, uint8_t canId);
-
+  bool setRPM(float rpm, uint8_t canId);
+  
   /**
    * @brief      Set the duty of the motor
    * @param      duty  - The desired duty (0.0-1.0)
+   * @return     True if successful, otherwise false
    */
-  void setDuty(float duty);
-
+  bool setDuty(float duty);
+  
   /**
    * @brief      Set the duty of the motor
    * @param      duty  - The desired duty (0.0-1.0)
    * @param      canId  - The CAN ID of the VESC
+   * @return     True if successful, otherwise false
    */
-  void setDuty(float duty, uint8_t canId);
-
+  bool setDuty(float duty, uint8_t canId);
+  
   /**
    * @brief      Send a keepalive message
+   * @return     True if successful, otherwise false
    */
-  void sendKeepalive(void);
-
+  bool sendKeepalive(void);
+  
   /**
    * @brief      Send a keepalive message
    * @param      canId  - The CAN ID of the VESC
+   * @return     True if successful, otherwise false
    */
-  void sendKeepalive(uint8_t canId);
+  bool sendKeepalive(uint8_t canId);
 
   /**
    * @brief      Help Function to print struct dataPackage over Serial for Debug

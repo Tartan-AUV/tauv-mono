@@ -17,6 +17,9 @@
 
 #include "Logging.hpp"
 
+// ITM_SendChar declaration (defined in LoggingTask.cpp)
+extern "C" uint32_t ITM_SendChar(uint32_t ch);
+
 using namespace TAUV;
 
 // Initialize static queue members
@@ -34,50 +37,76 @@ Logging::Logging() {
       &queue_buffer_
     );
   }
+  
+  // Create the mutex using static allocation
+  mutex_ = xSemaphoreCreateMutexStatic(&mutex_buffer_);
 }
 
 Logging::~Logging() {
   // We don't delete the queue as it's static
 }
 
-bool Logging::init(UART_HandleTypeDef* uart_handle) {
-  std::lock_guard<std::mutex> lock(mutex_);
-  uart_handle_ = uart_handle;
-  return true;
+void Logging::setLogLevel(LogLevel level) {
+  if (xSemaphoreTake(mutex_, portMAX_DELAY) == pdTRUE) {
+    min_level_ = level;
+    xSemaphoreGive(mutex_);
+  }
+}
+
+LogLevel Logging::getLogLevel() const {
+  return min_level_;
+}
+
+LogOutputMode Logging::getOutputMode() const {
+  return output_mode_;
+}
+
+UART_HandleTypeDef* Logging::getUartHandle() const {
+  return uart_handle_;
+}
+
+bool Logging::init(UART_HandleTypeDef* uart_handle, LogOutputMode mode) {
+  if (xSemaphoreTake(mutex_, portMAX_DELAY) == pdTRUE) {
+    uart_handle_ = uart_handle;
+    output_mode_ = mode;
+    xSemaphoreGive(mutex_);
+    return true;
+  }
+  return false;
 }
 
 void Logging::debug(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  log(LogLevel::DEBUG, format, args);
+  log(LogLevel::LOG_LEVEL_DEBUG, format, args);
   va_end(args);
 }
 
 void Logging::info(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  log(LogLevel::INFO, format, args);
+  log(LogLevel::LOG_LEVEL_INFO, format, args);
   va_end(args);
 }
 
 void Logging::warning(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  log(LogLevel::WARNING, format, args);
+  log(LogLevel::LOG_LEVEL_WARNING, format, args);
   va_end(args);
 }
 
 void Logging::error(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  log(LogLevel::ERROR, format, args);
+  log(LogLevel::LOG_LEVEL_ERROR, format, args);
   va_end(args);
 }
 
 void Logging::fatal(const char* format, ...) {
   va_list args;
   va_start(args, format);
-  log(LogLevel::FATAL, format, args);
+  log(LogLevel::LOG_LEVEL_FATAL, format, args);
   va_end(args);
 }
 
@@ -87,7 +116,7 @@ void Logging::log(LogLevel level, const char* format, va_list args) {
     return;
   }
   
-  std::lock_guard<std::mutex> lock(mutex_);
+  if (xSemaphoreTake(mutex_, portMAX_DELAY) == pdTRUE) {
   
   // Format header with timestamp and level
   char buffer[MAX_LOG_LENGTH];
@@ -99,6 +128,7 @@ void Logging::log(LogLevel level, const char* format, va_list args) {
   
   if (msg_len < 0) {
     // Error in formatting
+    xSemaphoreGive(mutex_);
     return;
   }
   
@@ -113,6 +143,9 @@ void Logging::log(LogLevel level, const char* format, va_list args) {
   
   // Queue the message
   queueMessage(buffer, total_len);
+  
+  xSemaphoreGive(mutex_);
+  }
 }
 
 bool Logging::queueMessage(const char* message, size_t length) {
@@ -136,9 +169,20 @@ bool Logging::queueMessage(const char* message, size_t length) {
   BaseType_t result = xQueueSend(message_queue_, &log_msg, QUEUE_SEND_TIMEOUT);
   
   // If queue is full and we couldn't send, make a last-ditch effort to log directly
-  if (result != pdPASS && uart_handle_) {
-    // Try to send directly as a fallback (might block, but only as last resort)
-    HAL_UART_Transmit(uart_handle_, reinterpret_cast<const uint8_t*>(message), length, 100);
+  if (result != pdPASS) {
+    // Fallback logging based on configured output mode
+    if ((output_mode_ == LogOutputMode::LOG_OUTPUT_MODE_UART || output_mode_ == LogOutputMode::LOG_OUTPUT_MODE_ITM_UART) &&
+        uart_handle_ != nullptr) {
+      // Try to send directly via UART as a fallback (might block, but only as last resort)
+      HAL_UART_Transmit(uart_handle_, reinterpret_cast<const uint8_t*>(message), length, 100);
+    }
+    
+    if (output_mode_ == LogOutputMode::LOG_OUTPUT_MODE_ITM || output_mode_ == LogOutputMode::LOG_OUTPUT_MODE_ITM_UART) {
+      // Send directly via ITM as a fallback
+      for (size_t i = 0; i < length; i++) {
+        ITM_SendChar(message[i]);
+      }
+    }
   }
   
   return (result == pdPASS);

@@ -12,10 +12,7 @@ extern "C" {
 namespace TAUV::VESC {
 
 VESC_UART::VESC_UART(uint32_t timeout_ms) : _TIMEOUT(timeout_ms) {
-  nunchuck.valueX = 127;
-  nunchuck.valueY = 127;
-  nunchuck.lowerButton = false;
-  nunchuck.upperButton = false;
+  // No initialization needed
 }
 
 int VESC_UART::receiveUartMessage(uint8_t* payloadReceived) {
@@ -278,52 +275,13 @@ bool VESC_UART::getVescValues(uint8_t canId) {
   }
   return false;
 }
-void VESC_UART::setNunchuckValues() { return setNunchuckValues(0); }
 
-void VESC_UART::setNunchuckValues(uint8_t canId) {
-  // if (debugPort != NULL) {
-  //   debugPort->println("Command: COMM_SET_CHUCK_DATA " + std::string(canId));
-  // }
-  int32_t index = 0;
-  int payloadSize = (canId == 0 ? 11 : 13);
-  uint8_t payload[payloadSize];
 
-  if (canId != 0) {
-    payload[index++] = {COMM_FORWARD_CAN};
-    payload[index++] = canId;
-  }
-  payload[index++] = {COMM_SET_CHUCK_DATA};
-  payload[index++] = nunchuck.valueX;
-  payload[index++] = nunchuck.valueY;
-  buffer_append_bool(payload, nunchuck.lowerButton, &index);
-  buffer_append_bool(payload, nunchuck.upperButton, &index);
+bool VESC_UART::setCurrent(float current) { return setCurrent(current, 0); }
 
-  // Acceleration Data. Not used, Int16 (2 byte)
-  payload[index++] = 0;
-  payload[index++] = 0;
-  payload[index++] = 0;
-  payload[index++] = 0;
-  payload[index++] = 0;
-  payload[index++] = 0;
-
-  // if (debugPort != NULL) {
-  //   debugPort->println("Nunchuck Values:");
-  //   debugPort->print("x=");
-  //   debugPort->print(nunchuck.valueX);
-  //   debugPort->print(" y=");
-  //   debugPort->print(nunchuck.valueY);
-  //   debugPort->print(" LBTN=");
-  //   debugPort->print(nunchuck.lowerButton);
-  //   debugPort->print(" UBTN=");
-  //   debugPort->println(nunchuck.upperButton);
-  // }
-
-  packSendPayload(payload, payloadSize);
-}
-
-void VESC_UART::setCurrent(float current) { return setCurrent(current, 0); }
-
-void VESC_UART::setCurrent(float current, uint8_t canId) {
+bool VESC_UART::setCurrent(float current, uint8_t canId) {
+  if (huart == nullptr) return false;
+  
   int32_t index = 0;
   int payloadSize = (canId == 0 ? 5 : 7);
   uint8_t payload[payloadSize];
@@ -333,14 +291,17 @@ void VESC_UART::setCurrent(float current, uint8_t canId) {
   }
   payload[index++] = {COMM_SET_CURRENT};
   buffer_append_int32(payload, (int32_t)(current * 1000), &index);
-  packSendPayload(payload, payloadSize);
+  int result = packSendPayload(payload, payloadSize);
+  return result > 0;
 }
 
-void VESC_UART::setBrakeCurrent(float brakeCurrent) {
+bool VESC_UART::setBrakeCurrent(float brakeCurrent) {
   return setBrakeCurrent(brakeCurrent, 0);
 }
 
-void VESC_UART::setBrakeCurrent(float brakeCurrent, uint8_t canId) {
+bool VESC_UART::setBrakeCurrent(float brakeCurrent, uint8_t canId) {
+  if (huart == nullptr) return false;
+  
   int32_t index = 0;
   int payloadSize = (canId == 0 ? 5 : 7);
   uint8_t payload[payloadSize];
@@ -352,12 +313,15 @@ void VESC_UART::setBrakeCurrent(float brakeCurrent, uint8_t canId) {
   payload[index++] = {COMM_SET_CURRENT_BRAKE};
   buffer_append_int32(payload, (int32_t)(brakeCurrent * 1000), &index);
 
-  packSendPayload(payload, payloadSize);
+  int result = packSendPayload(payload, payloadSize);
+  return result > 0;
 }
 
-void VESC_UART::setRPM(float rpm) { return setRPM(rpm, 0); }
+bool VESC_UART::setRPM(float rpm) { return setRPM(rpm, 0); }
 
-void VESC_UART::setRPM(float rpm, uint8_t canId) {
+bool VESC_UART::setRPM(float rpm, uint8_t canId) {
+  if (huart == nullptr) return false;
+  
   int32_t index = 0;
   int payloadSize = (canId == 0 ? 5 : 7);
   uint8_t payload[payloadSize];
@@ -367,12 +331,15 @@ void VESC_UART::setRPM(float rpm, uint8_t canId) {
   }
   payload[index++] = {COMM_SET_RPM};
   buffer_append_int32(payload, (int32_t)(rpm), &index);
-  packSendPayload(payload, payloadSize);
+  int result = packSendPayload(payload, payloadSize);
+  return result > 0;
 }
 
-void VESC_UART::setDuty(float duty) { return setDuty(duty, 0); }
+bool VESC_UART::setDuty(float duty) { return setDuty(duty, 0); }
 
-void VESC_UART::setDuty(float duty, uint8_t canId) {
+bool VESC_UART::setDuty(float duty, uint8_t canId) {
+  if (huart == nullptr) return false;
+  
   int32_t index = 0;
   int payloadSize = (canId == 0 ? 5 : 7);
   uint8_t payload[payloadSize];
@@ -383,12 +350,15 @@ void VESC_UART::setDuty(float duty, uint8_t canId) {
   payload[index++] = {COMM_SET_DUTY};
   buffer_append_int32(payload, (int32_t)(duty * 100000), &index);
 
-  packSendPayload(payload, payloadSize);
+  int result = packSendPayload(payload, payloadSize);
+  return result > 0;
 }
 
-void VESC_UART::sendKeepalive(void) { return sendKeepalive(0); }
+bool VESC_UART::sendKeepalive(void) { return sendKeepalive(0); }
 
-void VESC_UART::sendKeepalive(uint8_t canId) {
+bool VESC_UART::sendKeepalive(uint8_t canId) {
+  if (huart == nullptr) return false;
+  
   int32_t index = 0;
   int payloadSize = (canId == 0 ? 1 : 3);
   uint8_t payload[payloadSize];
@@ -397,7 +367,8 @@ void VESC_UART::sendKeepalive(uint8_t canId) {
     payload[index++] = canId;
   }
   payload[index++] = {COMM_ALIVE};
-  packSendPayload(payload, payloadSize);
+  int result = packSendPayload(payload, payloadSize);
+  return result > 0;
 }
 
 void VESC_UART::serialPrint(uint8_t* data, int len) {
