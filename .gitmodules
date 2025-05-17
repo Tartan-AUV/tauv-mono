@@ -1,3 +1,6 @@
 [submodule "firmware/rtvc/Middlewares/Third_Party/flatbuffers"]
 	path = firmware/rtvc/Middlewares/Third_Party/flatbuffers
 	url = https://github.com/google/flatbuffers.git
+[submodule "containers/arena-sdk"]
+	path = containers/arena-sdk
+	url = git@github.com:Tartan-AUV/arena-sdk.git

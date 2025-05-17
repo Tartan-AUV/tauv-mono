@@ -2,6 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$/../.." vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../../containers/arena-sdk" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Middlewares/Third_Party/flatbuffers" vcs="Git" />
   </component>
 </project>
