@@ -12,10 +12,13 @@
  
 #pragma once
 
-#include "stm32f7xx_hal.h"
-#include <optional>
 #include <array>
 #include <cstddef>
+#include <optional>
+
+#include "RingBuffer.hpp"
+#include "StaticQueue.hpp"
+#include "stm32f7xx_hal.h"
 
 namespace TAUV {
 
@@ -39,19 +42,10 @@ public:
 
   void init(UART_HandleTypeDef *uart);
 
-  void processByte(uint8_t byte);  // Call from UART RX handler
-  
-  // Access the latest parsed MTData2 message
-  const MTData2Message& getLatestMessage() const { return latestMessage_; }
-  
-  // Process any pending bytes in the receive buffer
-  void processBuffer();
-  
-  // Static handler for UART RX interrupt
-  static void uartRxCallback(UART_HandleTypeDef *huart);
-  
-  // Register this instance to receive UART interrupt callbacks
-  void registerInstance();
+  // to be called from ISR
+  static void uartRxCallback(size_t len);
+
+  size_t processQueuedMessages(MTData2Message *output, size_t output_size);
 
 private:
   enum class State {
@@ -61,39 +55,40 @@ private:
     WAIT_MID,
     WAIT_LEN,
     READ_DATA,
-    WAIT_CHECKSUM
+    WAIT_CHECKSUM,
+    COMPLETE
+  };
+
+  static constexpr size_t MAX_MSG_LEN = 255;
+  static constexpr size_t MAX_MSG_DATA_LEN = 255;
+  struct RawMessageBuffer {
+    uint8_t buffer[MAX_MSG_LEN];
+    size_t len;
   };
 
   // Receive buffer for interrupt-driven reception
   static constexpr size_t RX_BUFFER_SIZE = 256;
-  uint8_t rxBuffer_[RX_BUFFER_SIZE];
-  volatile size_t rxHead_ = 0;
-  volatile size_t rxTail_ = 0;
-  bool bufferOverflow_ = false;
 
   UART_HandleTypeDef *uart_ = nullptr;
-  State state_ = State::WAIT_PREAMBLE1;
 
   static constexpr uint8_t PREAMBLE1 = 0xFA;
   static constexpr uint8_t PREAMBLE2 = 0xFF;
   static constexpr uint8_t MID_MTDATA2 = 0x36;
 
-  static constexpr size_t MAX_MSG_LEN = 255;
-  uint8_t buffer_[MAX_MSG_LEN];
-  uint8_t dataLen_ = 0;
-  uint8_t dataIdx_ = 0;
-  uint8_t checksum_ = 0;
-  
+  RawMessageBuffer rxBuffer_{};
+
+  static constexpr size_t MESSAGE_QUEUE_SIZE = 3;
+  StaticQueue<RawMessageBuffer, MESSAGE_QUEUE_SIZE> rxMsgQueue_{};
+
   MTData2Message latestMessage_;
   
   // Static pointer to the active instance (for interrupt callback)
-  static MTI300* activeInstance_;
+  static MTI300 *activeInstance_;
 
-  void resetParser();
-  void parseMTData2(const uint8_t *data, size_t len);
-  
-  // Add a byte to the receive buffer (called from interrupt)
-  void addByteToBuffer(uint8_t byte);
+  MTI300::MTData2Message parseMTData2(const uint8_t *data, size_t len);
+
+  void registerInstance();
+
 };
 
 } // TAUV

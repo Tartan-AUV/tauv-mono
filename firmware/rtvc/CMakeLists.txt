@@ -44,8 +44,7 @@ set(SCHEMA_FILES
         ${SCHEMA_DIR}/eth_msg_jetson_rtvc.fbs
 )
 
-set(GENERATED_HEADERS ""
-)
+set(GENERATED_HEADERS "")
 foreach(SCHEMA ${SCHEMA_FILES})
     get_filename_component(SCHEMA_NAME ${SCHEMA} NAME_WE)
     set(GENERATED_HEADER "${GENERATED_INCLUDES_DIR}/${SCHEMA_NAME}_generated.h")
@@ -95,9 +94,12 @@ add_executable(${CMAKE_PROJECT_NAME}
         Tasks/LoggingTask.hpp
         Util/Logging.hpp
         Util/Logging.cpp
-        ${GENERATED_HEADERS}
+        Util/RingBuffer.hpp
         Drivers/XSens/Mti300.cpp
         Drivers/XSens/Mti300.hpp
+        Modules/MTI300Module.cpp
+        Modules/MTI300Module.hpp
+        ${GENERATED_HEADERS}
 )
 
 add_dependencies(${CMAKE_PROJECT_NAME} generate_flatbuffers)

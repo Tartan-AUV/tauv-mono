@@ -70,4 +70,10 @@ static constexpr uint32_t jetson_log_port = 11010;
 
 }  // namespace Network
 
+namespace IMU {
+
+static const USART_TypeDef *uart_instance = USART1;
+
+}
+
 };  // namespace TAUV::Config

@@ -1,20 +1,15 @@
 /* USER CODE BEGIN Header */
-/**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * Copyright (c) 2025 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
-  *
-  ******************************************************************************
-  */
+/******************************************************************************
+ *  TartanAUV - Carnegie Mellon University
+ *  RTVC Firmware
+ *
+ *  Author:      gleb
+ *  Date:        5/16/25
+ *
+ *  Description:
+ *      Driver for MTI300 IMU with interrupt-driven UART communication
+ *
+ *****************************************************************************/
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 extern "C" {
@@ -30,6 +25,7 @@ extern "C" {
 #include "Logging.hpp"
 #include "LoggingTask.hpp"
 #include "lwip/inet.h"
+#include "Task100Hz.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,12 +49,15 @@ TIM_HandleTypeDef htim5;
 
 UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart5;
+UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart3;
 
 osThreadId defaultTaskHandle;
 /* USER CODE BEGIN PV */
 ip_addr_t jetsonAddr;
 static TAUV::LoggingTask logging_task{};
+static TAUV::Task50Hz task_50hz{};
+static TAUV::Task100Hz task_100hz{};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -68,6 +67,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_TIM5_Init(void);
 static void MX_UART4_Init(void);
 static void MX_UART5_Init(void);
+static void MX_USART1_UART_Init(void);
 void StartDefaultTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
@@ -77,7 +77,6 @@ void ITM_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-static TAUV::Task50Hz task_50_hz{};
 /* USER CODE END 0 */
 
 /**
@@ -113,6 +112,7 @@ int main(void)
   MX_TIM5_Init();
   MX_UART4_Init();
   MX_UART5_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   ITM_Init();
 
@@ -121,26 +121,17 @@ int main(void)
   // Initialize logging system
   if (!TAUV::Logging::getInstance().init(&huart3, TAUV::LogOutputMode::LOG_OUTPUT_MODE_UART)) {
     // If logging initialization failed, still try to output error
-    printf("ERROR: Failed to initialize logging system\r\n");
+    LOG_INFO("ERROR: Failed to initialize logging system\r\n");
   }
 
   // Initialize and start logging task
   if (!logging_task.init() || !logging_task.start("LogTask", osPriorityHigh)) {
     // If task failed to start, output error
-    printf("ERROR: Failed to start logging task\r\n");
+    LOG_INFO("ERROR: Failed to start logging task\r\n");
   }
 
-  printf("  _______         _                      _    ___      __  \n\r"
-		 " |__   __|       | |                /\  | |  | \ \    / /  \n\r"
-		 "    | | __ _ _ __| |_ __ _ _ __    /  \ | |  | |\ \  / / 	 \n\r"
-		 "    | |/ _` | '__| __/ _` | '_ \  / /\ \| |  | | \ \/ /    \n\r"
-		 "    | | (_| | |  | || (_| | | | |/ ____ \ |__| |  \  /     \n\r"
-		 "    |_|\__,_|_|   \__\__,_|_| |_/_/    \_\____/    \/      \n\r"
-		 " \n\r"
-		 " Real-Time Vehicle Controller Rev. A\n\r"
-	     " TartanAUV, Carnegie Mellon University\n\r"
-		 " Authors: Gleb Ryabtsev, Victor Zayakov, 2025\n\r"
-	     "\n\r");
+  TAUV::Logging::getInstance().setLogLevel(TAUV::LogLevel::LOG_LEVEL_DEBUG);
+
 
   IP4_ADDR(&jetsonAddr, 10, 0, 0, 20);
   /* USER CODE END 2 */
@@ -362,6 +353,41 @@ static void MX_UART5_Init(void)
 }
 
 /**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
+
+}
+
+/**
   * @brief USART3 Initialization Function
   * @param None
   * @retval None
@@ -449,19 +475,39 @@ void ITM_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
 {
+  LOG_INFO("  _______         _                      _    ___      __  ");
+  LOG_INFO(" |__   __|       | |                /\\  | |  | \\ \\    / /  ");
+  LOG_INFO("    | | __ _ _ __| |_ __ _ _ __    /  \\ | |  | |\\ \\  / /      ");
+  LOG_INFO("    | |/ _` | '__| __/ _` | '_ \\  / /\\ \\| |  | | \\ \\/ /    ");
+  LOG_INFO("    | | (_| | |  | || (_| | | | |/ ____ \\ |__| |  \\  /     ");
+  LOG_INFO("    |_|\\__,_|_|   \\__\\__,_|_| |_/_/    \\_\\____/    \\/      ");
+  LOG_INFO(" ");
+  LOG_INFO(" Real-Time Vehicle Controller Rev. A");
+  LOG_INFO(" TartanAUV, Carnegie Mellon University");
+  LOG_INFO(" Authors: Gleb Ryabtsev, Victor Zayakov, 2025");
+  LOG_INFO("");
+  
   /* init code for LWIP */
   LOG_INFO("Initializing LWIP network stack...");
   MX_LWIP_Init();
   LOG_INFO("LWIP initialization complete");
-  printf("Network stack initialized. IP configuration: %s", ip4addr_ntoa(netif_ip4_addr(netif_default)));
+  LOG_INFO("Network stack initialized. IP configuration: %s", ip4addr_ntoa(netif_ip4_addr(netif_default)));
   
   /* USER CODE BEGIN 5 */
   LOG_INFO("Establishing connection to Jetson at %s", ip4addr_ntoa(&jetsonAddr));
+
+  LOG_INFO("Initializing tasks...");
   auto resources_50hz = std::make_unique<TAUV::Task50Hz::Resources>();
   resources_50hz->uarts = { &huart4, &huart5 };
-  task_50_hz.init(std::move(resources_50hz));
-  task_50_hz.start("task50hz", 20);
-  printf("Communication tasks started successfully\r\n");
+  task_50hz.init(std::move(resources_50hz));
+  task_50hz.start("task50hz", 20);
+
+  auto resources_100hz = std::make_unique<TAUV::Task100Hz::Resources>();
+  resources_100hz->imu_uart = &huart1;
+  task_100hz.init(std::move(resources_100hz));
+  task_100hz.start("task100hz", 10);
+
+  LOG_INFO("Task initialization complete.");
 
   /* Infinite loop */
   for(;;)
@@ -470,12 +516,12 @@ void StartDefaultTask(void const * argument)
     if (netif_is_up(netif_default) && !ip4_addr_isany_val(*netif_ip4_addr(netif_default))) {
       static bool connection_logged = false;
       if (!connection_logged) {
-        printf("Network connection established\r\n");
+        LOG_INFO("Network connection established\r\n");
         LOG_INFO("Network connection stable with IP: %s", ip4addr_ntoa(netif_ip4_addr(netif_default)));
         connection_logged = true;
       }
     }
-	osDelay(1000);
+    osDelay(1000);
   }
   /* USER CODE END 5 */
 }
@@ -533,7 +579,7 @@ void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+     ex: LOG_INFO("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

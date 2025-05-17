@@ -16,7 +16,7 @@
 namespace TAUV {
 
 ModuleInitResult MTI300Module::init(UART_HandleTypeDef *uart) {
-  LOG_INFO("MTI300Module: Initializing");
+  LOG_INFO("MTI300Module: Initializing...");
   
   if (uart == nullptr) {
     LOG_ERROR("MTI300Module: UART handle is null");
@@ -25,48 +25,46 @@ ModuleInitResult MTI300Module::init(UART_HandleTypeDef *uart) {
   
   uart_ = uart;
   
-  // Initialize the IMU driver with UART
   imu_driver_.init(uart_);
-  
-  // Configure UART for interrupt-driven reception
-  // Note: We need to register the UART RX callback in the UART HAL IRQ handler
-  // This is typically done in stm32f7xx_it.c in the UART IRQ handler
-  
-  // Enable UART receive interrupt
-  __HAL_UART_ENABLE_IT(uart_, UART_IT_RXNE);
-  
-  LOG_INFO("MTI300Module: Successfully initialized with interrupt-driven UART");
+
+  LOG_INFO("MTI300Module: Successfully initialized");
   return ModuleInitResult::OK;
 }
 
 ModuleRunResult MTI300Module::run() {
-  // Record current time for this message
-  output_msg_.timestamp_ms = HAL_GetTick();
-  
   // Clear previous messages
   output_msg_.clear();
   
   // Process any bytes received via interrupt
-  imu_driver_.processBuffer();
-  
-  // Always add the latest message from the driver
-  const auto& latest_msg = imu_driver_.getLatestMessage();
-  
-  // Only add the message if it contains at least one valid field
-  if (latest_msg.quaternion.has_value() || 
-      latest_msg.freeAcceleration.has_value() || 
-      latest_msg.angularVelocity.has_value() || 
-      latest_msg.sampleTimeFine.has_value()) {
-    if (!output_msg_.addMessage(latest_msg)) {
-      LOG_WARNING("MTI300Module: Message buffer full, discarding new message");
+  static constexpr size_t MAX_MSGS = 3;
+  MTI300::MTData2Message msgs[MAX_MSGS]; // todo: make same as ISR queue len and MTIModuleMessage arr size
+  size_t n_msgs = imu_driver_.processQueuedMessages(msgs, MAX_MSGS);
+
+  for (size_t i = 0; i < n_msgs; i++) {
+    auto &msg = msgs[i];
+    // Only add the message if it contains at least one valid field
+    if (msg.quaternion.has_value() ||
+        msg.freeAcceleration.has_value() ||
+        msg.angularVelocity.has_value() ||
+        msg.sampleTimeFine.has_value()) {
+      if (!output_msg_.addMessage(msg)) {
+        LOG_WARNING("MTI300Module: Message buffer full, discarding new message");
+      }
     }
   }
-  
-  if (output_msg_.count == 0) {
-    LOG_DEBUG("MTI300Module: No valid messages in buffer");
+
+  if (n_msgs == 0) {
+    // Only log this occasionally to avoid spamming
+    static uint32_t last_warning_time = 0;
+    uint32_t current_time = HAL_GetTick();
+    if (current_time - last_warning_time > 5000) {  // Once every 5 seconds
+      LOG_DEBUG("MTI300Module: No valid messages in buffer");
+      // note this can rarely happen if there's timing misalignment
+      last_warning_time = current_time;
+    }
     return ModuleRunResult::OUTPUT_INVALID;
   }
-  
+
   return ModuleRunResult::OK;
 }
 
