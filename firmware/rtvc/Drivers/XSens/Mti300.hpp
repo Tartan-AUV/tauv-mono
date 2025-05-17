@@ -59,15 +59,15 @@ private:
     COMPLETE
   };
 
-  static constexpr size_t MAX_MSG_LEN = 255;
-  static constexpr size_t MAX_MSG_DATA_LEN = 255;
+  static constexpr size_t MAX_MSG_LEN = 1024;
+  static constexpr size_t MAX_MSG_DATA_LEN = 1024;
   struct RawMessageBuffer {
     uint8_t buffer[MAX_MSG_LEN];
     size_t len;
   };
 
   // Receive buffer for interrupt-driven reception
-  static constexpr size_t RX_BUFFER_SIZE = 256;
+  static constexpr size_t RX_BUFFER_SIZE = 1024;
 
   UART_HandleTypeDef *uart_ = nullptr;
 

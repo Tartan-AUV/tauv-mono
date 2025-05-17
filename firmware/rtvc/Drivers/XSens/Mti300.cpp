@@ -31,7 +31,7 @@ void MTI300::init(UART_HandleTypeDef *uart) {
   // Register this instance to receive callbacks
   registerInstance();
   
-  auto res = HAL_UARTEx_ReceiveToIdle_IT(uart_, rxBuffer_.buffer, MAX_MSG_LEN);
+  auto res = HAL_UARTEx_ReceiveToIdle_DMA(uart_, rxBuffer_.buffer, MAX_MSG_LEN);
   if (res != HAL_OK) {
     LOG_ERROR("MTI300: Failed to initialize UART");
   }
@@ -64,6 +64,8 @@ void MTI300::uartRxCallback(size_t len) {
 size_t MTI300::processQueuedMessages(MTData2Message *output,
                                      size_t output_size) {
   uint8_t byte;
+  __HAL_UART_CLEAR_FLAG(uart_, UART_CLEAR_PEF | UART_CLEAR_FEF | UART_CLEAR_NEF | UART_CLEAR_OREF);
+  auto res = HAL_UARTEx_ReceiveToIdle_DMA(uart_, rxBuffer_.buffer, MAX_MSG_LEN);
 
   State state = State::WAIT_PREAMBLE1;
   uint8_t dataLen = 0;
