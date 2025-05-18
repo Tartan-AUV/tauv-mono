@@ -21,9 +21,11 @@
 namespace TAUV {
 
 class MTI300Module : public ModuleBase<MTI300InputInterface, MTI300Message> {
-public:
-  MTI300Module(const MTI300InputInterface &input_interface, MTI300Message &output_msg)
-      : ModuleBase<MTI300InputInterface, MTI300Message>(input_interface, output_msg) {}
+ public:
+  MTI300Module(const MTI300InputInterface &input_interface,
+               MTI300Message &output_msg)
+      : ModuleBase<MTI300InputInterface, MTI300Message>(input_interface,
+                                                        output_msg) {}
 
   const char *getName() const override { return "MTI300"; }
   float getFrequency() const override { return 100.0f; }
@@ -31,9 +33,9 @@ public:
   ModuleInitResult init(UART_HandleTypeDef *uart);
   ModuleRunResult run() override;
 
-private:
+ private:
   MTI300 imu_driver_;
   UART_HandleTypeDef *uart_ = nullptr;
 };
 
-} // namespace TAUV
+}  // namespace TAUV

@@ -34,29 +34,22 @@ static constexpr uint32_t init_delay_ms = 500;
 
 struct ESC_Group {
   std::array<uint8_t, escs_per_group_max> vesc_ids;
-  uint8_t uart_connected_id; // The VESC ID to which UART is physically connected
+  uint8_t
+      uart_connected_id;  // The VESC ID to which UART is physically connected
 };
 
 static constexpr std::array<ESC_Group, 2> esc_groups{
-  ESC_Group{
-    .vesc_ids = {128, 129, 130, 131},
-    .uart_connected_id = 128
-  },
-  ESC_Group{
-    .vesc_ids = {132, 133, 134, 135},
-    .uart_connected_id = 132
-  },
+    ESC_Group{.vesc_ids = {128, 129, 130, 131}, .uart_connected_id = 128},
+    ESC_Group{.vesc_ids = {132, 133, 134, 135}, .uart_connected_id = 132},
 };
 
 static constexpr size_t num_groups = esc_groups.size();
 
-static constexpr std::array<size_t, number_escs> esc_group_idx_map{
-  0, 0, 0, 0, 1, 1, 1, 1
-};
+static constexpr std::array<size_t, number_escs> esc_group_idx_map{0, 0, 0, 0,
+                                                                   1, 1, 1, 1};
 
 static constexpr std::array<size_t, number_escs> esc_group_elem_idx_map{
-  0, 1, 2, 3, 0, 1, 2, 3
-};
+    0, 1, 2, 3, 0, 1, 2, 3};
 
 }  // namespace Thrusters
 
@@ -72,8 +65,10 @@ static constexpr uint32_t jetson_log_port = 11010;
 
 namespace IMU {
 
-static const USART_TypeDef *uart_instance = USART1;
+static const USART_TypeDef *uartInstance = USART1;
+static constexpr uint32_t maxMessageDataSize = 128; // max data size for xbus message
+static constexpr size_t queueLength = 3; // max number of messages in the queue
 
-}
+}  // namespace IMU
 
 };  // namespace TAUV::Config

@@ -11,20 +11,23 @@
  *****************************************************************************/
 
 #include "MTI300Module.hpp"
+
 #include "Logging.hpp"
+
+extern UART_HandleTypeDef huart3;
 
 namespace TAUV {
 
 ModuleInitResult MTI300Module::init(UART_HandleTypeDef *uart) {
   LOG_INFO("MTI300Module: Initializing...");
-  
+
   if (uart == nullptr) {
     LOG_ERROR("MTI300Module: UART handle is null");
     return ModuleInitResult::FATAL;
   }
-  
+
   uart_ = uart;
-  
+
   imu_driver_.init(uart_);
 
   LOG_INFO("MTI300Module: Successfully initialized");
@@ -34,21 +37,51 @@ ModuleInitResult MTI300Module::init(UART_HandleTypeDef *uart) {
 ModuleRunResult MTI300Module::run() {
   // Clear previous messages
   output_msg_.clear();
-  
-  // Process any bytes received via interrupt
-  static constexpr size_t MAX_MSGS = 3;
-  MTI300::MTData2Message msgs[MAX_MSGS]; // todo: make same as ISR queue len and MTIModuleMessage arr size
-  size_t n_msgs = imu_driver_.processQueuedMessages(msgs, MAX_MSGS);
 
+  // Check if there's a UART error, clear flags, and restart RX transactions
+  if (uart_->ErrorCode != HAL_UART_ERROR_NONE) {
+    // UART is in error state
+    if (uart_->ErrorCode & HAL_UART_ERROR_ORE) {
+      uint8_t dbg[] = "ORE\n\r";
+      HAL_UART_Transmit(&huart3, dbg, sizeof(dbg), HAL_MAX_DELAY);
+      // Overrun Error
+    }
+    if (uart_->ErrorCode & HAL_UART_ERROR_FE) {
+      uint8_t dbg[] = "FE\n\r";
+      HAL_UART_Transmit(&huart3, dbg, sizeof(dbg), HAL_MAX_DELAY);
+      // Framing Error
+    }
+    if (uart_->ErrorCode & HAL_UART_ERROR_PE) {
+      uint8_t dbg[] = "PE\n\r";
+      HAL_UART_Transmit(&huart3, dbg, sizeof(dbg), HAL_MAX_DELAY);
+      // Parity Error
+    }
+    if (uart_->ErrorCode & HAL_UART_ERROR_NE) {
+      uint8_t dbg[] = "PE\n\r";
+      HAL_UART_Transmit(&huart3, dbg, sizeof(dbg), HAL_MAX_DELAY);
+      // Noise Error
+    }
+    __HAL_UART_CLEAR_PEFLAG(
+        uart_);  // Clears PE flag and also reads USART_SR & USART_DR
+    __HAL_UART_CLEAR_FEFLAG(uart_);   // Clears FE
+    __HAL_UART_CLEAR_NEFLAG(uart_);   // Clears NE
+    __HAL_UART_CLEAR_OREFLAG(uart_);  // Clears ORE
+    imu_driver_.init(uart_);
+  }
+
+  // Process any bytes received via interrupt
+  MTI300::MTData2Message
+      mt_data_msgs[Config::IMU::queueLength];
+  size_t n_msgs = imu_driver_.processQueuedRawMessages(mt_data_msgs, Config::IMU::queueLength);
+  LOG_DEBUG("Received %d messages", n_msgs);
   for (size_t i = 0; i < n_msgs; i++) {
-    auto &msg = msgs[i];
+    auto &msg = mt_data_msgs[i];
     // Only add the message if it contains at least one valid field
-    if (msg.quaternion.has_value() ||
-        msg.freeAcceleration.has_value() ||
-        msg.angularVelocity.has_value() ||
-        msg.sampleTimeFine.has_value()) {
+    if (msg.quaternion.has_value() || msg.freeAcceleration.has_value() ||
+        msg.angularVelocity.has_value() || msg.sampleTimeFine.has_value()) {
       if (!output_msg_.addMessage(msg)) {
-        LOG_WARNING("MTI300Module: Message buffer full, discarding new message");
+        LOG_WARNING(
+            "MTI300Module: Message buffer full, discarding new message");
       }
     }
   }
@@ -68,4 +101,4 @@ ModuleRunResult MTI300Module::run() {
   return ModuleRunResult::OK;
 }
 
-} // namespace TAUV
+}  // namespace TAUV

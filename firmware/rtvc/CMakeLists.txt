@@ -74,6 +74,7 @@ add_custom_target(generate_flatbuffers DEPENDS ${GENERATED_HEADERS})
 # Create the executable target
 add_executable(${CMAKE_PROJECT_NAME}
         # C source files
+        Core/Src/user_interrupts.cpp
         Modules/Eth50HzModule.cpp
         Modules/Eth50HzModule.hpp
         Util/Singleton.hpp

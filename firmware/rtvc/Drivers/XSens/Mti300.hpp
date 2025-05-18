@@ -9,13 +9,14 @@
  *      TODO
  *
  *****************************************************************************/
- 
+
 #pragma once
 
 #include <array>
 #include <cstddef>
 #include <optional>
 
+#include "Config.hpp"
 #include "RingBuffer.hpp"
 #include "StaticQueue.hpp"
 #include "stm32f7xx_hal.h"
@@ -23,72 +24,71 @@
 namespace TAUV {
 
 class MTI300 {
-public:
+ public:
   struct MTData2Message {
-    // Quaternion [w, x, y, z]
-    std::optional<std::array<float, 4>> quaternion;
-    
-    // Free acceleration [ax, ay, az] in m/s²
-    std::optional<std::array<float, 3>> freeAcceleration;
-    
-    // Angular velocity [gx, gy, gz] in rad/s
-    std::optional<std::array<float, 3>> angularVelocity;
-    
+    std::optional<uint32_t> packetCounter;
     // Sample timestamp in nanoseconds
     std::optional<uint32_t> sampleTimeFine;
+    // Quaternion
+    std::optional<std::array<float, 4>> quaternion;
+    // Free acceleration [ax, ay, az] in m/s²
+    std::optional<std::array<float, 3>> freeAcceleration;
+    // Angular velocity [gx, gy, gz] in rad/s
+    std::optional<std::array<float, 3>> angularVelocity;
+    // Temperature in C
+    std::optional<float> temperature;
+    // Pressure in Pa
+    std::optional<float> pressure;
+  };
+
+  struct RawMessageBuffer {
+    uint8_t data[Config::IMU::maxMessageDataSize];
+    size_t len;
+    uint8_t mid;
   };
 
   MTI300();
 
   void init(UART_HandleTypeDef *uart);
 
-  // to be called from ISR
-  static void uartRxCallback(size_t len);
+  void uartRxCallback();  // to be called from ISR
 
-  size_t processQueuedMessages(MTData2Message *output, size_t output_size);
+  uint8_t rxByte_ = 0;
 
-private:
+  // Static pointer to the active instance (for interrupt callback)
+  static MTI300 *activeInstance_;
+
+  size_t processQueuedRawMessages(MTData2Message *output, size_t outputSize);
+
+ private:
   enum class State {
-    WAIT_PREAMBLE1,
-    WAIT_PREAMBLE2,
+    WAIT_PREAMBLE,
     WAIT_BID,
     WAIT_MID,
     WAIT_LEN,
     READ_DATA,
     WAIT_CHECKSUM,
-    COMPLETE
   };
-
-  static constexpr size_t MAX_MSG_LEN = 1024;
-  static constexpr size_t MAX_MSG_DATA_LEN = 1024;
-  struct RawMessageBuffer {
-    uint8_t buffer[MAX_MSG_LEN];
-    size_t len;
-  };
-
-  // Receive buffer for interrupt-driven reception
-  static constexpr size_t RX_BUFFER_SIZE = 1024;
 
   UART_HandleTypeDef *uart_ = nullptr;
 
   static constexpr uint8_t PREAMBLE1 = 0xFA;
-  static constexpr uint8_t PREAMBLE2 = 0xFF;
+  static constexpr uint8_t BID = 0xFF;
   static constexpr uint8_t MID_MTDATA2 = 0x36;
 
+  // Raw message parsing fields, updated in processCharacterFromISR()
   RawMessageBuffer rxBuffer_{};
+  uint8_t dataIdx_ = 0;
+  uint8_t checksum_ = 0;
+  uint8_t dataLen_ = 0;
+  State state_ = State::WAIT_PREAMBLE;
 
-  static constexpr size_t MESSAGE_QUEUE_SIZE = 3;
-  StaticQueue<RawMessageBuffer, MESSAGE_QUEUE_SIZE> rxMsgQueue_{};
+  StaticQueue<RawMessageBuffer, Config::IMU::queueLength> rxMsgQueue_{};
 
-  MTData2Message latestMessage_;
-  
-  // Static pointer to the active instance (for interrupt callback)
-  static MTI300 *activeInstance_;
-
-  MTI300::MTData2Message parseMTData2(const uint8_t *data, size_t len);
-
+  static MTI300::MTData2Message parseMTData2(const RawMessageBuffer &buffer);
   void registerInstance();
 
+  static inline float parseFloat(const uint8_t bytes[4]);
 };
 
-} // TAUV
+}  // namespace TAUV
