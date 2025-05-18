@@ -4,9 +4,9 @@ table Eth50HzTxMsg {
   thruster_command: ThrusterCommand;
 }
 
-struct ThrusterCommand {
-  rpm:[int32:8];
-  enabled:[bool:8];
+table ThrusterCommand {
+  rpm:[int32];
+  enabled:[bool];
 }
 
 root_type Eth50HzTxMsg;

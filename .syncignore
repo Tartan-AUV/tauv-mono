@@ -1,4 +1,6 @@
 .git
 .idea
 .github
+cmake-build-*/
 firmware
+tauv_vehicle/generated/

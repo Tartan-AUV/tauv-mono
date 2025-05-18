@@ -13,7 +13,7 @@
 #include "Eth100HzModule.hpp"
 
 #include "Logging.hpp"
-#include "eth_msg_rtvc_jetson_generated.h"
+#include "eth_msg_rtvc_jetson_100_generated.h"
 #include "lwip/inet.h"
 
 extern ip_addr_t jetsonAddr;

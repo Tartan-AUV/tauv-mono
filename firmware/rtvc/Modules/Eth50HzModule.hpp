@@ -20,7 +20,6 @@
 #include "ModuleBase.hpp"
 #include "StaticQueue.hpp"
 #include "UdpSocket.hpp"
-#include "eth_msg_rtvc_jetson_generated.h"
 
 
 using std::size_t;

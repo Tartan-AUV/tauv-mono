@@ -12,7 +12,7 @@
 
 #include "Eth50HzModule.hpp"
 
-#include "eth_msg_jetson_rtvc_generated.h"
+#include "eth_msg_jetson_rtvc_50_generated.h"
 
 using namespace TAUV;
 

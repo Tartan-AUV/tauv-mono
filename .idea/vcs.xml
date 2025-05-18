@@ -2,7 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/firmware/firmware/flatcc" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/firmware/flatcc" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/containers/arena-sdk" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/packages/tauv_vehicle/flatbuffers" vcs="Git" />
   </component>
 </project>

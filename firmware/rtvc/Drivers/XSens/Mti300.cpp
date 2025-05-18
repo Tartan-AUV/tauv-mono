@@ -211,7 +211,7 @@ MTI300::MTData2Message MTI300::parseMTData2(const RawMessageBuffer &buffer) {
       }
       case 0x3010: {  // Pressure Pa
         if (data_size == 4) {
-          msg.sampleTimeFine = parseFloat(field);
+          msg.pressure = parseFloat(field);
         }
         break;
       }

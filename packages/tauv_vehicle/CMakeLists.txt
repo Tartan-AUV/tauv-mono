@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.31)
 project(tauv_vehicle)
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -12,18 +12,21 @@ find_package(std_msgs REQUIRED)
 find_package(tauv_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
-# Add FlatBuffers
-find_path(FLATBUFFERS_INCLUDE_DIR NAMES flatbuffers/flatbuffers.h)
-find_library(FLATBUFFERS_LIBRARY NAMES flatbuffers)
-find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc)
+set(CMAKE_CXX_STANDARD 17)
 
-if(NOT FLATBUFFERS_INCLUDE_DIR OR NOT FLATBUFFERS_LIBRARY)
-  message(FATAL_ERROR "FlatBuffers not found")
-endif()
-
-if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
-  message(FATAL_ERROR "FlatBuffers compiler (flatc) not found")
-endif()
+# Build flatbuffers
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fb/build)
+execute_process(COMMAND
+        ${CMAKE_COMMAND}
+        -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/include
+        -DCMAKE_INSTALL_BINDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/bin
+        -DCMAKE_INSTALL_LIBDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/lib
+        -DFLATBUFFERS_BUILD_FLATLIB=NO
+        -DFLATBUFFERS_BUILD_TESTS=NO
+        -DFLATBUFFERS_USE_STD_SPAN=TRUE
+        ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fb/build)
+execute_process(COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/fb/build --target install)
 
 # Set up schema compilation
 set(SCHEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/schemas)
@@ -34,12 +37,13 @@ file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
 
 # List all schema files
 set(SCHEMA_FILES
-  ${SCHEMA_DIR}/eth_msg_rtvc_jetson.fbs
-  ${SCHEMA_DIR}/eth_msg_jetson_rtvc.fbs
+  ${SCHEMA_DIR}/eth_msg_rtvc_jetson_100.fbs
+  ${SCHEMA_DIR}/eth_msg_jetson_rtvc_50.fbs
 )
 
 # Generate custom command to compile schemas
-set(GENERATED_HEADERS "")
+set(GENERATED_HEADERS ""
+        include/tauv_vehicle/rtvc.h)
 foreach(SCHEMA ${SCHEMA_FILES})
   get_filename_component(SCHEMA_NAME ${SCHEMA} NAME_WE)
   set(GENERATED_HEADER "${GENERATED_INCLUDES_DIR}/${SCHEMA_NAME}_generated.h")
@@ -47,9 +51,9 @@ foreach(SCHEMA ${SCHEMA_FILES})
   
   add_custom_command(
     OUTPUT ${GENERATED_HEADER}
-    COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE} 
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fb/bin/flatc
             --cpp 
-            --cpp-std c++11
+            --cpp-std c++17
             --gen-all
             --gen-object-api
             -o ${GENERATED_INCLUDES_DIR}
@@ -69,10 +73,9 @@ add_dependencies(rtvc generate_flatbuffers)
 target_include_directories(rtvc PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-  ${FLATBUFFERS_INCLUDE_DIR})
+  ${CMAKE_CURRENT_BINARY_DIR}/fb/include)
 
 target_compile_features(rtvc PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_link_libraries(rtvc ${FLATBUFFERS_LIBRARY})
 ament_target_dependencies(
   rtvc
   "rclcpp"

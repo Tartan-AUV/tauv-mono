@@ -19,6 +19,7 @@
 #include "Eth50HzModule.hpp"
 #include "IntervalTask.hpp"
 #include "stm32f7xx_hal.h"
+#include <memory>
 
 using std::size_t;
 

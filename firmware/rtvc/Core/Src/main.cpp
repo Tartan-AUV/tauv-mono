@@ -129,8 +129,7 @@ int main(void)
     LOG_INFO("ERROR: Failed to start logging task\r\n");
   }
 
-  TAUV::Logging::getInstance().setLogLevel(TAUV::LogLevel::LOG_LEVEL_DEBUG);
-
+  TAUV::Logging::getInstance().setLogLevel(TAUV::LogLevel::LOG_LEVEL_INFO);
 
   IP4_ADDR(&jetsonAddr, 10, 0, 0, 20);
   /* USER CODE END 2 */

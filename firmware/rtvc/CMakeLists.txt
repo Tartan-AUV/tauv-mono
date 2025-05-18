@@ -30,18 +30,27 @@ message("Build type: " ${CMAKE_BUILD_TYPE})
 # Enable CMake support for C, C++, and ASM
 enable_language(C CXX ASM)
 
-# Compile schemas using system compiler
-find_program(FLATBUFFERS_FLATC_EXECUTABLE NAMES flatc)
-if(NOT FLATBUFFERS_FLATC_EXECUTABLE)
-    message(FATAL_ERROR "FlatBuffers compiler (flatc) not found")
-endif()
+# build flatbuffers compiler and install headers
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fb/build)
+execute_process(COMMAND
+        ${CMAKE_COMMAND}
+        -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/include
+        -DCMAKE_INSTALL_BINDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/bin
+        -DCMAKE_INSTALL_LIBDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/lib
+        -DFLATBUFFERS_BUILD_FLATLIB=NO
+        -DFLATBUFFERS_BUILD_TESTS=NO
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../packages/tauv_vehicle/flatbuffers
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fb/build)
+execute_process(COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/fb/build --target install)
+
+# build schemas
 set(SCHEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../packages/tauv_vehicle/schemas)
 set(GENERATED_INCLUDES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FlatBuffers/)
 file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
 
 set(SCHEMA_FILES
-        ${SCHEMA_DIR}/eth_msg_rtvc_jetson.fbs
-        ${SCHEMA_DIR}/eth_msg_jetson_rtvc.fbs
+        ${SCHEMA_DIR}/eth_msg_rtvc_jetson_100.fbs
+        ${SCHEMA_DIR}/eth_msg_jetson_rtvc_50.fbs
 )
 
 set(GENERATED_HEADERS "")
@@ -54,7 +63,7 @@ foreach(SCHEMA ${SCHEMA_FILES})
             OUTPUT ${GENERATED_HEADER}
             BYPRODUCTS ${GENERATED_HEADER}
             DEPENDS ${SCHEMA}
-            COMMAND ${FLATBUFFERS_FLATC_EXECUTABLE}
+            COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fb/bin/flatc
             --cpp
             --cpp-std c++17
             --gen-all
@@ -123,7 +132,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         Drivers/VESC
         Drivers/XSens
         ${GENERATED_INCLUDES_DIR}
-        Middlewares/Third_Party/flatbuffers/include
+        ${CMAKE_CURRENT_BINARY_DIR}/fb/include
 )
 
 # Add preprocessor definitions
