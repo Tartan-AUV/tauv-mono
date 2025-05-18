@@ -27,7 +27,7 @@ struct MTI300Message {
   static constexpr size_t MAX_MESSAGES = 10;
 
   // Array of MTData2Message instances
-  std::array<MTI300::MTData2Message, MAX_MESSAGES> messages;
+  std::array<MTI300::MTData2Message, MAX_MESSAGES> frames;
 
   // Number of valid messages in the array
   size_t count = 0;
@@ -41,7 +41,7 @@ struct MTI300Message {
   // Add a new message if there's room
   bool addMessage(const MTI300::MTData2Message& msg) {
     if (count < MAX_MESSAGES) {
-      messages[count++] = msg;
+      frames[count++] = msg;
       return true;
     }
     return false;

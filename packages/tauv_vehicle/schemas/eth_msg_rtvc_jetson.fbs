@@ -6,11 +6,14 @@ table Eth100HzMsg {
     imu_data:[XsensIMUFrame];
 }
 
-struct XsensIMUFrame {
-  sample_time:uint64;
+table XsensIMUFrame {
+  sample_time_fine:uint32;
+  packet_counter:uint32;
   orientation:Quat;
   rate_of_turn:Vec3;
   free_acceleration:Vec3;
+  pressure:float;
+  temperature:float;
 }
 
 root_type Eth100HzMsg;

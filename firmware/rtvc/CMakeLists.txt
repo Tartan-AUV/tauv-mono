@@ -77,6 +77,8 @@ add_executable(${CMAKE_PROJECT_NAME}
         Core/Src/user_interrupts.cpp
         Modules/Eth50HzModule.cpp
         Modules/Eth50HzModule.hpp
+        Modules/Eth100HzModule.cpp
+        Modules/Eth100HzModule.hpp
         Util/Singleton.hpp
         Util/StaticQueue.hpp
         Tasks/IntervalTask.hpp

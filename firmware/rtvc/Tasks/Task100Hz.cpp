@@ -7,6 +7,7 @@
  *
  *  Description:
  *      Implementation of Task100Hz which includes MTI300 IMU processing
+ *      and 100Hz ethernet communication
  *
  *****************************************************************************/
 
@@ -25,8 +26,16 @@ bool Task100Hz::init(std::unique_ptr<Resources> resources) {
   resources_ = std::move(resources);
   
   // Initialize the MTI300 module
-  auto result = mti300_module_.init(resources_->imu_uart);
-  if (result != ModuleInitResult::OK) {
+  auto mti_result = mti300_module_.init(resources_->imu_uart);
+  if (mti_result != ModuleInitResult::OK) {
+    LOG_ERROR("Task100Hz: Failed to initialize MTI300 module");
+    return false;
+  }
+  
+  // Initialize the Eth100Hz module
+  auto eth_result = eth_100hz_module_.init();
+  if (eth_result != ModuleInitResult::OK) {
+    LOG_ERROR("Task100Hz: Failed to initialize Eth100Hz module");
     return false;
   }
   
@@ -35,15 +44,17 @@ bool Task100Hz::init(std::unique_ptr<Resources> resources) {
 }
 
 void Task100Hz::run() {
-  // Run the MTI300 module
-  auto result = mti300_module_.run();
+  // Run the MTI300 module to collect IMU data
+  auto mti_result = mti300_module_.run();
   
-  if (result == ModuleRunResult::FATAL) {
+  if (mti_result == ModuleRunResult::FATAL) {
     LOG_ERROR("Task100Hz: MTI300 module encountered a fatal error");
-  } else {
-    // Process the latest IMU data
-    const auto& imu_msg = mti300_msg_;
+  } else if (mti_result == ModuleRunResult::OK) {
+    // Run the Eth100Hz module to send IMU data to Jetson
+    auto eth_result = eth_100hz_module_.run();
+    
+    if (eth_result == ModuleRunResult::FATAL) {
+      LOG_ERROR("Task100Hz: Eth100Hz module encountered a fatal error");
+    }
   }
-  
-  // Add other 100Hz tasks here as needed
 }
