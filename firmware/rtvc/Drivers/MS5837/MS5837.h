@@ -38,16 +38,16 @@ THE SOFTWARE.
 #ifndef MS5837_H_BLUEROBOTICS
 #define MS5837_H_BLUEROBOTICS
 
-#include "stm32f7xx_hal.h"
-#include "FreeRTOS.h"
-#include "timers.h"
-
 #include <array>
+
+#include "FreeRTOS.h"
+#include "stm32f7xx_hal.h"
+#include "timers.h"
 
 namespace TAUV {
 
 class MS5837 {
-public:
+ public:
   static const float Pa;
   static const float bar;
   static const float mbar;
@@ -55,7 +55,7 @@ public:
   static const uint8_t MS5837_30BA;
   static const uint8_t MS5837_02BA;
   static const uint8_t MS5837_UNRECOGNISED;
-  
+
   // Conversion time in milliseconds for maximum precision (8192 samples)
   static constexpr uint32_t CONVERSION_TIME_MS = 10;
 
@@ -70,19 +70,20 @@ public:
   };
 
   static constexpr std::array<uint8_t, static_cast<size_t>(Oversampling::Count)>
-    oversampling_command_map_pressure = {0x40, 0x42, 0x44, 0x46, 0x48, 0x4A};
+      oversampling_command_map_pressure = {0x40, 0x42, 0x44, 0x46, 0x48, 0x4A};
 
   static constexpr std::array<uint8_t, static_cast<size_t>(Oversampling::Count)>
-    oversampling_command_map_temperature = {0x50, 0x52, 0x54, 0x56, 0x58, 0x5A};
+      oversampling_command_map_temperature = {0x50, 0x52, 0x54,
+                                              0x56, 0x58, 0x5A};
 
   MS5837();
   ~MS5837();
 
   bool init(I2C_HandleTypeDef *hi2c);
-  bool begin(I2C_HandleTypeDef *hi2c); // Calls init()
+  bool begin(I2C_HandleTypeDef *hi2c);  // Calls init()
 
-  /** Set model of MS5837 sensor. Valid options are MS5837::MS5837_30BA (default)
-   * and MS5837::MS5837_02BA.
+  /** Set model of MS5837 sensor. Valid options are MS5837::MS5837_30BA
+   * (default) and MS5837::MS5837_02BA.
    */
   void setModel(uint8_t model);
   uint8_t getModel();
@@ -95,14 +96,11 @@ public:
   /** Start the conversion cycle by requesting temperature first
    * This function sets up a FreeRTOS timer to handle the conversion sequence
    */
-  bool requestConversion(MS5837::Oversampling osr = Oversampling::MS5837_OS_8192);
+  void requestConversion(
+      MS5837::Oversampling osr = Oversampling::MS5837_OS_8192);
 
-  /** Read the current values (getter only) and reset the data valid flag
-   * Returns true if data was valid before reading
-   */
-  bool read();
-
-  /** Returns true if both temperature and pressure conversions have completed successfully
+  /** Returns true if both temperature and pressure conversions have completed
+   * successfully
    */
   bool isDataReady() const { return data_ready; }
 
@@ -123,19 +121,16 @@ public:
    */
   float altitude();
 
-private:
+ private:
+  enum class ConversionType : uint8_t {
+    MS5837_PRESSURE,
+    MS5837_TEMPERATURE,
+    Count
+  };
+
   // I2C handler
   I2C_HandleTypeDef *_hi2c;
-  TimerHandle_t conversion_timer = nullptr;
-  
-  // Sensor state
-  enum class ConversionState {
-    IDLE,
-    TEMP_REQUESTED,
-    PRESSURE_REQUESTED
-  };
-  
-  ConversionState conversion_state = ConversionState::IDLE;
+
   Oversampling current_oversampling = Oversampling::MS5837_OS_8192;
   bool data_ready = false;  // Set when both temperature and pressure are valid
 
@@ -153,24 +148,26 @@ private:
   void calculate();
 
   uint8_t crc4(uint16_t n_prom[]);
-  
+
   /** Request temperature conversion
    */
   bool requestTemperature();
-  
+
   /** Request pressure conversion
    */
   bool requestPressure();
-  
+
+  /** Runs one conversion cycle (temperature and pressure)
+   */
+  void runConversionCycle();
+
   /** Read the result of a conversion
    */
-  bool readConversion();
-  
-  /** Timer callback to handle the conversion sequence
-   */
-  static void conversionTimerCallback(TimerHandle_t timer);
+  bool readConversion(MS5837::ConversionType type);
+
+  static void conversionTaskCallback(void *params);
 };
 
-} // namespace TAUV
+}  // namespace TAUV
 
 #endif
