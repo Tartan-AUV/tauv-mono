@@ -1,0 +1,93 @@
+/*    
+    Copyright (c) 2020 Patryk Cieslak. All rights reserved.
+
+    This file is a part of Stonefish.
+
+    Stonefish is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Stonefish is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+//N_BINS - number of histogram bins
+//N_BEAM_SAMPLES - number of beam samples
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+// Two inputs, linear range and recorded intensity.
+layout(rg32f) uniform image2DArray sonarInput;
+
+// One output - intensity for each bin/beam combination
+layout(r32f) uniform image2D sonarOutput;
+
+uniform uvec2 beams; //beams1, beams2
+uniform vec3 range; //min, max, step
+uniform float gain;
+uniform vec3 noiseSeed;
+uniform vec2 noiseStddev;
+
+vec2 binHistogram[N_BINS];
+
+#inject "gaussianNoise.glsl"
+
+float sigmoid(float x)
+{
+    float t = (x - 0.6666667) * 18.0;
+    return (0.5 * tanh(0.5 * t) + 0.5);
+}
+
+void main()
+{
+    uvec3 inDim = imageSize(sonarInput).xyz; //nViewBeams x nBeamSamples x nViews
+    uint viewBeams = gl_GlobalInvocationID.y < inDim.z-1 ? beams.x : beams.y;
+
+    if(gl_GlobalInvocationID.x < viewBeams)
+    {
+        for(uint i=0; i<N_BINS; ++i) //Initialize histogram buffer
+            binHistogram[i] = vec2(0.0); 
+
+        ivec3 sampleCoord;
+        sampleCoord.x = int(gl_GlobalInvocationID.x);
+        sampleCoord.z = int(gl_GlobalInvocationID.y);
+        
+        for(int i=0; i<N_BEAM_SAMPLES; ++i) //For each vertical beam sample
+        {            
+            sampleCoord.y = i;
+
+            //Get sample value
+            vec2 rangeIntensity = imageLoad(sonarInput, sampleCoord).xy;
+            if(rangeIntensity.x < range.x || rangeIntensity.x >= range.y) //Outside valid range?
+                continue;
+
+            //Compute bin and accumulate intensity data
+            float factor = float(i)/(float(N_BEAM_SAMPLES-1));
+            uint bin = uint(floor((rangeIntensity.x - range.x)/range.z));
+            binHistogram[bin].x += rangeIntensity.y * smoothstep(0.0, 0.2, factor) * (1.0 - smoothstep(0.8, 1.0, factor)); //Lobe intensity correction
+            binHistogram[bin].y += 1.0;
+        }
+
+        //Compute and store bin values
+        vec2 noiseCoord;
+        noiseCoord.x = float(sampleCoord.x*(sampleCoord.z+1))/float(viewBeams * (inDim.z+1));
+        float mulNoise = gaussian(noiseCoord.xx, noiseSeed, noiseStddev.x, 1.0);
+        uint globalBeam = gl_GlobalInvocationID.x + beams.x * gl_GlobalInvocationID.y;
+        
+        for(uint i=0; i<N_BINS; ++i)
+        {
+            noiseCoord.y = i/float(N_BINS-1);
+            float data = gain * gaussian(-noiseCoord.xy, noiseSeed, noiseStddev.y, 0.0); //Additive noise (Gaussian background noise)
+            if(binHistogram[i].y > 0.0)
+                data += gain * (binHistogram[i].x/binHistogram[i].y) * mulNoise; //Signal + multiplicative noise (Gaussian beam gain noise)
+            //data += data * rand(vec2(noiseSeed.x * i, noiseSeed.x * globalBeam)) * 0.5; // Speckle noise (Uniform multiplicative noise)
+            imageStore(sonarOutput, ivec2(globalBeam, N_BINS-1-i), vec4(data));
+        }
+    }
+}

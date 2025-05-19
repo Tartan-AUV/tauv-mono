@@ -1,0 +1,59 @@
+/*    
+    Copyright (c) 2020 Patryk Cieslak. All rights reserved.
+
+    This file is a part of Stonefish.
+
+    Stonefish is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Stonefish is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+#version 430
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+// One input
+layout(rg32f) uniform image2D sonarHist;
+
+// One output
+layout(r8) uniform image2D sonarOutput;
+
+uniform float gain;
+uniform uint rotationStep;
+uniform vec3 noiseSeed;
+uniform vec2 noiseStddev;
+
+#inject "gaussianNoise.glsl"
+
+void main()
+{
+    uvec2 dim = imageSize(sonarHist).xy; // vertical beam samples x bins
+    int nSteps = int(imageSize(sonarOutput).x);
+    
+    if(gl_GlobalInvocationID.x < dim.y)
+    {
+        vec2 data = vec2(0.0);
+        for(uint i=0; i<dim.x; ++i)
+            data += imageLoad(sonarHist, ivec2(i, int(gl_GlobalInvocationID.x))).rg;
+
+        vec2 noiseCoord;
+        noiseCoord.x = float(rotationStep)/float(nSteps-1);
+        noiseCoord.y = float(gl_GlobalInvocationID.x)/float(int(dim.y)-1);
+
+        float value = gain * (noiseCoord.y*0.5+0.5) //Distance dependent amount of noise 
+                      * gaussian(-noiseCoord.xy, noiseSeed, noiseStddev.y, 0.0); //Additive noise
+        if(data.y > 0.0)
+            value += data.x/data.y * gain * gaussian(noiseCoord.xx, noiseSeed, noiseStddev.x, 1.0); //Multiplicative noise
+        value = clamp(value, 0.0, 1.0);
+        imageStore(sonarOutput, ivec2(rotationStep, dim.y-gl_GlobalInvocationID.x-1), vec4(value));
+    }
+}
