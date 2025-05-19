@@ -26,6 +26,15 @@ const uint8_t MS5837_30BA26 = 0x1A; // Sensor version: From MS5837_30BA datashee
 MS5837::MS5837() {
     fluidDensity = 1029;
     _hi2c = nullptr;
+    conversion_timer = nullptr;
+}
+
+MS5837::~MS5837() {
+    // Delete timer if it exists
+    if (conversion_timer != nullptr) {
+        xTimerDelete(conversion_timer, portMAX_DELAY);
+        conversion_timer = nullptr;
+    }
 }
 
 bool MS5837::begin(I2C_HandleTypeDef *hi2c) {
@@ -84,9 +93,24 @@ bool MS5837::init(I2C_HandleTypeDef *hi2c) {
         _model = MS5837_UNRECOGNISED;
     }
     
-    // Initialize the conversion state
-    conversion_requested = false;
-    pressure_conversion = true;
+    // Create a FreeRTOS timer for handling conversion timing
+    if (conversion_timer == nullptr) {
+        conversion_timer = xTimerCreate(
+            "MS5837_Timer",                  // Timer name
+            pdMS_TO_TICKS(CONVERSION_TIME_MS), // Default period (will be updated when starting conversion)
+            pdFALSE,                         // Auto-reload (one-shot)
+            this,                            // Timer ID is a pointer to this instance
+            conversionTimerCallback          // Callback function
+        );
+        
+        if (conversion_timer == nullptr) {
+            return false; // Failed to create timer
+        }
+    }
+    
+    // Initialize state
+    conversion_state = ConversionState::IDLE;
+    data_ready = false;
     
     return true;
 }
@@ -103,68 +127,116 @@ void MS5837::setFluidDensity(float density) {
     fluidDensity = density;
 }
 
-bool MS5837::requestConversion() {
+bool MS5837::requestConversion(MS5837::Oversampling osr) {
+    if (_hi2c == nullptr || conversion_timer == nullptr) {
+        return false;
+    }
+    
+    // Store the current oversampling rate
+    current_oversampling = osr;
+    
+    // Start the conversion sequence with temperature
+    return requestTemperature();
+}
+
+bool MS5837::requestTemperature() {
     if (_hi2c == nullptr) {
         return false;
     }
-
-    uint8_t cmd;
     
-    // Alternate between pressure and temperature conversion
-    if (pressure_conversion) {
-        cmd = MS5837_CONVERT_D1_8192;
-    } else {
-        cmd = MS5837_CONVERT_D2_8192;
-    }
-    
+    // Request temperature conversion
+    uint8_t cmd = oversampling_command_map_temperature[static_cast<size_t>(current_oversampling)];
     if (HAL_I2C_Master_Transmit(_hi2c, MS5837_ADDR << 1, &cmd, 1, HAL_MAX_DELAY) != HAL_OK) {
+        conversion_state = ConversionState::IDLE;
         return false;
     }
     
-    // Mark that a conversion has been requested and record the time
-    conversion_requested = true;
-    last_conversion_time = HAL_GetTick();
+    // Update state
+    conversion_state = ConversionState::TEMP_REQUESTED;
+    
+    // Start timer for conversion completion
+    xTimerChangePeriod(conversion_timer, pdMS_TO_TICKS(CONVERSION_TIME_MS), portMAX_DELAY);
+    xTimerStart(conversion_timer, portMAX_DELAY);
     
     return true;
 }
 
-bool MS5837::read() {
-    if (_hi2c == nullptr || !conversion_requested) {
+bool MS5837::requestPressure() {
+    if (_hi2c == nullptr) {
         return false;
     }
     
-    // Check if enough time has elapsed for conversion (10ms minimum)
-    uint32_t current_time = HAL_GetTick();
-    if (current_time - last_conversion_time < 10) {
+    // Request pressure conversion
+    uint8_t cmd = oversampling_command_map_pressure[static_cast<size_t>(current_oversampling)];
+    if (HAL_I2C_Master_Transmit(_hi2c, MS5837_ADDR << 1, &cmd, 1, HAL_MAX_DELAY) != HAL_OK) {
+        conversion_state = ConversionState::IDLE;
+        return false;
+    }
+    
+    // Update state
+    conversion_state = ConversionState::PRESSURE_REQUESTED;
+    
+    // Start timer for conversion completion
+    xTimerChangePeriod(conversion_timer, pdMS_TO_TICKS(CONVERSION_TIME_MS), portMAX_DELAY);
+    xTimerStart(conversion_timer, portMAX_DELAY);
+    
+    return true;
+}
+
+bool MS5837::readConversion() {
+    if (_hi2c == nullptr) {
         return false;
     }
     
     // Read the conversion result
     uint8_t cmd = MS5837_ADC_READ;
     if (HAL_I2C_Master_Transmit(_hi2c, MS5837_ADDR << 1, &cmd, 1, HAL_MAX_DELAY) != HAL_OK) {
+        conversion_state = ConversionState::IDLE;
         return false;
     }
     
     uint8_t data[3];
     if (HAL_I2C_Master_Receive(_hi2c, MS5837_ADDR << 1, data, 3, HAL_MAX_DELAY) != HAL_OK) {
+        conversion_state = ConversionState::IDLE;
         return false;
     }
     
     uint32_t result = ((uint32_t)data[0] << 16) | ((uint32_t)data[1] << 8) | data[2];
     
-    if (pressure_conversion) {
-        D1_pres = result;
-    } else {
+    // Store the result based on current state
+    if (conversion_state == ConversionState::TEMP_REQUESTED) {
         D2_temp = result;
-        // Calculate the values when we have both pressure and temperature
+        // After reading temperature, request pressure
+        return requestPressure();
+    } else if (conversion_state == ConversionState::PRESSURE_REQUESTED) {
+        D1_pres = result;
+        // Calculate values once we have both pressure and temperature
         calculate();
+        // Mark data as ready
+        data_ready = true;
+        // Return to idle state
+        conversion_state = ConversionState::IDLE;
+        return true;
     }
     
-    // Toggle conversion type for next time
-    pressure_conversion = !pressure_conversion;
-    conversion_requested = false;
-    
-    return true;
+    return false;
+}
+
+bool MS5837::read() {
+    // Simple getter that returns the current data valid state
+    // and resets the flag once read
+    bool was_valid = data_ready;
+    data_ready = false;
+    return was_valid;
+}
+
+void MS5837::conversionTimerCallback(TimerHandle_t timer) {
+    // Get the MS5837 instance from the timer ID
+    MS5837* instance = static_cast<MS5837*>(pvTimerGetTimerID(timer));
+    if (instance != nullptr) {
+        // Read the result and continue the conversion sequence
+        instance->readConversion();
+    }
 }
 
 void MS5837::calculate() {
@@ -242,12 +314,6 @@ float MS5837::temperature() {
     return TEMP / 100.0f;
 }
 
-// The pressure sensor measures absolute pressure, so it will measure the atmospheric pressure + water pressure
-// We subtract the atmospheric pressure to calculate the depth with only the water pressure
-// The average atmospheric pressure of 101300 pascal is used for the calculation, but atmospheric pressure varies
-// If the atmospheric pressure is not 101300 at the time of reading, the depth reported will be offset
-// In order to calculate the correct depth, the actual atmospheric pressure should be measured once in air, and
-// that value should subtracted for subsequent depth calculations.
 float MS5837::depth() {
     return (pressure(MS5837::Pa) - 101300) / (fluidDensity * 9.80665);
 }

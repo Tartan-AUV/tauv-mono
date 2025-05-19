@@ -12,6 +12,7 @@
 
 #include "MS5837Module.hpp"
 #include "Logging.hpp"
+#include "Config.hpp"
 
 namespace TAUV {
 
@@ -35,7 +36,7 @@ ModuleInitResult MS5837Module::init(I2C_HandleTypeDef *hi2c) {
   sensor_driver_.setFluidDensity(997.0f); // 997 kg/m^3 for freshwater
 
   // Request initial conversion to start the measurement cycle
-  if (!sensor_driver_.requestConversion()) {
+  if (!sensor_driver_.requestConversion(Config::Depth::osr)) {
     LOG_ERROR("MS5837Module: Failed to request initial conversion");
     return ModuleInitResult::FATAL;
   }
@@ -48,15 +49,25 @@ ModuleRunResult MS5837Module::run() {
   // Clear previous message
   output_msg_.clear();
 
-  // First read the result of the previous conversion
-  bool read_success = sensor_driver_.read();
+  // Check if sensor data is ready and read it
+  bool has_valid_data = sensor_driver_.read();
   
-  // Then request a new conversion (it will alternate between pressure and temperature)
-  bool request_success = sensor_driver_.requestConversion();
+  // If we don't have valid data or if we need to start a new conversion cycle
+  if (!sensor_driver_.isDataReady()) {
+    // Request a new conversion if we're not already in the middle of one
+    if (sensor_driver_.requestConversion(Config::Depth::osr)) {
+      LOG_DEBUG("MS5837Module: Started new conversion cycle");
+    } else {
+      static uint32_t last_error_time = 0;
+      uint32_t current_time = HAL_GetTick();
+      if (current_time - last_error_time > 5000) {  // Limit error logging to once every 5 seconds
+        LOG_ERROR("MS5837Module: Failed to request conversion");
+        last_error_time = current_time;
+      }
+    }
+  }
   
-  if (!read_success) {
-    // If this is the first run or if there was an error reading,
-    // just schedule the next conversion and return
+  if (!has_valid_data) {
     static uint32_t last_warning_time = 0;
     uint32_t current_time = HAL_GetTick();
     if (current_time - last_warning_time > 5000) {  // Once every 5 seconds
@@ -64,11 +75,6 @@ ModuleRunResult MS5837Module::run() {
       last_warning_time = current_time;
     }
     return ModuleRunResult::OUTPUT_INVALID;
-  }
-  
-  if (!request_success) {
-    LOG_ERROR("MS5837Module: Failed to request conversion");
-    return ModuleRunResult::FATAL;
   }
 
   // Update the message with the sensor data

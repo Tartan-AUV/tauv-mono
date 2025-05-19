@@ -18,6 +18,8 @@ extern "C" {
 
 #include <array>
 
+#include "MS5837.h"
+
 namespace TAUV::Config {
 
 namespace Thrusters {
@@ -70,5 +72,11 @@ static constexpr uint32_t maxMessageDataSize = 128; // max data size for xbus me
 static constexpr size_t queueLength = 3; // max number of messages in the queue
 
 }  // namespace IMU
+
+namespace Depth {
+
+static constexpr MS5837::Oversampling osr = MS5837::Oversampling::MS5837_OS_1024;
+
+}
 
 };  // namespace TAUV::Config

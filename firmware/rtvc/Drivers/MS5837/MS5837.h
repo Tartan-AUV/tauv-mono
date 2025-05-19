@@ -39,6 +39,10 @@ THE SOFTWARE.
 #define MS5837_H_BLUEROBOTICS
 
 #include "stm32f7xx_hal.h"
+#include "FreeRTOS.h"
+#include "timers.h"
+
+#include <array>
 
 namespace TAUV {
 
@@ -51,8 +55,28 @@ public:
   static const uint8_t MS5837_30BA;
   static const uint8_t MS5837_02BA;
   static const uint8_t MS5837_UNRECOGNISED;
+  
+  // Conversion time in milliseconds for maximum precision (8192 samples)
+  static constexpr uint32_t CONVERSION_TIME_MS = 10;
+
+  enum class Oversampling : uint8_t {
+    MS5837_OS_256 = 0,
+    MS5837_OS_512,
+    MS5837_OS_1024,
+    MS5837_OS_2048,
+    MS5837_OS_4096,
+    MS5837_OS_8192,
+    Count
+  };
+
+  static constexpr std::array<uint8_t, static_cast<size_t>(Oversampling::Count)>
+    oversampling_command_map_pressure = {0x40, 0x42, 0x44, 0x46, 0x48, 0x4A};
+
+  static constexpr std::array<uint8_t, static_cast<size_t>(Oversampling::Count)>
+    oversampling_command_map_temperature = {0x50, 0x52, 0x54, 0x56, 0x58, 0x5A};
 
   MS5837();
+  ~MS5837();
 
   bool init(I2C_HandleTypeDef *hi2c);
   bool begin(I2C_HandleTypeDef *hi2c); // Calls init()
@@ -68,16 +92,19 @@ public:
    */
   void setFluidDensity(float density);
 
-  /** Request a pressure conversion. This function initiates the conversion
-   * process but does not wait for it to complete.
-   * Call read() after at least 10ms to read the result.
+  /** Start the conversion cycle by requesting temperature first
+   * This function sets up a FreeRTOS timer to handle the conversion sequence
    */
-  bool requestConversion();
+  bool requestConversion(MS5837::Oversampling osr = Oversampling::MS5837_OS_8192);
 
-  /** Read the result of the previously requested conversion. Call this function
-   * after requestConversion() and a suitable delay (at least 10ms).
+  /** Read the current values (getter only) and reset the data valid flag
+   * Returns true if data was valid before reading
    */
   bool read();
+
+  /** Returns true if both temperature and pressure conversions have completed successfully
+   */
+  bool isDataReady() const { return data_ready; }
 
   /** Pressure returned in mbar or mbar*conversion rate.
    */
@@ -99,15 +126,24 @@ public:
 private:
   // I2C handler
   I2C_HandleTypeDef *_hi2c;
+  TimerHandle_t conversion_timer = nullptr;
+  
+  // Sensor state
+  enum class ConversionState {
+    IDLE,
+    TEMP_REQUESTED,
+    PRESSURE_REQUESTED
+  };
+  
+  ConversionState conversion_state = ConversionState::IDLE;
+  Oversampling current_oversampling = Oversampling::MS5837_OS_8192;
+  bool data_ready = false;  // Set when both temperature and pressure are valid
 
   uint16_t C[8];
   uint32_t D1_pres, D2_temp;
   int32_t TEMP;
   int32_t P;
   uint8_t _model;
-  bool conversion_requested = false;
-  bool pressure_conversion = true; // True if pressure is next, false if temperature
-  uint32_t last_conversion_time = 0;
 
   float fluidDensity;
 
@@ -117,6 +153,22 @@ private:
   void calculate();
 
   uint8_t crc4(uint16_t n_prom[]);
+  
+  /** Request temperature conversion
+   */
+  bool requestTemperature();
+  
+  /** Request pressure conversion
+   */
+  bool requestPressure();
+  
+  /** Read the result of a conversion
+   */
+  bool readConversion();
+  
+  /** Timer callback to handle the conversion sequence
+   */
+  static void conversionTimerCallback(TimerHandle_t timer);
 };
 
 } // namespace TAUV
