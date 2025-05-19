@@ -6,7 +6,7 @@
  *  Date:        5/14/25
  *
  *  Description:
- *      TODO
+ *      Interface for ESC module with telemetry support
  *
  *****************************************************************************/
  
@@ -15,16 +15,11 @@
 #include <array>
 #include <cstdint>
 
-using std::size_t;
-
 #include "Config.hpp"
-#include "Eth50HzInterface.hpp"
+#include "Eth50HzMessage.hpp"
+#include "VESC_UART.hpp"
 
 namespace TAUV {
-
-struct ESCMessage {
-
-};
 
 class ESCInterface {
 public:
@@ -47,5 +42,5 @@ private:
   const Eth50HzMessage &eth_50hz_msg;
 };
 
-}
+}  // namespace TAUV
 

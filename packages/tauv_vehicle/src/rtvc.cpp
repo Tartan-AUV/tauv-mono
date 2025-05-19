@@ -3,20 +3,22 @@
 RTVCNode::RTVCNode()
     : Node("rtvc_node"),
       // Receive socket, for receiving messages at 100 Hz
-      recv_socket_(io_context_, udp::endpoint(udp::v4(), 11003)),
-      // Send socket, for sending messages at 50 Hz
-      send_socket_(io_context_, udp::endpoint(udp::v4(), 11004)),
+      socket_100_hz_(io_context_, udp::endpoint(udp::v4(), 11003)),
+      // Socket for receiving and sending messages at 50 Hz
+      socket_50_hz_(io_context_, udp::endpoint(udp::v4(), 11004)),
       // Sets target address and port
-      send_endpoint_(boost::asio::ip::make_address("10.0.0.21"), 11004) {
+      send_endpoint_100hz_(boost::asio::ip::make_address("10.0.0.21"), 11004) {
   imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
   temperature_publisher_ = this->create_publisher<sensor_msgs::msg::Temperature>("temperature", 10);
   pressure_publisher_ = this->create_publisher<sensor_msgs::msg::FluidPressure>("pressure", 10);
+  esc_telemetry_publisher_ = this->create_publisher<tauv_msgs::msg::EscTelemetry>("esc_telemetry", 10);
   rpm_command_subscriber_ =
       this->create_subscription<tauv_msgs::msg::RpmCommand>(
           "rpm_command", 10, 
           std::bind(&RTVCNode::rpm_command_callback, this, std::placeholders::_1));
 
   start_receive();
+  start_receive_50hz();
 
   std::cout << "Ayo!\n";
 
@@ -30,10 +32,18 @@ RTVCNode::~RTVCNode() {
 }
 
 void RTVCNode::start_receive() {
-  recv_socket_.async_receive_from(
+  socket_100_hz_.async_receive_from(
       boost::asio::buffer(recv_buffer_), remote_endpoint_,
       [this](boost::system::error_code ec, std::size_t bytes_recvd) {
         packet_callback(ec, bytes_recvd);
+      });
+}
+
+void RTVCNode::start_receive_50hz() {
+  socket_50_hz_.async_receive_from(
+      boost::asio::buffer(recv_buffer_50hz_), remote_endpoint_50hz_,
+      [this](boost::system::error_code ec, std::size_t bytes_recvd) {
+        packet_callback_50hz(ec, bytes_recvd);
       });
 }
 
@@ -62,6 +72,31 @@ void RTVCNode::packet_callback(boost::system::error_code ec, std::size_t bytes_r
   start_receive();  // Keep listening
 }
 
+void RTVCNode::packet_callback_50hz(boost::system::error_code ec, std::size_t bytes_recvd) {
+  if (!ec && bytes_recvd > 0) {
+    auto fb_root = GetEth50HzESCMsg(recv_buffer_50hz_.data());
+    if (!fb_root) {
+      RCLCPP_WARN(this->get_logger(),
+                  "Failed to parse Eth50HzESCMsg from buffer");
+      start_receive_50hz();  // Keep listening
+      return;
+    }
+
+    flatbuffers::Verifier verifier(
+        reinterpret_cast<const uint8_t *>(recv_buffer_50hz_.data()), bytes_recvd);
+    if (!verifier.VerifyBuffer<Eth50HzESCMsg>(nullptr)) {
+      RCLCPP_WARN(this->get_logger(), "FlatBuffer verification failed for 50Hz ESC msg");
+      start_receive_50hz();  // Keep listening
+      return;
+    }
+
+    Eth50HzESCMsgT msg;
+    fb_root->UnPackTo(&msg);
+    parse_eth50_msg(msg);
+  }
+  start_receive_50hz();  // Keep listening
+}
+
 void RTVCNode::parse_eth100_msg(const Eth100HzMsgT &msg) {
   // Use a reference instead of copying
   const auto &fb_imu_data = msg.imu_data;
@@ -79,6 +114,26 @@ void RTVCNode::parse_eth100_msg(const Eth100HzMsgT &msg) {
     if (msgs.pressure.has_value()) {
       msgs.pressure.value().header.stamp = this->get_clock()->now();
       this->pressure_publisher_->publish(msgs.pressure.value());
+    }
+  }
+}
+
+void RTVCNode::parse_eth50_msg(const Eth50HzESCMsgT &msg) {
+  // Process each ESC frame in the message
+  for (const auto &fb_esc_frame : msg.esc_data) {
+    if (fb_esc_frame) {
+      tauv_msgs::msg::EscTelemetry esc_msg;
+      
+      // Fill in the ESC telemetry message
+      esc_msg.id = fb_esc_frame->id;
+      esc_msg.rpm = fb_esc_frame->rpm;
+      esc_msg.voltage = fb_esc_frame->voltage;
+      esc_msg.current = fb_esc_frame->current;
+      esc_msg.temperature = fb_esc_frame->temperature;
+      esc_msg.fault_code = fb_esc_frame->fault_code;
+      
+      // Publish the ESC telemetry message
+      this->esc_telemetry_publisher_->publish(esc_msg);
     }
   }
 }
@@ -153,7 +208,7 @@ void RTVCNode::rpm_command_callback(const tauv_msgs::msg::RpmCommand::SharedPtr 
   // Ship it off over UDP (via asio strand
   io_context_.post([this, buf]() {
     boost::system::error_code ec;
-    send_socket_.send_to(boost::asio::buffer(*buf), send_endpoint_, 0, ec);
+    socket_50_hz_.send_to(boost::asio::buffer(*buf), send_endpoint_100hz_, 0, ec);
     if (ec)
       RCLCPP_WARN(this->get_logger(), "UDP send error: %s",
                   ec.message().c_str());

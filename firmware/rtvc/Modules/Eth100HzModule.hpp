@@ -26,9 +26,6 @@ using std::size_t;
 
 namespace TAUV {
 
-// Define max sizes for buffers
-static constexpr size_t max_tx_fb_length = 1024;
-
 class Eth100HzModule final : public ModuleBase<Eth100HzInterface, Eth100HzMessage> {
  public:
   Eth100HzModule(const Eth100HzInterface& input_interface,
@@ -42,6 +39,9 @@ class Eth100HzModule final : public ModuleBase<Eth100HzInterface, Eth100HzMessag
   float getFrequency() const override { return 100.0f; }
 
  private:
+  // Define max sizes for buffers
+  static constexpr size_t max_tx_fb_length = 1024;
+
   UdpSocket sock_{};
   std::array<uint8_t, max_tx_fb_length> fb_builder_buffer_;
 };

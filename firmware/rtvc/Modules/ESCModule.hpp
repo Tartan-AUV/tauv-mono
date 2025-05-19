@@ -3,23 +3,26 @@
  *  RTVC Firmware
  *
  *  Author:      gleb
- *  Date:        5/15/25
+ *  Date:        5/14/25
  *
  *  Description:
- *      TODO
+ *      ESC module header with telemetry collection support
  *
  *****************************************************************************/
 
 #pragma once
-#include <ranges>
+
+#include <array>
+#include <cstdint>
 
 #include "ESCInterface.hpp"
+#include "ESCMessage.hpp"
 #include "ModuleBase.hpp"
 #include "VESC_UART.hpp"
 
 namespace TAUV {
 
-class ESCModule : public ModuleBase<ESCInterface, ESCMessage> {
+class ESCModule final : public ModuleBase<ESCInterface, ESCMessage> {
  public:
   ESCModule(const ESCInterface &input_interface, ESCMessage &output_msg)
       : ModuleBase<ESCInterface, ESCMessage>(input_interface, output_msg) {}
@@ -32,8 +35,9 @@ class ESCModule : public ModuleBase<ESCInterface, ESCMessage> {
   ModuleRunResult run() override;
 
  private:
+  // VESC UART interfaces for the ESC groups
+  std::array<VESC::VESC_UART, Config::Thrusters::num_groups> vesc_interfaces_;
   std::array<UART_HandleTypeDef *, Config::Thrusters::num_groups> uarts{};
-  std::array<VESC::VESC_UART, Config::Thrusters::num_groups> drivers{};
 };
 
 }  // namespace TAUV

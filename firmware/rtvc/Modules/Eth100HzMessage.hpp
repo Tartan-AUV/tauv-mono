@@ -6,25 +6,19 @@
  *  Date:        5/14/25
  *
  *  Description:
- *      Interface definitions for Ethernet 100Hz communication
+ *      Message definitions for Ethernet 100Hz communication
  *
  *****************************************************************************/
  
 #pragma once
 
-#include "Eth100HzMessage.hpp"
 #include "MTI300Message.hpp"
 
 namespace TAUV {
 
-class Eth100HzInterface {
-public:
-  Eth100HzInterface(const MTI300Message& mti300_msg) : mti300_msg_(mti300_msg) {}
-
-  const MTI300Message& getMTI300Message() const { return mti300_msg_; }
-
-private:
-  const MTI300Message& mti300_msg_;
+struct Eth100HzMessage {
+  // Reference to the MTI300 message data
+  const MTI300Message* mti300_msg = nullptr;
 };
 
 }  // namespace TAUV

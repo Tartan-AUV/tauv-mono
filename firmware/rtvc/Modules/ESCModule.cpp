@@ -10,55 +10,56 @@
  *
  *****************************************************************************/
  #include "ESCModule.hpp"
+ #include "ESCMessage.hpp"
  #include "Logging.hpp"
- 
+
  using namespace TAUV;
- 
+
  ModuleInitResult ESCModule::init(const std::array<UART_HandleTypeDef *, Config::Thrusters::num_groups> &uarts) {
   LOG_INFO("ESCModule: Initializing with %d UART groups", Config::Thrusters::num_groups);
   this->uarts = uarts;
- 
+
   // Wait for ESCs to initialize
   if (Config::Thrusters::init_delay_ms > 0) {
     HAL_Delay(Config::Thrusters::init_delay_ms);
   }
- 
+
   for (size_t group_idx = 0; group_idx < Config::Thrusters::num_groups; ++group_idx) {
     if (uarts[group_idx] == nullptr) {
       LOG_ERROR("ESCModule: UART handle for group %d is null", group_idx);
       return ModuleInitResult::FATAL;
     }
-    bool result = drivers[group_idx].setUART(uarts[group_idx]);
+    bool result = vesc_interfaces_[group_idx].setUART(uarts[group_idx]);
     if (!result) {
       LOG_ERROR("ESCModule: Failed to set UART for driver group %d", group_idx);
       return ModuleInitResult::FATAL;
     }
     LOG_DEBUG("ESCModule: UART set for driver group %d", group_idx);
   }
- 
+
   // Verify ESCs are accessible
   LOG_INFO("ESCModule: Verifying ESC connectivity for %d ESCs", Config::Thrusters::number_escs);
   size_t accessible_count = 0;
-  
+
   for (size_t esc_idx = 0; esc_idx < Config::Thrusters::number_escs; ++esc_idx) {
     size_t group_idx = Config::Thrusters::esc_group_idx_map[esc_idx];
     size_t group_elem_idx = Config::Thrusters::esc_group_elem_idx_map[esc_idx];
     const auto& grp = Config::Thrusters::esc_groups[group_idx];
- 
+
     bool result = false;
     // Check if this ESC is directly connected to UART
     if (grp.vesc_ids[group_elem_idx] == grp.uart_connected_id) {
       // Use the overload without canId for directly connected ESC
-      result = drivers[group_idx].getFWversion();
+      result = vesc_interfaces_[group_idx].getFWversion();
       LOG_DEBUG("ESCModule: Using direct UART communication for ESC %d (group %d, ID %d)",
                esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
     } else {
       // Use the overload with canId for ESCs accessed via CAN bus
-      result = drivers[group_idx].getFWversion(grp.vesc_ids[group_elem_idx]);
+      result = vesc_interfaces_[group_idx].getFWversion(grp.vesc_ids[group_elem_idx]);
       LOG_DEBUG("ESCModule: Using CAN communication for ESC %d (group %d, ID %d)",
                esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
     }
-    
+
     if (!result) {
       LOG_ERROR("ESCModule: Failed to get firmware version for ESC %d (group %d, ID %d)",
                 esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
@@ -66,26 +67,26 @@
       // return ModuleInitResult::FATAL;
     } else {
       accessible_count++;
-      
+
       // Log and check firmware version
-      auto& fw_version = drivers[group_idx].fw_version;
+      auto& fw_version = vesc_interfaces_[group_idx].fw_version;
       LOG_INFO("ESCModule: ESC %d (group %d, ID %d) firmware version: %d.%d",
-              esc_idx, group_idx, grp.vesc_ids[group_elem_idx], 
+              esc_idx, group_idx, grp.vesc_ids[group_elem_idx],
               fw_version.major, fw_version.minor);
-      
+
       // Check if firmware version matches expected version
-      if (fw_version.major != Config::Thrusters::expected_fw_major || 
+      if (fw_version.major != Config::Thrusters::expected_fw_major ||
           fw_version.minor != Config::Thrusters::expected_fw_minor) {
-        LOG_WARNING("ESCModule: ESC %d (group %d, ID %d) has unexpected firmware version %d.%d (expected %d.%d)",
-                    esc_idx, group_idx, grp.vesc_ids[group_elem_idx], 
+        LOG_WARN("ESCModule: ESC %d (group %d, ID %d) has unexpected firmware version %d.%d (expected %d.%d)",
+                    esc_idx, group_idx, grp.vesc_ids[group_elem_idx],
                     fw_version.major, fw_version.minor,
                     Config::Thrusters::expected_fw_major, Config::Thrusters::expected_fw_minor);
       }
     }
   }
-  
+
   if (accessible_count < Config::Thrusters::number_escs) {
-    LOG_WARNING("ESCModule: Only %d of %d ESCs are accessible",
+    LOG_WARN("ESCModule: Only %d of %d ESCs are accessible",
                 accessible_count, Config::Thrusters::number_escs);
   } else {
     LOG_INFO("ESCModule: All %d ESCs successfully initialized", Config::Thrusters::number_escs);
@@ -95,54 +96,79 @@
 }
 
 ModuleRunResult ESCModule::run() {
-  // Get RPM values and enable flags from the input interface
-  const auto& rpm_values = input_interface_.get_rpm();
-  const auto& enable_flags = input_interface_.get_enable();
 
-  bool all_commands_successful = true;
+  // Process commands for each ESC
+  for (size_t i = 0; i < Config::Thrusters::number_escs; i++) {
+    // Get group index and element index for this ESC
+    size_t group_idx = Config::Thrusters::esc_group_idx_map[i];
+    size_t elem_idx = Config::Thrusters::esc_group_elem_idx_map[i];
 
-  // Iterate through all ESCs and set their RPM if enabled
-  for (size_t esc_idx = 0; esc_idx < Config::Thrusters::number_escs; ++esc_idx) {
-    // Skip if ESC is not enabled
-    if (!enable_flags[esc_idx]) {
-      continue;
+    // Get VESC ID for this ESC
+    uint8_t vesc_id = Config::Thrusters::esc_groups[group_idx].vesc_ids[elem_idx];
+
+    // Check if this ESC requires direct UART communication
+    bool is_uart_connected = (vesc_id == Config::Thrusters::esc_groups[group_idx].uart_connected_id);
+
+    // Apply the commanded RPM or stop the motor if not enabled
+    if (input_interface_.is_valid()) {
+      if (input_interface_.get_enable()[i]) {
+        // Send RPM command to this ESC
+        if (is_uart_connected) {
+          vesc_interfaces_[group_idx].setRPM(
+            input_interface_.get_rpm()[i]);
+        } else {
+          // For CAN-connected ESCs, we need to specify the CAN ID
+          vesc_interfaces_[group_idx].setRPM(
+            input_interface_.get_rpm()[i], vesc_id);
+        }
+      } else {
+        // If not enabled, stop the motor (RPM = 0)
+        if (is_uart_connected) {
+          vesc_interfaces_[group_idx].setRPM(0);
+        } else {
+          vesc_interfaces_[group_idx].setRPM(0, vesc_id);
+        }
+      }
     }
 
-    // Get the group index and element index for the current ESC
-    size_t group_idx = Config::Thrusters::esc_group_idx_map[esc_idx];
-    size_t group_elem_idx = Config::Thrusters::esc_group_elem_idx_map[esc_idx];
-    const auto& grp = Config::Thrusters::esc_groups[group_idx];
+    // Collect telemetry data from ESCs
+    if (is_uart_connected) {
+      // Only request telemetry from directly connected ESCs
+      bool got_values = vesc_interfaces_[group_idx].getVescValues();
 
-    // Check for abnormal RPM values that might indicate a problem
-    if (std::abs(rpm_values[esc_idx]) > 10000) {  // Assuming 10000 RPM is an unreasonable value
-      LOG_WARNING("ESCModule: Unusually high RPM requested for ESC %d: %d RPM",
-                  esc_idx, rpm_values[esc_idx]);
-    }
-
-    // Set the RPM for the current ESC
-    bool result = false;
-    // Check if this ESC is directly connected to UART
-    if (grp.vesc_ids[group_elem_idx] == grp.uart_connected_id) {
-      // Use the overload without canId for directly connected ESC
-      result = drivers[group_idx].setRPM(rpm_values[esc_idx]);
+      if (got_values) {
+        // Store telemetry data for this ESC
+        const auto& data = vesc_interfaces_[group_idx].data;
+        output_msg_.telemetry[i].rpm = data.rpm;
+        output_msg_.telemetry[i].voltage = data.inpVoltage;
+        output_msg_.telemetry[i].current = data.avgMotorCurrent;
+        output_msg_.telemetry[i].temperature_mosfet = data.tempMosfet;
+        output_msg_.telemetry[i].fault_code = static_cast<uint8_t>(data.error);
+        output_msg_.telemetry[i].data_valid = true;
+      } else {
+        // Mark this ESC's telemetry as invalid
+        output_msg_.telemetry[i].data_valid = false;
+      }
     } else {
-      // Use the overload with canId for ESCs accessed via CAN bus
-      result = drivers[group_idx].setRPM(rpm_values[esc_idx], grp.vesc_ids[group_elem_idx]);
-    }
-    
-    if (!result) {
-      LOG_ERROR("ESCModule: Failed to set RPM %d for ESC %d (group %d, ID %d)",
-                rpm_values[esc_idx], esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
-      all_commands_successful = false;
-    } else {
-      LOG_DEBUG("ESCModule: Successfully set RPM %d for ESC %d (group %d, ID %d)",
-                rpm_values[esc_idx], esc_idx, group_idx, grp.vesc_ids[group_elem_idx]);
+      // For CAN-connected ESCs, request telemetry with their CAN ID
+      bool got_values = vesc_interfaces_[group_idx].getVescValues(vesc_id);
+
+      if (got_values) {
+        // Store telemetry data for this ESC
+        const auto& data = vesc_interfaces_[group_idx].data;
+        output_msg_.telemetry[i].rpm = data.rpm;
+        output_msg_.telemetry[i].voltage = data.inpVoltage;
+        output_msg_.telemetry[i].current = data.avgMotorCurrent;
+        output_msg_.telemetry[i].temperature_mosfet = data.tempMosfet;
+        output_msg_.telemetry[i].fault_code = static_cast<uint8_t>(data.error);
+        output_msg_.telemetry[i].data_valid = true;
+      } else {
+        // Mark this ESC's telemetry as invalid
+        output_msg_.telemetry[i].data_valid = false;
+      }
     }
   }
 
-  if (!all_commands_successful) {
-    return ModuleRunResult::OUTPUT_INVALID;
-  }
 
   return ModuleRunResult::OK;
 }

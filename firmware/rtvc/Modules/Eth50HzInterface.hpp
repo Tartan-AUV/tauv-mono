@@ -6,31 +6,27 @@
  *  Date:        5/14/25
  *
  *  Description:
- *      TODO
+ *      Interface for 50Hz Ethernet communication with telemetry support
  *
  *****************************************************************************/
  
 #pragma once
 
-#include <array>
-#include <cstdint>
-
-using std::size_t;
-
-#include "Config.hpp"
+#include "ESCMessage.hpp"
+#include "Eth50HzMessage.hpp"
 
 namespace TAUV {
 
-struct Eth50HzMessage {
-  bool valid = false;  // Indicates if the message contains valid data
-  std::array<int32_t, Config::Thrusters::number_escs> esc_rpm;
-  std::array<bool, Config::Thrusters::number_escs> esc_enable;
-};
-
 class Eth50HzInterface {
 public:
-  Eth50HzInterface() = default;
+  Eth50HzInterface(const ESCMessage& esc_msg) : esc_msg_(esc_msg) {}
+
+  // Get access to the ESC telemetry data
+  const ESCMessage& getESCMessage() const { return esc_msg_; }
+
+private:
+  const ESCMessage& esc_msg_;
 };
 
-}
+}  // namespace TAUV
 

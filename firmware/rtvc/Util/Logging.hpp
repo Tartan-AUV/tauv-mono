@@ -135,7 +135,7 @@ public:
 // Convenience macros
 #define LOG_DEBUG(...)    TAUV::Logging::getInstance().debug(__VA_ARGS__)
 #define LOG_INFO(...)     TAUV::Logging::getInstance().info(__VA_ARGS__)
-#define LOG_WARNING(...)  TAUV::Logging::getInstance().warning(__VA_ARGS__)
+#define LOG_WARN(...)  TAUV::Logging::getInstance().warning(__VA_ARGS__)
 #define LOG_ERROR(...)    TAUV::Logging::getInstance().error(__VA_ARGS__)
 #define LOG_FATAL(...)    TAUV::Logging::getInstance().fatal(__VA_ARGS__)
 

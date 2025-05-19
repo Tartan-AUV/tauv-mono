@@ -80,7 +80,7 @@ ModuleRunResult MTI300Module::run() {
     if (msg.quaternion.has_value() || msg.freeAcceleration.has_value() ||
         msg.angularVelocity.has_value() || msg.sampleTimeFine.has_value()) {
       if (!output_msg_.addMessage(msg)) {
-        LOG_WARNING(
+        LOG_WARN(
             "MTI300Module: Message buffer full, discarding new message");
       }
     }

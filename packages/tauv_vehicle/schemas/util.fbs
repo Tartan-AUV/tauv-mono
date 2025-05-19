@@ -12,4 +12,3 @@ struct Quat {
   y:float32;
   z:float32;
 }
-

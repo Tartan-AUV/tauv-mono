@@ -6,7 +6,7 @@
  *  Date:        5/14/25
  *
  *  Description:
- *      TODO
+ *      Ethernet module for 50Hz communication with ESC telemetry support
  *
  *****************************************************************************/
 
@@ -14,6 +14,7 @@
 
 #include <cstdint>
 #include <string>
+#include <array>
 
 #include "Config.hpp"
 #include "Eth50HzInterface.hpp"
@@ -21,13 +22,9 @@
 #include "StaticQueue.hpp"
 #include "UdpSocket.hpp"
 
-
 using std::size_t;
 
 namespace TAUV {
-
-static constexpr size_t max_rx_fb_length = 128;
-static constexpr size_t rx_queue_len = 8;
 
 class Eth50HzModule final : public ModuleBase<Eth50HzInterface, Eth50HzMessage> {
  public:
@@ -42,6 +39,10 @@ class Eth50HzModule final : public ModuleBase<Eth50HzInterface, Eth50HzMessage> 
   float getFrequency() const override { return 50.0f; }
 
  private:
+  static constexpr size_t max_rx_fb_length = 128;
+  static constexpr size_t max_tx_fb_length = 512;  // Increased for telemetry
+  static constexpr size_t rx_queue_len = 8;
+
   struct alignas(4) RxBuf {
     std::array<uint8_t, max_rx_fb_length> buf;
     size_t len;

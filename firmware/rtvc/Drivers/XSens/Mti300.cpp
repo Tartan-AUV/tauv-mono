@@ -39,7 +39,7 @@ void MTI300::init(UART_HandleTypeDef *uart) {
     __HAL_UART_CLEAR_FEFLAG(uart_);   // Clears FE
     __HAL_UART_CLEAR_NEFLAG(uart_);   // Clears NE
     __HAL_UART_CLEAR_OREFLAG(uart_);  // Clears ORE
-    LOG_WARNING("MTi UART init error, retrying...");
+    LOG_WARN("MTi UART init error, retrying...");
     HAL_Delay(100);
   }
   LOG_DEBUG("MTi UART init success.");

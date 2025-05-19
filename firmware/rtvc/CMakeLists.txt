@@ -51,6 +51,7 @@ file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
 set(SCHEMA_FILES
         ${SCHEMA_DIR}/eth_msg_rtvc_jetson_100.fbs
         ${SCHEMA_DIR}/eth_msg_jetson_rtvc_50.fbs
+        ${SCHEMA_DIR}/eth_msg_rtvc_jetson_50.fbs
 )
 
 set(GENERATED_HEADERS "")
@@ -99,6 +100,8 @@ add_executable(${CMAKE_PROJECT_NAME}
         Tasks/Task.hpp
         Modules/ESCModule.cpp
         Modules/ESCModule.hpp
+        Modules/ESCInterface.hpp
+        Modules/Eth50HzInterface.hpp
         Drivers/VESC/buffer.cpp
         Drivers/VESC/crc.cpp
         Drivers/VESC/VESC_UART.cpp

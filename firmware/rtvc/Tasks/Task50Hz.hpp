@@ -41,7 +41,7 @@ class Task50Hz final : public IntervalTask {
   ESCMessage esc_msg_{};
 
   // Interfaces
-  Eth50HzInterface eth_50hz_interface{};
+  Eth50HzInterface eth_50hz_interface{esc_msg_};
   ESCInterface esc_interface_{eth_50hz_msg_};
 
   // Modules

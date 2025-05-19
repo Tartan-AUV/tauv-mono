@@ -22,8 +22,10 @@
 #include "sensor_msgs/msg/temperature.hpp"
 #include "std_msgs/msg/string.hpp"
 #include "tauv_msgs/msg/rpm_command.hpp"
+#include "tauv_msgs/msg/esc_telemetry.hpp"
 #include "tauv_vehicle/generated/eth_msg_jetson_rtvc_50_generated.h"
 #include "tauv_vehicle/generated/eth_msg_rtvc_jetson_100_generated.h"
+#include "tauv_vehicle/generated/eth_msg_rtvc_jetson_50_generated.h"
 
 using boost::asio::ip::udp;
 using namespace TAUV_FB;
@@ -41,23 +43,29 @@ class RTVCNode : public rclcpp::Node {
   };
 
   void start_receive();
+  void start_receive_50hz();
   void packet_callback(boost::system::error_code ec, std::size_t bytes_recvd);
+  void packet_callback_50hz(boost::system::error_code ec, std::size_t bytes_recvd);
   void parse_eth100_msg(const Eth100HzMsgT &msg);
+  void parse_eth50_msg(const Eth50HzESCMsgT &msg);
   static XsensROSMessages parse_xsens_fb(const XsensIMUFrameT &fb_frame);
   void rpm_command_callback(const tauv_msgs::msg::RpmCommand::SharedPtr msg);
   void sendCallback();
 
   boost::asio::io_context io_context_;
-  udp::socket recv_socket_;
-  udp::socket send_socket_;
+  udp::socket socket_100_hz_;     // For 100Hz messages
+  udp::socket socket_50_hz_;      // For both receiving and sending 50Hz messages
   udp::endpoint remote_endpoint_;
-  udp::endpoint send_endpoint_;
+  udp::endpoint remote_endpoint_50hz_;
+  udp::endpoint send_endpoint_100hz_;
   std::array<char, 1024> recv_buffer_{};
+  std::array<char, 1024> recv_buffer_50hz_{};
   std::thread io_thread_;
 
   rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::Temperature>::SharedPtr temperature_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::FluidPressure>::SharedPtr pressure_publisher_;
+  rclcpp::Publisher<tauv_msgs::msg::EscTelemetry>::SharedPtr esc_telemetry_publisher_;
   rclcpp::Subscription<tauv_msgs::msg::RpmCommand>::SharedPtr rpm_command_subscriber_;
   rclcpp::TimerBase::SharedPtr send_timer_;
   

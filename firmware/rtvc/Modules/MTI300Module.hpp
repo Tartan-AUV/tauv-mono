@@ -14,6 +14,7 @@
 #pragma once
 
 #include "MTI300Interface.hpp"
+#include "MTI300Message.hpp"
 #include "ModuleBase.hpp"
 #include "Mti300.hpp"
 #include "stm32f7xx_hal.h"

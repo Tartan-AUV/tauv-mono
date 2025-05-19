@@ -35,40 +35,41 @@ set(GENERATED_INCLUDES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/g
 # Create directory if it doesn't exist
 file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
 
+
 # List all schema files
 set(SCHEMA_FILES
-  ${SCHEMA_DIR}/eth_msg_rtvc_jetson_100.fbs
-  ${SCHEMA_DIR}/eth_msg_jetson_rtvc_50.fbs
+        ${SCHEMA_DIR}/util.fbs
+        ${SCHEMA_DIR}/eth_msg_rtvc_jetson_100.fbs
+        ${SCHEMA_DIR}/eth_msg_rtvc_jetson_50.fbs
+        ${SCHEMA_DIR}/eth_msg_jetson_rtvc_50.fbs
 )
-
-# Generate custom command to compile schemas
-set(GENERATED_HEADERS ""
-        include/tauv_vehicle/rtvc.h)
+# List expected output headers for dependency tracking
+set(GENERATED_HEADERS "")
 foreach(SCHEMA ${SCHEMA_FILES})
   get_filename_component(SCHEMA_NAME ${SCHEMA} NAME_WE)
-  set(GENERATED_HEADER "${GENERATED_INCLUDES_DIR}/${SCHEMA_NAME}_generated.h")
-  list(APPEND GENERATED_HEADERS ${GENERATED_HEADER})
-  
-  add_custom_command(
-    OUTPUT ${GENERATED_HEADER}
-    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fb/bin/flatc
-            --cpp 
-            --cpp-std c++17
-            --gen-all
-            --gen-object-api
-            -o ${GENERATED_INCLUDES_DIR}
-            --scoped-enums
-            ${SCHEMA}
-    COMMENT "Generating FlatBuffers header for ${SCHEMA}"
-    VERBATIM
-  )
+  list(APPEND GENERATED_HEADERS "${GENERATED_INCLUDES_DIR}/${SCHEMA_NAME}_generated.h")
 endforeach()
+#file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
+message(${SCHEMA_FILES})
+add_custom_command(
+        OUTPUT ${GENERATED_HEADERS}
+        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fb/bin/flatc
+        --cpp
+        --cpp-std c++17
+        --gen-all
+        --gen-object-api
+        -I ${SCHEMA_DIR}
+        -o ${GENERATED_INCLUDES_DIR}
+        ${SCHEMA_FILES}
+        COMMENT "Generating FlatBuffers headers for all schemas"
+        VERBATIM
+)
 
-# Create a custom target to ensure header generation happens
-add_custom_target(generate_flatbuffers DEPENDS ${GENERATED_HEADERS})
+add_custom_target(generate_flatbuffers_headers ALL DEPENDS ${GENERATED_HEADERS})
 
 add_executable(rtvc src/rtvc.cpp ${GENERATED_HEADERS})
-add_dependencies(rtvc generate_flatbuffers)
+
+add_dependencies(rtvc generate_flatbuffers_headers)
 
 target_include_directories(rtvc PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
