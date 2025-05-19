@@ -112,8 +112,11 @@ add_executable(${CMAKE_PROJECT_NAME}
         Util/RingBuffer.hpp
         Drivers/XSens/Mti300.cpp
         Drivers/XSens/Mti300.hpp
+        Drivers/MS5837/MS5837.h
+        Drivers/MS5837/MS5837.cpp
         Modules/MTI300Module.cpp
         Modules/MTI300Module.hpp
+        Modules/MS5837Module.cpp
         ${GENERATED_HEADERS}
 )
 
@@ -134,6 +137,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         Tasks
         Drivers/VESC
         Drivers/XSens
+        Drivers/MS5837
         ${GENERATED_INCLUDES_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/fb/include
 )

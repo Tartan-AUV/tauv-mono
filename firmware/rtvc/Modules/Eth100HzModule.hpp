@@ -12,9 +12,9 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <string>
-#include <array>
 
 #include "Config.hpp"
 #include "Eth100HzInterface.hpp"
