@@ -46,6 +46,9 @@ THE SOFTWARE.
 
 namespace TAUV {
 
+// Forward declaration of TIM1 interrupt handler function
+void MS5837_TIM1_OC_Callback();
+
 class MS5837 {
  public:
   static const float Pa;
@@ -56,8 +59,8 @@ class MS5837 {
   static const uint8_t MS5837_02BA;
   static const uint8_t MS5837_UNRECOGNISED;
 
-  // Conversion time in milliseconds for maximum precision (8192 samples)
-  static constexpr uint32_t CONVERSION_TIME_MS = 10;
+  // Conversion time in timer ticks for maximum precision (8192 samples)
+  static constexpr uint32_t CONVERSION_TIME_TICKS = 3000; // TIM1 ticks
 
   enum class Oversampling : uint8_t {
     MS5837_OS_256 = 0,
@@ -67,6 +70,16 @@ class MS5837 {
     MS5837_OS_4096,
     MS5837_OS_8192,
     Count
+  };
+
+  enum class ConversionState : uint8_t {
+    IDLE,
+    REQUESTING_TEMP,
+    AWAITING_TEMP,
+    READING_TEMP,
+    REQUESTING_PRESSURE,
+    AWAITING_PRESSURE,
+    READING_PRESSURE,
   };
 
   static constexpr std::array<uint8_t, static_cast<size_t>(Oversampling::Count)>
@@ -94,15 +107,23 @@ class MS5837 {
   void setFluidDensity(float density);
 
   /** Start the conversion cycle by requesting temperature first
-   * This function sets up a FreeRTOS timer to handle the conversion sequence
+   * This function initiates I2C temperature conversion and starts TIM1
    */
-  void requestConversion(
+  bool requestConversion(
       MS5837::Oversampling osr = Oversampling::MS5837_OS_8192);
 
   /** Returns true if both temperature and pressure conversions have completed
    * successfully
    */
   bool isDataReady() const { return data_ready; }
+
+  bool isI2CError() {
+    if (isr_error_flag_) {
+      isr_error_flag_ = false;
+      return true;
+    }
+    return false;
+  }
 
   /** Pressure returned in mbar or mbar*conversion rate.
    */
@@ -121,6 +142,13 @@ class MS5837 {
    */
   float altitude();
 
+  /** Timer interrupt callback handler for the conversion sequence
+   */
+  void timerCallback();
+  void i2cMasterRxCpltCallback();
+  void i2cMasterTxCpltCallback();
+  void i2cMasterErrorCallback();
+
  private:
   enum class ConversionType : uint8_t {
     MS5837_PRESSURE,
@@ -130,9 +158,14 @@ class MS5837 {
 
   // I2C handler
   I2C_HandleTypeDef *_hi2c;
+  TIM_HandleTypeDef *_htim;
 
+  ConversionState conversion_state = ConversionState::IDLE;
   Oversampling current_oversampling = Oversampling::MS5837_OS_8192;
   bool data_ready = false;  // Set when both temperature and pressure are valid
+  bool isr_error_flag_ = false;  // Error flag
+  uint8_t rx_data_[3]; // rx buffer
+  uint8_t tx_data_;    // tx buffer
 
   uint16_t C[8];
   uint32_t D1_pres, D2_temp;
@@ -157,15 +190,11 @@ class MS5837 {
    */
   bool requestPressure();
 
-  /** Runs one conversion cycle (temperature and pressure)
-   */
-  void runConversionCycle();
-
   /** Read the result of a conversion
    */
   bool readConversion(MS5837::ConversionType type);
 
-  static void conversionTaskCallback(void *params);
+  friend void MS5837_TIM1_OC_Callback();
 };
 
 }  // namespace TAUV

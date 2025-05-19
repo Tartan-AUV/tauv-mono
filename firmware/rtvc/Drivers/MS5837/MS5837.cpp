@@ -4,7 +4,19 @@
 
 #include "cmsis_os.h"
 
+// External TIM handle declaration 
+extern TIM_HandleTypeDef htim1;
+
 namespace TAUV {
+
+// Global pointer to MS5837 instance for callback
+static MS5837* ms5837_instance = nullptr;
+
+void MS5837_TIM1_OC_Callback() {
+  if (ms5837_instance) {
+    ms5837_instance->timerCallback();
+  }
+}
 
 const uint8_t MS5837_ADDR = 0x76;
 const uint8_t MS5837_RESET = 0x1E;
@@ -31,9 +43,15 @@ const uint8_t MS5837_30BA26 =
 MS5837::MS5837() {
   fluidDensity = 1029;
   _hi2c = nullptr;
+  _htim = &htim1;
+  ms5837_instance = this;
 }
 
-MS5837::~MS5837() {}
+MS5837::~MS5837() {
+  if (ms5837_instance == this) {
+    ms5837_instance = nullptr;
+  }
+}
 
 bool MS5837::begin(I2C_HandleTypeDef *hi2c) { return (init(hi2c)); }
 
@@ -94,7 +112,11 @@ bool MS5837::init(I2C_HandleTypeDef *hi2c) {
   }
 
   data_ready = false;
+  conversion_state = ConversionState::IDLE;
 
+  // Initialize TIM1 for interrupts - make sure it's stopped initially
+  HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
+  
   return true;
 }
 
@@ -104,70 +126,42 @@ uint8_t MS5837::getModel() { return (_model); }
 
 void MS5837::setFluidDensity(float density) { fluidDensity = density; }
 
-void MS5837::requestConversion(MS5837::Oversampling osr) {
-  if (_hi2c == nullptr) {
-    data_ready = false;
-    return;
+bool MS5837::requestConversion(MS5837::Oversampling osr) {
+  data_ready = false;
+
+  if (_hi2c == nullptr || isr_error_flag_ || conversion_state != ConversionState::IDLE) {
+    return false;
   }
+  
   current_oversampling = osr;
-  xTaskCreate(MS5837::conversionTaskCallback,  // Task function
-              "MS5837ConversionTask",          // Name
-              256,                             // Stack size (words, not bytes)
-              this,                            // Parameters
-              configMAX_PRIORITIES - 1,
-              nullptr  // Task handle (optional)
-  );
+
+  return requestTemperature();
 }
 
 bool MS5837::requestTemperature() {
-  if (_hi2c == nullptr) {
+  if (_hi2c == nullptr || isr_error_flag_ || conversion_state != ConversionState::IDLE) {
     return false;
   }
-
   // Request temperature conversion
   uint8_t cmd = oversampling_command_map_temperature[static_cast<size_t>(
       current_oversampling)];
-  if (HAL_I2C_Master_Transmit(_hi2c, MS5837_ADDR << 1, &cmd, 1,
-                              HAL_MAX_DELAY) != HAL_OK) {
+
+  conversion_state = ConversionState::REQUESTING_TEMP;
+  tx_data_ = cmd;
+  if (HAL_I2C_Master_Transmit_IT(_hi2c, MS5837_ADDR << 1, &tx_data_, 1) != HAL_OK) {
+    conversion_state = ConversionState::IDLE;
     return false;
   }
+
+  // Configure TIM1 for the conversion time
 
   return true;
 }
 
 bool MS5837::requestPressure() {
-  if (_hi2c == nullptr) {
-    return false;
-  }
-
-  // Request pressure conversion
-  uint8_t cmd = oversampling_command_map_pressure[static_cast<size_t>(
-      current_oversampling)];
-  if (HAL_I2C_Master_Transmit(_hi2c, MS5837_ADDR << 1, &cmd, 1,
-                              HAL_MAX_DELAY) != HAL_OK) {
-    return false;
-  }
+  // Request pressure conversion (called from ISR)
 
   return true;
-}
-
-void MS5837::runConversionCycle() {
-  data_ready = false;
-  bool temperature_res = requestTemperature();
-  if (!temperature_res) return;
-  osDelay(CONVERSION_TIME_MS);
-  bool temp_conv_res = readConversion(ConversionType::MS5837_TEMPERATURE);
-  if (!temp_conv_res) return;
-
-  bool pressure_res = requestPressure();
-  if (!pressure_res) return;
-  osDelay(CONVERSION_TIME_MS);
-  bool pres_conv_res = readConversion(ConversionType::MS5837_PRESSURE);
-  if (!pres_conv_res) return;
-
-  calculate();
-
-  data_ready = true;
 }
 
 bool MS5837::readConversion(MS5837::ConversionType type) {
@@ -204,10 +198,127 @@ bool MS5837::readConversion(MS5837::ConversionType type) {
   }
 }
 
-void MS5837::conversionTaskCallback(void *params) {
-  MS5837 *instance = static_cast<MS5837 *>(params);
-  instance->runConversionCycle();
-  vTaskDelete(nullptr);
+void MS5837::timerCallback() {
+  bool result = false;
+  
+  switch (conversion_state) {
+    case ConversionState::TEMP_CONVERSION:
+      // Temperature conversion complete, read the result
+      result = readConversion(ConversionType::MS5837_TEMPERATURE);
+      if (result) {
+        // Start pressure conversion
+        conversion_state = ConversionState::PRESSURE_CONVERSION;
+        if (requestPressure()) {
+          // Reset timer for pressure conversion
+          __HAL_TIM_SET_COUNTER(_htim, 0);
+          __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_TICKS);
+          HAL_TIM_OC_Start_IT(_htim, TIM_CHANNEL_1);
+        } else {
+          conversion_state = ConversionState::IDLE;
+          HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
+        }
+      } else {
+        conversion_state = ConversionState::IDLE;
+        HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
+      }
+      break;
+      
+    case ConversionState::PRESSURE_CONVERSION:
+      // Pressure conversion complete, read the result
+      result = readConversion(ConversionType::MS5837_PRESSURE);
+      if (result) {
+        // Calculate the final values
+        calculate();
+        data_ready = true;
+      }
+      // Stop the timer, we're done
+      conversion_state = ConversionState::IDLE;
+      HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
+      break;
+      
+    default:
+      // Unexpected state, stop the timer
+      conversion_state = ConversionState::IDLE;
+      HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
+      break;
+  }
+}
+
+void MS5837::i2cMasterRxCpltCallback() {
+  switch (conversion_state) {
+    case ConversionState::READING_TEMP:
+      conversion_state = ConversionState::REQUESTING_PRESSURE;
+      uint8_t cmd = oversampling_command_map_pressure[static_cast<size_t>(
+          current_oversampling)];
+      tx_data_ = cmd;
+      if (HAL_I2C_Master_Transmit_IT(_hi2c, MS5837_ADDR << 1, &tx_data_, 1) != HAL_OK) {
+        conversion_state = ConversionState::IDLE;
+        isr_error_flag_ = true;
+        break;
+      }
+      break;
+    case ConversionState::READING_PRESSURE:
+      break;
+    default:
+      conversion_state = ConversionState::IDLE;
+      isr_error_flag_ = true;
+      break;
+  }
+}
+
+void MS5837::i2cMasterTxCpltCallback() {
+  switch (conversion_state) {
+    case ConversionState::IDLE:
+      isr_error_flag_ = true;
+      break;
+    case ConversionState::REQUESTING_TEMP:
+      conversion_state = ConversionState::AWAITING_TEMP;
+      __HAL_TIM_SET_COUNTER(_htim, 0);
+      __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_TICKS);
+      auto res = HAL_TIM_OC_Start_IT(_htim, TIM_CHANNEL_1);
+      if (res != HAL_OK) {
+        conversion_state = ConversionState::IDLE;
+        isr_error_flag_ = true;
+      }
+      break;
+    case ConversionState::AWAITING_TEMP:
+      conversion_state = ConversionState::IDLE;
+      isr_error_flag_ = true;
+      break;
+    case ConversionState::READING_TEMP:
+      res = HAL_I2C_Master_Receive_IT(_hi2c, MS5837_ADDR << 1, rx_data_, 3);
+      if (res != HAL_OK) {
+        conversion_state = ConversionState::IDLE;
+        isr_error_flag_ = true;
+      }
+      break;
+    case ConversionState::REQUESTING_PRESSURE:
+      conversion_state = ConversionState::AWAITING_PRESSURE;
+      __HAL_TIM_SET_COUNTER(_htim, 0);
+      __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_TICKS);
+      res = HAL_TIM_OC_Start_IT(_htim, TIM_CHANNEL_1);
+      if (res != HAL_OK) {
+        conversion_state = ConversionState::IDLE;
+        isr_error_flag_ = true;
+      }
+      break;
+    case ConversionState::AWAITING_PRESSURE:
+      conversion_state = ConversionState::IDLE;
+      isr_error_flag_ = true;
+      break;
+    case ConversionState::READING_PRESSURE:
+      res = HAL_I2C_Master_Receive_IT(_hi2c, MS5837_ADDR << 1, rx_data_, 3);
+      if (res != HAL_OK) {
+        conversion_state = ConversionState::IDLE;
+        isr_error_flag_ = true;
+      }
+      break;
+  }
+}
+
+void MS5837::i2cMasterErrorCallback() {
+  conversion_state = ConversionState::IDLE;
+  isr_error_flag_ = true;
 }
 
 void MS5837::calculate() {

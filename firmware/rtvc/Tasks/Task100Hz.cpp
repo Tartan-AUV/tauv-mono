@@ -37,7 +37,7 @@ bool Task100Hz::init(std::unique_ptr<Resources> resources) {
     LOG_ERROR("Task100Hz: Failed to initialize MS5837 module");
     return false;
   }
-  
+
   // Initialize the Eth100Hz module
   auto eth_result = eth_module_.init();
   if (eth_result != ModuleInitResult::OK) {

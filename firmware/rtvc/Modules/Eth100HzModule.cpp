@@ -30,6 +30,7 @@ ModuleInitResult Eth100HzModule::init() {
 
 ModuleRunResult Eth100HzModule::run() {
   const MTI300Message& mti300Msg = input_interface_.getMTI300Message();
+  const MS5837Message& ms5837Msg = input_interface_.getMS5837Message();
   
   // If there are no valid MTI300 messages, skip transmission
   if (mti300Msg.count == 0) {
@@ -102,13 +103,29 @@ ModuleRunResult Eth100HzModule::run() {
 
   // End the vector
   auto fbImuFramesVector = fbb.EndVector(mti300Msg.count);
+
+  // // Create depth frame if valid
+   flatbuffers::Offset<TAUV_FB::DepthSensorFrame> fbDepthFrame;
+  if (ms5837Msg.valid) {
+    // Create depth sensor frame
+    TAUV_FB::DepthSensorFrameBuilder fbDepthFrameBuilder(fbb);
+    fbDepthFrameBuilder.add_pressure(ms5837Msg.pressure);
+    fbDepthFrameBuilder.add_depth(ms5837Msg.depth);
+    fbDepthFrameBuilder.add_temperature(ms5837Msg.temperature);
+    fbDepthFrame = fbDepthFrameBuilder.Finish();
+
+    LOG_DEBUG("Eth100HzModule: Including valid depth data: %.2f mbar, %.2f C, %.2f m",
+              ms5837Msg.pressure, ms5837Msg.temperature, ms5837Msg.depth);
+  } else {
+    LOG_DEBUG("Eth100HzModule: No valid depth data to include");
+  }
   
-  // Create the root Eth100HzMsg
-  auto fbEthMsg = TAUV_FB::CreateEth100HzMsg(fbb, fbImuFramesVector);
-  
+  // Create the root Eth100HzMsg with both IMU and depth data
+  auto fbEthMsg = TAUV_FB::CreateEth100HzMsg(fbb, fbImuFramesVector, fbDepthFrame);
+
   // Finish the buffer
-  fbb.Finish(fbEthMsg);
-  
+   fbb.Finish(fbEthMsg);
+
   // Get the buffer and its size
   uint8_t* buffer = fbb.GetBufferPointer();
   int size = fbb.GetSize();

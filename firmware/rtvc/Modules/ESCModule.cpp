@@ -132,39 +132,41 @@ ModuleRunResult ESCModule::run() {
     }
 
     // Collect telemetry data from ESCs
-    if (is_uart_connected) {
-      // Only request telemetry from directly connected ESCs
-      bool got_values = vesc_interfaces_[group_idx].getVescValues();
+    if (Config::Thrusters::collect_telemetry) {
+      if (is_uart_connected) {
+        // Only request telemetry from directly connected ESCs
+        bool got_values = vesc_interfaces_[group_idx].getVescValues();
 
-      if (got_values) {
-        // Store telemetry data for this ESC
-        const auto& data = vesc_interfaces_[group_idx].data;
-        output_msg_.telemetry[i].rpm = data.rpm;
-        output_msg_.telemetry[i].voltage = data.inpVoltage;
-        output_msg_.telemetry[i].current = data.avgMotorCurrent;
-        output_msg_.telemetry[i].temperature_mosfet = data.tempMosfet;
-        output_msg_.telemetry[i].fault_code = static_cast<uint8_t>(data.error);
-        output_msg_.telemetry[i].data_valid = true;
+        if (got_values) {
+          // Store telemetry data for this ESC
+          const auto& data = vesc_interfaces_[group_idx].data;
+          output_msg_.telemetry[i].rpm = data.rpm;
+          output_msg_.telemetry[i].voltage = data.inpVoltage;
+          output_msg_.telemetry[i].current = data.avgMotorCurrent;
+          output_msg_.telemetry[i].temperature_mosfet = data.tempMosfet;
+          output_msg_.telemetry[i].fault_code = static_cast<uint8_t>(data.error);
+          output_msg_.telemetry[i].data_valid = true;
+        } else {
+          // Mark this ESC's telemetry as invalid
+          output_msg_.telemetry[i].data_valid = false;
+        }
       } else {
-        // Mark this ESC's telemetry as invalid
-        output_msg_.telemetry[i].data_valid = false;
-      }
-    } else {
-      // For CAN-connected ESCs, request telemetry with their CAN ID
-      bool got_values = vesc_interfaces_[group_idx].getVescValues(vesc_id);
+        // For CAN-connected ESCs, request telemetry with their CAN ID
+        bool got_values = vesc_interfaces_[group_idx].getVescValues(vesc_id);
 
-      if (got_values) {
-        // Store telemetry data for this ESC
-        const auto& data = vesc_interfaces_[group_idx].data;
-        output_msg_.telemetry[i].rpm = data.rpm;
-        output_msg_.telemetry[i].voltage = data.inpVoltage;
-        output_msg_.telemetry[i].current = data.avgMotorCurrent;
-        output_msg_.telemetry[i].temperature_mosfet = data.tempMosfet;
-        output_msg_.telemetry[i].fault_code = static_cast<uint8_t>(data.error);
-        output_msg_.telemetry[i].data_valid = true;
-      } else {
-        // Mark this ESC's telemetry as invalid
-        output_msg_.telemetry[i].data_valid = false;
+        if (got_values) {
+          // Store telemetry data for this ESC
+          const auto& data = vesc_interfaces_[group_idx].data;
+          output_msg_.telemetry[i].rpm = data.rpm;
+          output_msg_.telemetry[i].voltage = data.inpVoltage;
+          output_msg_.telemetry[i].current = data.avgMotorCurrent;
+          output_msg_.telemetry[i].temperature_mosfet = data.tempMosfet;
+          output_msg_.telemetry[i].fault_code = static_cast<uint8_t>(data.error);
+          output_msg_.telemetry[i].data_valid = true;
+        } else {
+          // Mark this ESC's telemetry as invalid
+          output_msg_.telemetry[i].data_valid = false;
+        }
       }
     }
   }

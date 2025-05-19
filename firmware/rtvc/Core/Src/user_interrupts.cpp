@@ -14,11 +14,28 @@
 #include "Mti300.hpp"
 
 using namespace TAUV;
+/******************************************************************************
+ *  TartanAUV - Carnegie Mellon University
+ *  RTVC Firmware
+ *
+ *  Author:      Custom User Interrupts
+ *  Date:        Current Date
+ *
+ *  Description:
+ *      Custom interrupt handlers for the project
+ *
+ *****************************************************************************/
+
+#include "MS5837.h"
+#include "stm32f7xx_hal.h"
+
+// External TIM handle declaration
+extern TIM_HandleTypeDef htim1;
 
 extern "C" {
 
-#include "stm32f7xx_hal.h"
 #include "main.h"
+#include "stm32f7xx_hal.h"
 
 void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim) {
   // Time-keeping for time stamping
@@ -27,6 +44,10 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim) {
 
     uint32_t next = __HAL_TIM_GET_COUNTER(htim) - 1000000;
     __HAL_TIM_SET_COUNTER(htim, next);
+  } else if (htim->Instance == TIM1 &&
+             htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
+    // Call the MS5837 handler
+    TAUV::MS5837_TIM1_OC_Callback();
   }
 }
 
@@ -36,4 +57,21 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
   }
 }
 
+void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
+  if (hi2c->Instance == I2C1) {
+
+  }
+}
+
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
+  if (hi2c->Instance == I2C1) {
+
+  }
+}
+
+void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
+  if (hi2c->Instance == I2C1) {
+
+  }
+}
 }

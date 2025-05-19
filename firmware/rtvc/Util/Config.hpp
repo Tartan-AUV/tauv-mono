@@ -53,6 +53,8 @@ static constexpr std::array<size_t, number_escs> esc_group_idx_map{0, 0, 0, 0,
 static constexpr std::array<size_t, number_escs> esc_group_elem_idx_map{
     0, 1, 2, 3, 0, 1, 2, 3};
 
+static constexpr bool collect_telemetry = false;
+
 }  // namespace Thrusters
 
 namespace Network {

@@ -13,12 +13,11 @@
 #pragma once
 
 #include "MTI300Message.hpp"
+#include "MS5837Message.hpp"
 
 namespace TAUV {
 
 struct Eth100HzMessage {
-  // Reference to the MTI300 message data
-  const MTI300Message* mti300_msg = nullptr;
 };
 
 }  // namespace TAUV

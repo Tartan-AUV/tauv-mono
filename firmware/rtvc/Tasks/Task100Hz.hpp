@@ -42,14 +42,14 @@ class Task100Hz final : public IntervalTask {
   void run() override;
 
   // Output messages
-  MTI300Message mti300_output_msg_;
-  MS5837Message ms5837_output_msg_;
-  Eth100HzMessage eth_output_msg_;
+  MTI300Message mti300_output_msg_{};
+  MS5837Message ms5837_output_msg_{};
+  Eth100HzMessage eth_output_msg_{};
 
   // Input interfaces
   MTI300InputInterface mti300_input_{};
   MS5837InputInterface ms5837_input_{};
-  Eth100HzInterface eth_input_{mti300_output_msg_};
+  Eth100HzInterface eth_input_{mti300_output_msg_, ms5837_output_msg_};
 
   // Modules
   MTI300Module mti300_module_{mti300_input_, mti300_output_msg_};
