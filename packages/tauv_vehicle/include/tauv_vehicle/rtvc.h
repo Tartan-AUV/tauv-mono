@@ -23,6 +23,7 @@
 #include "std_msgs/msg/string.hpp"
 #include "tauv_msgs/msg/rpm_command.hpp"
 #include "tauv_msgs/msg/esc_telemetry.hpp"
+#include "tauv_msgs/msg/depth_frame.hpp"
 #include "tauv_vehicle/generated/eth_msg_jetson_rtvc_50_generated.h"
 #include "tauv_vehicle/generated/eth_msg_rtvc_jetson_100_generated.h"
 #include "tauv_vehicle/generated/eth_msg_rtvc_jetson_50_generated.h"
@@ -66,6 +67,7 @@ class RTVCNode : public rclcpp::Node {
   rclcpp::Publisher<sensor_msgs::msg::Temperature>::SharedPtr temperature_publisher_;
   rclcpp::Publisher<sensor_msgs::msg::FluidPressure>::SharedPtr pressure_publisher_;
   rclcpp::Publisher<tauv_msgs::msg::EscTelemetry>::SharedPtr esc_telemetry_publisher_;
+  rclcpp::Publisher<tauv_msgs::msg::DepthFrame>::SharedPtr depth_publisher_;
   rclcpp::Subscription<tauv_msgs::msg::RpmCommand>::SharedPtr rpm_command_subscriber_;
   rclcpp::TimerBase::SharedPtr send_timer_;
   

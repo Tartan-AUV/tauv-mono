@@ -199,47 +199,20 @@ bool MS5837::readConversion(MS5837::ConversionType type) {
 }
 
 void MS5837::timerCallback() {
-  bool result = false;
-  
   switch (conversion_state) {
-    case ConversionState::TEMP_CONVERSION:
-      // Temperature conversion complete, read the result
-      result = readConversion(ConversionType::MS5837_TEMPERATURE);
-      if (result) {
-        // Start pressure conversion
-        conversion_state = ConversionState::PRESSURE_CONVERSION;
-        if (requestPressure()) {
-          // Reset timer for pressure conversion
-          __HAL_TIM_SET_COUNTER(_htim, 0);
-          __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_TICKS);
-          HAL_TIM_OC_Start_IT(_htim, TIM_CHANNEL_1);
-        } else {
-          conversion_state = ConversionState::IDLE;
-          HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
-        }
-      } else {
-        conversion_state = ConversionState::IDLE;
-        HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
-      }
+    case ConversionState::AWAITING_TEMP:
+      conversion_state = ConversionState::READING_TEMP;
+      tx_data_ = MS5837_ADC_READ;
+      HAL_I2C_Master_Transmit_IT(_hi2c, MS5837_ADDR << 1, &tx_data_, 1);
       break;
-      
-    case ConversionState::PRESSURE_CONVERSION:
-      // Pressure conversion complete, read the result
-      result = readConversion(ConversionType::MS5837_PRESSURE);
-      if (result) {
-        // Calculate the final values
-        calculate();
-        data_ready = true;
-      }
-      // Stop the timer, we're done
-      conversion_state = ConversionState::IDLE;
-      HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
+    case ConversionState::AWAITING_PRESSURE:
+      conversion_state = ConversionState::READING_TEMP;
+      tx_data_ = MS5837_ADC_READ;
+      HAL_I2C_Master_Transmit_IT(_hi2c, MS5837_ADDR << 1, &tx_data_, 1);
       break;
-      
     default:
-      // Unexpected state, stop the timer
       conversion_state = ConversionState::IDLE;
-      HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
+      isr_error_flag_ = true;
       break;
   }
 }

@@ -12,6 +12,7 @@ RTVCNode::RTVCNode()
   temperature_publisher_ = this->create_publisher<sensor_msgs::msg::Temperature>("temperature", 10);
   pressure_publisher_ = this->create_publisher<sensor_msgs::msg::FluidPressure>("pressure", 10);
   esc_telemetry_publisher_ = this->create_publisher<tauv_msgs::msg::EscTelemetry>("esc_telemetry", 10);
+  depth_publisher_ = this->create_publisher<tauv_msgs::msg::DepthFrame>("depth", 10);
   rpm_command_subscriber_ =
       this->create_subscription<tauv_msgs::msg::RpmCommand>(
           "rpm_command", 10, 
@@ -115,6 +116,17 @@ void RTVCNode::parse_eth100_msg(const Eth100HzMsgT &msg) {
       msgs.pressure.value().header.stamp = this->get_clock()->now();
       this->pressure_publisher_->publish(msgs.pressure.value());
     }
+  }
+  
+  // Process depth sensor data if available
+  if (msg.depth_data) {
+    tauv_msgs::msg::DepthFrame depth_msg;
+    depth_msg.header.stamp = this->get_clock()->now();
+    depth_msg.depth = msg.depth_data->depth;
+    depth_msg.pressure = msg.depth_data->pressure;
+    depth_msg.temperature = msg.depth_data->temperature;
+    
+    depth_publisher_->publish(depth_msg);
   }
 }
 

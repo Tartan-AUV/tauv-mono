@@ -15,6 +15,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/WaterlinkedDvlFrame.msg"
   "msg/RpmCommand.msg"
   "msg/EscTelemetry.msg"
+  "msg/DepthFrame.msg"
   DEPENDENCIES std_msgs
 )
 

@@ -4,6 +4,7 @@ namespace TAUV_FB;
 
 table Eth100HzMsg {
     imu_data:[XsensIMUFrame];
+    depth_data:DepthSensorFrame;
 }
 
 table XsensIMUFrame {
@@ -14,6 +15,12 @@ table XsensIMUFrame {
   free_acceleration:Vec3;
   pressure:float;
   temperature:float;
+}
+
+table DepthSensorFrame {
+  pressure: float;
+  depth: float;
+  temperature: float;
 }
 
 root_type Eth100HzMsg;
