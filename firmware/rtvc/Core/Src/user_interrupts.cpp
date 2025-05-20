@@ -45,9 +45,9 @@ void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef *htim) {
     uint32_t next = __HAL_TIM_GET_COUNTER(htim) - 1000000;
     __HAL_TIM_SET_COUNTER(htim, next);
   } else if (htim->Instance == TIM1 &&
-             htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
-    // Call the MS5837 handler
-    TAUV::MS5837_TIM1_OC_Callback();
+             htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1 &&
+             MS5837::activeInstance_ != nullptr) {
+    MS5837::activeInstance_->conversionTimerISRCallback();
   }
 }
 
@@ -58,20 +58,20 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
-  if (hi2c->Instance == I2C1) {
-
+  if (hi2c->Instance == I2C1 && MS5837::activeInstance_ != nullptr) {
+    MS5837::activeInstance_->i2cTxCpltISRCallback();
   }
 }
 
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
-  if (hi2c->Instance == I2C1) {
-
+  if (hi2c->Instance == I2C1 && MS5837::activeInstance_ != nullptr) {
+    MS5837::activeInstance_->i2cRxCpltISRCallback();
   }
 }
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
-  if (hi2c->Instance == I2C1) {
-
+  if (hi2c->Instance == I2C1 && MS5837::activeInstance_ != nullptr) {
+    MS5837::activeInstance_->i2cErrorISRCallback();
   }
 }
 }

@@ -77,8 +77,6 @@ static constexpr size_t queueLength = 3; // max number of messages in the queue
 
 namespace Depth {
 
-static constexpr MS5837::Oversampling osr = MS5837::Oversampling::MS5837_OS_1024;
-
 }
 
 };  // namespace TAUV::Config

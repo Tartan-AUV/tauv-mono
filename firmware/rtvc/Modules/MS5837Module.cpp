@@ -36,7 +36,7 @@ ModuleInitResult MS5837Module::init(I2C_HandleTypeDef *hi2c) {
   sensor_driver_.setFluidDensity(997.0f); // 997 kg/m^3 for freshwater
 
   // Request initial conversion to start the measurement cycle
-  sensor_driver_.requestConversion(Config::Depth::osr);
+  sensor_driver_.requestConversion();
   // conversion starts in a separate thread, so we just pray
 
   LOG_INFO("MS5837Module: Successfully initialized");
@@ -61,7 +61,7 @@ ModuleRunResult MS5837Module::run() {
     result = ModuleRunResult::OUTPUT_INVALID;
   }
 
-  sensor_driver_.requestConversion(Config::Depth::osr);
+  sensor_driver_.requestConversion();
 
   LOG_DEBUG("MS5837Module: Pressure: %.2f mbar, Temperature: %.2f C, Depth: %.2f m",
            output_msg_.pressure, output_msg_.temperature, output_msg_.depth);

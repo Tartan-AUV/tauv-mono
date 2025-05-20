@@ -51,43 +51,12 @@ void MS5837_TIM1_OC_Callback();
 
 class MS5837 {
  public:
-  static const float Pa;
-  static const float bar;
-  static const float mbar;
-
-  static const uint8_t MS5837_30BA;
-  static const uint8_t MS5837_02BA;
-  static const uint8_t MS5837_UNRECOGNISED;
-
-  // Conversion time in timer ticks for maximum precision (8192 samples)
-  static constexpr uint32_t CONVERSION_TIME_TICKS = 3000; // TIM1 ticks
-
-  enum class Oversampling : uint8_t {
-    MS5837_OS_256 = 0,
-    MS5837_OS_512,
-    MS5837_OS_1024,
-    MS5837_OS_2048,
-    MS5837_OS_4096,
-    MS5837_OS_8192,
-    Count
-  };
-
-  enum class ConversionState : uint8_t {
-    IDLE,
-    REQUESTING_TEMP,
-    AWAITING_TEMP,
-    READING_TEMP,
-    REQUESTING_PRESSURE,
-    AWAITING_PRESSURE,
-    READING_PRESSURE,
-  };
-
-  static constexpr std::array<uint8_t, static_cast<size_t>(Oversampling::Count)>
-      oversampling_command_map_pressure = {0x40, 0x42, 0x44, 0x46, 0x48, 0x4A};
-
-  static constexpr std::array<uint8_t, static_cast<size_t>(Oversampling::Count)>
-      oversampling_command_map_temperature = {0x50, 0x52, 0x54,
-                                              0x56, 0x58, 0x5A};
+  static constexpr float Pa = 100.0f;
+  static constexpr float bar = 0.001f;
+  static constexpr float mbar = 1.0f;
+  static constexpr uint8_t MS5837_30BA = 0;
+  static constexpr uint8_t MS5837_02BA = 1;
+  static constexpr uint8_t MS5837_UNRECOGNISED = 255;
 
   MS5837();
   ~MS5837();
@@ -109,8 +78,7 @@ class MS5837 {
   /** Start the conversion cycle by requesting temperature first
    * This function initiates I2C temperature conversion and starts TIM1
    */
-  bool requestConversion(
-      MS5837::Oversampling osr = Oversampling::MS5837_OS_8192);
+  bool requestConversion();
 
   /** Returns true if both temperature and pressure conversions have completed
    * successfully
@@ -142,26 +110,60 @@ class MS5837 {
    */
   float altitude();
 
-  /** Timer interrupt callback handler for the conversion sequence
-   */
-  void timerCallback();
-  void i2cMasterRxCpltCallback();
-  void i2cMasterTxCpltCallback();
-  void i2cMasterErrorCallback();
+  // Pointer to the instance for ISR access
+  static MS5837* activeInstance_;
+
+  // ISR callbacks
+  void conversionTimerISRCallback();
+  void i2cRxCpltISRCallback();
+  void i2cTxCpltISRCallback();
+  void i2cErrorISRCallback();
 
  private:
-  enum class ConversionType : uint8_t {
-    MS5837_PRESSURE,
-    MS5837_TEMPERATURE,
+  enum class OverSamplingRatio : uint8_t {
+    MS5837_OS_256 = 0,
+    MS5837_OS_512,
+    MS5837_OS_1024,
+    MS5837_OS_2048,
+    MS5837_OS_4096,
+    MS5837_OS_8192,
     Count
   };
+  enum class ConversionState : uint8_t {
+    IDLE,
+    REQUESTING_TEMP,
+    AWAITING_TEMP,
+    READING_TEMP,
+    REQUESTING_PRESSURE,
+    AWAITING_PRESSURE,
+    READING_PRESSURE,
+  };
 
-  // I2C handler
-  I2C_HandleTypeDef *_hi2c;
-  TIM_HandleTypeDef *_htim;
+  static constexpr uint8_t MS5837_ADDR = 0x76;
+  static constexpr uint8_t MS5837_RESET = 0x1E;
+  static constexpr uint8_t MS5837_ADC_READ = 0x00;
+  static constexpr uint8_t MS5837_PROM_READ = 0xA0;
+  static constexpr uint8_t MS5837_CONVERT_D1_8192 = 0x4A;
+  static constexpr uint8_t MS5837_CONVERT_D2_8192 = 0x5A;
+  static constexpr uint8_t MS5837_02BA01 =
+      0x00;  // Sensor version: From MS5837_02BA datasheet Version PROM Word 0
+  static constexpr uint8_t MS5837_02BA21 =
+      0x15;  // Sensor version: From MS5837_02BA datasheet Version PROM Word 0
+  static constexpr uint8_t MS5837_30BA26 =
+      0x1A;  // Sensor version: From MS5837_30BA datasheet Version PROM Word 0
+  static constexpr uint32_t CONVERSION_TIME_US = 3000; // TIM1 period is 1 us todo: needs to be changed dynamically for different OSRs
 
+  static constexpr OverSamplingRatio OSR = OverSamplingRatio::MS5837_OS_1024;
+
+  static constexpr std::array<uint8_t, static_cast<size_t>(OverSamplingRatio::Count)>
+      oversampling_command_map_pressure = {0x40, 0x42, 0x44, 0x46, 0x48, 0x4A};
+
+  static constexpr std::array<uint8_t, static_cast<size_t>(OverSamplingRatio::Count)>
+      oversampling_command_map_temperature = {0x50, 0x52, 0x54,
+                                              0x56, 0x58, 0x5A};
+
+  // State variables
   ConversionState conversion_state = ConversionState::IDLE;
-  Oversampling current_oversampling = Oversampling::MS5837_OS_8192;
   bool data_ready = false;  // Set when both temperature and pressure are valid
   bool isr_error_flag_ = false;  // Error flag
   uint8_t rx_data_[3]; // rx buffer
@@ -175,26 +177,13 @@ class MS5837 {
 
   float fluidDensity;
 
-  /** Performs calculations per the sensor data sheet for conversion and
-   *  second order compensation.
-   */
+  // Handles
+  I2C_HandleTypeDef *_hi2c;
+  TIM_HandleTypeDef *_htim;
+
   void calculate();
 
   uint8_t crc4(uint16_t n_prom[]);
-
-  /** Request temperature conversion
-   */
-  bool requestTemperature();
-
-  /** Request pressure conversion
-   */
-  bool requestPressure();
-
-  /** Read the result of a conversion
-   */
-  bool readConversion(MS5837::ConversionType type);
-
-  friend void MS5837_TIM1_OC_Callback();
 };
 
 }  // namespace TAUV

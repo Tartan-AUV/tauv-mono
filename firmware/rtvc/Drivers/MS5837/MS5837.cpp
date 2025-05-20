@@ -4,54 +4,24 @@
 
 #include "cmsis_os.h"
 
-// External TIM handle declaration 
 extern TIM_HandleTypeDef htim1;
 
 namespace TAUV {
 
-// Global pointer to MS5837 instance for callback
-static MS5837* ms5837_instance = nullptr;
-
-void MS5837_TIM1_OC_Callback() {
-  if (ms5837_instance) {
-    ms5837_instance->timerCallback();
-  }
-}
-
-const uint8_t MS5837_ADDR = 0x76;
-const uint8_t MS5837_RESET = 0x1E;
-const uint8_t MS5837_ADC_READ = 0x00;
-const uint8_t MS5837_PROM_READ = 0xA0;
-const uint8_t MS5837_CONVERT_D1_8192 = 0x4A;
-const uint8_t MS5837_CONVERT_D2_8192 = 0x5A;
-
-const float MS5837::Pa = 100.0f;
-const float MS5837::bar = 0.001f;
-const float MS5837::mbar = 1.0f;
-
-const uint8_t MS5837::MS5837_30BA = 0;
-const uint8_t MS5837::MS5837_02BA = 1;
-const uint8_t MS5837::MS5837_UNRECOGNISED = 255;
-
-const uint8_t MS5837_02BA01 =
-    0x00;  // Sensor version: From MS5837_02BA datasheet Version PROM Word 0
-const uint8_t MS5837_02BA21 =
-    0x15;  // Sensor version: From MS5837_02BA datasheet Version PROM Word 0
-const uint8_t MS5837_30BA26 =
-    0x1A;  // Sensor version: From MS5837_30BA datasheet Version PROM Word 0
 
 MS5837::MS5837() {
   fluidDensity = 1029;
   _hi2c = nullptr;
   _htim = &htim1;
-  ms5837_instance = this;
 }
 
 MS5837::~MS5837() {
-  if (ms5837_instance == this) {
-    ms5837_instance = nullptr;
+  if (MS5837::activeInstance_ == this) {
+    MS5837::activeInstance_ = nullptr;
   }
 }
+
+MS5837 *MS5837::activeInstance_ = nullptr;
 
 bool MS5837::begin(I2C_HandleTypeDef *hi2c) { return (init(hi2c)); }
 
@@ -114,9 +84,11 @@ bool MS5837::init(I2C_HandleTypeDef *hi2c) {
   data_ready = false;
   conversion_state = ConversionState::IDLE;
 
+  activeInstance_ = this;
+
   // Initialize TIM1 for interrupts - make sure it's stopped initially
   HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
-  
+
   return true;
 }
 
@@ -126,79 +98,29 @@ uint8_t MS5837::getModel() { return (_model); }
 
 void MS5837::setFluidDensity(float density) { fluidDensity = density; }
 
-bool MS5837::requestConversion(MS5837::Oversampling osr) {
+bool MS5837::requestConversion() {
   data_ready = false;
 
-  if (_hi2c == nullptr || isr_error_flag_ || conversion_state != ConversionState::IDLE) {
+  if (_hi2c == nullptr || isr_error_flag_ ||
+      conversion_state != ConversionState::IDLE) {
     return false;
   }
-  
-  current_oversampling = osr;
 
-  return requestTemperature();
-}
-
-bool MS5837::requestTemperature() {
-  if (_hi2c == nullptr || isr_error_flag_ || conversion_state != ConversionState::IDLE) {
-    return false;
-  }
   // Request temperature conversion
-  uint8_t cmd = oversampling_command_map_temperature[static_cast<size_t>(
-      current_oversampling)];
+  uint8_t cmd = oversampling_command_map_temperature[static_cast<size_t>(OSR)];
 
   conversion_state = ConversionState::REQUESTING_TEMP;
   tx_data_ = cmd;
-  if (HAL_I2C_Master_Transmit_IT(_hi2c, MS5837_ADDR << 1, &tx_data_, 1) != HAL_OK) {
+  if (HAL_I2C_Master_Transmit_IT(_hi2c, MS5837_ADDR << 1, &tx_data_, 1) !=
+      HAL_OK) {
     conversion_state = ConversionState::IDLE;
     return false;
   }
 
-  // Configure TIM1 for the conversion time
-
   return true;
 }
 
-bool MS5837::requestPressure() {
-  // Request pressure conversion (called from ISR)
-
-  return true;
-}
-
-bool MS5837::readConversion(MS5837::ConversionType type) {
-  if (_hi2c == nullptr) {
-    return false;
-  }
-
-  // Read the conversion result
-  uint8_t cmd = MS5837_ADC_READ;
-  if (HAL_I2C_Master_Transmit(_hi2c, MS5837_ADDR << 1, &cmd, 1,
-                              HAL_MAX_DELAY) != HAL_OK) {
-    return false;
-  }
-
-  uint8_t data[3];
-  if (HAL_I2C_Master_Receive(_hi2c, MS5837_ADDR << 1, data, 3, HAL_MAX_DELAY) !=
-      HAL_OK) {
-    return false;
-  }
-
-  uint32_t result =
-      ((uint32_t)data[0] << 16) | ((uint32_t)data[1] << 8) | data[2];
-
-  // Store the result based on current state
-  switch (type) {
-    case ConversionType::MS5837_PRESSURE:
-      D1_pres = result;
-      return true;
-    case ConversionType::MS5837_TEMPERATURE:
-      D2_temp = result;
-      return true;
-    default:
-      return false;
-  }
-}
-
-void MS5837::timerCallback() {
+void MS5837::conversionTimerISRCallback() {
   switch (conversion_state) {
     case ConversionState::AWAITING_TEMP:
       conversion_state = ConversionState::READING_TEMP;
@@ -217,14 +139,13 @@ void MS5837::timerCallback() {
   }
 }
 
-void MS5837::i2cMasterRxCpltCallback() {
+void MS5837::i2cRxCpltISRCallback() {
   switch (conversion_state) {
     case ConversionState::READING_TEMP:
       conversion_state = ConversionState::REQUESTING_PRESSURE;
-      uint8_t cmd = oversampling_command_map_pressure[static_cast<size_t>(
-          current_oversampling)];
-      tx_data_ = cmd;
-      if (HAL_I2C_Master_Transmit_IT(_hi2c, MS5837_ADDR << 1, &tx_data_, 1) != HAL_OK) {
+      tx_data_ = oversampling_command_map_pressure[static_cast<size_t>(OSR)];
+      if (HAL_I2C_Master_Transmit_IT(_hi2c, MS5837_ADDR << 1, &tx_data_, 1) !=
+          HAL_OK) {
         conversion_state = ConversionState::IDLE;
         isr_error_flag_ = true;
         break;
@@ -239,7 +160,8 @@ void MS5837::i2cMasterRxCpltCallback() {
   }
 }
 
-void MS5837::i2cMasterTxCpltCallback() {
+void MS5837::i2cTxCpltISRCallback() {
+  HAL_StatusTypeDef res;
   switch (conversion_state) {
     case ConversionState::IDLE:
       isr_error_flag_ = true;
@@ -247,8 +169,8 @@ void MS5837::i2cMasterTxCpltCallback() {
     case ConversionState::REQUESTING_TEMP:
       conversion_state = ConversionState::AWAITING_TEMP;
       __HAL_TIM_SET_COUNTER(_htim, 0);
-      __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_TICKS);
-      auto res = HAL_TIM_OC_Start_IT(_htim, TIM_CHANNEL_1);
+      __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_US);
+      res = HAL_TIM_OC_Start_IT(_htim, TIM_CHANNEL_1);
       if (res != HAL_OK) {
         conversion_state = ConversionState::IDLE;
         isr_error_flag_ = true;
@@ -268,7 +190,7 @@ void MS5837::i2cMasterTxCpltCallback() {
     case ConversionState::REQUESTING_PRESSURE:
       conversion_state = ConversionState::AWAITING_PRESSURE;
       __HAL_TIM_SET_COUNTER(_htim, 0);
-      __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_TICKS);
+      __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_US);
       res = HAL_TIM_OC_Start_IT(_htim, TIM_CHANNEL_1);
       if (res != HAL_OK) {
         conversion_state = ConversionState::IDLE;
@@ -289,7 +211,7 @@ void MS5837::i2cMasterTxCpltCallback() {
   }
 }
 
-void MS5837::i2cMasterErrorCallback() {
+void MS5837::i2cErrorISRCallback() {
   conversion_state = ConversionState::IDLE;
   isr_error_flag_ = true;
 }
