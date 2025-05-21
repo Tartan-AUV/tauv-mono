@@ -81,7 +81,7 @@ void ITM_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void reset_depth_i2c();
 /* USER CODE END 0 */
 
 /**
@@ -570,6 +570,21 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void reset_depth_i2c() {
+    HAL_I2C_DeInit(&hi2c1);
+    MX_I2C1_Init();
+
+    // Enable I2C1 interrupts
+    HAL_NVIC_SetPriority(I2C1_EV_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
+    HAL_NVIC_SetPriority(I2C1_ER_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
+
+    // Enable I2C interrupts
+    SET_BIT(I2C1->CR1, I2C_CR1_TXIE | I2C_CR1_RXIE | I2C_CR1_ERRIE);
+}
+
 void ITM_Init(void) {
   // Enable trace and debug
   CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;

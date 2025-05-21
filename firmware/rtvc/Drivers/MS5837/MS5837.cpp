@@ -8,6 +8,8 @@
 
 extern TIM_HandleTypeDef htim1;
 
+extern void reset_depth_i2c();
+
 namespace TAUV {
 
 
@@ -107,15 +109,10 @@ bool MS5837::requestConversion() {
     return false;
   }
 
-  if (!i2c_ready_) {
-     // this happens when the transaction is being aborted
-    return false;
-  }
-
   if (conversion_state != ConversionState::IDLE) {
-    __HAL_I2C_CLEAR_FLAG(hi2c_, I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR);
-    hi2c_->ErrorCode = HAL_I2C_ERROR_NONE;
-    LOG_WARN("MS5837 new conversion request while conversion in progress.");
+//    LOG_WARN("MS5837 new conversion request while conversion in progress.");
+    osDelay(10);
+//    reset_depth_i2c();
     conversion_state = ConversionState::IDLE;
   }
 
@@ -133,6 +130,7 @@ bool MS5837::requestConversion() {
   tx_data_ = cmd;
   if (HAL_I2C_Master_Transmit_IT(hi2c_, MS5837_ADDR << 1, &tx_data_, 1) !=
       HAL_OK) {
+	reset_depth_i2c();
     conversion_state = ConversionState::IDLE;
     return false;
   }
@@ -251,13 +249,13 @@ void MS5837::i2cErrorISRCallback() {
   conversion_state = ConversionState::IDLE;
   isr_error_flag_ = true;
 }
-//
-// void MS5837::i2cAbortISRCallback() {
-//   __HAL_I2C_CLEAR_FLAG(hi2c_, I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR);
-//   hi2c_->ErrorCode = HAL_I2C_ERROR_NONE;
-//   i2c_ready_ = true;
-// }
-//
+
+void MS5837::i2cAbortISRCallback() {
+  __HAL_I2C_CLEAR_FLAG(hi2c_, I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR);
+  hi2c_->ErrorCode = HAL_I2C_ERROR_NONE;
+  i2c_ready_ = true;
+}
+
 
 bool MS5837::calculate() {
   if (!data_ready)

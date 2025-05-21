@@ -35,10 +35,6 @@ ModuleInitResult MS5837Module::init(I2C_HandleTypeDef *hi2c) {
   // Set the fluid density to freshwater (default is seawater)
   sensor_driver_.setFluidDensity(997.0f); // 997 kg/m^3 for freshwater
 
-  // Request initial conversion to start the measurement cycle
-  sensor_driver_.requestConversion();
-  // conversion starts in a separate thread, so we just pray
-
   LOG_INFO("MS5837Module: Successfully initialized");
   return ModuleInitResult::OK;
 }

@@ -149,7 +149,7 @@ class MS5837 {
       0x15;  // Sensor version: From MS5837_02BA datasheet Version PROM Word 0
   static constexpr uint8_t MS5837_30BA26 =
       0x1A;  // Sensor version: From MS5837_30BA datasheet Version PROM Word 0
-  static constexpr uint32_t CONVERSION_TIME_US = 3000; // TIM1 period is 1 us todo: needs to be changed dynamically for different OSRs
+  static constexpr uint32_t CONVERSION_TIME_US = 2300; // TIM1 period is 1 us todo: needs to be changed dynamically for different OSRs
 
   static constexpr OverSamplingRatio OSR = OverSamplingRatio::MS5837_OS_1024;
 
