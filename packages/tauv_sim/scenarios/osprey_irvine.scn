@@ -14,6 +14,8 @@
 
     <looks>
         <look name="Gray" gray="0.3" roughness="0.4" metalness="0.5"/>
+        <look name="Red" rgb="1.0 0.0 0.0" roughness="0.3"/>
+        <look name="Pool" gray="1.0" roughness="0.8" texture="irvine/pool_base.png"/>
     </looks>
 
     <materials>
@@ -41,18 +43,69 @@
 		</friction_table>
     </materials>
 
-	<static name="pool" type="model">
+
+	<static name="Pool" type="model">
 		<physical>
 			<mesh filename="irvine/irvine_pool.obj" scale="1.0"/>
 			<!-- <mesh filename="da_cube.obj" scale="1.0"/> -->
 			<origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
 		</physical>
 		<material name="Rock"/>
-		<look name="Gray"/>
-		<world_transform rpy="180.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+		<look name="Pool"/>
+		<world_transform rpy="3.14159 0.0 0.0" xyz="0.0 0.0 0.0"/>
 	</static>
 
-    <!-- <robot name="osprey" fixed="false"> -->
+    <robot name="os" fixed="false" self_collisions="false">
+        <base_link name="Base" type="model" physics="submerged">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <physical>
+                <mesh filename="osprey/osprey_hull_cubes.obj" scale="1.0"/>
+                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+            </physical>
+            <visual>
+                <mesh filename="osprey/osprey_hull_cubes.obj" scale="1.0"/>
+                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+            </visual>
+            <mass value="9.72"/>
+            <inertia xyz="2.10 2.06 3.78"/>
+            <cg xyz="0.038 0.049 -0.036" rpy="0.0 0.0 0.0"/>
+            <material name="Aluminium"/>
+            <look name="Red"/>
+        </base_link> 
+        <sensor name="imu" type="imu" rate="100.0">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <link name="Base"/>
+        </sensor>
+        <sensor name="imu" type="imu" rate="100.0">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <ros_publisher topic="/imu"/>
+            <link name="Base"/>
+        </sensor>
+        <sensor name="dvl" rate="7.0" type="dvl">
+            <specs beam_angle="22.5" beam_positive_z="true"/>
+            <range velocity="10.0 10.0 5.0" altitude_min="0.05" altitude_max="50.0"/>
+            <water_layer minimum_layer_size="10.0" boundary_near="10.0" boundary_far="30.0"/>
+            <noise velocity_percent= "0.1" velocity="0.01" altitude="0.01" water_velocity_percent="0.1" water_velocity="0.1"/>
+            <history samples="1"/>
+            <origin xyz="-0.103 0.049 0.045" rpy="0.0 0.0 1.5708"/>
+            <link name="Base"/>
+            <ros_publisher topic="/dvl"/>
+        </sensor>
+        <sensor name="pressure" rate="100.0" type="pressure">
+            <range pressure="10000.0"/>
+            <noise pressure="0.1"/>
+            <history samples="1"/>
+            <origin xyz="0.240 0.113 -0.055" rpy="0.0 0.0 0.0"/>
+            <link name="Base"/>
+            <ros_publisher topic="/pressure"/>
+        </sensor>
+        <trajectory type="spline" playback="repeat">
+            <keypoint time="0.0" xyz="0.0 1.0 2.0" rpy="0.0 0.0 0.0"/>
+            <keypoint time="5.0" xyz="10.0 1.0 2.0" rpy="0.0 0.0 1.57"/>
+            <keypoint time="20.0" xyz="10.0 2.0 2.0" rpy="0.0 0.0 0.0"/>
+        </trajectory>
+        <world_transform xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+    </robot>
 
     <!-- Definitions of looks, bodies, robots, sensors... -->
 </scenario>

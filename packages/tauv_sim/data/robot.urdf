@@ -1,0 +1,193 @@
+<?xml version="1.0" ?>
+<!-- Generated using onshape-to-robot -->
+<!-- Onshape https://tartanauv.onshape.com/documents/c69cf578a739bb23e6cde5a1/w/92e59226a1e3b46e76420b8e/e/246afa07681f58e28dfc46b9 -->
+<robot name="osprey">
+  <!-- Link osprey_hull__configuration_default -->
+  <link name="osprey_hull__configuration_default">
+    <inertial>
+      <origin xyz="-0.0488982 -0.0634755 -0.0103853" rpy="0 0 0"/>
+      <mass value="10.768"/>
+      <inertia ixx="0.291326" ixy="-3.15962e-05" ixz="-1.27498e-05" iyy="0.321738" iyz="-0.0402611" izz="0.482223"/>
+    </inertial>
+  </link>
+  <!-- Frame 1_thruster_CW (dummy link + fixed joint) -->
+  <link name="1_thruster_CW">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="1_thruster_CW_frame" type="fixed">
+    <origin xyz="0.184011 0.181286 0.0540697" rpy="1.5708 1.25732e-15 -2.35619"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="1_thruster_CW"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 2_thruster_CCW (dummy link + fixed joint) -->
+  <link name="2_thruster_CCW">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="2_thruster_CCW_frame" type="fixed">
+    <origin xyz="0.19685 0.056594 -0.0564868" rpy="-2.51411e-15 -1.77668e-15 -1.05057e-31"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="2_thruster_CCW"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 3_thruster_CW (dummy link + fixed joint) -->
+  <link name="3_thruster_CW">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="3_thruster_CW_frame" type="fixed">
+    <origin xyz="0.19685 -0.131768 -0.0564368" rpy="-2.51411e-15 -7.7743e-16 1.59919e-16"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="3_thruster_CW"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 4_thruster_CW (dummy link + fixed joint) -->
+  <link name="4_thruster_CW">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="4_thruster_CW_frame" type="fixed">
+    <origin xyz="0.164588 -0.275883 0.0540697" rpy="1.5708 5.15177e-18 -0.785398"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="4_thruster_CW"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 5_thruster_CCW (dummy link + fixed joint) -->
+  <link name="5_thruster_CCW">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="5_thruster_CCW_frame" type="fixed">
+    <origin xyz="-0.267374 0.195923 0.0540697" rpy="1.5708 -6.82003e-16 -0.785398"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="5_thruster_CCW"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 6_thruster_CW (dummy link + fixed joint) -->
+  <link name="6_thruster_CW">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="6_thruster_CW_frame" type="fixed">
+    <origin xyz="-0.29485 0.056594 -0.0564368" rpy="-2.51411e-15 1.94676e-15 1.59919e-16"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="6_thruster_CW"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 7_thruster_CCW (dummy link + fixed joint) -->
+  <link name="7_thruster_CCW">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="7_thruster_CCW_frame" type="fixed">
+    <origin xyz="-0.29485 -0.131768 -0.0564868" rpy="-2.51411e-15 6.07355e-16 -1.05057e-31"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="7_thruster_CCW"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame 8_thruster_CCW (dummy link + fixed joint) -->
+  <link name="8_thruster_CCW">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="8_thruster_CCW_frame" type="fixed">
+    <origin xyz="-0.262947 -0.275524 0.0540697" rpy="1.5708 -3.55671e-16 0.785398"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="8_thruster_CCW"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame dvl (dummy link + fixed joint) -->
+  <link name="dvl">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="dvl_frame" type="fixed">
+    <origin xyz="-0.049 0.103309 -0.0448185" rpy="-1.88378e-15 1.29417e-16 1.5708"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="dvl"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame right_cam (dummy link + fixed joint) -->
+  <link name="right_cam">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="right_cam_frame" type="fixed">
+    <origin xyz="-0.20775 -0.297948 -0.192154" rpy="1.5708 -1.9984e-15 -1.55431e-15"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="right_cam"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame left_cam (dummy link + fixed joint) -->
+  <link name="left_cam">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="left_cam_frame" type="fixed">
+    <origin xyz="0.10975 -0.297948 -0.192154" rpy="1.5708 -5.37348e-14 -2.22045e-16"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="left_cam"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame depth_sensor (dummy link + fixed joint) -->
+  <link name="depth_sensor">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="depth_sensor_frame" type="fixed">
+    <origin xyz="0.0145 -0.240087 0.0554465" rpy="1.5708 1.5708 0"/>
+    <parent link="osprey_hull__configuration_default"/>
+    <child link="depth_sensor"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+</robot>
