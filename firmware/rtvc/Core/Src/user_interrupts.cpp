@@ -74,4 +74,11 @@ void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
     MS5837::activeInstance_->i2cErrorISRCallback();
   }
 }
+//
+// void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c) {
+//   if (hi2c->Instance == I2C1 && MS5837::activeInstance_ != nullptr) {
+//     MS5837::activeInstance_->i2cAbortISRCallback();
+//   }
+// }
+
 }

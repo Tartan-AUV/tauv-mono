@@ -49,7 +49,10 @@ ModuleRunResult MS5837Module::run() {
 
   auto result = ModuleRunResult::OK;
 
-  if (sensor_driver_.isDataReady()) {
+  bool conversion_valid = sensor_driver_.calculate();
+  sensor_driver_.requestConversion(); // don't fuck around and request next conversion asap
+
+  if (conversion_valid) {
     uint32_t current_time = HAL_GetTick();
     // Update the message with the sensor data
     output_msg_.pressure = sensor_driver_.pressure();
@@ -57,15 +60,13 @@ ModuleRunResult MS5837Module::run() {
     output_msg_.depth = sensor_driver_.depth();
     output_msg_.valid = true;
     output_msg_.timestamp_ms = HAL_GetTick();
+    LOG_DEBUG("MS5837Module: Pressure: %.2f mbar, Temperature: %.2f C, Depth: %.2f m",
+             output_msg_.pressure, output_msg_.temperature, output_msg_.depth);
   } else {
     result = ModuleRunResult::OUTPUT_INVALID;
+    LOG_DEBUG("No depth reading...");
   }
 
-  sensor_driver_.requestConversion();
-
-  LOG_DEBUG("MS5837Module: Pressure: %.2f mbar, Temperature: %.2f C, Depth: %.2f m",
-           output_msg_.pressure, output_msg_.temperature, output_msg_.depth);
-  
   return result;
 }
 

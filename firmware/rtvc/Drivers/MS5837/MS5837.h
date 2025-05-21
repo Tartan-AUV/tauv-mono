@@ -80,11 +80,6 @@ class MS5837 {
    */
   bool requestConversion();
 
-  /** Returns true if both temperature and pressure conversions have completed
-   * successfully
-   */
-  bool isDataReady() const { return data_ready; }
-
   bool isI2CError() {
     if (isr_error_flag_) {
       isr_error_flag_ = false;
@@ -118,6 +113,9 @@ class MS5837 {
   void i2cRxCpltISRCallback();
   void i2cTxCpltISRCallback();
   void i2cErrorISRCallback();
+  void i2cAbortISRCallback();
+
+  bool calculate();
 
  private:
   enum class OverSamplingRatio : uint8_t {
@@ -164,7 +162,7 @@ class MS5837 {
 
   // State variables
   ConversionState conversion_state = ConversionState::IDLE;
-  bool data_ready = false;  // Set when both temperature and pressure are valid
+  bool data_ready = false;  // Set when both temperature and pressure are valid, reset on calculate
   bool isr_error_flag_ = false;  // Error flag
   uint8_t rx_data_[3]; // rx buffer
   uint8_t tx_data_;    // tx buffer
@@ -178,10 +176,10 @@ class MS5837 {
   float fluidDensity;
 
   // Handles
-  I2C_HandleTypeDef *_hi2c;
+  I2C_HandleTypeDef *hi2c_;
   TIM_HandleTypeDef *_htim;
 
-  void calculate();
+  bool i2c_ready_ = true;
 
   uint8_t crc4(uint16_t n_prom[]);
 };
