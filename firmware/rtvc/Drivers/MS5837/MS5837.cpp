@@ -111,9 +111,10 @@ bool MS5837::requestConversion() {
 
   if (conversion_state != ConversionState::IDLE) {
 //    LOG_WARN("MS5837 new conversion request while conversion in progress.");
-    osDelay(10);
+    osDelay(1);
 //    reset_depth_i2c();
     conversion_state = ConversionState::IDLE;
+    return false;
   }
 
   if (isr_error_flag_) {

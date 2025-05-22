@@ -578,8 +578,8 @@ void reset_depth_i2c() {
     // Enable I2C1 interrupts
     HAL_NVIC_SetPriority(I2C1_EV_IRQn, 5, 0);
     HAL_NVIC_EnableIRQ(I2C1_EV_IRQn);
-    HAL_NVIC_SetPriority(I2C1_ER_IRQn, 5, 0);
-    HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
+//    HAL_NVIC_SetPriority(I2C1_ER_IRQn, 5, 0);
+//    HAL_NVIC_EnableIRQ(I2C1_ER_IRQn);
 
     // Enable I2C interrupts
     SET_BIT(I2C1->CR1, I2C_CR1_TXIE | I2C_CR1_RXIE | I2C_CR1_ERRIE);
