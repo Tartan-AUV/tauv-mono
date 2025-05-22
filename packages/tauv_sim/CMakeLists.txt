@@ -13,6 +13,7 @@ find_package(std_msgs REQUIRED)
 find_package(tauv_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
+find_package(stonefish_ros2 REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -35,6 +36,7 @@ ament_target_dependencies(
   "tauv_msgs"
   "nav_msgs"
   "sensor_msgs"
+  "stonefish_ros2"
 )
 
 # Install executables
