@@ -1,3 +1,6 @@
 [submodule "packages/tauv_vehicle/flatbuffers"]
 	path = packages/tauv_vehicle/flatbuffers
 	url = https://github.com/google/flatbuffers.git
+[submodule "packages/tauv_gnc/gtsam"]
+	path = packages/tauv_gnc/gtsam
+	url = https://github.com/borglab/gtsam.git
