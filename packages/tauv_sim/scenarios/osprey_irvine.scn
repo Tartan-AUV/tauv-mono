@@ -15,6 +15,7 @@
     <looks>
         <look name="Gray" gray="0.3" roughness="0.4" metalness="0.5"/>
         <look name="Red" rgb="1.0 0.0 0.0" roughness="0.3"/>
+        <look name="PaleBlue" rgb="0.1 0.1 0.6" roughness="0.3"/>
         <look name="Pool" gray="1.0" roughness="0.8" texture="irvine/pool_base.png"/>
     </looks>
 
@@ -78,7 +79,7 @@
         </sensor>
         <sensor name="imu" type="imu" rate="100.0">
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-            <ros_publisher topic="/imu"/>
+            <ros_publisher topic="imu"/>
             <link name="Base"/>
         </sensor>
         <sensor name="dvl" rate="7.0" type="dvl">
@@ -89,7 +90,7 @@
             <history samples="1"/>
             <origin xyz="-0.103 0.049 0.045" rpy="0.0 0.0 1.5708"/>
             <link name="Base"/>
-            <ros_publisher topic="/dvl"/>
+            <ros_publisher topic="dvl"/>
         </sensor>
         <sensor name="pressure" rate="100.0" type="pressure">
             <range pressure="10000.0"/>
@@ -97,13 +98,140 @@
             <history samples="1"/>
             <origin xyz="0.240 0.113 -0.055" rpy="0.0 0.0 0.0"/>
             <link name="Base"/>
-            <ros_publisher topic="/pressure"/>
+            <ros_publisher topic="pressure"/>
         </sensor>
-        <trajectory type="spline" playback="repeat">
-            <keypoint time="0.0" xyz="0.0 1.0 2.0" rpy="0.0 0.0 0.0"/>
-            <keypoint time="5.0" xyz="10.0 1.0 2.0" rpy="0.0 0.0 1.57"/>
-            <keypoint time="20.0" xyz="10.0 2.0 2.0" rpy="0.0 0.0 0.0"/>
-        </trajectory>
+
+        <actuator name="thruster_0" type="thruster">
+            <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
+            <propeller diameter="0.2" right="true">
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
+                <material name="Polyamid"/>
+                <look name="PaleBlue"/>
+            </propeller>
+            <rotor_dynamics type="zero_order"/>
+            <thrust_model type="deadband">
+                <thrust_coeff forward="0.000371" reverse="0.000297"/>
+                <deadband lower="-47.0" upper="39.2"/>
+            </thrust_model>
+            <origin xyz="0.272 -0.168 -0.-540" rpy="-1.5708 0.0 2.3562"/>
+            <link name="Base"/>
+        </actuator>
+
+        <actuator name="thruster_1" type="thruster">
+            <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
+            <propeller diameter="0.2" right="true">
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
+                <material name="Polyamid"/>
+                <look name="PaleBlue"/>
+            </propeller>
+            <rotor_dynamics type="zero_order"/>
+            <thrust_model type="deadband">
+                <thrust_coeff forward="0.000371" reverse="0.000297"/>
+                <deadband lower="-47.0" upper="39.2"/>
+            </thrust_model>
+            <origin xyz="0.1320 -0.1970 0.0620" rpy="0 3.141592654 0"/>
+            <link name="Base"/>
+        </actuator>
+
+        <actuator name="thruster_2" type="thruster">
+            <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
+            <propeller diameter="0.2" right="true">
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
+                <material name="Polyamid"/>
+                <look name="PaleBlue"/>
+            </propeller>
+            <rotor_dynamics type="zero_order"/>
+            <thrust_model type="deadband">
+                <thrust_coeff forward="0.000371" reverse="0.000297"/>
+                <deadband lower="-47.0" upper="39.2"/>
+            </thrust_model>
+            <origin xyz="-0.0570 -0.1970 0.0620" rpy="0 3.141592654 0"/>
+            <link name="Base"/>
+        </actuator>
+
+        <actuator name="thruster_3" type="thruster">
+            <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
+            <propeller diameter="0.2" right="true">
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
+                <material name="Polyamid"/>
+                <look name="PaleBlue"/>
+            </propeller>
+            <rotor_dynamics type="zero_order"/>
+            <thrust_model type="deadband">
+                <thrust_coeff forward="0.000371" reverse="0.000297"/>
+                <deadband lower="-47.0" upper="39.2"/>
+            </thrust_model>
+            <origin xyz="-0.1780 -0.1880 -0.0540" rpy="-1.570796327 0 0.7853981634"/>
+            <link name="Base"/>
+        </actuator>
+
+        <actuator name="thruster_4" type="thruster">
+            <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
+            <propeller diameter="0.2" right="true">
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
+                <material name="Polyamid"/>
+                <look name="PaleBlue"/>
+            </propeller>
+            <rotor_dynamics type="zero_order"/>
+            <thrust_model type="deadband">
+                <thrust_coeff forward="0.000371" reverse="0.000297"/>
+                <deadband lower="-47.0" upper="39.2"/>
+            </thrust_model>
+            <origin xyz="-0.2000 0.2640 -0.0540" rpy="-1.570796327 0 2.35619449"/>
+            <link name="Base"/>
+        </actuator>
+
+        <actuator name="thruster_5" type="thruster">
+            <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
+            <propeller diameter="0.2" right="true">
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
+                <material name="Polyamid"/>
+                <look name="PaleBlue"/>
+            </propeller>
+            <rotor_dynamics type="zero_order"/>
+            <thrust_model type="deadband">
+                <thrust_coeff forward="0.000371" reverse="0.000297"/>
+                <deadband lower="-47.0" upper="39.2"/>
+            </thrust_model>
+            <origin xyz="-0.0570 0.2950 0.0620" rpy="0 3.141592654 0"/>
+            <link name="Base"/>
+        </actuator>
+
+        <actuator name="thruster_6" type="thruster">
+            <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
+            <propeller diameter="0.2" right="true">
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
+                <material name="Polyamid"/>
+                <look name="PaleBlue"/>
+            </propeller>
+            <rotor_dynamics type="zero_order"/>
+            <thrust_model type="deadband">
+                <thrust_coeff forward="0.000371" reverse="0.000297"/>
+                <deadband lower="-47.0" upper="39.2"/>
+            </thrust_model>
+            <origin xyz="0.1320 0.2950 0.0620" rpy="0 3.141592654 0"/>
+            <link name="Base"/>
+        </actuator>
+
+        <actuator name="thruster_7" type="thruster">
+            <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
+            <propeller diameter="0.2" right="true">
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
+                <material name="Polyamid"/>
+                <look name="PaleBlue"/>
+            </propeller>
+            <rotor_dynamics type="zero_order"/>
+            <thrust_model type="deadband">
+                <thrust_coeff forward="0.000371" reverse="0.000297"/>
+                <deadband lower="-47.0" upper="39.2"/>
+            </thrust_model>
+            <origin xyz="0.2720 0.2670 -0.0540" rpy="-1.570796327 0 0.7853981634"/>
+            <link name="Base"/>
+        </actuator>
+        
+		<ros_subscriber thrusters="controller/thruster_setpoint"/> 
+		<ros_publisher thrusters="controller/thruster_state"/>
+
         <world_transform xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
     </robot>
 
