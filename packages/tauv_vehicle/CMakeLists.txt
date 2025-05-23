@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.31)
 project(tauv_vehicle)
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
+if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(-Wall -Wextra -Wpedantic)
+endif ()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
@@ -45,10 +45,10 @@ set(SCHEMA_FILES
 )
 # List expected output headers for dependency tracking
 set(GENERATED_HEADERS "")
-foreach(SCHEMA ${SCHEMA_FILES})
-  get_filename_component(SCHEMA_NAME ${SCHEMA} NAME_WE)
-  list(APPEND GENERATED_HEADERS "${GENERATED_INCLUDES_DIR}/${SCHEMA_NAME}_generated.h")
-endforeach()
+foreach (SCHEMA ${SCHEMA_FILES})
+    get_filename_component(SCHEMA_NAME ${SCHEMA} NAME_WE)
+    list(APPEND GENERATED_HEADERS "${GENERATED_INCLUDES_DIR}/${SCHEMA_NAME}_generated.h")
+endforeach ()
 #file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
 message(${SCHEMA_FILES})
 add_custom_command(
@@ -67,51 +67,53 @@ add_custom_command(
 
 add_custom_target(generate_flatbuffers_headers ALL DEPENDS ${GENERATED_HEADERS})
 
+# Executables
 add_executable(rtvc src/rtvc.cpp ${GENERATED_HEADERS})
 
 add_dependencies(rtvc generate_flatbuffers_headers)
 
 target_include_directories(rtvc PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-  ${CMAKE_CURRENT_BINARY_DIR}/fb/include)
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+        ${CMAKE_CURRENT_BINARY_DIR}/fb/include)
 
 target_compile_features(rtvc PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
 ament_target_dependencies(
-  rtvc
-  "rclcpp"
-  "rclpy"
-  "std_msgs"
-  "tauv_msgs"
-  "sensor_msgs"
+        rtvc
+        "rclcpp"
+        "rclpy"
+        "std_msgs"
+        "tauv_msgs"
+        "sensor_msgs"
 )
 
 # Install executables
 install(TARGETS rtvc
-  DESTINATION lib/${PROJECT_NAME})
+        DESTINATION lib/${PROJECT_NAME})
 
 # Install generated headers
 install(
-  DIRECTORY ${GENERATED_INCLUDES_DIR}/
-  DESTINATION include/${PROJECT_NAME}/generated
+        DIRECTORY ${GENERATED_INCLUDES_DIR}/
+        DESTINATION include/${PROJECT_NAME}/generated
 )
 
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
-  scripts/waterlinked_dvl.py
-  DESTINATION lib/${PROJECT_NAME}
+        scripts/waterlinked_dvl.py
+        DESTINATION lib/${PROJECT_NAME}
 )
 
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
+if (BUILD_TESTING)
+    find_package(ament_lint_auto REQUIRED)
+    # the following line skips the linter which checks for copyrights
+    # comment the line when a copyright and license is added to all source files
+    set(ament_cmake_copyright_FOUND TRUE)
+    # the following line skips cpplint (only works in a git repo)
+    # comment the line when this package is in a git repo and when
+    # a copyright and license is added to all source files
+    set(ament_cmake_cpplint_FOUND TRUE)
+    ament_lint_auto_find_test_dependencies()
+endif ()
 
 ament_package()

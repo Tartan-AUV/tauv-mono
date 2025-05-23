@@ -104,7 +104,7 @@
         <actuator name="thruster_0" type="thruster">
             <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
             <propeller diameter="0.2" right="true">
-                <mesh filename="osprey/prop_cylinder.obj" scale="1.0"/>
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
                 <material name="Polyamid"/>
                 <look name="PaleBlue"/>
             </propeller>
@@ -120,7 +120,7 @@
         <actuator name="thruster_1" type="thruster">
             <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
             <propeller diameter="0.2" right="true">
-                <mesh filename="osprey/prop_cylinder.obj" scale="1.0"/>
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
                 <material name="Polyamid"/>
                 <look name="PaleBlue"/>
             </propeller>
@@ -136,7 +136,7 @@
         <actuator name="thruster_2" type="thruster">
             <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
             <propeller diameter="0.2" right="true">
-                <mesh filename="osprey/prop_cylinder.obj" scale="1.0"/>
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
                 <material name="Polyamid"/>
                 <look name="PaleBlue"/>
             </propeller>
@@ -152,7 +152,7 @@
         <actuator name="thruster_3" type="thruster">
             <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
             <propeller diameter="0.2" right="true">
-                <mesh filename="osprey/prop_cylinder.obj" scale="1.0"/>
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
                 <material name="Polyamid"/>
                 <look name="PaleBlue"/>
             </propeller>
@@ -168,7 +168,7 @@
         <actuator name="thruster_4" type="thruster">
             <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
             <propeller diameter="0.2" right="true">
-                <mesh filename="osprey/prop_cylinder.obj" scale="1.0"/>
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
                 <material name="Polyamid"/>
                 <look name="PaleBlue"/>
             </propeller>
@@ -184,7 +184,7 @@
         <actuator name="thruster_5" type="thruster">
             <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
             <propeller diameter="0.2" right="true">
-                <mesh filename="osprey/prop_cylinder.obj" scale="1.0"/>
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
                 <material name="Polyamid"/>
                 <look name="PaleBlue"/>
             </propeller>
@@ -200,7 +200,7 @@
         <actuator name="thruster_6" type="thruster">
             <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
             <propeller diameter="0.2" right="true">
-                <mesh filename="osprey/prop_cylinder.obj" scale="1.0"/>
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
                 <material name="Polyamid"/>
                 <look name="PaleBlue"/>
             </propeller>
@@ -216,7 +216,7 @@
         <actuator name="thruster_7" type="thruster">
             <specs max_setpoint="362.0" inverted_setpoint="false" normalized_setpoint="true"/>
             <propeller diameter="0.2" right="true">
-                <mesh filename="osprey/prop_cylinder.obj" scale="1.0"/>
+                <mesh filename="osprey/t200_prop_ccw.obj" scale="1.0"/>
                 <material name="Polyamid"/>
                 <look name="PaleBlue"/>
             </propeller>

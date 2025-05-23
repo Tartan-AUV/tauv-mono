@@ -4,3 +4,6 @@
 [submodule "packages/tauv_gnc/gtsam"]
 	path = packages/tauv_gnc/gtsam
 	url = https://github.com/borglab/gtsam.git
+[submodule "containers/arena-sdk"]
+	path = containers/arena-sdk
+	url = git@github.com:Tartan-AUV/arena-sdk.git
