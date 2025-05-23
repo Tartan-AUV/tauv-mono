@@ -7,3 +7,6 @@
 [submodule "containers/arena-sdk"]
 	path = containers/arena-sdk
 	url = git@github.com:Tartan-AUV/arena-sdk.git
+[submodule "packages/stonefish_ros2"]
+	path = packages/stonefish_ros2
+	url = https://github.com/patrykcieslak/stonefish_ros2.git
