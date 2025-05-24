@@ -70,6 +70,7 @@ void SimAdapter::pressure_callback(const sensor_msgs::msg::FluidPressure& msg) {
   result.depth = -1.0f;
   result.pressure = msg.fluid_pressure;
   result.temperature = external_temperature_;
+  result.header = msg.header;
 
   depth_publisher_->publish(result);
 }

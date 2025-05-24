@@ -67,6 +67,16 @@ void StateEstimator::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg) {
   Key key_bkm1 = Symbol('b', k_ - 1);
   Key key_bk = Symbol('b', k_);
 
+  auto t_k = rclcpp::Time(msg->header.stamp).seconds();
+
+  auto t_km1 = smoother_.timestamps().at(key_xkm1);
+  auto dt = t_k - t_km1;
+
+  if (dt <= 0.0) {
+    RCLCPP_WARN(get_logger(), "IMU measurement dt < 0.0, skipping.");
+    return;
+  }
+
   NavState xkm1 = smoother_.calculateEstimate<NavState>(key_xkm1);
   imuBias::ConstantBias bkm1 = smoother_.calculateEstimate<imuBias::ConstantBias>(key_bkm1);
 
@@ -82,12 +92,8 @@ void StateEstimator::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg) {
   new_values.insert(key_xk, xk_hat);
   new_values.insert(key_bk, bk_hat);
 
-  auto t_k = rclcpp::Time(msg->header.stamp).seconds();
   new_timestamps[key_xk] = t_k;
   new_timestamps[key_bk] = t_k;
-
-  auto t_km1 = smoother_.timestamps().at(key_xkm1);
-  auto dt = t_k - t_km1;
 
   auto z_acc = Vector3(msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
   auto z_omega = Vector3(msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
@@ -167,7 +173,7 @@ void StateEstimator::depth_callback(
   Expression<NavState> xk_expr(key_xk);
   Expression<double> depth_expr(depth_fn, xk_expr);
 
-  auto depth_noise = noiseModel::Isotropic::Sigma(1, std::sqrt(msg->variance));
+  auto depth_noise = noiseModel::Isotropic::Sigma(1, 1e-3);
 
   auto depth_factor = ExpressionFactor(depth_noise, msg->depth, depth_expr);
 
@@ -190,8 +196,13 @@ void StateEstimator::initialize_estimator(double init_depth,
     Velocity3(0.0, 0.0, 0.0)
   };
   Vector9 nav_state_sigmas;
-  nav_state_sigmas << prior_orientation_sigmas_, Vector3(0.0, 0.0, init_depth_var), prior_velocity_sigmas_;
-  auto nav_state_noise = noiseModel::Diagonal::Sigmas(nav_state_sigmas);
+  // nav_state_sigmas << prior_orientation_sigmas_, Vector3(1e-3, 1e-3, std::max(init_depth_var, 1e-3)), prior_velocity_sigmas_;
+  auto nav_state_noise = noiseModel::Isotropic::Sigma(9, 1e-3);
+  RCLCPP_INFO(get_logger(),
+            "bias sigmas = [%g %g %g %g %g %g]",
+            imu_bias_sigmas_[0], imu_bias_sigmas_[1],
+            imu_bias_sigmas_[2], imu_bias_sigmas_[3],
+            imu_bias_sigmas_[4], imu_bias_sigmas_[5]);
   auto bias_noise = noiseModel::Diagonal::Sigmas(imu_bias_sigmas_);
 
   double time = timestamp.seconds();
@@ -213,6 +224,8 @@ void StateEstimator::initialize_estimator(double init_depth,
   smoother_.update(new_factors, new_values, new_timestamps);
 
   ++k_;
+
+  std::cout << time << "\n";
 
   RCLCPP_INFO(get_logger(), "State estimator initialized with a depth prior.");
 

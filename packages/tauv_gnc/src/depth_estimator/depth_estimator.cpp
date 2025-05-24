@@ -34,6 +34,7 @@ void DepthEstimator::depth_sensor_frame_callback(
   }
 
   tauv_msgs::msg::Depth depth;
+  depth.header = msg.header;
   depth.depth = (msg.pressure - surface_pressure_) / (water_density_ * gravity_);
   depth.variance = variance_;
   depth_pub_->publish(depth);
