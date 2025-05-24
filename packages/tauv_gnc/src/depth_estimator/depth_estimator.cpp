@@ -18,6 +18,8 @@ DepthEstimator::DepthEstimator() : Node("depth_estimator") {
         this->reset_service_callback(request, response);
       });
 
+  this->depth_pub_ = this->create_publisher<tauv_msgs::msg::Depth>("depth", 10);
+
   surface_pressure_ = declare_parameter<double>("surface_pressure", 101325.0);
   water_density_ = declare_parameter<double>("water_density", 997.0);
   gravity_ = declare_parameter<double>("gravity", 9.81);

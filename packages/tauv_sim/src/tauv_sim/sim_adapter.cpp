@@ -16,7 +16,7 @@ SimAdapter::SimAdapter() : Node("sim_adapter") {
       this->create_subscription<sensor_msgs::msg::FluidPressure>(
           "sim/pressure", 10,
           std::bind(&SimAdapter::pressure_callback, this, _1));
-  depth_publisher_ = this->create_publisher<tauv_msgs::msg::DepthFrame>(
+  depth_publisher_ = this->create_publisher<tauv_msgs::msg::DepthSensorFrame>(
       "depth_sensor_frame", 10);
   thruster_setpoint_subscription_ =
       this->create_subscription<tauv_msgs::msg::RpmCommand>(
@@ -32,6 +32,9 @@ SimAdapter::SimAdapter() : Node("sim_adapter") {
 void SimAdapter::dvl_callback(const stonefish_ros2::msg::DVL& msg) {
   tauv_msgs::msg::WaterlinkedDvlFrame result;
   rclcpp::Time time_from_header(msg.header.stamp);
+
+  result.header = msg.header;
+
   if (last_dvl_reading_stamp.has_value()) {
     result.time = (time_from_header - last_dvl_reading_stamp.value()).seconds();
   } else {
@@ -63,7 +66,7 @@ void SimAdapter::dvl_callback(const stonefish_ros2::msg::DVL& msg) {
 }
 
 void SimAdapter::pressure_callback(const sensor_msgs::msg::FluidPressure& msg) {
-  tauv_msgs::msg::DepthFrame result;
+  tauv_msgs::msg::DepthSensorFrame result;
   result.depth = -1.0f;
   result.pressure = msg.fluid_pressure;
   result.temperature = external_temperature_;

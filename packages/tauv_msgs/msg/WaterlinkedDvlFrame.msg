@@ -1,4 +1,5 @@
 # WaterlinkedDvlFrame.msg
+std_msgs/Header header
 
 # Timestamp from the DVL device
 float64 time

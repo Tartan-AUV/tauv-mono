@@ -14,8 +14,11 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <tauv_msgs/msg/depth.hpp>
 #include <tauv_msgs/msg/waterlinked_dvl_frame.hpp>
+#include <tuple>
 
+#include "gtsam/navigation/ImuBias.h"
 #include "gtsam/navigation/PreintegrationParams.h"
+#include "gtsam/nonlinear/Expression.h"
 
 namespace gtsam {
 class PreintegratedImuMeasurements;
@@ -30,6 +33,7 @@ public:
   void depth_callback(tauv_msgs::msg::Depth::SharedPtr msg);
   void initialize_estimator(double init_depth, double init_depth_var,
                             const rclcpp::Time& timestamp);
+  void publish_odom(const gtsam::Vector3& omega);
 
 
   // ROS pubs and subs
@@ -43,16 +47,15 @@ public:
   double lag_;
   gtsam::Vector3 prior_orientation_sigmas_;
   gtsam::Vector3 prior_velocity_sigmas_;
-  gtsam::Vector6 prior_imu_bias_;
+  gtsam::imuBias::ConstantBias prior_imu_bias_;
   gtsam::Vector6 imu_bias_sigmas_;
   std::shared_ptr<gtsam::PreintegrationParams> imu_preint_params_;
   std::shared_ptr<gtsam::PreintegratedImuMeasurements> pim_;
+  double depth_diff_limit_; // todo: this should be reduced to < 1 / depth_sensor_rate
+  double dvl_diff_limit_;
 
   // FLS objects
   gtsam::IncrementalFixedLagSmoother smoother_;
-  gtsam::NonlinearFactorGraph graph_;
-  gtsam::Values values_;
-  gtsam::FixedLagSmoother::KeyTimestampMap timestamps_;
   uint64_t k_ = 0;
 
   // Estimator state
@@ -62,6 +65,11 @@ public:
     Count
   };
   EstimatorState state_;
+
+  // Utility functions
+  std::tuple<gtsam::Key, double> find_closest_timestamp(double query_t,
+                                                        char symbol);
+
 };
 
 
