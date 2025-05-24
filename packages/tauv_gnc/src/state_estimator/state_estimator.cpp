@@ -77,13 +77,28 @@ void StateEstimator::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg) {
     return;
   }
 
+  RCLCPP_DEBUG(get_logger(), "Inserting new state, t = %f", t_k);
+
   NavState xkm1 = smoother_.calculateEstimate<NavState>(key_xkm1);
+  RCLCPP_DEBUG(get_logger(), "xkm1 = [%f %f %f %f %f %f %f %f %f]",
+    xkm1.position().x(), xkm1.position().y(), xkm1.position().z(),
+    xkm1.attitude().roll(), xkm1.attitude().pitch(), xkm1.attitude().yaw(),
+    xkm1.velocity().x(), xkm1.velocity().y(), xkm1.velocity().z());
+
   imuBias::ConstantBias bkm1 = smoother_.calculateEstimate<imuBias::ConstantBias>(key_bkm1);
+  RCLCPP_DEBUG(get_logger(), "bkm1 = [%f %f %f %f %f %f]",
+    bkm1.accelerometer().x(), bkm1.accelerometer().y(), bkm1.accelerometer().z(),
+    bkm1.gyroscope().x(), bkm1.gyroscope().y(), bkm1.gyroscope().z());
 
   pim_->resetIntegrationAndSetBias(bkm1);
 
   NavState xk_hat = pim_->predict(xkm1, bkm1);
+  RCLCPP_DEBUG(get_logger(), "xk_hat = [%f %f %f %f %f %f %f %f %f]",
+    xk_hat.position().x(), xk_hat.position().y(), xk_hat.position().z(),
+    xk_hat.attitude().roll(), xk_hat.attitude().pitch(), xk_hat.attitude().yaw(),
+    xk_hat.velocity().x(), xk_hat.velocity().y(), xk_hat.velocity().z());
   imuBias::ConstantBias bk_hat = bkm1;
+  RCLCPP_DEBUG(get_logger(), "bk_hat = bkm1");
 
   NonlinearFactorGraph new_factors;
   Values new_values;
@@ -97,6 +112,9 @@ void StateEstimator::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg) {
 
   auto z_acc = Vector3(msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
   auto z_omega = Vector3(msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
+  RCLCPP_DEBUG(get_logger(), "z_acc = [%f, %f, %f]", z_acc.x(), z_acc.y(), z_acc.z());
+  RCLCPP_DEBUG(get_logger(), "z_omega = [%f, %f, %f]", z_omega.x(), z_omega.y(), z_omega.z());
+  RCLCPP_DEBUG(get_logger(), "dt = %f", dt);
 
   pim_->integrateMeasurement(z_acc, z_omega, dt);
 
@@ -109,7 +127,7 @@ void StateEstimator::imu_callback(const sensor_msgs::msg::Imu::SharedPtr msg) {
 
   auto bias_noise = noiseModel::Diagonal::Sigmas(imu_bias_sigmas_);
   new_factors.emplace_shared<BetweenFactor<imuBias::ConstantBias>>(
-    Symbol('b', k_), Symbol('b', k_ - 1), imuBias::ConstantBias(), bias_noise
+    Symbol('b', k_ - 1), Symbol('b', k_), imuBias::ConstantBias(), bias_noise
   );
 
   auto result = smoother_.update(new_factors, new_values, new_timestamps);
@@ -196,16 +214,19 @@ void StateEstimator::initialize_estimator(double init_depth,
     Velocity3(0.0, 0.0, 0.0)
   };
   Vector9 nav_state_sigmas;
+  RCLCPP_DEBUG(get_logger(), "Initializing the estimator");
   // nav_state_sigmas << prior_orientation_sigmas_, Vector3(1e-3, 1e-3, std::max(init_depth_var, 1e-3)), prior_velocity_sigmas_;
+  RCLCPP_DEBUG(get_logger(), "Nav state sigma: [1e-3] * 9");
   auto nav_state_noise = noiseModel::Isotropic::Sigma(9, 1e-3);
-  RCLCPP_INFO(get_logger(),
-            "bias sigmas = [%g %g %g %g %g %g]",
+  RCLCPP_DEBUG(get_logger(),
+            "Bias sigmas = [%g %g %g %g %g %g]",
             imu_bias_sigmas_[0], imu_bias_sigmas_[1],
             imu_bias_sigmas_[2], imu_bias_sigmas_[3],
             imu_bias_sigmas_[4], imu_bias_sigmas_[5]);
   auto bias_noise = noiseModel::Diagonal::Sigmas(imu_bias_sigmas_);
 
   double time = timestamp.seconds();
+  RCLCPP_DEBUG(get_logger(), "Init time: %f", time);
 
   Key key_x0 = Symbol('x', k_);
   Key key_b0 = Symbol('b', k_);
@@ -224,8 +245,6 @@ void StateEstimator::initialize_estimator(double init_depth,
   smoother_.update(new_factors, new_values, new_timestamps);
 
   ++k_;
-
-  std::cout << time << "\n";
 
   RCLCPP_INFO(get_logger(), "State estimator initialized with a depth prior.");
 

@@ -10,3 +10,6 @@
 [submodule "packages/stonefish_ros2"]
 	path = packages/stonefish_ros2
 	url = https://github.com/patrykcieslak/stonefish_ros2.git
+[submodule "third-party/stonefish"]
+	path = third-party/stonefish
+	url = https://github.com/patrykcieslak/stonefish.git
