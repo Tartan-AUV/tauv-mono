@@ -75,11 +75,10 @@
         </base_link> 
         <sensor name="imu" type="imu" rate="100.0">
             <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-            <link name="Base"/>
-        </sensor>
-        <sensor name="imu" type="imu" rate="100.0">
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <range angular_velocity="7.85 7.85 7.85" linear_acceleration="20.0"/>
             <ros_publisher topic="sim/imu"/>
+            <!-- Noise for MTi-200 assuming raw sampling rate of 100 Hz -->
+            <noise angle="0.0 0.0 0.0" angular_velocity="0.00175" yaw_drift="0.0" linear_acceleration="0.00589"/>
             <link name="Base"/>
         </sensor>
         <sensor name="dvl" rate="7.0" type="dvl">

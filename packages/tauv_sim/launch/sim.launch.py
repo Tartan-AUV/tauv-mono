@@ -18,9 +18,9 @@ def generate_launch_description():
                     join(pkg_share, 'data'),
                     join(pkg_share, 'scenarios/osprey_irvine.scn'),
                     '300',
-                    '2000',
-                    '2000',
-                    'high'
+                    '500',
+                    '500',
+                    'low'
                 ],
                 remappings=[
                     ('sim/imu', 'sensors/imu')

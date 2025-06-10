@@ -6,8 +6,11 @@
 #define STATEESTIMATION_H
 
 #include <gtsam/geometry/Rot3.h>
-#include <gtsam/nonlinear/IncrementalFixedLagSmoother.h>
+#include <gtsam/nonlinear/ISAM2.h>
 #include <gtsam/nonlinear/NonlinearFactorGraph.h>
+#include <gtsam/navigation/ImuBias.h>
+#include <gtsam/navigation/CombinedImuFactor.h>
+#include <gtsam/nonlinear/Expression.h>
 
 #include <nav_msgs/msg/odometry.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -15,14 +18,10 @@
 #include <tauv_msgs/msg/depth.hpp>
 #include <tauv_msgs/msg/waterlinked_dvl_frame.hpp>
 #include <tuple>
+#include <map>
 
-#include "gtsam/navigation/ImuBias.h"
-#include "gtsam/navigation/PreintegrationParams.h"
-#include "gtsam/nonlinear/Expression.h"
+using namespace gtsam;
 
-namespace gtsam {
-class PreintegratedImuMeasurements;
-}
 class StateEstimator final : public rclcpp::Node {
 public:
   StateEstimator();
@@ -33,8 +32,7 @@ public:
   void depth_callback(tauv_msgs::msg::Depth::SharedPtr msg);
   void initialize_estimator(double init_depth, double init_depth_var,
                             const rclcpp::Time& timestamp);
-  void publish_odom(const gtsam::Vector3& omega);
-
+  void publish_odom(const Vector3& omega);
 
   // ROS pubs and subs
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
@@ -43,20 +41,22 @@ public:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odometry_pub_;
 
   // configurable parameters
-  std::shared_ptr<gtsam::ISAM2Params> isam_params_;
-  double lag_;
-  gtsam::Vector3 prior_orientation_sigmas_;
-  gtsam::Vector3 prior_velocity_sigmas_;
-  gtsam::imuBias::ConstantBias prior_imu_bias_;
-  gtsam::Vector6 imu_bias_sigmas_;
-  std::shared_ptr<gtsam::PreintegrationParams> imu_preint_params_;
-  std::shared_ptr<gtsam::PreintegratedImuMeasurements> pim_;
+  std::shared_ptr<ISAM2Params> isam_params_;
+  Vector3 prior_orientation_sigmas_;
+  Vector3 prior_velocity_sigmas_;
+  imuBias::ConstantBias prior_imu_bias_;
+  std::shared_ptr<PreintegratedCombinedMeasurements::Params> preint_params_;
+  std::shared_ptr<PreintegratedCombinedMeasurements> preint_measurements_;
   double depth_diff_limit_; // todo: this should be reduced to < 1 / depth_sensor_rate
   double dvl_diff_limit_;
 
-  // FLS objects
-  gtsam::IncrementalFixedLagSmoother smoother_;
+  // ISAM2 objects
+  ISAM2 isam_;
   uint64_t k_ = 0;
+  double last_update_time_ = 0.0;  // Time of last state update (when DVL measurement arrived)
+  double last_imu_time_ = 0.0;     // Time of last IMU measurement for dt calculation
+  std::map<uint64_t, double> key_timestamps_;  // Map from key to timestamp
+  Vector3 last_imu_omega_ = Vector3::Zero();  // Most recent IMU angular velocity
 
   // Estimator state
   enum class EstimatorState {
@@ -67,11 +67,7 @@ public:
   EstimatorState state_;
 
   // Utility functions
-  std::tuple<gtsam::Key, double> find_closest_timestamp(double query_t,
-                                                        char symbol);
-
+  Key find_closest_key(double query_t);
 };
-
-
 
 #endif //STATEESTIMATION_H
