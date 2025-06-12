@@ -33,7 +33,7 @@ def generate_launch_description():
                     name='robot_state_publisher',
                     parameters=[{
                         'robot_description': robot_desc,
-                        'tf_prefix': 'os'
+                        'tf_prefix': ''
                     }],
                     arguments=['--ros-args', '--log-level', log_level],
                     output='screen'
@@ -42,6 +42,9 @@ def generate_launch_description():
                     package='tauv_gnc',
                     executable='state_estimator',
                     name='state_estimator',
+                    parameters=[{
+                        'frame_prefix': ''
+                    }],
                     remappings=[
                         ('imu', '/os/sensors/imu'),
                         ('dvl', '/os/sensors/dvl'),

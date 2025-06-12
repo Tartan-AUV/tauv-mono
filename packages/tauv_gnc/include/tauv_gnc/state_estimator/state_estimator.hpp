@@ -17,6 +17,9 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <tauv_msgs/msg/depth.hpp>
 #include <tauv_msgs/msg/waterlinked_dvl_frame.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 #include <tuple>
 #include <map>
 
@@ -66,8 +69,23 @@ public:
   };
   EstimatorState state_;
 
+  // Priors
+  Pose3 prior_pose_;
+  Vector3 prior_velocity_;
+  imuBias::ConstantBias prior_bias_;
+
   // Utility functions
   Key find_closest_key(double query_t);
+
+  // Transform helper functions
+  Vector3 transform_dvl_velocity(const Vector3& dvl_velocity, const rclcpp::Time& timestamp);
+  double transform_depth(double depth_value, const rclcpp::Time& timestamp);
+  std::string get_frame_name(const std::string& base_frame);
+
+  // TF2 for sensor frame transformations
+  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  std::string frame_prefix_;
 };
 
 #endif //STATEESTIMATION_H

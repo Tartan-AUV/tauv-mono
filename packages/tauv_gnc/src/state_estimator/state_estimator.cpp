@@ -6,16 +6,28 @@
 
 #include "gtsam/geometry/Pose3.h"
 #include "gtsam/inference/Symbol.h"
+#include "gtsam/inference/Ordering.h"
 #include "gtsam/navigation/CombinedImuFactor.h"
 #include "gtsam/navigation/NavState.h"
 #include "gtsam/nonlinear/ExpressionFactor.h"
 #include "gtsam/nonlinear/Marginals.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+#include "geometry_msgs/msg/vector3_stamped.hpp"
+#include <Eigen/Eigenvalues>
+#include <sstream>
 
 using symbol_shorthand::B;  // Bias  (ax,ay,az,gx,gy,gz)
 using symbol_shorthand::X;  // NavState (x,y,z,r,p,y)
 using symbol_shorthand::V;  // Velocity (vx,vy,vz)
 
 StateEstimator::StateEstimator() : Node("state_estimator") {
+  // Declare frame prefix parameter
+  frame_prefix_ = declare_parameter<std::string>("frame_prefix", "");
+  
+  // Initialize TF2
+  tf_buffer_ = std::make_unique<tf2_ros::Buffer>(get_clock());
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+  
   // ROS subscribers and publishers
   imu_sub_ = create_subscription<sensor_msgs::msg::Imu>(
       "imu", 10,
@@ -222,11 +234,23 @@ void StateEstimator::dvl_callback(
   RCLCPP_INFO(get_logger(), "Added IMU factor connecting keys: X(%lu), V(%lu), X(%lu), V(%lu), B(%lu), B(%lu)",
     k_-1, k_-1, k_, k_, k_-1, k_);
 
+  Pose3 x_km1;
+  Vector3 v_km1;
+  imuBias::ConstantBias b_km1;
   // Get the previous state estimate
-  Values current_estimate = isam_.calculateEstimate();
-  auto x_km1 = current_estimate.at<Pose3>(X(k_ - 1));
-  auto v_km1 = current_estimate.at<Vector3>(V(k_ - 1));
-  auto b_km1 = current_estimate.at<imuBias::ConstantBias>(B(k_ - 1));
+  if (k_ <= 1) {
+    // Take priors
+    x_km1 = prior_pose_;
+    v_km1 = prior_velocity_;
+    b_km1 = prior_bias_;
+  } else {
+    // Get the previous state estimate
+    auto current_estimate = isam_.calculateEstimate();
+    x_km1 = current_estimate.at<Pose3>(X(k_ - 1));
+    v_km1 = current_estimate.at<Vector3>(V(k_ - 1));
+    b_km1 = current_estimate.at<imuBias::ConstantBias>(B(k_ - 1));
+  }
+
   auto navstate_km1 = NavState(x_km1, v_km1);
 
   RCLCPP_INFO(get_logger(), "Previous state X(%lu): pos=[%f, %f, %f], rot=[%f, %f, %f, %f]", 
@@ -286,7 +310,15 @@ void StateEstimator::dvl_callback(
 
   auto dvl_noise = noiseModel::Gaussian::Covariance(cov);
   auto dvl_z = Vector3(msg->vx, msg->vy, msg->vz);
-  auto dvl_factor = ExpressionFactor<Vector3>(dvl_noise, dvl_z, dvl_expr);
+  
+  // Transform DVL velocity from DVL frame to base_link frame
+  auto dvl_z_transformed = transform_dvl_velocity(dvl_z, rclcpp::Time(msg->header.stamp));
+  
+  RCLCPP_INFO(get_logger(), "DVL measurement (DVL frame): [%f, %f, %f]", dvl_z.x(), dvl_z.y(), dvl_z.z());
+  RCLCPP_INFO(get_logger(), "DVL measurement (base_link frame): [%f, %f, %f]", 
+    dvl_z_transformed.x(), dvl_z_transformed.y(), dvl_z_transformed.z());
+  
+  auto dvl_factor = ExpressionFactor<Vector3>(dvl_noise, dvl_z_transformed, dvl_expr);
   new_factors.add(dvl_factor);
 
   RCLCPP_INFO(get_logger(), "Added DVL factor connecting keys: X(%lu), V(%lu)", k_, k_);
@@ -301,13 +333,162 @@ void StateEstimator::dvl_callback(
   RCLCPP_INFO(get_logger(), "Existing factors: %lu", existing_factors.size());
   RCLCPP_INFO(get_logger(), "New factors: %lu", new_factors.size());
   
+  // DEBUG: Analyze linear system before calling calculateEstimate()
+  try {
+    RCLCPP_INFO(get_logger(), "=== LINEAR SYSTEM ANALYSIS ===");
+    
+    // Get current linearization point
+    auto linearization_point = isam_.getLinearizationPoint();
+    RCLCPP_INFO(get_logger(), "Variables in linearization point: %lu", linearization_point.size());
+    
+    // Print variables in linearization point
+    for (const auto& key_value : linearization_point) {
+      RCLCPP_INFO(get_logger(), "Variable key: %lu", key_value.key);
+    }
+    
+    // Linearize the factor graph
+    auto linear_graph = existing_factors.linearize(linearization_point);
+    RCLCPP_INFO(get_logger(), "Linearized factor graph size: %lu", linear_graph->size());
+    
+    // Create an ordering for the linear system
+    auto ordering = Ordering::Colamd(*linear_graph);
+    RCLCPP_INFO(get_logger(), "Variable ordering (COLAMD):");
+    for (size_t i = 0; i < ordering.size(); ++i) {
+      auto key = Symbol(ordering[i]);
+      RCLCPP_INFO(get_logger(), "Position %lu: Variable key %c_%lu", i, key.chr(), key.index());
+    }
+    
+    // Get Jacobian matrix A and RHS vector b such that the system is A*x = b
+    auto jacobian_pair = linear_graph->jacobian(ordering);
+    Matrix jacobian_A = jacobian_pair.first;
+    Vector jacobian_b = jacobian_pair.second;
+
+    // Print Jacobian matrix values
+    RCLCPP_INFO(get_logger(), "=== Jacobian Matrix Values ===");
+    for (int i = 0; i < jacobian_A.rows(); ++i) {
+      std::stringstream row_values;
+      row_values << "Row " << i << ": ";
+      for (int j = 0; j < jacobian_A.cols(); ++j) {
+        row_values << jacobian_A(i,j) << " ";
+      }
+      RCLCPP_INFO(get_logger(), "%s", row_values.str().c_str());
+    }
+    
+    // Print RHS vector values
+    RCLCPP_INFO(get_logger(), "=== RHS Vector Values ===");
+    for (int i = 0; i < jacobian_b.size(); ++i) {
+      RCLCPP_INFO(get_logger(), "b[%d] = %f", i, jacobian_b(i));
+    }
+
+    RCLCPP_INFO(get_logger(), "Jacobian matrix A size: %d x %d", jacobian_A.rows(), jacobian_A.cols());
+    RCLCPP_INFO(get_logger(), "RHS vector b size: %d", jacobian_b.size());
+    
+    // Check for zero rows/columns in Jacobian
+    int zero_rows = 0;
+    int zero_cols = 0;
+    for (int i = 0; i < jacobian_A.rows(); ++i) {
+      if (jacobian_A.row(i).norm() < 1e-12) zero_rows++;
+    }
+    for (int j = 0; j < jacobian_A.cols(); ++j) {
+      if (jacobian_A.col(j).norm() < 1e-12) zero_cols++;
+    }
+    RCLCPP_INFO(get_logger(), "Near-zero rows in Jacobian A: %d, Near-zero cols: %d", zero_rows, zero_cols);
+
+    
+    
+    // Get Hessian matrix Lambda and information vector eta such that cost = 0.5*x'*Lambda*x + eta'*x + const
+    auto hessian_pair = linear_graph->hessian(ordering);
+    Matrix hessian_Lambda = hessian_pair.first;
+    Vector hessian_eta = hessian_pair.second;
+    
+    RCLCPP_INFO(get_logger(), "Hessian matrix Lambda size: %d x %d", hessian_Lambda.rows(), hessian_Lambda.cols());
+    RCLCPP_INFO(get_logger(), "Information vector eta size: %d", hessian_eta.size());
+    
+    // Check Hessian properties
+    double hessian_determinant = hessian_Lambda.determinant();
+    RCLCPP_INFO(get_logger(), "Hessian determinant: %e", hessian_determinant);
+    
+    // Check eigenvalues of Hessian for positive definiteness
+    Eigen::SelfAdjointEigenSolver<Matrix> eigen_solver(hessian_Lambda);
+    auto eigenvalues = eigen_solver.eigenvalues();
+    double min_eigenvalue = eigenvalues.minCoeff();
+    double max_eigenvalue = eigenvalues.maxCoeff();
+    double condition_number = max_eigenvalue / std::max(std::abs(min_eigenvalue), 1e-12);
+    
+    RCLCPP_INFO(get_logger(), "Hessian eigenvalues - Min: %e, Max: %e", min_eigenvalue, max_eigenvalue);
+    RCLCPP_INFO(get_logger(), "Condition number: %e", condition_number);
+    
+    // Count negative eigenvalues
+    int negative_eigenvalues = 0;
+    int near_zero_eigenvalues = 0;
+    for (int i = 0; i < eigenvalues.size(); ++i) {
+      if (eigenvalues(i) < -1e-10) negative_eigenvalues++;
+      else if (std::abs(eigenvalues(i)) < 1e-8) near_zero_eigenvalues++;
+    }
+    
+    RCLCPP_INFO(get_logger(), "Negative eigenvalues: %d, Near-zero eigenvalues: %d", 
+                negative_eigenvalues, near_zero_eigenvalues);
+    
+    if (min_eigenvalue <= 0) {
+      RCLCPP_WARN(get_logger(), "DETECTED: Hessian is not positive definite! (min eigenvalue: %e)", min_eigenvalue);
+    }
+    if (condition_number > 1e12) {
+      RCLCPP_WARN(get_logger(), "DETECTED: System is poorly conditioned! (condition number: %e)", condition_number);
+    }
+    if (near_zero_eigenvalues > 0) {
+      RCLCPP_WARN(get_logger(), "DETECTED: System has near-zero eigenvalues indicating underconstrained variables!");
+    }
+    if (zero_cols > 0) {
+      RCLCPP_WARN(get_logger(), "DETECTED: Jacobian has zero columns indicating unconstrained variables!");
+    }
+    
+    // Print small Jacobian matrix if it's small enough
+    if (jacobian_A.rows() <= 20 && jacobian_A.cols() <= 20) {
+      RCLCPP_INFO(get_logger(), "=== JACOBIAN MATRIX A ===");
+      std::stringstream ss_A;
+      ss_A << jacobian_A;
+      RCLCPP_INFO(get_logger(), "Jacobian A:\n%s", ss_A.str().c_str());
+      
+      RCLCPP_INFO(get_logger(), "=== RHS VECTOR b ===");
+      std::stringstream ss_b;
+      ss_b << jacobian_b.transpose();
+      RCLCPP_INFO(get_logger(), "RHS b: %s", ss_b.str().c_str());
+    }
+    
+    // Print small Hessian matrix if it's small enough  
+    if (hessian_Lambda.rows() <= 10 && hessian_Lambda.cols() <= 10) {
+      RCLCPP_INFO(get_logger(), "=== HESSIAN MATRIX Lambda ===");
+      std::stringstream ss_Lambda;
+      ss_Lambda << hessian_Lambda;
+      RCLCPP_INFO(get_logger(), "Hessian Lambda:\n%s", ss_Lambda.str().c_str());
+      
+      RCLCPP_INFO(get_logger(), "=== INFORMATION VECTOR eta ===");
+      std::stringstream ss_eta;
+      ss_eta << hessian_eta.transpose();
+      RCLCPP_INFO(get_logger(), "Information eta: %s", ss_eta.str().c_str());
+    }
+    
+    // Print eigenvalues for debugging
+    if (eigenvalues.size() <= 20) {
+      RCLCPP_INFO(get_logger(), "=== HESSIAN EIGENVALUES ===");
+      std::stringstream ss_eigvals;
+      ss_eigvals << eigenvalues.transpose();
+      RCLCPP_INFO(get_logger(), "Eigenvalues: %s", ss_eigvals.str().c_str());
+    }
+    
+    RCLCPP_INFO(get_logger(), "=== END LINEAR SYSTEM ANALYSIS ===");
+    
+  } catch (const std::exception& e) {
+    RCLCPP_ERROR(get_logger(), "Error during linear system analysis: %s", e.what());
+  }
+  
   auto existing_values = isam_.calculateEstimate();
   RCLCPP_INFO(get_logger(), "Existing variables: %lu", existing_values.size());
   RCLCPP_INFO(get_logger(), "New variables: %lu", new_values.size());
 
   // Evaluate the DVL factor error at linearization point
   Vector3 dvl_prediction = x_k_hat.rotation().transpose() * v_k_hat;
-  Vector3 dvl_error = dvl_prediction - dvl_z;
+  Vector3 dvl_error = dvl_prediction - dvl_z_transformed;
   RCLCPP_INFO(get_logger(), "DVL factor error at linearization point: [%f, %f, %f]", 
     dvl_error.x(), dvl_error.y(), dvl_error.z());
   RCLCPP_INFO(get_logger(), "DVL predicted (body frame): [%f, %f, %f]", 
@@ -334,8 +515,9 @@ void StateEstimator::dvl_callback(
   // Reset IMU time tracking for next preintegration period
   last_imu_time_ = 0.0;
 
-  // Publish latest state estimate using last known IMU angular velocity
-  publish_odom(last_imu_omega_);
+  RCLCPP_INFO(get_logger(), "Reset preintegrator with bias: acc=[%f, %f, %f], gyro=[%f, %f, %f]",
+    b_k_hat.accelerometer().x(), b_k_hat.accelerometer().y(), b_k_hat.accelerometer().z(),
+    b_k_hat.gyroscope().x(), b_k_hat.gyroscope().y(), b_k_hat.gyroscope().z());
 
   ++k_;
 }
@@ -343,7 +525,13 @@ void StateEstimator::dvl_callback(
 void StateEstimator::depth_callback(
     const tauv_msgs::msg::Depth::SharedPtr msg) {
   if (state_ == EstimatorState::AWAITING_PRIOR) {
-    initialize_estimator(msg->depth, msg->variance, msg->header.stamp);
+    // Transform depth from depth sensor frame to base_link frame
+    double transformed_depth = transform_depth(msg->depth, rclcpp::Time(msg->header.stamp));
+    
+    RCLCPP_INFO(get_logger(), "Depth measurement (depth frame): %f", msg->depth);
+    RCLCPP_INFO(get_logger(), "Depth measurement (base_link frame): %f", transformed_depth);
+    
+    initialize_estimator(transformed_depth, msg->variance, msg->header.stamp);
   }
 }
 
@@ -366,7 +554,12 @@ void StateEstimator::initialize_estimator(double init_depth,
   auto T_prior = Pose3(R_prior, r_prior);
   auto v_prior = Vector3(0.0, 0.0, 0.0);
   auto b_prior = prior_imu_bias_;
-
+  
+  // Store prior values as member variables
+  prior_pose_ = T_prior;
+  prior_velocity_ = v_prior;
+  prior_bias_ = b_prior;
+  
   RCLCPP_INFO(get_logger(), "Prior pose: pos=[%f, %f, %f], rot=Identity", r_prior.x(), r_prior.y(), r_prior.z());
   RCLCPP_INFO(get_logger(), "Prior velocity: [%f, %f, %f]", v_prior.x(), v_prior.y(), v_prior.z());
   RCLCPP_INFO(get_logger(), "Prior bias: acc=[%f, %f, %f], gyro=[%f, %f, %f]",
@@ -472,6 +665,67 @@ void StateEstimator::publish_odom(const Vector3& omega) {
       odom.twist.covariance[i*6+j] = (i<3&&j<3) ? v_k_cov(i,j) : 0.0;
 
   odometry_pub_->publish(odom);
+}
+
+std::string StateEstimator::get_frame_name(const std::string& base_frame) {
+  if (frame_prefix_.empty()) {
+    return base_frame;
+  }
+  return frame_prefix_ + "/" + base_frame;
+}
+
+Vector3 StateEstimator::transform_dvl_velocity(const Vector3& dvl_velocity, const rclcpp::Time& timestamp) {
+  try {
+    std::string base_link_frame = get_frame_name("base_link");
+    std::string dvl_frame = get_frame_name("dvl");
+    
+    // Get transform from dvl frame to base_link
+    geometry_msgs::msg::TransformStamped transform = tf_buffer_->lookupTransform(
+      base_link_frame, dvl_frame, timestamp, rclcpp::Duration::from_nanoseconds(50000000)); // 50ms timeout
+    
+    // Create velocity vector in dvl frame
+    geometry_msgs::msg::Vector3Stamped dvl_vel_msg;
+    dvl_vel_msg.header.frame_id = dvl_frame;
+    dvl_vel_msg.header.stamp = timestamp;
+    dvl_vel_msg.vector.x = dvl_velocity.x();
+    dvl_vel_msg.vector.y = dvl_velocity.y();
+    dvl_vel_msg.vector.z = dvl_velocity.z();
+    
+    // Transform to base_link frame
+    geometry_msgs::msg::Vector3Stamped base_vel_msg;
+    tf2::doTransform(dvl_vel_msg, base_vel_msg, transform);
+    
+    return Vector3(base_vel_msg.vector.x, base_vel_msg.vector.y, base_vel_msg.vector.z);
+    
+  } catch (tf2::TransformException& ex) {
+    RCLCPP_WARN(get_logger(), "Could not transform DVL velocity: %s", ex.what());
+    // Return the original velocity if transform fails
+    return dvl_velocity;
+  }
+}
+
+double StateEstimator::transform_depth(double depth_value, const rclcpp::Time& timestamp) {
+  try {
+    std::string base_link_frame = get_frame_name("base_link");
+    std::string depth_frame = get_frame_name("depth");
+    
+    // Get transform from depth frame to base_link
+    geometry_msgs::msg::TransformStamped transform = tf_buffer_->lookupTransform(
+      base_link_frame, depth_frame, timestamp, rclcpp::Duration::from_nanoseconds(50000000)); // 50ms timeout
+    
+    // For depth, we primarily care about the Z-offset between frames
+    // The depth sensor measures distance, but we need to account for its offset from base_link
+    double depth_offset_z = transform.transform.translation.z;
+    
+    // Adjust depth by the Z-offset (positive Z is up in ROS convention)
+    // If depth sensor is below base_link (negative Z), the actual depth at base_link is less
+    return depth_value - depth_offset_z;
+    
+  } catch (tf2::TransformException& ex) {
+    RCLCPP_WARN(get_logger(), "Could not transform depth measurement: %s", ex.what());
+    // Return the original depth if transform fails
+    return depth_value;
+  }
 }
 
 int main(int argc, char* argv[]) {
