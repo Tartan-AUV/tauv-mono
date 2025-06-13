@@ -1,5 +1,6 @@
 from arena_api.system import system
 from arena_api.buffer import *
+import arena_api
 
 import ctypes
 import numpy as np
@@ -12,7 +13,7 @@ from cv_bridge import CvBridge, CvBridgeError
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy   
 from sensor_msgs.msg import Image
 
-import site
+import vpi
 
 TAB1 = "  "
 TAB2 = "    "
@@ -46,18 +47,27 @@ def create_devices_with_tries(logger):
 
 
 
-def setup(device):
+def setup(device, binning_dims):
     """
     Setup stream dimensions and stream nodemap
         num_channels changes based on the PixelFormat
         Mono 8 would has 1 channel, RGB8 has 3 channels
 
+        device: the device (camera in this context)
+        binning_dims: the dimensions (height, width) of binning 
+
     """
     nodemap = device.nodemap
+    print(nodemap)
     nodes = nodemap.get_node(['Width', 'Height', 'PixelFormat', 
                               'AcquisitionFrameRateEnable', 'AcquisitionFrameRate', 
                               'TransmissionFrameRate', 'AcquisitionMode', 'DeviceStreamChannelPacketSize',
-                              'GainSelector', 'Gain', 'GainAuto', 'ExposureAuto', 'ExposureTime', 'GevSCPD', "DeviceLinkThroughputReserve","TCPEnable"]) # "ExposureTime"])
+                              'BinningHorizontal', 'BinningVertical', 'BinningSelector',
+                              'BinningHorizontalMode', 'BinningVerticalMode', "TransportStreamProtocol"])
+
+    # Stopping image stream
+    device.stop_stream()
+ 
     if (not nodes['Width'].is_writable) : 
         raise Exception("FUCK")
 
@@ -72,21 +82,45 @@ def setup(device):
     if (not nodes['DeviceStreamChannelPacketSize'].is_writable):
         raise Exception("asdf")
     else:
+        # nodes['DeviceStreamChannelPacketSize'].value = 8192
         nodes['DeviceStreamChannelPacketSize'].value = 9000
+
+    # nodes['Height'].value = 758
+    # nodes['Width'].value = 1328
+
+    
+
+    nodes['BinningSelector'].value = 'Digital'
+    nodes['BinningHorizontalMode'].value = 'Sum'
+    nodes['BinningVerticalMode'].value = 'Sum'
+
+    if (not nodes['BinningVertical'].is_writable):
+        raise Exception("Binning Vertical Not Writable")
+    else:
+        nodes['BinningVertical'].value = 1 #binning_dims[0]
+        print("Did binning")
+    if (not nodes['BinningHorizontal'].is_writable):
+        raise Exception("Binning Horizontal Not Writable")
+    else:
+        nodes['BinningHorizontal'].value = 1 #binning_dims[1]
+        print("Did binning")
+
+    print(nodes['PixelFormat'])
+    print(nodes['BinningVertical'])
     nodes['Width'].value = 5320
     nodes['Height'].value = 3032
+
+
+
     nodes['PixelFormat'].value = 'RGB8'
     nodes['AcquisitionFrameRateEnable'].value = True
-    nodes['AcquisitionFrameRate'].value = 1.0
+    nodes['AcquisitionFrameRate'].value = 10.0
+    # nodes['source /opt/ros/humble/setup.bash'].value = 10.0
     nodes['AcquisitionMode'].value = "Continuous"
-    nodes['TCPEnable'].value = True
-    nodes['GevSCPD'].value = 0
-    nodes['DeviceLinkThroughputReserve'].value = 0
-    nodes['ExposureAuto'].value = "Off"
-    nodes['ExposureTime'].value = 20000.0
-    print(nodes['GainAuto'])
-    print(nodes['GainSelector'])
-    nodes['Gain'] = 45.0
+
+    nodes['TransportStreamProtocol'].value = "TCP"
+    # print(nodes['GigEVision'])
+    # print(nodes['GigEVision'].is_writable)
 
     num_channels = 3
 
@@ -96,6 +130,10 @@ def setup(device):
     tl_stream_nodemap["StreamBufferHandlingMode"].value = "NewestOnly"
     tl_stream_nodemap['StreamAutoNegotiatePacketSize'].value = True
     tl_stream_nodemap['StreamPacketResendEnable'].value = True
+
+
+    # Restart Stream
+    #device.start_stream()
 
     return num_channels
 
@@ -107,38 +145,57 @@ def get_device(desired_ip):
 
 class LucidNode(Node):
     
-
     def __init__(self):
         super().__init__('lucid')
         self._bridge = CvBridge()
+        
+        self.declare_parameter('camera_ip', '10.0.2.11')
+        self.declare_parameter('topic_name', '/image_raw')
+        
+        self.declare_parameter('horizontal_binning', 2)
+        self.declare_parameter('vertical_binning', 2)
+
+
+        self.camera_ip = self.get_parameter('camera_ip').get_parameter_value().string_value
+        self.topic_name = self.get_parameter('topic_name').get_parameter_value().string_value
+
+        self.horizontal_binning = self.get_parameter('horizontal_binning').get_parameter_value().integer_value
+        self.vertical_binning = self.get_parameter('vertical_binning').get_parameter_value().integer_value
+
         qos_profile = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
             durability=DurabilityPolicy.VOLATILE,
             depth=10
         )
-        self._image_pub = self.create_publisher(Image, '/image_raw', qos_profile=qos_profile)
-        self._image_pub_small = self.create_publisher(Image, '/image_raw_small', qos_profile=qos_profile)
-        self.get_logger().info("Lucid Node Initialized.")
+        
+        self._image_pub = self.create_publisher(Image, self.topic_name, qos_profile=qos_profile,)
+        self.get_logger().info(f"Lucid Node Initialized with Camera IP: {self.camera_ip} and Topic: {self.topic_name}")
+
 
     def callback(self):
         pass
         
 
 
-    def start(self, device_ip):
+    def start(self):
         # devices = create_devices_with_tries(self.get_logger())
-        self.get_logger().info(f'{system.device_infos}')
+
+        backend = vpi.Backend.VIC
+
+        device_ip = self.camera_ip
         device = get_device(device_ip)
         if device is None:
             raise Exception(f"Device with ip {device_ip} not found")
+
+        # binning dimensionis (height, width)
+        binning_dims = (self.vertical_binning, self.horizontal_binning)
         
-        num_channels = setup(device)
+        num_channels = setup(device, binning_dims)
 
         curr_frame_time = 0
         prev_frame_time = 0
 
         with device.start_stream():
-
             while True:
                 curr_frame_time = time.time()
                 buffer = device.get_buffer()
@@ -147,26 +204,35 @@ class LucidNode(Node):
                 array = (ctypes.c_ubyte * num_channels * item.width * item.height).from_address(ctypes.addressof(item.pbytes))
                 cvframe = np.ndarray(buffer=array, dtype=np.uint8, shape=(item.height, item.width, buffer_bytes_per_pixel))
 
-                fps = str(1 / (curr_frame_time - prev_frame_time))
+                vpi_frame = vpi.asimage(cvframe)
+                
+                with backend:
+                    temp = vpi_frame.convert(vpi.Format.NV12_ER, backend=vpi.Backend.CUDA)
+                    temp = temp.rescale((vpi_frame.width//int(self.horizontal_binning), vpi_frame.height//int(self.vertical_binning)))
+                    output = temp.convert(vpi.Format.RGB8, backend=vpi.Backend.CUDA)
+                
+                output_frame = output.cpu()
+
+                fps = str(1/(curr_frame_time - prev_frame_time))
                 self.get_logger().info(f'FPS {fps}')
+                adj_width = output_frame.shape[1]
+                adj_height = output_frame.shape[0]
+                self.get_logger().info(f'Image Size ({adj_width},{adj_height})')
+                
 
+                # # ------------------------------------
+               
+                # # Publish image
                 try:
-                    # Publish original image
-                    img_msg = self._bridge.cv2_to_imgmsg(cvframe, encoding="rgb8")
+                    img_msg = self._bridge.cv2_to_imgmsg(output_frame, encoding="rgb8")
                     self._image_pub.publish(img_msg)
-
-                    # Downscale image
-                    height, width = cvframe.shape[:2]
-                    downscaled = cv2.resize(cvframe, (width // 20, height // 20), interpolation=cv2.INTER_AREA)
-                    img_msg_small = self._bridge.cv2_to_imgmsg(downscaled, encoding="rgb8")
-                    self._image_pub_small.publish(img_msg_small)
-
-                    self.get_logger().info("Published original and downscaled images.")
+                    self.get_logger().info("Published Image :D")
                 except CvBridgeError as e:
-                    self.get_logger().error(f"Image conversion error: {e}")
-
+                    self.get_logger().info(f"Lucid Frame Error: {e}")
+                # Destory copied item to prevent memory leak
                 device.requeue_buffer(item)
                 prev_frame_time = curr_frame_time
+                
 
             device.stop_stream()
             cv2.destroyAllWindows()
@@ -177,11 +243,9 @@ class LucidNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     node = LucidNode()
-    device_ip = "10.0.2.11"
-    node.start(device_ip)
-    rclpy.spin=()
-    node.destroy_node()
-    rclpy.shutdown()
+    node.start()
+    rclpy.spin()
+    # TODO: FIX THIS
 
 if __name__ == "__main__":
     main()

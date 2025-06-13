@@ -101,6 +101,7 @@ install(
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
         scripts/waterlinked_dvl.py
+        scripts/lucid.py
         DESTINATION lib/${PROJECT_NAME}
 )
 
