@@ -16,9 +16,9 @@
 [submodule "third-party/manif"]
 	path = third-party/manif
 	url = https://github.com/artivis/manif.git
-[submodule "src/ros2_rust"]
-	path = src/ros2_rust
-	url = https://github.com/ros2-rust/ros2_rust.git
 [submodule "packages/ros2_rust"]
 	path = packages/ros2_rust
+	url = https://github.com/ros2-rust/ros2_rust.git
+[submodule "ros_ws/src/ros2_rust"]
+	path = ros_ws/src/ros2_rust
 	url = https://github.com/ros2-rust/ros2_rust.git
