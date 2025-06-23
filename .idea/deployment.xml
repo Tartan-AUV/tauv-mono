@@ -1,37 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="os" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+  <component name="PublishConfigData" autoUpload="Always" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
-    <serverData>
-      <paths name="kf">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/tartanauv/tauv-mono" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-          <excludedPaths>
-            <excludedPath local="true" path="$PROJECT_DIR$/devel" />
-            <excludedPath local="true" path="$PROJECT_DIR$/build" />
-            <excludedPath local="true" path="$PROJECT_DIR$/packages/tauv_sim" />
-            <excludedPath local="true" path="$PROJECT_DIR$/packages/tauv_sim_gazebo_plugins" />
-            <excludedPath local="true" path="$PROJECT_DIR$/packages/uuv_simulator" />
-            <excludedPath local="true" path="$PROJECT_DIR$/packages/tauv_sim_worlds" />
-            <excludedPath local="true" path="$PROJECT_DIR$/logs" />
-            <excludedPath local="true" path="$PROJECT_DIR$/.venv" />
-          </excludedPaths>
-        </serverdata>
-      </paths>
-      <paths name="os">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/tauv/tauv-mono" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-          <excludedPaths>
-            <excludedPath local="true" path="firmware" />
-            <excludedPath local="true" path=".github" />
-          </excludedPaths>
-        </serverdata>
-      </paths>
-    </serverData>
     <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>

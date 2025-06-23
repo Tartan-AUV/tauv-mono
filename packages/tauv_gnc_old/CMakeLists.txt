@@ -9,6 +9,9 @@ add_subdirectory(gtsam)
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
+find_package(tauv_common REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(manif REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
@@ -23,28 +26,45 @@ find_package(geometry_msgs REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(state_estimator
-        src/state_estimator/state_estimator.cpp
-)
+# Executable definitions
 add_executable(depth_estimator
         src/depth_estimator/depth_estimator.cpp
 )
-
-add_dependencies(state_estimator gtsam)
-
-target_include_directories(state_estimator PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/state_estimation>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+add_executable(state_estimator
+        src/state_estimator/state_estimator.cpp
 )
+add_executable(state_estimator_ekf
+        src/state_estimator/state_estimator_ekf.cpp
+)
+
+# Include directories
 target_include_directories(depth_estimator PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
 )
+target_include_directories(state_estimator PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/state_estimator>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+)
+target_include_directories(state_estimator_ekf PUBLIC
+        ${tauv_common_INCLUDE_DIRS}
+        ${EIGEN3_INCLUDE_DIRS}
+        ${manif_INCLUDE_DIRS}
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/state_estimator>
+        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+)
 
-target_compile_features(state_estimator PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_compile_features(depth_estimator PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+# Dependencies
+add_dependencies(state_estimator gtsam)
 
+# Ament dependencies
+ament_target_dependencies(depth_estimator
+        "rclcpp"
+        "std_msgs"
+        "tauv_msgs"
+        "std_srvs"
+)
 ament_target_dependencies(
         state_estimator
         "rclcpp"
@@ -58,20 +78,33 @@ ament_target_dependencies(
         "tf2_geometry_msgs"
         "geometry_msgs"
 )
-ament_target_dependencies(depth_estimator
+ament_target_dependencies(
+        state_estimator_ekf
         "rclcpp"
+        "rclpy"
         "std_msgs"
         "tauv_msgs"
-        "std_srvs"
+        "nav_msgs"
+        "sensor_msgs"
+        "tf2"
+        "tf2_ros"
+        "tf2_geometry_msgs"
+        "geometry_msgs"
 )
 
+# Compile features
+target_compile_features(depth_estimator PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(state_estimator PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_compile_features(state_estimator_ekf PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+# Linking
 target_link_libraries(state_estimator gtsam)
+target_link_libraries(state_estimator_ekf tauv_common)
 
 # Install executables
 install(TARGETS state_estimator depth_estimator
         DESTINATION lib/${PROJECT_NAME})
 
-# ENABLE FOR PYTHON
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
         DESTINATION lib/${PROJECT_NAME}
