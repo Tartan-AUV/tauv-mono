@@ -1,36 +1,26 @@
 #![allow(non_snake_case)]
 
+use std::collections::BTreeMap;
 use std::ops::Deref;
 use std::sync::{Arc, Mutex, mpsc};
+use std::sync::mpsc::Receiver;
 use std::thread;
 use std::thread::sleep;
 use std::time::Duration;
+use chrono::{DateTime, TimeDelta, Utc};
 use rclrs::*;
 use sensor_msgs::msg::Imu;
 use nav_msgs::msg::Odometry;
-use tauv_msgs::msg::Depth as DepthMsg;
+use tauv_msgs::msg::{Depth as DepthMsg, Depth};
 use tauv_msgs::msg::WaterlinkedDvlFrame as DvlMsg;
-// Add the transform listener module
 use tauv_gnc::util::transform_listener::{TransformBuffer, TransformError, TransformListener};
-use tauv_gnc::util::geometry::SE3Adjoint;
+use tauv_gnc::util::conversion::*;
+use tauv_gnc::util::geometry::*;
+use tauv_gnc::util::types::*;
 
 use nalgebra as na;
-use nalgebra::{stack, MatrixView, SVector, VectorView, U3};
-use rclrs::RclrsError::RclError;
-
-// TODO move out of here and write a macro for this shit
-type Vector3 = na::Vector3<f64>;
-type Vector6 = na::Vector6<f64>;
-type Matrix3 = na::Matrix3<f64>;
-type Matrix6 = na::Matrix6<f64>;
-type Matrix3x6 = na::Matrix3x6<f64>;
-type Matrix6x3 = na::Matrix6x3<f64>;
-type Rotation = na::Rotation3<f64>;
-type Isometry = na::Isometry3<f64>;
-type Quaternion = na::UnitQuaternion<f64>;
-
-type DvlMeasurement = Vector3;
-type DepthMeasurement = f64;
+use nalgebra::{stack, MatrixView, Rotation3, SVector, VectorView, U3};
+use crate::EkfInput::Dvl;
 
 struct EkfControl {
     odom_R_body: Rotation,
@@ -38,6 +28,17 @@ struct EkfControl {
     omega_body_B: Vector3,
 }
 
+impl EkfControl {
+    fn try_from_msg(msg: &Imu) -> Result<Self, MessageConversionError> {
+        Ok(Self {
+            odom_R_body: Rotation::try_from_msg(&msg.orientation)?,
+            a_body_B: Vector3::from_msg(msg.linear_acceleration.clone()),
+            omega_body_B: Vector3::from_msg(msg.angular_velocity.clone()),
+        })
+    }
+}
+
+#[derive(Clone, Debug)]
 struct EkfState {
     data: Vector6
 }
@@ -60,33 +61,10 @@ impl EkfState {
     }
 }
 
+use Matrix6 as EkfCov;
+
 impl Deref for EkfState {
     type Target = Vector6;
-    fn deref(&self) -> &Self::Target {
-        &self.data
-    }
-}
-
-struct EkfCov {
-    data: Matrix6
-}
-
-impl EkfCov {
-    pub fn uniform(sigma_r: f64, sigma_v: f64) -> Self {
-        let (var_r, var_v) = (sigma_r.powi(2), sigma_v.powi(2));
-        let diag = Vector6::new(var_r, var_r, var_r, var_v, var_v, var_v);
-        Self {
-            data: Matrix6::from_diagonal(&diag)
-        }
-    }
-
-    pub fn new(data: Matrix6) -> Self {
-        Self { data }
-    }
-}
-
-impl Deref for EkfCov {
-    type Target = Matrix6;
     fn deref(&self) -> &Self::Target {
         &self.data
     }
@@ -104,6 +82,32 @@ struct EkfParams {
     body_frame: Arc<str>,
     dvl_frame: Arc<str>,
     depth_frame: Arc<str>,
+}
+
+struct EkfStaticTransforms {
+    r_body_depth_B: Vector3,
+    body_T_dvl: Isometry,
+}
+
+struct DvlInput {
+    v_dvl_V: Vector3,
+    R: Matrix3
+}
+
+struct DepthInput {
+    z: f64,
+    R: f64,
+}
+
+enum EkfInput {
+    Imu(DateTime<Utc>, EkfControl),
+    Dvl(DateTime<Utc>, DvlInput),
+    Depth(DateTime<Utc>, DepthInput),
+}
+
+enum EkfObservation {
+    Dvl(DateTime<Utc>, DvlInput),
+    Depth(DateTime<Utc>, DepthInput),
 }
 
 struct Ekf {
@@ -155,27 +159,45 @@ impl Ekf {
         let dr_dv = I3 * dt;
         let F = na::stack![ I3, dr_dv;
                             0, I3 ];
-        let Pk = F * **Pkm1 * F.transpose();
-        EkfCov::new(Pk)
+        let Pk = F * *Pkm1 * F.transpose();
+        Pk
     }
 
-    pub fn h_dvl(&self, xk: &EkfState, uk: &EkfControl) -> DvlMeasurement {
+    pub fn update<const D: usize>(
+        &self,
+        xk_hat: &EkfState,
+        Pk_hat: &EkfCov,
+        zk: &na::SVector<f64, D>,
+        Rk: &na::SMatrix<f64, D, D>,
+        zk_hat: &na::SVector<f64, D>,
+        H: &na::SMatrix<f64, D, 6>,
+    ) -> Result<(EkfState, EkfCov), String>
+    {
+        let yk_hat = zk - zk_hat;
+        let Sk = H * Pk_hat * H.transpose() + Rk;
+        
+        let Sk_inv = Sk.try_inverse();
+        if Sk_inv.is_none() { return Err("Sk singular".to_string()); }
+        let Sk_inv = Sk_inv.unwrap();
+        
+        let Kk = Pk_hat * H.transpose() * Sk_inv;
+        let xk = xk_hat.data + Kk * yk_hat;
+        let Pk = (Matrix6::identity() - Kk * H) * Pk_hat;
+        Ok((EkfState { data: xk }, Pk))
+    }
+
+    pub fn h_dvl(&self, xk: &EkfState, uk: &EkfControl) -> Vector3 {
         let v_body_B = uk.odom_R_body.inverse() * xk.v_body_O();
         let xi_body_B = na::stack![ v_body_B; uk.omega_body_B ];
         let v_dvl_V = (self.Ad_dvl_T_body * xi_body_B).fixed_rows::<3>(0).into_owned();
         v_dvl_V
     }
 
-    pub fn h_depth(&self, xk: &EkfState, uk: &EkfControl) -> DepthMeasurement {
+    pub fn h_depth(&self, xk: &EkfState, uk: &EkfControl) -> f64 {
         let r_body_depth_O = uk.odom_R_body * self.r_body_depth_B;
         let r_odom_depth_O = xk.r_body_O() + r_body_depth_O;
         r_odom_depth_O[2]
     }
-}
-
-struct EkfStaticTransforms {
-    r_body_depth_B: Vector3,
-    body_T_dvl: Isometry,
 }
 
 fn lookup_static_transforms(tf_buffer: &TransformBuffer, params: &EkfParams) -> Result<EkfStaticTransforms, ()> {
@@ -268,16 +290,154 @@ fn wait_for_static_transforms(node: &Node, params: &EkfParams) -> Result<EkfStat
     }
 }
 
+enum Event {
+    Imu(EkfControl, EkfState, EkfCov),
+    Dvl(DvlInput, EkfState, EkfCov),
+    Depth(DepthInput, EkfState, EkfCov),
+}
+
+
+struct EkfHistory {
+    map: BTreeMap<DateTime<Utc>, Event>,
+    last_dvl_t: DateTime<Utc>,
+    last_depth_t: DateTime<Utc>,
+    last_imu_t: DateTime<Utc>,
+}
+
+impl EkfHistory {
+    pub fn try_new(
+        t_depth: DateTime::<Utc>,
+        t_dvl: DateTime::<Utc>,
+        t_imu: DateTime::<Utc>,
+        depth: DepthInput,
+        dvl: DvlInput,
+        imu: EkfControl,
+        params: &EkfParams,
+    ) -> Result<Self, String> {
+
+        let max_dt= TimeDelta::from_std(Duration::from_millis(200)).unwrap();
+
+        if max_dt < (t_depth - t_dvl).abs() || max_dt < (t_depth - t_imu).abs() ||
+            max_dt < (t_imu - t_dvl).abs() {
+            return Err("shit".to_string())
+        }
+
+        // TODO: use IMU and DVL inputs for state init
+        let state = EkfState::new(&Vector3::new(0.0, 0.0, depth.z), &Vector3::zeros());
+        let var_r = params.initial_position_stddev_m.powi(2);
+        let var_v = params.initial_velocity_stddev_mps.powi(2);
+        let cov = Matrix6::from_diagonal(&na::vector![var_r, var_r, depth.R, var_v, var_v, var_v]);
+
+        let mut map = BTreeMap::new();
+
+        map.insert(t_depth, Event::Depth(depth, state.clone(), cov));
+        map.insert(t_dvl, Event::Dvl(dvl, state.clone(), cov));
+        map.insert(t_imu, Event::Imu(imu, state.clone(), cov));
+
+        Ok(Self {
+            map,
+            last_depth_t: t_depth,
+            last_dvl_t: t_dvl,
+            last_imu_t: t_imu,
+        })
+    }
+}
+
+fn run_ekf(rx: Receiver<EkfInput>, node: Arc<Node>, ekf: Ekf, params: EkfParams) -> Result<(), RclrsError> {
+    println!("EKF processing thread started, waiting for first depth measurement...");
+    
+    // Prior
+    let mut depth_input_stamped = None;
+    let mut dvl_input_stamped = None;
+    let mut imu_input_stamped = None;
+
+    // We wait for all inputs to come in. This has the added benefit that we won't start the EKF
+    // until the DVL begins streaming.
+    while depth_input_stamped.is_none() || imu_input_stamped.is_none() ||
+        dvl_input_stamped.is_none() {
+        match rx.recv() {
+            Ok(measurement) => match measurement {
+                EkfInput::Depth(t, depth_input) => {
+                    depth_input_stamped = Some((t, depth_input))
+                }
+                EkfInput::Imu(t, imu_input) => {
+                    imu_input_stamped = Some((t, imu_input));
+                }
+                EkfInput::Dvl(t, dvl_input) => {
+                    dvl_input_stamped = Some((t, dvl_input));
+                }
+            }
+            Err(_) => {
+                println!("Channel closed while waiting for initial measurements");
+                return Ok(());
+            }
+        }
+    }
+
+    let (t_depth, depth_input) = depth_input_stamped.unwrap();
+    let (t_dvl, dvl_input) = dvl_input_stamped.unwrap();
+    let (t_imu, imu_input) = imu_input_stamped.unwrap();
+    let mut history = EkfHistory::try_new(
+        t_depth,
+        t_dvl,
+        t_imu,
+        depth_input,
+        dvl_input,
+        imu_input,
+        &params,
+    );
+
+    // Create odometry publisher
+    let odom_pub = node.create_publisher::<Odometry>("odom")?;
+
+    Ok(())
+}
+
 fn main() -> Result<(), RclrsError> {
     let context = Context::default_from_env()?;
     let mut executor = context.create_basic_executor();
 
+    // Init node from parameters and wait for transforms
     let (node, params) = initialize_ekf_node(&executor)?;
     let static_transforms = wait_for_static_transforms(&node, &params)?;
     let ekf = Ekf::new(&params, &static_transforms);
 
+    // Subscriptions
+    let (tx, rx) = mpsc::channel::<EkfInput>();
+    let tx_clone = tx.clone();
+    node.create_subscription("imu", move |msg: Imu| {
+        let _ = tx_clone.send(EkfInput::Imu(
+            DateTime::<Utc>::from_msg(&msg.header.stamp),
+            EkfControl::try_from_msg(&msg).unwrap()
+        ));
+    })?;
+    let tx_clone = tx.clone();
+    node.create_subscription("depth", move |msg: Depth| {
+        let _ = tx_clone.send(EkfInput::Depth (
+            DateTime::<Utc>::from_msg(&msg.header.stamp),
+            DepthInput { z: msg.depth, R: msg.variance }
+        ));
+    })?;
+    let tx_clone = tx.clone();
+    node.create_subscription("dvl", move |msg: DvlMsg| {
+        let _ = tx_clone.send(EkfInput::Dvl (
+            DateTime::<Utc>::from_msg(&msg.header.stamp),
+            DvlInput { v_dvl_V: Vector3::new(msg.vx, msg.vy, msg.vz), R: Matrix3::from_msg(&msg.covariance)  }
+        ));
+    })?;
+
+    // Spawn processing thread
+    let node_arc = Arc::new(node);
+    let processing_thread = thread::spawn(move || {
+        run_ekf(rx, node_arc, ekf, params).unwrap();
+    });
+
     println!("State estimator EKF node started");
 
     executor.spin(SpinOptions::default()).first_error()?;
+    
+    // Wait for processing thread to finish
+    let _ = processing_thread.join();
+    
     Ok(())
 }
