@@ -291,7 +291,7 @@ fn wait_for_static_transforms(node: &Node, params: &EkfParams) -> Result<EkfStat
 }
 
 enum Event {
-    Imu(EkfControl, EkfState, EkfCov),
+    Imu(EkfControl),
     Dvl(DvlInput, EkfState, EkfCov),
     Depth(DepthInput, EkfState, EkfCov),
 }
@@ -332,7 +332,7 @@ impl EkfHistory {
 
         map.insert(t_depth, Event::Depth(depth, state.clone(), cov));
         map.insert(t_dvl, Event::Dvl(dvl, state.clone(), cov));
-        map.insert(t_imu, Event::Imu(imu, state.clone(), cov));
+        map.insert(t_imu, Event::Imu(imu));
 
         Ok(Self {
             map,
@@ -340,6 +340,7 @@ impl EkfHistory {
             last_dvl_t: t_dvl,
             last_imu_t: t_imu,
         })
+    
     }
 }
 
@@ -386,7 +387,7 @@ fn run_ekf(rx: Receiver<EkfInput>, node: Arc<Node>, ekf: Ekf, params: EkfParams)
         imu_input,
         &params,
     );
-
+    
     // Create odometry publisher
     let odom_pub = node.create_publisher::<Odometry>("odom")?;
 
@@ -440,4 +441,378 @@ fn main() -> Result<(), RclrsError> {
     let _ = processing_thread.join();
     
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nalgebra as na;
+    use chrono::{DateTime, Utc, TimeZone};
+    use approx::assert_relative_eq;
+
+    // Helper function to create test parameters
+    fn create_test_params() -> EkfParams {
+        EkfParams {
+            initial_position_stddev_m: 0.01,
+            initial_velocity_stddev_mps: 0.1,
+            process_noise_density_pos: 0.001,
+            process_noise_density_vel: 0.001,
+            gravity: 9.81,
+            history_length: 20,
+            body_frame: "body".into(),
+            dvl_frame: "dvl".into(),
+            depth_frame: "depth".into(),
+        }
+    }
+
+    // Helper function to create test static transforms
+    fn create_test_transforms() -> EkfStaticTransforms {
+        // DVL is 0.5m below and 0.2m forward of body center
+        let body_T_dvl = Isometry::new(
+            Vector3::new(0.2, 0.0, 0.5),
+            Vector3::zeros() // No rotation for simplicity
+        );
+        
+        // Depth sensor is 0.1m above body center
+        let r_body_depth_B = Vector3::new(0.0, 0.0, -0.1);
+        
+        EkfStaticTransforms {
+            r_body_depth_B,
+            body_T_dvl,
+        }
+    }
+
+    #[test]
+    fn test_ekf_params_initialization() {
+        let params = create_test_params();
+        
+        assert_eq!(params.initial_position_stddev_m, 0.01);
+        assert_eq!(params.initial_velocity_stddev_mps, 0.1);
+        assert_eq!(params.process_noise_density_pos, 0.001);
+        assert_eq!(params.process_noise_density_vel, 0.001);
+        assert_eq!(params.gravity, 9.81);
+        assert_eq!(params.history_length, 20);
+        assert_eq!(&*params.body_frame, "body");
+        assert_eq!(&*params.dvl_frame, "dvl");
+        assert_eq!(&*params.depth_frame, "depth");
+    }
+
+    #[test]
+    fn test_ekf_initialization() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // Check that gravity vector is correct
+        assert_relative_eq!(ekf.a_g_O, Vector3::new(0.0, 0.0, params.gravity));
+        
+        // Check process noise covariance matrix
+        let expected_qc_diag = Vector6::new(
+            params.process_noise_density_pos.powi(2),
+            params.process_noise_density_pos.powi(2),
+            params.process_noise_density_pos.powi(2),
+            params.process_noise_density_vel.powi(2),
+            params.process_noise_density_vel.powi(2),
+            params.process_noise_density_vel.powi(2),
+        );
+        assert_relative_eq!(ekf.Qc.diagonal(), expected_qc_diag);
+        
+        // Check that transforms are stored correctly
+        assert_relative_eq!(ekf.r_body_depth_B, transforms.r_body_depth_B);
+        assert_relative_eq!(ekf.body_T_dvl, transforms.body_T_dvl);
+    }
+
+    #[test]
+    fn test_ekf_predict_stationary() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // Initial state: at origin, stationary
+        let x0 = EkfState::new(&Vector3::zeros(), &Vector3::zeros());
+        
+        // Control input: no acceleration or rotation, body aligned with odom
+        let u = EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::zeros(),
+            omega_body_B: Vector3::zeros(),
+        };
+        
+        let dt = 0.1;
+        let x1 = ekf.predict(&x0, &u, dt);
+        
+        // Should remain at origin with zero velocity
+        assert_relative_eq!(x1.r_body_O().into_owned(), Vector3::zeros(), epsilon = 1e-10);
+        assert_relative_eq!(x1.v_body_O().into_owned(), Vector3::zeros(), epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_ekf_predict_constant_velocity() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // Initial state: at origin, moving at 1 m/s in x direction
+        let v0 = Vector3::new(1.0, 0.0, 0.0);
+        let x0 = EkfState::new(&Vector3::zeros(), &v0);
+        
+        // Control input: no acceleration
+        let u = EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::zeros(),
+            omega_body_B: Vector3::zeros(),
+        };
+        
+        let dt = 0.5;
+        let x1 = ekf.predict(&x0, &u, dt);
+        
+        // Position should be velocity * time
+        assert_relative_eq!(x1.r_body_O().into_owned(), Vector3::new(0.5, 0.0, 0.0), epsilon = 1e-10);
+        // Velocity should remain constant
+        assert_relative_eq!(x1.v_body_O().into_owned(), v0, epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_ekf_predict_with_acceleration() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // Initial state: at origin, stationary
+        let x0 = EkfState::new(&Vector3::zeros(), &Vector3::zeros());
+        
+        // Control input: 2 m/s² acceleration in body x direction
+        let u = EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::new(2.0, 0.0, 0.0),
+            omega_body_B: Vector3::zeros(),
+        };
+        
+        let dt = 1.0;
+        let x1 = ekf.predict(&x0, &u, dt);
+        
+        // Position: 0.5 * a * t²
+        assert_relative_eq!(x1.r_body_O().into_owned(), Vector3::new(1.0, 0.0, 0.0), epsilon = 1e-10);
+        // Velocity: a * t
+        assert_relative_eq!(x1.v_body_O().into_owned(), Vector3::new(2.0, 0.0, 0.0), epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_h_dvl_stationary() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // State: stationary at origin
+        let x = EkfState::new(&Vector3::zeros(), &Vector3::zeros());
+        
+        // Control: no rotation
+        let u = EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::zeros(),
+            omega_body_B: Vector3::zeros(),
+        };
+        
+        let v_dvl = ekf.h_dvl(&x, &u);
+        
+        // DVL should measure zero velocity
+        assert_relative_eq!(v_dvl, Vector3::zeros(), epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_h_dvl_linear_motion() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // State: moving at 1 m/s in odom x direction
+        let x = EkfState::new(&Vector3::zeros(), &Vector3::new(1.0, 0.0, 0.0));
+        
+        // Control: no rotation
+        let u = EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::zeros(),
+            omega_body_B: Vector3::zeros(),
+        };
+        
+        let v_dvl = ekf.h_dvl(&x, &u);
+        
+        // Since DVL is aligned with body (no rotation in transform), 
+        // it should measure the same velocity
+        assert_relative_eq!(v_dvl, Vector3::new(1.0, 0.0, 0.0), epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_h_dvl_with_angular_velocity() {
+        let params = create_test_params();
+        // Create transforms with DVL offset from body center
+        let body_T_dvl = Isometry::new(
+            Vector3::new(1.0, 0.0, 0.0), // DVL is 1m forward of body center
+            Vector3::zeros()
+        );
+        let transforms = EkfStaticTransforms {
+            r_body_depth_B: Vector3::zeros(),
+            body_T_dvl,
+        };
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // State: stationary
+        let x = EkfState::new(&Vector3::zeros(), &Vector3::zeros());
+        
+        // Control: rotating at 1 rad/s about z axis
+        let u = EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::zeros(),
+            omega_body_B: Vector3::new(0.0, 0.0, 1.0),
+        };
+        
+        let v_dvl = ekf.h_dvl(&x, &u);
+        
+        // DVL should measure tangential velocity due to rotation
+        // v = ω × r = [0, 0, 1] × [1, 0, 0] = [0, 1, 0]
+        assert_relative_eq!(v_dvl, Vector3::new(0.0, 1.0, 0.0), epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_h_depth() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // State: at depth of 5m (positive z is down)
+        let x = EkfState::new(&Vector3::new(0.0, 0.0, 5.0), &Vector3::zeros());
+        
+        // Control: no rotation
+        let u = EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::zeros(),
+            omega_body_B: Vector3::zeros(),
+        };
+        
+        let depth = ekf.h_depth(&x, &u);
+        
+        // Depth sensor is 0.1m above body center, so it should read 4.9m
+        assert_relative_eq!(depth, 4.9, epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_h_depth_with_rotation() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // State: at origin
+        let x = EkfState::new(&Vector3::zeros(), &Vector3::zeros());
+        
+        // Control: pitched 90 degrees (nose down)
+        let u = EkfControl {
+            odom_R_body: Rotation::from_axis_angle(&Vector3::y_axis(), std::f64::consts::FRAC_PI_2),
+            a_body_B: Vector3::zeros(),
+            omega_body_B: Vector3::zeros(),
+        };
+        
+        let depth = ekf.h_depth(&x, &u);
+        
+        // When pitched 90 degrees nose down, the depth sensor (0.1m above body in body frame)
+        // becomes 0.1m forward in odom frame, so depth should still be 0
+        assert_relative_eq!(depth, 0.0, epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_predict_covariance() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // Initial covariance
+        let P0 = Matrix6::identity();
+        
+        let dt = 0.1;
+        let P1 = ekf.predict_cov(&P0, dt);
+        
+        // Check that uncertainty in position increased due to velocity uncertainty
+        assert!(P1[(0, 0)] > P0[(0, 0)]);
+        assert!(P1[(1, 1)] > P0[(1, 1)]);
+        assert!(P1[(2, 2)] > P0[(2, 2)]);
+        
+        // Check cross-correlation between position and velocity
+        assert_relative_eq!(P1[(0, 3)], dt, epsilon = 1e-10);
+        assert_relative_eq!(P1[(1, 4)], dt, epsilon = 1e-10);
+        assert_relative_eq!(P1[(2, 5)], dt, epsilon = 1e-10);
+    }
+
+    #[test]
+    fn test_update_with_dvl() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // Prior state: moving at 1 m/s in x, but with high uncertainty
+        let x_prior = EkfState::new(&Vector3::zeros(), &Vector3::new(1.0, 0.0, 0.0));
+        let P_prior = Matrix6::identity() * 10.0; // High uncertainty
+        
+        // DVL measurement: 0.8 m/s in x (slightly different from prior)
+        let z_dvl = Vector3::new(0.8, 0.0, 0.0);
+        let R_dvl = Matrix3::identity() * 0.01; // Low measurement noise
+        
+        // Expected measurement based on prior
+        let u = EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::zeros(),
+            omega_body_B: Vector3::zeros(),
+        };
+        let z_expected = ekf.h_dvl(&x_prior, &u);
+        
+        // Measurement Jacobian for DVL (assuming no rotation and aligned frames)
+        let H_dvl = ekf.F_dvl;
+        
+        let (x_post, P_post) = ekf.update(&x_prior, &P_prior, &z_dvl, &R_dvl, &z_expected, &H_dvl)
+            .expect("Update should succeed");
+        
+        // Posterior velocity should be closer to measurement
+        assert!(
+            (x_post.v_body_O()[0] - 0.8).abs() < (x_prior.v_body_O()[0] - 0.8).abs()
+        );
+        
+        // Posterior covariance should be smaller
+        assert!(P_post[(3, 3)] < P_prior[(3, 3)]);
+    }
+
+    #[test]
+    fn test_update_with_depth() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        // Prior state: at 5m depth with high uncertainty
+        let x_prior = EkfState::new(&Vector3::new(0.0, 0.0, 5.0), &Vector3::zeros());
+        let P_prior = Matrix6::identity() * 10.0;
+        
+        // Depth measurement: 4.5m
+        let z_depth = na::SVector::<f64, 1>::new(4.5);
+        let R_depth = na::SMatrix::<f64, 1, 1>::new(0.01);
+        
+        // Expected measurement
+        let u = EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::zeros(),
+            omega_body_B: Vector3::zeros(),
+        };
+        let z_expected = na::SVector::<f64, 1>::new(ekf.h_depth(&x_prior, &u));
+        
+        // Measurement Jacobian for depth (only sensitive to z position)
+        let H_depth = na::SMatrix::<f64, 1, 6>::new(0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        
+        let (x_post, P_post) = ekf.update(&x_prior, &P_prior, &z_depth, &R_depth, &z_expected, &H_depth)
+            .expect("Update should succeed");
+        
+        // Posterior depth should be closer to measurement (accounting for sensor offset)
+        // Measurement is 4.5m, sensor is 0.1m above body, so body should be at 4.6m
+        assert!(
+            (x_post.r_body_O()[2] - 4.6).abs() < (x_prior.r_body_O()[2] - 4.6).abs()
+        );
+        
+        // Posterior covariance in z should be smaller
+        assert!(P_post[(2, 2)] < P_prior[(2, 2)]);
+    }
 }
