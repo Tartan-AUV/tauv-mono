@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::ops::Deref;
 use std::sync::{Arc, Mutex, mpsc};
 use std::sync::mpsc::Receiver;
@@ -22,6 +22,7 @@ use nalgebra as na;
 use nalgebra::{stack, MatrixView, Rotation3, SVector, VectorView, U3};
 use crate::EkfInput::Dvl;
 
+#[derive(Clone, Debug)]
 struct EkfControl {
     odom_R_body: Rotation,
     a_body_B: Vector3,
@@ -89,11 +90,13 @@ struct EkfStaticTransforms {
     body_T_dvl: Isometry,
 }
 
+#[derive(Clone, Debug)]
 struct DvlInput {
     v_dvl_V: Vector3,
     R: Matrix3
 }
 
+#[derive(Clone, Debug)]
 struct DepthInput {
     z: f64,
     R: f64,
@@ -296,12 +299,39 @@ enum Event {
     Depth(DepthInput, EkfState, EkfCov),
 }
 
+#[derive(Clone, Debug)]
+struct TimestampedControl {
+    t: DateTime<Utc>,
+    control: EkfControl,
+}
 
+#[derive(Clone, Debug)]
+struct StateEstimate {
+    state: EkfState,
+    cov: EkfCov,
+}
+
+#[derive(Debug)]
+enum MeasurementType {
+    Dvl(DvlInput),
+    Depth(DepthInput),
+}
+
+#[derive(Debug)]
 struct EkfHistory {
-    map: BTreeMap<DateTime<Utc>, Event>,
+    // Control inputs (IMU) stored in order of arrival
+    control_history: VecDeque<TimestampedControl>,
+    
+    // State estimates indexed by time
+    state_history: BTreeMap<DateTime<Utc>, (MeasurementType, StateEstimate)>,
+    
+    // Track last measurement times
     last_dvl_t: DateTime<Utc>,
     last_depth_t: DateTime<Utc>,
     last_imu_t: DateTime<Utc>,
+    
+    // Maximum number of control inputs to keep
+    max_control_history: usize,
 }
 
 impl EkfHistory {
@@ -314,33 +344,179 @@ impl EkfHistory {
         imu: EkfControl,
         params: &EkfParams,
     ) -> Result<Self, String> {
-
-        let max_dt= TimeDelta::from_std(Duration::from_millis(200)).unwrap();
+        let max_dt = TimeDelta::from_std(Duration::from_millis(200)).unwrap();
 
         if max_dt < (t_depth - t_dvl).abs() || max_dt < (t_depth - t_imu).abs() ||
             max_dt < (t_imu - t_dvl).abs() {
-            return Err("shit".to_string())
+            return Err("Initial measurements are too far apart in time".to_string())
         }
 
-        // TODO: use IMU and DVL inputs for state init
+        // Initialize state using depth measurement
         let state = EkfState::new(&Vector3::new(0.0, 0.0, depth.z), &Vector3::zeros());
         let var_r = params.initial_position_stddev_m.powi(2);
         let var_v = params.initial_velocity_stddev_mps.powi(2);
         let cov = Matrix6::from_diagonal(&na::vector![var_r, var_r, depth.R, var_v, var_v, var_v]);
 
-        let mut map = BTreeMap::new();
+        let mut control_history = VecDeque::with_capacity(params.history_length);
+        control_history.push_back(TimestampedControl { t: t_imu, control: imu });
 
-        map.insert(t_depth, Event::Depth(depth, state.clone(), cov));
-        map.insert(t_dvl, Event::Dvl(dvl, state.clone(), cov));
-        map.insert(t_imu, Event::Imu(imu));
+        let mut state_history = BTreeMap::new();
+        state_history.insert(t_depth, (
+            MeasurementType::Depth(depth),
+            StateEstimate { state: state.clone(), cov }
+        ));
+        state_history.insert(t_dvl, (
+            MeasurementType::Dvl(dvl),
+            StateEstimate { state: state.clone(), cov }
+        ));
 
         Ok(Self {
-            map,
+            control_history,
+            state_history,
             last_depth_t: t_depth,
             last_dvl_t: t_dvl,
             last_imu_t: t_imu,
+            max_control_history: params.history_length,
         })
+    }
+
+    pub fn add_imu_measurement(&mut self, t: DateTime<Utc>, imu: EkfControl) -> Result<(), String> {
+        // Check that the measurement is newer than the last IMU measurement
+        if t <= self.last_imu_t {
+            return Err(format!("IMU measurement at {:?} is not newer than last IMU at {:?}", t, self.last_imu_t));
+        }
+        
+        // Check that the measurement is newer than the latest DVL measurement
+        if t <= self.last_dvl_t {
+            return Err(format!("IMU measurement at {:?} is not newer than last DVL at {:?}", t, self.last_dvl_t));
+        }
+        
+        // Add to control history
+        self.control_history.push_back(TimestampedControl { t, control: imu });
+        
+        // Remove old control inputs if we exceed the maximum
+        while self.control_history.len() > self.max_control_history {
+            self.control_history.pop_front();
+        }
+        
+        self.last_imu_t = t;
+        Ok(())
+    }
     
+    pub fn add_depth_measurement(
+        &mut self, 
+        t: DateTime<Utc>, 
+        depth: DepthInput,
+        ekf: &Ekf,
+    ) -> Result<(), String> {
+        // Check that the measurement is newer than the last depth measurement
+        if t <= self.last_depth_t {
+            return Err(format!("Depth measurement at {:?} is not newer than last depth at {:?}", t, self.last_depth_t));
+        }
+        
+        // Check that the measurement is newer than the latest DVL measurement
+        if t <= self.last_dvl_t {
+            return Err(format!("Depth measurement at {:?} is not newer than last DVL at {:?}", t, self.last_dvl_t));
+        }
+        
+        // Find the closest IMU measurement
+        let closest_imu = self.find_closest_control(t)?;
+        
+        // Find the most recent state estimate before this depth measurement
+        let (state_t, state_est) = self.find_latest_state_before(t)?;
+        
+        // Predict from the state time to the depth measurement time using the closest IMU
+        let dt = (t - state_t).num_milliseconds() as f64 / 1000.0;
+        if dt < 0.0 {
+            return Err("Negative time delta in prediction".to_string());
+        }
+        
+        let predicted_state = ekf.predict(&state_est.state, &closest_imu.control, dt);
+        let predicted_cov = ekf.predict_cov(&state_est.cov, dt);
+        
+        // Perform the depth update
+        let z_depth = na::SVector::<f64, 1>::new(depth.z);
+        let R_depth = na::SMatrix::<f64, 1, 1>::new(depth.R);
+        let z_expected = na::SVector::<f64, 1>::new(ekf.h_depth(&predicted_state, &closest_imu.control));
+        
+        // Measurement Jacobian for depth (only sensitive to z position)
+        let H_depth = na::SMatrix::<f64, 1, 6>::new(0.0, 0.0, 1.0, 0.0, 0.0, 0.0);
+        
+        let (updated_state, updated_cov) = ekf.update(
+            &predicted_state,
+            &predicted_cov,
+            &z_depth,
+            &R_depth,
+            &z_expected,
+            &H_depth
+        )?;
+        
+        // Insert the new state estimate
+        self.state_history.insert(t, (
+            MeasurementType::Depth(depth),
+            StateEstimate { state: updated_state, cov: updated_cov }
+        ));
+        
+        self.last_depth_t = t;
+        
+        // Clean up old state estimates that are before the oldest control input
+        if let Some(oldest_control) = self.control_history.front() {
+            self.state_history.retain(|&state_t, _| state_t >= oldest_control.t);
+        }
+        
+        Ok(())
+    }
+    
+    // Helper method to find the closest control input
+    fn find_closest_control(&self, t: DateTime<Utc>) -> Result<&TimestampedControl, String> {
+        if self.control_history.is_empty() {
+            return Err("No control inputs in history".to_string());
+        }
+        
+        // Binary search for the closest control
+        let idx = match self.control_history.binary_search_by_key(&t, |tc| tc.t) {
+            Ok(idx) => idx, // Exact match
+            Err(idx) => {
+                // Not found, idx is where it would be inserted
+                if idx == 0 {
+                    0 // Use first control
+                } else if idx >= self.control_history.len() {
+                    self.control_history.len() - 1 // Use last control
+                } else {
+                    // Choose between idx-1 and idx based on which is closer
+                    let prev_diff = (t - self.control_history[idx - 1].t).abs();
+                    let next_diff = (self.control_history[idx].t - t).abs();
+                    if prev_diff <= next_diff {
+                        idx - 1
+                    } else {
+                        idx
+                    }
+                }
+            }
+        };
+        
+        self.control_history.get(idx)
+            .ok_or_else(|| "Failed to find control in history".to_string())
+    }
+    
+    // Helper method to find the latest state estimate before a given time
+    fn find_latest_state_before(&self, t: DateTime<Utc>) -> Result<(DateTime<Utc>, &StateEstimate), String> {
+        // Use range to get all entries before time t
+        self.state_history
+            .range(..t)
+            .rev()
+            .next()
+            .map(|(time, (_, state))| (*time, state))
+            .ok_or_else(|| "No state estimate found before the given time".to_string())
+    }
+    
+    // Helper method to get the current best estimate (latest state)
+    pub fn get_latest_state(&self) -> Option<(DateTime<Utc>, &StateEstimate)> {
+        self.state_history
+            .iter()
+            .rev()
+            .next()
+            .map(|(t, (_, state))| (*t, state))
     }
 }
 
@@ -814,5 +990,512 @@ mod tests {
         
         // Posterior covariance in z should be smaller
         assert!(P_post[(2, 2)] < P_prior[(2, 2)]);
+    }
+
+    // Helper function to create test inputs
+    fn create_test_depth_input() -> DepthInput {
+        DepthInput { z: 5.0, R: 0.01 }
+    }
+
+    fn create_test_dvl_input() -> DvlInput {
+        DvlInput {
+            v_dvl_V: Vector3::new(1.0, 0.5, 0.2),
+            R: Matrix3::identity() * 0.01,
+        }
+    }
+
+    fn create_test_imu_control() -> EkfControl {
+        EkfControl {
+            odom_R_body: Rotation::identity(),
+            a_body_B: Vector3::new(0.1, 0.0, 0.0),
+            omega_body_B: Vector3::new(0.0, 0.0, 0.1),
+        }
+    }
+
+    fn create_test_timestamps() -> (DateTime<Utc>, DateTime<Utc>, DateTime<Utc>) {
+        let base_time = Utc.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap();
+        let t_depth = base_time;
+        let t_dvl = base_time + chrono::Duration::milliseconds(10);
+        let t_imu = base_time + chrono::Duration::milliseconds(20);
+        (t_depth, t_dvl, t_imu)
+    }
+
+    /// Tests successful initialization of EkfHistory with valid measurements.
+    /// Verifies that initial state, control history, and measurement timestamps are correctly stored.
+    #[test]
+    fn test_ekf_history_initialization_success() {
+        let params = create_test_params();
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth.clone(), dvl, imu, &params);
+        
+        assert!(history.is_ok());
+        let history = history.unwrap();
+        
+        // Check that timestamps are stored correctly
+        assert_eq!(history.last_depth_t, t_depth);
+        assert_eq!(history.last_dvl_t, t_dvl);
+        assert_eq!(history.last_imu_t, t_imu);
+        
+        // Check that control history has one entry
+        assert_eq!(history.control_history.len(), 1);
+        assert_eq!(history.control_history[0].t, t_imu);
+        
+        // Check that state history has two entries (depth and dvl)
+        assert_eq!(history.state_history.len(), 2);
+        assert!(history.state_history.contains_key(&t_depth));
+        assert!(history.state_history.contains_key(&t_dvl));
+        
+        // Check that initial state is set correctly based on depth
+        let (_, state_est) = history.state_history.get(&t_depth).unwrap();
+        assert_relative_eq!(state_est.state.r_body_O()[2], depth.z, epsilon = 1e-10);
+        assert_relative_eq!(state_est.state.v_body_O().into_owned(), Vector3::zeros(), epsilon = 1e-10);
+    }
+
+    /// Tests that EkfHistory initialization fails when measurements are too far apart in time.
+    /// Ensures temporal synchronization requirements are enforced.
+    #[test]
+    fn test_ekf_history_initialization_measurements_too_far_apart() {
+        let params = create_test_params();
+        let base_time = Utc.with_ymd_and_hms(2024, 1, 1, 12, 0, 0).unwrap();
+        let t_depth = base_time;
+        let t_dvl = base_time + chrono::Duration::milliseconds(10);
+        let t_imu = base_time + chrono::Duration::seconds(1); // Too far apart
+        
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, &params);
+        
+        assert!(history.is_err());
+        assert!(history.unwrap_err().contains("too far apart"));
+    }
+
+    /// Tests successful addition of a new IMU measurement to the history.
+    /// Verifies that control history is updated and timestamps are tracked correctly.
+    #[test]
+    fn test_ekf_history_add_imu_measurement_success() {
+        let params = create_test_params();
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Add a new IMU measurement
+        let new_imu_time = t_imu + chrono::Duration::milliseconds(50);
+        let new_imu = create_test_imu_control();
+        
+        let result = history.add_imu_measurement(new_imu_time, new_imu);
+        assert!(result.is_ok());
+        
+        // Check that the measurement was added
+        assert_eq!(history.control_history.len(), 2);
+        assert_eq!(history.last_imu_t, new_imu_time);
+        assert_eq!(history.control_history.back().unwrap().t, new_imu_time);
+    }
+
+    /// Tests that adding an IMU measurement older than the last IMU measurement is rejected.
+    /// Ensures temporal ordering constraints are enforced for IMU measurements.
+    #[test]
+    fn test_ekf_history_add_imu_measurement_not_newer_than_last_imu() {
+        let params = create_test_params();
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Try to add an IMU measurement that's not newer
+        let old_imu_time = t_imu - chrono::Duration::milliseconds(10);
+        let new_imu = create_test_imu_control();
+        
+        let result = history.add_imu_measurement(old_imu_time, new_imu);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("not newer than last IMU"));
+    }
+
+    /// Tests that adding an IMU measurement older than the last DVL measurement is rejected.
+    /// Ensures causal ordering between different measurement types.
+    #[test]
+    fn test_ekf_history_add_imu_measurement_not_newer_than_last_dvl() {
+        let params = create_test_params();
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Add a new IMU measurement after the initial one
+        let new_imu_time = t_imu + chrono::Duration::milliseconds(50);
+        history.add_imu_measurement(new_imu_time, imu.clone()).unwrap();
+        
+        // Now add a DVL measurement even later
+        let new_dvl_time = new_imu_time + chrono::Duration::milliseconds(50);
+        // Note: We need to add DVL measurement functionality to properly test this
+        // For now, manually update the last_dvl_t to simulate a DVL measurement
+        history.last_dvl_t = new_dvl_time;
+        
+        // Try to add an IMU measurement that's older than the new DVL time
+        let old_imu_time = new_dvl_time - chrono::Duration::milliseconds(25);
+        let test_imu = create_test_imu_control();
+        
+        let result = history.add_imu_measurement(old_imu_time, test_imu);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("not newer than last DVL"));
+    }
+
+    /// Tests that the control history respects the maximum history length limit.
+    /// Verifies that old control inputs are automatically removed when the limit is exceeded.
+    #[test]
+    fn test_ekf_history_add_imu_measurement_max_history_limit() {
+        let mut params = create_test_params();
+        params.history_length = 2; // Set small limit for testing
+        
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Add IMU measurements up to and beyond the limit
+        let mut current_time = t_imu;
+        for i in 1..=3 {
+            current_time = current_time + chrono::Duration::milliseconds(50);
+            let result = history.add_imu_measurement(current_time, imu.clone());
+            assert!(result.is_ok());
+        }
+        
+        // Should only keep the last 2 measurements
+        assert_eq!(history.control_history.len(), 2);
+        assert_eq!(history.control_history.front().unwrap().t, 
+                   t_imu + chrono::Duration::milliseconds(100));
+    }
+
+    /// Tests successful addition of a depth measurement that triggers EKF prediction and update.
+    /// Verifies that state history is expanded and measurement tracking is updated.
+    #[test]
+    fn test_ekf_history_add_depth_measurement_success() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Add an IMU measurement that's newer than the DVL to satisfy the constraint
+        let new_imu_time = t_dvl + chrono::Duration::milliseconds(50);
+        history.add_imu_measurement(new_imu_time, imu.clone()).unwrap();
+        
+        // Add a new depth measurement after the IMU
+        let new_depth_time = new_imu_time + chrono::Duration::milliseconds(50);
+        let new_depth = DepthInput { z: 6.0, R: 0.02 };
+        
+        let result = history.add_depth_measurement(new_depth_time, new_depth, &ekf);
+        assert!(result.is_ok());
+        
+        // Check that the measurement was added
+        assert_eq!(history.last_depth_t, new_depth_time);
+        assert!(history.state_history.contains_key(&new_depth_time));
+        
+        // After cleanup, only states after the oldest control input are kept
+        // The oldest control input is now at t_imu (20ms), so we should have:
+        // - DVL state at 10ms (kept because it's >= oldest control at 20ms? No, it's before)
+        // - New depth state at 110ms
+        // Actually, the cleanup removes states before the oldest control, so only the new depth should remain
+        assert_eq!(history.state_history.len(), 1);
+        assert!(history.state_history.contains_key(&new_depth_time));
+    }
+
+    /// Tests that adding a depth measurement older than the last depth measurement is rejected.
+    /// Ensures temporal ordering constraints for depth measurements.
+    #[test]
+    fn test_ekf_history_add_depth_measurement_not_newer_than_last_depth() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, &params).unwrap();
+        
+        // Try to add a depth measurement that's not newer
+        let old_depth_time = t_depth - chrono::Duration::milliseconds(10);
+        let new_depth = DepthInput { z: 6.0, R: 0.02 };
+        
+        let result = history.add_depth_measurement(old_depth_time, new_depth, &ekf);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("not newer than last depth"));
+    }
+
+    /// Tests that adding a depth measurement older than the last DVL measurement is rejected.
+    /// Ensures causal ordering between depth and DVL measurements.
+    #[test]
+    fn test_ekf_history_add_depth_measurement_not_newer_than_last_dvl() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, &params).unwrap();
+        
+        // Try to add a depth measurement that's older than the last DVL
+        let old_depth_time = t_dvl - chrono::Duration::milliseconds(5);
+        let new_depth = DepthInput { z: 6.0, R: 0.02 };
+        
+        let result = history.add_depth_measurement(old_depth_time, new_depth, &ekf);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("not newer than last DVL"));
+    }
+
+    /// Tests the binary search algorithm for finding the closest control input by timestamp.
+    /// Verifies correct behavior for exact matches, interpolation, and edge cases.
+    #[test]
+    fn test_ekf_history_find_closest_control() {
+        let params = create_test_params();
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Add more control inputs
+        let t_imu2 = t_imu + chrono::Duration::milliseconds(100);
+        let t_imu3 = t_imu + chrono::Duration::milliseconds(200);
+        history.add_imu_measurement(t_imu2, imu.clone()).unwrap();
+        history.add_imu_measurement(t_imu3, imu.clone()).unwrap();
+        
+        // Test finding closest control
+        let query_time = t_imu + chrono::Duration::milliseconds(150);
+        let closest = history.find_closest_control(query_time).unwrap();
+        assert_eq!(closest.t, t_imu2); // Should be closest to t_imu2
+        
+        // Test exact match
+        let exact_match = history.find_closest_control(t_imu2).unwrap();
+        assert_eq!(exact_match.t, t_imu2);
+        
+        // Test before first control
+        let before_first = t_imu - chrono::Duration::milliseconds(50);
+        let first_control = history.find_closest_control(before_first).unwrap();
+        assert_eq!(first_control.t, t_imu);
+        
+        // Test after last control
+        let after_last = t_imu3 + chrono::Duration::milliseconds(50);
+        let last_control = history.find_closest_control(after_last).unwrap();
+        assert_eq!(last_control.t, t_imu3);
+    }
+
+    /// Tests error handling when attempting to find closest control with empty history.
+    /// Verifies that appropriate error messages are returned.
+    #[test]
+    fn test_ekf_history_find_closest_control_empty_history() {
+        let params = create_test_params();
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, &params).unwrap();
+        
+        // Clear the control history
+        history.control_history.clear();
+        
+        let query_time = t_imu + chrono::Duration::milliseconds(50);
+        let result = history.find_closest_control(query_time);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("No control inputs"));
+    }
+
+    /// Tests finding the latest state estimate that occurred before a given timestamp.
+    /// Verifies correct temporal ordering and state retrieval from the BTreeMap.
+    #[test]
+    fn test_ekf_history_find_latest_state_before() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Add an IMU measurement that's newer than the DVL
+        let new_imu_time = t_dvl + chrono::Duration::milliseconds(50);
+        history.add_imu_measurement(new_imu_time, imu.clone()).unwrap();
+        
+        // Add a new depth measurement
+        let new_depth_time = new_imu_time + chrono::Duration::milliseconds(50);
+        let new_depth = DepthInput { z: 6.0, R: 0.02 };
+        history.add_depth_measurement(new_depth_time, new_depth, &ekf).unwrap();
+        
+        // After cleanup, the only remaining state is the new depth measurement
+        // So we can only test finding states before times after the new depth measurement
+        let late_query_time = new_depth_time + chrono::Duration::milliseconds(50);
+        let (late_state_time, _) = history.find_latest_state_before(late_query_time).unwrap();
+        assert_eq!(late_state_time, new_depth_time);
+        
+        // Test that querying before the new depth time fails (no states before it)
+        let early_query_time = new_depth_time - chrono::Duration::milliseconds(10);
+        let result = history.find_latest_state_before(early_query_time);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("No state estimate found"));
+    }
+
+    /// Tests retrieval of the most recent state estimate from the history.
+    /// Verifies that the latest timestamp is correctly identified as new measurements are added.
+    #[test]
+    fn test_ekf_history_get_latest_state() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Initially, latest should be dvl (since it's later than depth)
+        let (latest_time, _) = history.get_latest_state().unwrap();
+        assert_eq!(latest_time, t_dvl);
+        
+        // Add an IMU measurement that's newer than the DVL
+        let new_imu_time = t_dvl + chrono::Duration::milliseconds(50);
+        history.add_imu_measurement(new_imu_time, imu.clone()).unwrap();
+        
+        // Add a new depth measurement
+        let new_depth_time = new_imu_time + chrono::Duration::milliseconds(50);
+        let new_depth = DepthInput { z: 6.0, R: 0.02 };
+        history.add_depth_measurement(new_depth_time, new_depth, &ekf).unwrap();
+        
+        // Now latest should be the new depth
+        let (latest_time, _) = history.get_latest_state().unwrap();
+        assert_eq!(latest_time, new_depth_time);
+    }
+
+    /// Tests automatic cleanup of old state estimates when control history is trimmed.
+    /// Verifies that memory usage is bounded and old states are properly removed.
+    #[test]
+    fn test_ekf_history_state_cleanup() {
+        let mut params = create_test_params();
+        params.history_length = 2; // Small limit for testing
+        
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Add several IMU measurements to trigger cleanup
+        let mut current_time = t_imu;
+        for _ in 0..5 {
+            current_time = current_time + chrono::Duration::milliseconds(50);
+            history.add_imu_measurement(current_time, imu.clone()).unwrap();
+        }
+        
+        // Add a depth measurement to trigger state cleanup
+        let new_depth_time = current_time + chrono::Duration::milliseconds(50);
+        let new_depth = DepthInput { z: 6.0, R: 0.02 };
+        history.add_depth_measurement(new_depth_time, new_depth, &ekf).unwrap();
+        
+        // Check that old states were cleaned up
+        // Should only keep states that are after the oldest control input
+        let oldest_control_time = history.control_history.front().unwrap().t;
+        for (state_time, _) in &history.state_history {
+            assert!(*state_time >= oldest_control_time);
+        }
+    }
+
+    /// Tests that measurement types (Depth vs DVL) are correctly stored and retrieved.
+    /// Verifies that measurement data is preserved accurately in the state history.
+    #[test]
+    fn test_ekf_history_measurement_type_storage() {
+        let params = create_test_params();
+        let transforms = create_test_transforms();
+        let ekf = Ekf::new(&params, &transforms);
+        
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let mut history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu.clone(), &params).unwrap();
+        
+        // Check that measurement types are stored correctly
+        let (depth_measurement, _) = history.state_history.get(&t_depth).unwrap();
+        match depth_measurement {
+            MeasurementType::Depth(_) => {}, // Expected
+            _ => panic!("Expected depth measurement type"),
+        }
+        
+        let (dvl_measurement, _) = history.state_history.get(&t_dvl).unwrap();
+        match dvl_measurement {
+            MeasurementType::Dvl(_) => {}, // Expected
+            _ => panic!("Expected DVL measurement type"),
+        }
+        
+        // Add an IMU measurement that's newer than the DVL
+        let new_imu_time = t_dvl + chrono::Duration::milliseconds(50);
+        history.add_imu_measurement(new_imu_time, imu.clone()).unwrap();
+        
+        // Add a new depth measurement and check its type
+        let new_depth_time = new_imu_time + chrono::Duration::milliseconds(50);
+        let new_depth = DepthInput { z: 6.0, R: 0.02 };
+        history.add_depth_measurement(new_depth_time, new_depth, &ekf).unwrap();
+        
+        let (new_depth_measurement, _) = history.state_history.get(&new_depth_time).unwrap();
+        match new_depth_measurement {
+            MeasurementType::Depth(stored_depth) => {
+                assert_relative_eq!(stored_depth.z, 6.0, epsilon = 1e-10);
+                assert_relative_eq!(stored_depth.R, 0.02, epsilon = 1e-10);
+            },
+            _ => panic!("Expected depth measurement type"),
+        }
+    }
+
+    /// Tests error handling when no state estimates exist before the queried timestamp.
+    /// Verifies that appropriate error messages are returned for edge cases.
+    #[test]
+    fn test_ekf_history_find_latest_state_before_no_state() {
+        let params = create_test_params();
+        let (t_depth, t_dvl, t_imu) = create_test_timestamps();
+        let depth = create_test_depth_input();
+        let dvl = create_test_dvl_input();
+        let imu = create_test_imu_control();
+
+        let history = EkfHistory::try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, &params).unwrap();
+        
+        // Query for a time before all states
+        let early_time = t_depth - chrono::Duration::milliseconds(50);
+        let result = history.find_latest_state_before(early_time);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("No state estimate found"));
     }
 }
