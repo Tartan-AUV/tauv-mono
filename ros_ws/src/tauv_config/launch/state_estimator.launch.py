@@ -5,7 +5,7 @@ def generate_launch_description():
     return LaunchDescription([
         # Depth estimator node - converts DepthSensorFrame to Depth
         Node(
-            package='tauv_gnc',
+            package='tauv_common',
             executable='depth_estimator',
             name='depth_estimator',
             output='screen',

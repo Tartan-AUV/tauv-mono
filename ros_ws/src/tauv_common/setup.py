@@ -23,7 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'state_estimator_ekf = state_estimator_ekf.state_estimator_ekf:main',
+            'state_estimator_ekf = tauv_common.state_estimator_ekf:main',
+            'depth_estimator = tauv_common.depth_estimator:main',
         ],
     },
 ) 

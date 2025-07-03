@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
@@ -224,47 +222,108 @@ class EkfHistory:
         self.last_imu_t = t
     
     def add_depth_measurement(self, t: float, depth: DepthInput, ekf: 'Ekf') -> None:
-        """Add depth measurement and perform update"""
+        """Add depth measurement"""
+        # Check constraints
         if t <= self.last_depth_t:
-            raise ValueError(f"Depth measurement at {t} is not newer than last depth at {self.last_depth_t}")
-        
+            raise ValueError("Depth measurement timestamp not newer than last depth")
         if t <= self.last_dvl_t:
-            raise ValueError(f"Depth measurement at {t} is not newer than last DVL at {self.last_dvl_t}")
+            raise ValueError("Depth measurement timestamp not newer than last DVL")
         
-        # Find closest IMU measurement
-        closest_imu = self._find_closest_control(t)
-        
-        # Find most recent state estimate before this depth measurement
+        # Find latest state
         state_t, state_est = self._find_latest_state_before(t)
         
-        # Predict from state time to depth measurement time
+        # Find closest control
+        closest_imu = self._find_closest_control(t)
+        
+        # Predict from state_t to t
+        dt = t - state_t
+        x_pred = ekf.predict(state_est.state, closest_imu.control, dt)
+        P_pred = ekf.predict_cov(state_est.cov, dt)
+        
+        # Apply depth update
+        z_pred = ekf.h_depth(x_pred, closest_imu.control)
+        z = np.array([depth.z])
+        R = np.array([[depth.R]])
+        H = np.zeros((1, 6))
+        H[0, 2] = 1.0  # dh/dz = 1
+        
+        x_updated, P_updated = ekf.update(x_pred, P_pred, z, R, np.array([z_pred]), H)
+        
+        # Store state
+        self.state_history[t] = (MeasurementType.DEPTH, StateEstimate(x_updated, P_updated))
+        self.last_depth_t = t
+        
+        # Cleanup old states
+        self._cleanup()
+
+    def add_dvl_measurement(self, t: float, dvl: DvlInput, ekf: 'Ekf') -> None:
+        """Add DVL measurement and perform update, replaying all subsequent states."""
+        import logging
+        
+        # DVL measurements must be in order: reject if t <= any existing DVL measurement
+        dvl_times = [tt for tt, (mtype, _) in self.state_history.items() if mtype == MeasurementType.DVL]
+        if any(t <= tt for tt in dvl_times):
+            logging.warning(f"DVL measurement at {t} is not newer than existing DVL measurements. Rejecting.")
+            raise ValueError("DVL measurement timestamp not newer than existing DVL measurements")
+        
+        # 1. Find the latest state estimate before t
+        state_t, state_est = self._find_latest_state_before(t)
+        
+        # 2. Find closest IMU/control for t
+        closest_imu = self._find_closest_control(t)
+        
+        # 3. Predict from state_t to t
         dt = t - state_t
         if dt < 0.0:
             raise ValueError("Negative time delta in prediction")
         
-        predicted_state = ekf.predict(state_est.state, closest_imu.control, dt)
-        predicted_cov = ekf.predict_cov(state_est.cov, dt)
+        x_pred = ekf.predict(state_est.state, closest_imu.control, dt)
+        P_pred = ekf.predict_cov(state_est.cov, dt)
         
-        # Perform depth update
-        z_depth = np.array([depth.z])
-        R_depth = np.array([[depth.R]])
-        z_expected = np.array([ekf.h_depth(predicted_state, closest_imu.control)])
+        # 4. Apply DVL update using analytic Jacobian
+        z_pred = ekf.h_dvl(x_pred, closest_imu.control)
+        z = dvl.v_dvl_V
+        R = dvl.R
+        H = ekf.F_dvl  # Use analytic Jacobian from Ekf class
         
-        # Measurement Jacobian for depth (only sensitive to z position)
-        H_depth = np.array([[0.0, 0.0, 1.0, 0.0, 0.0, 0.0]])
+        x_updated, P_updated = ekf.update(x_pred, P_pred, z, R, z_pred, H)
         
-        updated_state, updated_cov = ekf.update(
-            predicted_state, predicted_cov, z_depth, R_depth, z_expected, H_depth)
+        # 5. Insert the DVL measurement and updated state
+        self.state_history[t] = (MeasurementType.DVL, StateEstimate(x_updated, P_updated))
+        self.last_dvl_t = t
         
-        # Insert new state estimate
-        self.state_history[t] = (MeasurementType.DEPTH, StateEstimate(updated_state, updated_cov))
-        self.last_depth_t = t
+        # 6. Replay all subsequent measurements
+        subsequent_times = sorted([tt for tt in self.state_history.keys() if tt > t])
+        for replay_t in subsequent_times:
+            mtype, _ = self.state_history[replay_t]
+            if mtype == MeasurementType.DVL:
+                # Error: encountered another DVL during replay
+                raise ValueError(f"Encountered another DVL measurement at {replay_t} during replay. DVL measurements must be in order.")
+            elif mtype == MeasurementType.DEPTH:
+                # For simplicity, use the predicted depth value as a placeholder
+                latest_t, latest_est = self._find_latest_state_before(replay_t)
+                closest_control = self._find_closest_control(replay_t)
+                dt_replay = replay_t - latest_t
+                x_pred_replay = ekf.predict(latest_est.state, closest_control.control, dt_replay)
+                P_pred_replay = ekf.predict_cov(latest_est.cov, dt_replay)
+                
+                # Use predicted depth as measurement (placeholder)
+                z_pred_depth = ekf.h_depth(x_pred_replay, closest_control.control)
+                depth_placeholder = DepthInput(z=z_pred_depth, R=0.01)  # Small variance
+                
+                # Apply depth update
+                z_depth = np.array([depth_placeholder.z])
+                R_depth = np.array([[depth_placeholder.R]])
+                H_depth = np.zeros((1, 6))
+                H_depth[0, 2] = 1.0
+                
+                x_updated_replay, P_updated_replay = ekf.update(x_pred_replay, P_pred_replay, z_depth, R_depth, np.array([z_pred_depth]), H_depth)
+                
+                # Update the state at replay_t
+                self.state_history[replay_t] = (MeasurementType.DEPTH, StateEstimate(x_updated_replay, P_updated_replay))
         
-        # Clean up old state estimates
-        if self.control_history:
-            oldest_control_time = self.control_history[0].t
-            self.state_history = {k: v for k, v in self.state_history.items() 
-                                if k >= oldest_control_time}
+        # Cleanup old states
+        self._cleanup()
     
     def _find_closest_control(self, t: float) -> TimestampedControl:
         """Find closest control input by timestamp"""
@@ -293,6 +352,13 @@ class EkfHistory:
         latest_time = max(self.state_history.keys())
         return latest_time, self.state_history[latest_time][1]
 
+    def _cleanup(self):
+        """Cleanup old state estimates"""
+        if self.control_history:
+            oldest_control_time = self.control_history[0].t
+            self.state_history = {k: v for k, v in self.state_history.items() 
+                                if k >= oldest_control_time}
+
 
 class Ekf:
     """Extended Kalman Filter implementation"""
@@ -319,13 +385,13 @@ class Ekf:
         """Predict next state"""
         # Transform acceleration to odom frame
         a_body_O = uk.odom_R_body @ uk.a_body_B
-        
+
         # Position update: r = r + v*dt + 0.5*a*dt^2
         r_body_km1_body_k_O = xkm1.v_body_O() * dt + 0.5 * a_body_O * dt**2
         r_body_k_O = xkm1.r_body_O() + r_body_km1_body_k_O
         
         # Velocity update: v = v + a*dt
-        v_body_k_O = xkm1.v_body_O() + a_body_O * dt
+        v_body_k_O = xkm1.v_body_O() + (a_body_O + self.a_g_O) * dt
         
         return EkfState(r_body_k_O, v_body_k_O)
     
@@ -453,38 +519,32 @@ class StateEstimatorEkf(Node):
             return
         self.get_logger().debug(f"Loooking up transforms: {self.body_frame}, {self.depth_frame}, {self.dvl_frame}")
         try:
-            can_get_depth = self.tf_buffer.can_transform(
+            # Look up depth transform
+            depth_tf = self.tf_buffer.lookup_transform(
                 self.body_frame, self.depth_frame, Time())
-            can_get_dvl = self.tf_buffer.can_transform(
+            # Look up DVL transform
+            dvl_tf = self.tf_buffer.lookup_transform(
                 self.body_frame, self.dvl_frame, Time())
-            self.get_logger().debug(f"Can get depth: {can_get_depth}, Can get DVL: {can_get_dvl}")
-            if can_get_depth and can_get_dvl:
-                # Look up depth transform
-                depth_tf = self.tf_buffer.lookup_transform(
-                    self.body_frame, self.depth_frame, Time())
-                # Look up DVL transform
-                dvl_tf = self.tf_buffer.lookup_transform(
-                    self.body_frame, self.dvl_frame, Time())
-                # Extract transforms
-                r_body_depth_B = np.array([
-                    depth_tf.transform.translation.x,
-                    depth_tf.transform.translation.y,
-                    depth_tf.transform.translation.z
-                ])
-                # Convert DVL transform to isometry matrix
-                body_T_dvl = self._transform_to_isometry(dvl_tf.transform)
-                self.static_transforms = EkfStaticTransforms(r_body_depth_B, body_T_dvl)
-                self._transforms_ready = True
-                self.get_logger().info("Static transforms received")
-                # Now initialize EKF and processing thread
-                self.ekf = Ekf(self.params, self.static_transforms)
-                self.get_logger().info("EKF initialized")
-                # Processing thread
-                self.input_queue = queue.Queue()
-                self.processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
-                self.processing_thread.start()
-                # Stop the timer
-                self._static_tf_timer.cancel()
+            # Extract transforms
+            r_body_depth_B = np.array([
+                depth_tf.transform.translation.x,
+                depth_tf.transform.translation.y,
+                depth_tf.transform.translation.z
+            ])
+            # Convert DVL transform to isometry matrix
+            body_T_dvl = self._transform_to_isometry(dvl_tf.transform)
+            self.static_transforms = EkfStaticTransforms(r_body_depth_B, body_T_dvl)
+            self._transforms_ready = True
+            self.get_logger().info("Static transforms received")
+            # Now initialize EKF and processing thread
+            self.ekf = Ekf(self.params, self.static_transforms)
+            self.get_logger().info("EKF initialized")
+            # Processing thread
+            self.input_queue = queue.Queue()
+            self.processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
+            self.processing_thread.start()
+            # Stop the timer
+            self._static_tf_timer.cancel()
         except Exception as e:
             self.get_logger().debug(f"Transforms not available yet, waiting... ({e})")
     
@@ -616,8 +676,11 @@ class StateEstimatorEkf(Node):
                         self.get_logger().warn(f"Depth measurement rejected: {e}")
                 
                 elif input_type == EkfInput.DVL:
-                    # TODO: Implement DVL update
-                    pass
+                    try:
+                        self.history.add_dvl_measurement(t, data, self.ekf)
+                        self._publish_odometry()
+                    except ValueError as e:
+                        self.get_logger().warn(f"DVL measurement rejected: {e}")
                     
             except queue.Empty:
                 continue

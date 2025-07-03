@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
@@ -208,9 +206,11 @@ class TestEkf:
         dt = 0.1
         x1 = self.ekf.predict(x0, u, dt)
         
-        # Should remain at origin with zero velocity
+        # Should remain at origin with gravity-induced velocity in z
         assert_allclose(x1.r_body_O(), np.zeros(3), atol=1e-10)
-        assert_allclose(x1.v_body_O(), np.zeros(3), atol=1e-10)
+        # Velocity in z should be gravity * dt
+        expected_v = np.array([0.0, 0.0, self.params.gravity * dt])
+        assert_allclose(x1.v_body_O(), expected_v, atol=1e-10)
     
     def test_predict_constant_velocity(self):
         """Test prediction with constant velocity"""
@@ -230,8 +230,9 @@ class TestEkf:
         
         # Position should be velocity * time
         assert_allclose(x1.r_body_O(), np.array([0.5, 0.0, 0.0]), atol=1e-10)
-        # Velocity should remain constant
-        assert_allclose(x1.v_body_O(), v0, atol=1e-10)
+        # Velocity should include gravity effect in z
+        expected_v = np.array([1.0, 0.0, self.params.gravity * dt])
+        assert_allclose(x1.v_body_O(), expected_v, atol=1e-10)
     
     def test_predict_with_acceleration(self):
         """Test prediction with acceleration"""
@@ -250,8 +251,9 @@ class TestEkf:
         
         # Position: 0.5 * a * t²
         assert_allclose(x1.r_body_O(), np.array([1.0, 0.0, 0.0]), atol=1e-10)
-        # Velocity: a * t
-        assert_allclose(x1.v_body_O(), np.array([2.0, 0.0, 0.0]), atol=1e-10)
+        # Velocity: a * t + gravity * t in z
+        expected_v = np.array([2.0, 0.0, self.params.gravity * dt])
+        assert_allclose(x1.v_body_O(), expected_v, atol=1e-10)
     
     def test_predict_covariance(self):
         """Test covariance prediction"""
@@ -474,6 +476,23 @@ class TestEkfHistory:
     
     def create_test_inputs(self):
         """Create test inputs for history initialization"""
+        params = EkfParams(
+            initial_position_stddev_m=0.01,
+            initial_velocity_stddev_mps=0.1,
+            process_noise_density_pos=0.001,
+            process_noise_density_vel=0.001,
+            gravity=9.81,
+            history_length=20,
+            body_frame="body",
+            dvl_frame="dvl",
+            depth_frame="depth"
+        )
+        r_body_depth_B = np.array([0.0, 0.0, -0.1])
+        body_T_dvl = np.eye(4)
+        body_T_dvl[:3, 3] = np.array([0.2, 0.0, 0.5])
+        transforms = EkfStaticTransforms(r_body_depth_B, body_T_dvl)
+        ekf = Ekf(params, transforms)
+        
         t_depth = 100.0
         t_dvl = 100.01
         t_imu = 100.02
@@ -489,13 +508,13 @@ class TestEkfHistory:
             omega_body_B=np.array([0.0, 0.0, 0.1])
         )
         
-        return t_depth, t_dvl, t_imu, depth, dvl, imu
+        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, params)
+        
+        return params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu
     
     def test_initialization_success(self):
         """Test successful initialization of EkfHistory"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Check that timestamps are stored correctly
         assert history.last_depth_t == t_depth
@@ -538,8 +557,7 @@ class TestEkfHistory:
     
     def test_add_imu_measurement_success(self):
         """Test successful addition of IMU measurement"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Add a new IMU measurement
         new_imu_time = t_imu + 0.05
@@ -558,8 +576,7 @@ class TestEkfHistory:
     
     def test_add_imu_measurement_not_newer_than_last_imu(self):
         """Test that adding older IMU measurement is rejected"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Try to add an IMU measurement that's not newer
         old_imu_time = t_imu - 0.01
@@ -574,8 +591,7 @@ class TestEkfHistory:
     
     def test_add_imu_measurement_not_newer_than_last_dvl(self):
         """Test that adding IMU measurement older than last DVL is rejected"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Add a new IMU measurement after the initial one
         new_imu_time = t_imu + 0.05
@@ -597,7 +613,8 @@ class TestEkfHistory:
     
     def test_add_imu_measurement_max_history_limit(self):
         """Test that control history respects maximum history length limit"""
-        params = EkfParams(
+        # Create params with smaller history limit for testing
+        limited_params = EkfParams(
             initial_position_stddev_m=0.01,
             initial_velocity_stddev_mps=0.1,
             process_noise_density_pos=0.001,
@@ -609,8 +626,11 @@ class TestEkfHistory:
             depth_frame="depth"
         )
         
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, params)
+        # Get test inputs but override params
+        _, _, _, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
+        
+        # Create history with limited params
+        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, limited_params)
         
         # Add IMU measurements up to and beyond the limit
         current_time = t_imu
@@ -624,8 +644,7 @@ class TestEkfHistory:
     
     def test_add_depth_measurement_success(self):
         """Test successful addition of depth measurement"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Add an IMU measurement that's newer than the DVL to satisfy the constraint
         new_imu_time = t_dvl + 0.05
@@ -635,7 +654,7 @@ class TestEkfHistory:
         new_depth_time = new_imu_time + 0.05
         new_depth = DepthInput(z=6.0, R=0.02)
         
-        history.add_depth_measurement(new_depth_time, new_depth, self.ekf)
+        history.add_depth_measurement(new_depth_time, new_depth, ekf)
         
         # Check that the measurement was added
         assert history.last_depth_t == new_depth_time
@@ -647,32 +666,29 @@ class TestEkfHistory:
     
     def test_add_depth_measurement_not_newer_than_last_depth(self):
         """Test that adding older depth measurement is rejected"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Try to add a depth measurement that's not newer
         old_depth_time = t_depth - 0.01
         new_depth = DepthInput(z=6.0, R=0.02)
         
         with pytest.raises(ValueError, match="not newer than last depth"):
-            history.add_depth_measurement(old_depth_time, new_depth, self.ekf)
+            history.add_depth_measurement(old_depth_time, new_depth, ekf)
     
     def test_add_depth_measurement_not_newer_than_last_dvl(self):
         """Test that adding depth measurement older than last DVL is rejected"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Try to add a depth measurement that's older than the last DVL
         old_depth_time = t_dvl - 0.005
         new_depth = DepthInput(z=6.0, R=0.02)
         
         with pytest.raises(ValueError, match="not newer than last DVL"):
-            history.add_depth_measurement(old_depth_time, new_depth, self.ekf)
+            history.add_depth_measurement(old_depth_time, new_depth, ekf)
     
     def test_find_closest_control(self):
         """Test finding closest control input by timestamp"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Add more control inputs
         t_imu2 = t_imu + 0.1
@@ -681,7 +697,7 @@ class TestEkfHistory:
         history.add_imu_measurement(t_imu3, imu)
         
         # Test finding closest control
-        query_time = t_imu + 0.13  # Closer to t_imu2 (0.1) than t_imu3 (0.2)
+        query_time = t_imu + 0.13  # Closer to t_imu2 (0.01) than t_imu3 (0.07)
         closest = history._find_closest_control(query_time)
         assert abs(closest.t - t_imu2) < 1e-10  # Should be closest to t_imu2
         
@@ -701,7 +717,10 @@ class TestEkfHistory:
     
     def test_find_closest_control_empty_history(self):
         """Test error handling when control history is empty"""
-        history = EkfHistory(max_control_history=10)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
+        
+        # Clear the control history to make it empty
+        history.control_history.clear()
         
         query_time = 100.0
         with pytest.raises(ValueError, match="No control inputs"):
@@ -709,8 +728,7 @@ class TestEkfHistory:
     
     def test_find_latest_state_before(self):
         """Test finding latest state estimate before given time"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Add an IMU measurement that's newer than the DVL
         new_imu_time = t_dvl + 0.05
@@ -719,7 +737,7 @@ class TestEkfHistory:
         # Add a new depth measurement
         new_depth_time = new_imu_time + 0.05
         new_depth = DepthInput(z=6.0, R=0.02)
-        history.add_depth_measurement(new_depth_time, new_depth, self.ekf)
+        history.add_depth_measurement(new_depth_time, new_depth, ekf)
         
         # After cleanup, the only remaining state is the new depth measurement
         # So we can only test finding states before times after the new depth measurement
@@ -733,9 +751,8 @@ class TestEkfHistory:
             history._find_latest_state_before(early_query_time)
     
     def test_get_latest_state(self):
-        """Test retrieval of most recent state estimate"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        """Test getting the latest state estimate"""
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Initially, latest should be dvl (since it's later than depth)
         latest_time, _ = history.get_latest_state()
@@ -748,7 +765,7 @@ class TestEkfHistory:
         # Add a new depth measurement
         new_depth_time = new_imu_time + 0.05
         new_depth = DepthInput(z=6.0, R=0.02)
-        history.add_depth_measurement(new_depth_time, new_depth, self.ekf)
+        history.add_depth_measurement(new_depth_time, new_depth, ekf)
         
         # Now latest should be the new depth
         latest_time, _ = history.get_latest_state()
@@ -756,7 +773,8 @@ class TestEkfHistory:
     
     def test_state_cleanup(self):
         """Test automatic cleanup of old state estimates"""
-        params = EkfParams(
+        # Create params with smaller history limit for testing
+        limited_params = EkfParams(
             initial_position_stddev_m=0.01,
             initial_velocity_stddev_mps=0.1,
             process_noise_density_pos=0.001,
@@ -768,14 +786,17 @@ class TestEkfHistory:
             depth_frame="depth"
         )
         
-        transforms = EkfStaticTransforms(
-            r_body_depth_B=np.array([0.0, 0.0, -0.1]),
-            body_T_dvl=np.eye(4)
-        )
-        ekf = Ekf(params, transforms)
+        r_body_depth_B = np.array([0.0, 0.0, -0.1])
+        body_T_dvl = np.eye(4)
+        body_T_dvl[:3, 3] = np.array([0.2, 0.0, 0.5])
+        transforms = EkfStaticTransforms(r_body_depth_B, body_T_dvl)
+        ekf = Ekf(limited_params, transforms)
         
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, params)
+        # Get test inputs but override params
+        _, _, _, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
+        
+        # Create history with limited params
+        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, limited_params)
         
         # Add several IMU measurements to trigger cleanup
         current_time = t_imu
@@ -795,9 +816,8 @@ class TestEkfHistory:
             assert state_time >= oldest_control_time
     
     def test_measurement_type_storage(self):
-        """Test that measurement types are correctly stored and retrieved"""
-        t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
-        history = EkfHistory.try_new(t_depth, t_dvl, t_imu, depth, dvl, imu, self.params)
+        """Test that measurement types are correctly stored"""
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Check that measurement types are stored correctly
         depth_measurement, _ = history.state_history[t_depth]
@@ -813,19 +833,85 @@ class TestEkfHistory:
         # Add a new depth measurement and check its type
         new_depth_time = new_imu_time + 0.05
         new_depth = DepthInput(z=6.0, R=0.02)
-        history.add_depth_measurement(new_depth_time, new_depth, self.ekf)
+        history.add_depth_measurement(new_depth_time, new_depth, ekf)
         
         new_depth_measurement, _ = history.state_history[new_depth_time]
         assert new_depth_measurement == MeasurementType.DEPTH
     
     def test_find_latest_state_before_no_state(self):
-        """Test error handling when no state estimates exist before queried timestamp"""
-        history = EkfHistory(max_control_history=10)
+        """Test error handling when no state estimates exist before queried time"""
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
         
         # Query for a time before all states
-        early_time = 100.0
+        early_time = t_depth - 0.05
         with pytest.raises(ValueError, match="No state estimate found"):
             history._find_latest_state_before(early_time)
+
+    def test_add_dvl_measurement_success(self):
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
+        # Add a new DVL measurement after the initial one
+        t_new_dvl = t_dvl + 1.0
+        new_dvl = DvlInput(v_dvl_V=np.array([0.5, 0.1, -0.2]), R=np.eye(3) * 0.01)
+        # Add an IMU measurement after the new DVL
+        t_new_imu = t_new_dvl + 0.1
+        history.add_imu_measurement(t_new_imu, imu)
+        # Should succeed
+        history.add_dvl_measurement(t_new_dvl, new_dvl, ekf)
+        # Check that the new DVL is in the state history
+        assert t_new_dvl in history.state_history
+        mtype, state_est = history.state_history[t_new_dvl]
+        assert mtype == MeasurementType.DVL
+        assert_allclose(state_est.state.r_body_O().shape, (3,))
+        assert_allclose(state_est.state.v_body_O().shape, (3,))
+        assert history.last_dvl_t == t_new_dvl
+
+    def test_add_dvl_measurement_out_of_order(self):
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
+        # Try to insert a DVL before the existing one
+        t_early_dvl = t_dvl - 0.5
+        early_dvl = DvlInput(v_dvl_V=np.array([0.2, 0.2, 0.2]), R=np.eye(3) * 0.01)
+        with pytest.raises(ValueError):
+            history.add_dvl_measurement(t_early_dvl, early_dvl, ekf)
+
+    def test_add_dvl_measurement_replay_encounters_dvl(self):
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
+        # Add an IMU and a depth after the initial DVL
+        t_imu2 = t_dvl + 0.1
+        t_depth2 = t_imu2 + 0.1
+        history.add_imu_measurement(t_imu2, imu)
+        depth2 = DepthInput(z=depth.z + 1.0, R=depth.R)
+        history.add_depth_measurement(t_depth2, depth2, ekf)
+        # Now try to insert a DVL between t_dvl and t_depth2 (should fail on replay)
+        t_dvl2 = t_dvl + 0.15
+        dvl2 = DvlInput(v_dvl_V=np.array([0.3, 0.3, 0.3]), R=np.eye(3) * 0.01)
+        with pytest.raises(ValueError):
+            history.add_dvl_measurement(t_dvl2, dvl2, ekf)
+
+    def test_dvl_measurement_biases_velocity(self):
+        params, ekf, history, t_depth, t_dvl, t_imu, depth, dvl, imu = self.create_test_inputs()
+        # Add an IMU and a depth after the initial DVL
+        t_imu2 = t_dvl + 0.1
+        t_depth2 = t_imu2 + 0.1
+        history.add_imu_measurement(t_imu2, imu)
+        depth2 = DepthInput(z=depth.z + 1.0, R=depth.R)
+        history.add_depth_measurement(t_depth2, depth2, ekf)
+        # Record velocity before new DVL
+        t_before = t_depth2
+        v_before = history.state_history[t_before][1].state.v_body_O().copy()
+        # Insert a new DVL with a strong velocity in x
+        t_dvl2 = t_depth2 + 0.1
+        dvl2 = DvlInput(v_dvl_V=np.array([2.0, 0.0, 0.0]), R=np.eye(3) * 0.01)
+        t_imu3 = t_dvl2 + 0.05
+        history.add_imu_measurement(t_imu3, imu)
+        history.add_dvl_measurement(t_dvl2, dvl2, ekf)
+        # Add a new depth after the DVL
+        t_depth3 = t_dvl2 + 0.1
+        depth3 = DepthInput(z=depth.z + 2.0, R=depth.R)
+        history.add_depth_measurement(t_depth3, depth3, ekf)
+        # Velocity after DVL should be biased toward the DVL measurement
+        v_after = history.state_history[t_depth3][1].state.v_body_O()
+        # The x velocity should have increased toward 2.0
+        assert abs(v_after[0] - 2.0) < abs(v_before[0] - 2.0), f"Velocity after DVL ({v_after[0]}) should be closer to 2.0 than before ({v_before[0]})"
 
 
 if __name__ == '__main__':
