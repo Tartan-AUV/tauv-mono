@@ -576,8 +576,11 @@ fn main() -> Result<(), RclrsError> {
 
     // Init node from parameters and wait for transforms
     let (node, params) = initialize_ekf_node(&executor)?;
+    println!("EKF node initialized");
     let static_transforms = wait_for_static_transforms(&node, &params)?;
+    println!("Static transforms received");
     let ekf = Ekf::new(&params, &static_transforms);
+    println!("EKF initialized");
 
     // Subscriptions
     let (tx, rx) = mpsc::channel::<EkfInput>();

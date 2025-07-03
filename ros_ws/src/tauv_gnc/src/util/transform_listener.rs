@@ -106,6 +106,7 @@ impl TransformBuffer {
     }
 
     pub fn add_transform(&self, tf: TransformStamped, is_static: bool) {
+        println!("Adding transform: {:?}", tf);
         let transform = Transform::from(tf.clone());
         let key = (tf.child_frame_id.clone(), tf.header.frame_id.clone());
 
@@ -229,20 +230,37 @@ pub struct TransformListener {
 
 impl TransformListener {
     pub fn new(node: &Node, buffer: Arc<TransformBuffer>) -> Result<Self, RclrsError> {
+        println!("Creating transform listener");
+        
+        // Create subscription options with custom QoS for /tf
+        let tf_options = "/tf"
+            .reliable()
+            .infinite_lifespan()
+            .keep_last(100);
+        
         let buffer_clone = Arc::clone(&buffer);
         let tf_sub = node.create_subscription::<TFMessage, _>(
-            "/tf",
+            tf_options,
             move |msg: TFMessage| {
+                println!("Received tf message");
                 for tf in msg.transforms {
                     buffer_clone.add_transform(tf, false);
                 }
             },
         )?;
 
+        // Create subscription options with custom QoS for /tf_static
+        let tf_static_options = "/tf_static"
+            .reliable()
+            .infinite_lifespan()
+            .transient_local()
+            .keep_all();
+        
         let buffer_clone = Arc::clone(&buffer);
         let tf_static_sub = node.create_subscription::<TFMessage, _>(
-            "/tf_static",
+            tf_static_options,
             move |msg: TFMessage| {
+                println!("Received tf_static message");
                 for tf in msg.transforms {
                     buffer_clone.add_transform(tf, true);
                 }
