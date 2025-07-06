@@ -20,13 +20,15 @@ SimAdapter::SimAdapter() : Node("sim_adapter") {
       "depth_sensor_frame", 10);
   thruster_setpoint_subscription_ =
       this->create_subscription<tauv_msgs::msg::RpmCommand>(
-          "thruster_setpoint", 10,
+          "vehicle/actuators/thruster_setpoint", 10,
           std::bind(&SimAdapter::thruster_setpoint_callback, this, _1));
   thruster_setpoint_publisher_ =
       this->create_publisher<std_msgs::msg::Float64MultiArray>(
           "sim/thruster_setpoint", 10);
 
   external_temperature_ = this->declare_parameter<double>("external_temperature", 25.0);
+  // Note this MUST be the same value as set in the scenario file
+  thruster_max_rpm_ = this->declare_parameter<double>("thruster_max_rpm", 3500.0);
 }
 
 void SimAdapter::dvl_callback(const stonefish_ros2::msg::DVL& msg) {
@@ -84,8 +86,10 @@ void SimAdapter::thruster_setpoint_callback(
   result.layout.dim[0].stride = msg.enables.size();
   result.layout.data_offset = 0;
   for (size_t i = 0; i < msg.enables.size(); ++i) {
+    double normalized_rpm = msg.rpms[i] / thruster_max_rpm_;
+    double clamped_rpm = std::clamp(normalized_rpm, -1.0, 1.0);
     result.data.push_back(
-      msg.enables[i] ? msg.rpms[i] * RPM_TO_RAD_PER_SEC : 0.0f);
+      msg.enables[i] ? clamped_rpm : 0.0f);
   }
 
   thruster_setpoint_publisher_->publish(result);

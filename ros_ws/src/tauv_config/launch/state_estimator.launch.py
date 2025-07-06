@@ -10,7 +10,7 @@ def generate_launch_description():
             name='depth_estimator',
             output='screen',
             remappings=[
-                ('depth_sensor_frame', 'sensors/depth_sensor_frame'),
+                ('depth_sensor_frame', 'vehicle/sensors/depth_sensor_frame'),
                 ('depth', 'depth')
             ],
             parameters=[{
@@ -29,9 +29,9 @@ def generate_launch_description():
             output='screen',
             remappings=[
                 # Input topics - map to the topics published by the simulation
-                ('imu', 'sensors/imu'),
-                ('depth', 'depth'),  # Now maps to the depth_estimator output
-                ('dvl', 'sensors/dvl'),
+                ('imu', 'vehicle/sensors/imu'),
+                ('depth', 'vehicle/sensors/depth'),  # Now maps to the depth_estimator output
+                ('dvl', 'vehicle/sensors/dvl'),
                 # Output topics - keep default names
                 ('odom', 'odom')
             ],

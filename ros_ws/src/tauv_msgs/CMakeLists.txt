@@ -17,6 +17,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/EscTelemetry.msg"
   "msg/DepthSensorFrame.msg"
   "msg/Depth.msg"
+  "msg/TargetThrust.msg"
   DEPENDENCIES std_msgs
 )
 

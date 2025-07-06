@@ -1,7 +1,7 @@
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import PushRosNamespace
+from launch_ros.actions import PushRosNamespace, Node
 from ament_index_python.packages import get_package_share_directory
 from os.path import join
 
@@ -33,6 +33,20 @@ def generate_launch_description():
                 PythonLaunchDescriptionSource([
                     join(tauv_config_share, 'launch', 'state_estimator.launch.py')
                 ])
+            ),
+            
+            # Launch thruster manager node
+            Node(
+                package='tauv_common',
+                executable='thruster_manager',
+                name='thruster_manager'
+            ),
+            
+            # Launch thruster controller node
+            Node(
+                package='tauv_common',
+                executable='thruster_controller',
+                name='thruster_controller'
             )
         ])
     ]) 

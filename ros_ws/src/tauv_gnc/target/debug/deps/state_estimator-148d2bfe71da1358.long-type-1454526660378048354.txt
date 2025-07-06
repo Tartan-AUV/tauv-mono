@@ -1,1 +1,0 @@
-Matrix<f64, Const<6>, Const<6>, ArrayStorage<f64, 6, 6>>: From<[[Matrix<f64, Const<3>, Const<3>, ArrayStorage<f64, 3, 3>>; 1]; 1]>

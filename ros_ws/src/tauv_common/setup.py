@@ -25,6 +25,9 @@ setup(
         'console_scripts': [
             'state_estimator_ekf = tauv_common.state_estimator_ekf:main',
             'depth_estimator = tauv_common.depth_estimator:main',
+            'wrench_test = tauv_common.wrench_test:main',
+            'thruster_manager = tauv_common.thruster_manager:main',
+            'thruster_controller = tauv_common.thruster_controller:main',
         ],
     },
 ) 

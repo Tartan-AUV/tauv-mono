@@ -39,6 +39,7 @@ private:
 
   // Constants
   double external_temperature_;
+  double thruster_max_rpm_;
 
   static constexpr double PI = 3.14159265358979323846;
   static constexpr double RPM_TO_RAD_PER_SEC = 1.0f / 60.0f * PI;

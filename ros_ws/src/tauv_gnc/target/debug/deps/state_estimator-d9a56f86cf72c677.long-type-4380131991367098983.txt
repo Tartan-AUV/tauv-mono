@@ -1,1 +1,0 @@
-LieGroup<f64, 6, 7, 3, 4, 1, 0, 0, TranslationProductGroupImpl<f64, 6, 7, 3, 4, 3, 4, 1, 0, 0, Rotation3Impl<f64, 1, 0, 0>>>
