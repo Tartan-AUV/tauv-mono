@@ -30,8 +30,8 @@ def generate_launch_description():
             name='sim_adapter',
             output='screen',
             remappings=[
-                ('dvl', 'sensors/dvl'),
-                ('depth_sensor_frame', 'sensors/depth_sensor_frame')
+                ('dvl', 'vehicle/sensors/dvl'),
+                ('depth_sensor_frame', 'vehicle/sensors/depth')
             ],
         )
     ])

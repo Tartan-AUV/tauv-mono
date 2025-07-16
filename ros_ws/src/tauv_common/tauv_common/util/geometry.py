@@ -1,14 +1,24 @@
+from numpy._typing import NDArray
 from spatialmath import SE3, SO3, UnitQuaternion
 import numpy as np
+from typing import overload
 
-from geometry_msgs.msg import Transform, Vector3, Wrench
+from geometry_msgs.msg import Transform, Vector3, Wrench, Quaternion
 
-def tf2_transform_to_SE3(tf: Transform) -> SE3:
-    q = UnitQuaternion(tf.rotation.w, (tf.rotation.x, tf.rotation.y, tf.rotation.z))
-    return SE3.Rt(q.SO3(), (tf.translation.x, tf.translation.y, tf.translation.z))
+@overload
+def numpify(v: Vector3) -> NDArray:
+    return np.array([v.x, v.y, v.z])
 
-def vector3_msg_to_numpy(vector3: Vector3) -> np.ndarray:
-    return np.array([vector3.x, vector3.y, vector3.z])
+@overload
+def numpify(q: Quaternion) -> UnitQuaternion:
+    return UnitQuaternion(q.w, (q.x, q.y, q.z))
 
-def wrench_msg_to_numpy(wrench: Wrench) -> np.ndarray:
-    return np.hstack((vector3_msg_to_numpy(wrench.force), vector3_msg_to_numpy(wrench.torque)))
+@overload
+def numpify(T: Transform) -> SE3:
+    q = numpify(T.rotation)
+    return SE3.Rt(q.SO3(), (T.translation.x, T.translation.y, T.translation.z))
+
+def numpify_cov()
+
+def numpify(F: Wrench) -> np.ndarray:
+    return np.hstack([numpify(F.force), numpify(F.torque)])
