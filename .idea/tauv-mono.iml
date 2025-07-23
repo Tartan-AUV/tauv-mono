@@ -9,8 +9,47 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/tauv_sim_gazebo_plugins/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/packages/tauv_vehicle/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/packages/tauv_vision/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/build/tauv_common" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/action_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/actionlib_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/builtin_interfaces/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/camera_pkg/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/composition_interfaces/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/diagnostic_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/example_interfaces/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/examples_tf2_py/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/geometry_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/lifecycle_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/nav_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/rcl_interfaces/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/rclrs_example_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/rosgraph_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/rosidl_generator_rs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/sensor_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/sensor_msgs_py/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/service_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/shape_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/statistics_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/std_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/std_srvs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/stereo_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/stonefish_ros2/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/tauv_common/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/tauv_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/test_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/tf2_geometry_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/tf2_kdl/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/tf2_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/tf2_py/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/tf2_ros_py/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/tf2_sensor_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/tf2_tools/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/trajectory_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/type_description_interfaces/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/unique_identifier_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/visualization_msgs/lib/python3.12/site-packages" isTestSource="false" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.12 virtualenv at ~/dev/venv-tauv" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">

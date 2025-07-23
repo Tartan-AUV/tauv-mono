@@ -1,24 +1,32 @@
 from numpy._typing import NDArray
 from spatialmath import SE3, SO3, UnitQuaternion
 import numpy as np
-from typing import overload
+from typing import Union
 
 from geometry_msgs.msg import Transform, Vector3, Wrench, Quaternion
 
-@overload
-def numpify(v: Vector3) -> NDArray:
-    return np.array([v.x, v.y, v.z])
+def numpify(obj: Union[Vector3, Quaternion, Transform, Wrench]) -> Union[NDArray, UnitQuaternion, SE3, np.ndarray]:
+    """Convert ROS geometry messages to numpy/spatialmath objects."""
+    if isinstance(obj, Vector3):
+        return np.array([obj.x, obj.y, obj.z])[:, np.newaxis]
+    elif isinstance(obj, Quaternion):
+        return UnitQuaternion(obj.w, (obj.x, obj.y, obj.z))
+    elif isinstance(obj, Transform):
+        q = numpify(obj.rotation)
+        assert isinstance(q, UnitQuaternion)
+        return SE3.Rt(q.R, (obj.translation.x, obj.translation.y, obj.translation.z))
+    elif isinstance(obj, Wrench):
+        return np.vstack([numpify(obj.force), numpify(obj.torque)])
+    else:
+        raise TypeError(f"Unsupported type for numpify: {type(obj)}")
 
-@overload
-def numpify(q: Quaternion) -> UnitQuaternion:
-    return UnitQuaternion(q.w, (q.x, q.y, q.z))
-
-@overload
-def numpify(T: Transform) -> SE3:
-    q = numpify(T.rotation)
-    return SE3.Rt(q.SO3(), (T.translation.x, T.translation.y, T.translation.z))
-
-def numpify_cov()
-
-def numpify(F: Wrench) -> np.ndarray:
-    return np.hstack([numpify(F.force), numpify(F.torque)])
+def numpify_cov_6x6(covariance: list) -> NDArray:
+    """Convert ROS2 covariance array to 6x6 numpy array.
+    
+    Args:
+        covariance: 36-element list representing row-major flattened 6x6 covariance matrix
+        
+    Returns:
+        6x6 NDArray of float64
+    """
+    return np.array(covariance, dtype=np.float64).reshape(6, 6)

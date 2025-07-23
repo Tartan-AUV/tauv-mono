@@ -1,3 +1,6 @@
+import logging
+from logging import Logger
+
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
@@ -7,7 +10,7 @@ from rclpy.time import Time
 
 import numpy as np
 from numpy.typing import NDArray
-from typing import Optional, Tuple, Dict, List, Deque, Any
+from typing import Optional, Tuple, Dict, List, Deque, Any, Union
 from dataclasses import dataclass
 from enum import Enum
 import math
@@ -32,7 +35,7 @@ import tf2_ros
 import tf2_geometry_msgs
 from tf2_ros import TransformException
 
-def stamp_to_nanos(stamp) -> int:
+def stamp_to_nanos(stamp: Any) -> int:
     return stamp.sec * 1_000_000_000 + stamp.nanosec
 
 @dataclass
@@ -44,10 +47,13 @@ class EkfControl:
     @staticmethod
     def from_msg(msg: ImuMsg) -> 'EkfControl':
         return EkfControl(
-            odom_R_sensor=numpify(msg.orientation).SO3(),
+            odom_R_sensor=SO3(numpify(msg.orientation).R),  # type: ignore
             a_sensor_S=numpify(msg.linear_acceleration),
             omega_sensor_S=numpify(msg.angular_velocity),
         )
+
+    def is_valid(self) -> bool:
+        return self.a_sensor_S.shape == self.omega_sensor_S.shape == (3, 1)
 
 @dataclass
 class DvlInput:
@@ -58,22 +64,22 @@ class DvlInput:
     @staticmethod
     def from_msg(msg: DvlMsg) -> 'DvlInput':
         return DvlInput(
-            v_dvl_V=np.array([msg.vx, msg.vy, msg.vz]),
-            R=msg.covariance
+            v_dvl_V=np.array([msg.vx, msg.vy, msg.vz])[:, np.newaxis],
+            R=msg.covariance.reshape(3, 3)
         )
 
 
 @dataclass
 class DepthInput:
     """Depth measurement input"""
-    z: float          # Depth measurement
-    R: float          # Measurement variance
+    z: NDArray          # Depth measurement (1, 1)
+    R: NDArray          # Measurement variance (1, 1)
 
     @staticmethod
     def from_msg(msg: DepthMsg) -> 'DepthInput':
         return DepthInput(
-            z=msg.depth,
-            R=msg.variance,
+            z=np.array([[msg.depth]]),
+            R=np.array([[msg.variance]]),
         )
 
 
@@ -88,6 +94,7 @@ class MeasurementType(Enum):
     """Types of measurements"""
     DVL = "dvl"
     DEPTH = "depth"
+    NONE = "none"
 
 
 @dataclass
@@ -115,8 +122,8 @@ class EkfHistory:
     """History management for the EKF"""
     
     def __init__(self, t_depth: int, t_dvl: int, t_imu: int,
-                depth: DepthInput, dvl: DvlInput, imu: NDArray,
-                params: EkfParams, max_length: int):
+                depth: DepthInput, dvl: DvlInput, imu: EkfControl,
+                params: EkfParams, max_length: int, logger: Logger):
 
         # Validate inputs
         max_dt: int = 200_000_000  # 200ms maximum time difference between measurements
@@ -126,26 +133,29 @@ class EkfHistory:
             raise ValueError("Initial measurements are too far apart in time")
 
         # Initialize
-        self.control_history: Deque[(int, NDArray)] = deque(maxlen=max_length)
-        self.state_history: Dict[int, Tuple[MeasurementType, NDArray, NDArray]] = {}
+        self.control_history: Deque[Tuple[int, EkfControl]] = deque(maxlen=max_length)
+        # t -> (MeasurementType, Measurement, State, Covariance)
+        self.state_history: Dict[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], NDArray, NDArray]] = {}
         self.last_depth_t: int = t_depth
         self.last_dvl_t: int = t_dvl
         self.last_imu_t: int = t_imu
 
         # Initialize state using depth measurement
         # State [r_bo_O, v_bo_B]
-        state = np.array([0.0, 0.0, depth.z, 0.0, 0.0, 0.0])
+        state = np.array([0.0, 0.0, depth.z[0, 0], 0.0, 0.0, 0.0])[:, np.newaxis]
         var_r = params.initial_position_stddev_m ** 2
         var_v = params.initial_velocity_stddev_mps ** 2
-        cov = np.diag([var_r, var_r, depth.R, var_v, var_v, var_v])
+        cov = np.diag([var_r, var_r, depth.R[0, 0], var_v, var_v, var_v])
 
         self.control_history.append((t_imu, imu))
 
         # Add initial states
-        self.state_history[t_depth] = (MeasurementType.DEPTH, state, cov)
-        self.state_history[t_dvl] = (MeasurementType.DVL, state, cov)
+        self.state_history[t_depth] = (MeasurementType.DEPTH, depth, state, cov)
+        self.state_history[t_dvl] = (MeasurementType.DVL, dvl, state, cov)
 
-    def add_imu_measurement(self, t: int, imu: NDArray) -> None:
+        self._logger = logger
+
+    def add_imu_measurement(self, t: int, imu: EkfControl) -> None:
         """Add IMU measurement to history"""
         if t <= self.last_imu_t:
             raise ValueError(f"IMU measurement at {t} is not newer than last IMU at {self.last_imu_t}")
@@ -168,22 +178,23 @@ class EkfHistory:
         state_t, state_est = self._find_latest_state_before(t)
         
         # Find the closest control
-        closest_imu = self._find_closest_control(t)
+        closest_control_t, closest_control = self._find_closest_control(t)
         
         # Predict from state_t to t
         dt = t - state_t
-        x_pred = ekf.predict(state_est.state, closest_imu.control, dt)
-        P_pred = ekf.predict_cov(state_est.cov, dt)
+        x_pred = ekf.predict(state_est[2], closest_control, dt)
+        P_pred = ekf.predict_cov(state_est[3], closest_control, dt)
         
         # Apply depth update
-        z_pred = ekf.h_depth(x_pred, closest_imu.control)
-        z = np.array([depth.z])
-        R = np.array([[depth.R]])
+        z_pred: NDArray = ekf.h_depth(x_pred, closest_control)
 
-        x_updated, P_updated = Ekf.update(x_pred, P_pred, z, R, np.array([z_pred]), ekf.H_depth)
+        self._logger.info("Depth update...")
+        x_updated, P_updated = ekf.update(x_pred, P_pred, depth.z, depth.R, z_pred, ekf.H_depth)
 
         # Store state
-        self.state_history[t] = (MeasurementType.DEPTH, x_updated, P_updated)
+        assert x_updated.shape == (6, 1)
+        assert P_updated.shape == (6, 6)
+        self.state_history[t] = (MeasurementType.DEPTH, depth, x_updated, P_updated)
         self.last_depth_t = t
         
         # Cleanup old states
@@ -192,9 +203,9 @@ class EkfHistory:
     def add_dvl_measurement(self, t: int, dvl: DvlInput, ekf: 'Ekf') -> None:
         """Add DVL measurement and perform update, replaying all subsequent states."""
         import logging
-        
+
         # DVL measurements must be in order: reject if t <= any existing DVL measurement
-        dvl_times = [tt for tt, (mtype, _) in self.state_history.items() if mtype == MeasurementType.DVL]
+        dvl_times = [tt for tt, (mtype, _, _, _) in self.state_history.items() if mtype == MeasurementType.DVL]
         if any(t <= tt for tt in dvl_times):
             logging.warning(f"DVL measurement at {t} is not newer than existing DVL measurements. Rejecting.")
             raise ValueError("DVL measurement timestamp not newer than existing DVL measurements")
@@ -203,71 +214,71 @@ class EkfHistory:
         state_t, state_est = self._find_latest_state_before(t)
         
         # 2. Find closest IMU/control for t
-        closest_imu = self._find_closest_control(t)
+        closest_control_t, closest_control = self._find_closest_control(t)
         
         # 3. Predict from state_t to t
         dt = t - state_t
         if dt < 0:
             raise ValueError("Negative time delta in prediction")
         
-        x_pred = ekf.predict(state_est.state, closest_imu.control, dt)
-        P_pred = ekf.predict_cov(state_est.cov, dt)
+        x_pred = ekf.predict(state_est[2], closest_control, dt)
+        P_pred = ekf.predict_cov(state_est[3], closest_control, dt)
         
         # 4. Apply DVL update using analytic Jacobian
-        z_pred = ekf.h_dvl(x_pred, closest_imu.control)
+        z_pred = ekf.h_dvl(x_pred, closest_control)
         z = dvl.v_dvl_V
         R = dvl.R
 
         x_updated, P_updated = ekf.update(x_pred, P_pred, z, R, z_pred, ekf.H_dvl)
         
         # 5. Insert the DVL measurement and updated state
-        self.state_history[t] = (MeasurementType.DVL, x_updated, P_updated)
+        assert x_updated.shape == (6, 1)
+        assert P_updated.shape == (6, 6)
+        self.state_history[t] = (MeasurementType.DVL, dvl, x_updated, P_updated)
         self.last_dvl_t = t
         
         # 6. Replay all subsequent measurements
         subsequent_times = sorted([tt for tt in self.state_history.keys() if tt > t])
         for replay_t in subsequent_times:
-            mtype, _, _ = self.state_history[replay_t]
+            mtype, meas, x, P = self.state_history[replay_t]
             if mtype == MeasurementType.DVL:
                 # Error: encountered another DVL during replay
                 raise ValueError(f"Encountered another DVL measurement at {replay_t} during replay. DVL measurements must be in order.")
             elif mtype == MeasurementType.DEPTH:
                 # For simplicity, use the predicted depth value as a placeholder
                 latest_t, latest_est = self._find_latest_state_before(replay_t)
-                closest_control = self._find_closest_control(replay_t)
+                closest_control_t, closest_control_data = self._find_closest_control(replay_t)
                 dt_replay = replay_t - latest_t
-                x_pred_replay = ekf.predict(latest_est.state, closest_control.control, dt_replay)
-                P_pred_replay = ekf.predict_cov(latest_est.cov, dt_replay)
+                x_pred = ekf.predict(latest_est[2], closest_control_data, dt_replay)
+                P_pred = ekf.predict_cov(latest_est[3], closest_control_data, dt_replay)
                 
-                # Use predicted depth as measurement (placeholder)
-                z_pred_depth = ekf.h_depth(x_pred_replay, closest_control.control)
-                depth_placeholder = DepthInput(z=z_pred_depth, R=0.01)  # Small variance
-                
+                # Predict the depth
+                z_pred = ekf.h_depth(x_pred, closest_control_data)
+                z = meas.z
+                R = meas.R
+
                 # Apply depth update
-                z_depth = np.array([depth_placeholder.z])
-                R_depth = np.array([[depth_placeholder.R]])
-                H_depth = np.zeros((1, 6))
-                H_depth[0, 2] = 1.0
-                
-                x_updated_replay, P_updated_replay = ekf.update(x_pred_replay, P_pred_replay, z_depth, R_depth, np.array([z_pred_depth]), H_depth)
+                x_updated_replay, P_updated_replay = ekf.update(x_pred, P_pred, z, R, z_pred, ekf.H_depth)
                 
                 # Update the state at replay_t
-                self.state_history[replay_t] = (MeasurementType.DEPTH, x_updated_replay, P_updated_replay)
+                assert x_updated_replay.shape == (6, 1)
+                assert P_updated_replay.shape == (6, 6)
+                self.state_history[replay_t] = (MeasurementType.DEPTH, meas, x_updated_replay, P_updated_replay)
         
         # Cleanup old states
         self._cleanup()
     
-    def _find_closest_control(self, t: float) -> (int, NDArray):
+    def _find_closest_control(self, t: int) -> Tuple[int, EkfControl]:
         """Find closest control input by timestamp"""
         if not self.control_history:
             raise ValueError("No control inputs in history")
         
         # Find closest control using binary search
-        times = [tc.t for tc in self.control_history]
+        times = [tc[0] for tc in self.control_history]
         idx = min(range(len(times)), key=lambda i: abs(times[i] - t))
         return self.control_history[idx]
     
-    def _find_latest_state_before(self, t: int) -> Tuple[int, (MeasurementType, NDArray, NDArray)]:
+    def _find_latest_state_before(self, t: int) -> Tuple[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], NDArray, NDArray]]:
         """Find latest state estimate before given time"""
         valid_times = [time for time in self.state_history.keys() if time < t]
         if not valid_times:
@@ -276,7 +287,7 @@ class EkfHistory:
         latest_time = max(valid_times)
         return latest_time, self.state_history[latest_time]
     
-    def get_latest_state(self) -> Optional[Tuple[float, (MeasurementType, NDArray, NDArray)]]:
+    def get_latest_state(self) -> Optional[Tuple[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], NDArray, NDArray]]]:
         """Get the current best estimate (latest state)"""
         if not self.state_history:
             return None
@@ -284,10 +295,10 @@ class EkfHistory:
         latest_time = max(self.state_history.keys())
         return latest_time, self.state_history[latest_time]
 
-    def _cleanup(self):
+    def _cleanup(self) -> None:
         """Cleanup old state estimates"""
         if self.control_history:
-            oldest_control_time = self.control_history[0].t
+            oldest_control_time = self.control_history[0][0]
             self.state_history = {k: v for k, v in self.state_history.items() 
                                 if k >= oldest_control_time}
 
@@ -295,13 +306,13 @@ class EkfHistory:
 class Ekf:
     """Extended Kalman Filter implementation"""
     
-    def __init__(self, params: EkfParams, transforms: EkfStaticTransforms):
+    def __init__(self, params: EkfParams, transforms: EkfStaticTransforms, logger: Logger):
         """Initialize EKF with parameters and transforms"""
         self._r_body_depth_B: NDArray = transforms.r_body_depth_B
         dvl_T_body: SE3 = transforms.body_T_dvl.inv()
         self._dvl_J_body: NDArray = dvl_T_body.jacob()
         assert np.allclose(transforms.body_T_imu.t, 0)
-        self._imu_R_body: SO3 = transforms.body_T_imu.R.inv()
+        self._imu_R_body: SO3 = SO3(transforms.body_T_imu.R).inv()
         
         # Depth measurement Jacobian
         self._H_depth = np.zeros((1, 6))
@@ -316,94 +327,128 @@ class Ekf:
         self._Qc = np.diag([var_r, var_r, var_r, var_v, var_v, var_v])
         
         # Gravity vector (pointing up in odom frame)
-        self._a_g_O = np.array([0.0, 0.0, params.gravity])
+        self._a_g_O = np.array([0.0, 0.0, params.gravity])[:, np.newaxis]
+
+        # Logger
+        self._logger = logger
     
     def predict(self, xkm1: NDArray, uk: EkfControl, dt: int) -> NDArray:
-        dt = dt * 1e-9
+        self._logger.info(f"predict: xkm1.shape = {xkm1.shape}")
+        assert xkm1.shape == (6, 1) and uk.is_valid() and dt > 0
+
+        dt_seconds = dt * 1e-9
         # Transform acceleration to odom frame
-        a_sensor_O = uk.odom_R_sensor @ uk.a_sensor_S
+        a_sensor_O = uk.odom_R_sensor * uk.a_sensor_S
 
         # Sensor frame origin is body frame origin
-        a_body_O = a_sensor_O
+        a_body_O = a_sensor_O + self._a_g_O
 
         odom_R_body: SO3 = uk.odom_R_sensor * self._imu_R_body
 
         # Position update: r = r + v*dt + 0.5*a*dt^2
         r_body_km1_O, v_body_km1_B = xkm1[:3], xkm1[3:]
         v_body_km1_O = odom_R_body * v_body_km1_B
-        r_body_km1_body_k_O = v_body_km1_O * dt + 0.5 * a_body_O * dt**2
+        r_body_km1_body_k_O = v_body_km1_O * dt_seconds + 0.5 * a_body_O * dt_seconds**2
         r_body_k_O = r_body_km1_O + r_body_km1_body_k_O
         
         # Velocity update: v = v + a*dt
-        v_body_k_O = v_body_km1_O + (a_body_O + self._a_g_O) * dt
+        self._logger.info(f"v_body_km1_O: {v_body_km1_O.shape}, a_body_O: {a_body_O.shape}")
+        v_body_k_O = v_body_km1_O + a_body_O * dt_seconds
         v_body_k_B = odom_R_body.inv() * v_body_k_O
 
-        return np.hstack((r_body_k_O, v_body_k_B))
+        self._logger.info(f"r_body_k_O: {r_body_k_O.shape}, v_body_k_B: {v_body_k_B.shape}")
+        assert r_body_k_O.shape == v_body_k_B.shape == (3, 1)
 
-    @staticmethod
-    def predict_cov(Pkm1: NDArray, dt: float) -> NDArray:
+        return np.vstack((r_body_k_O, v_body_k_B))
+
+    def predict_cov(self, Pkm1: NDArray, uk: EkfControl, dt: int) -> NDArray:
         """Predict covariance"""
-        I3 = np.eye(3)
-        dr_dv = I3 * dt
-        F = np.block([[I3, dr_dv],
-                     [np.zeros((3, 3)), I3]])
+        assert Pkm1.shape == (6, 6)
+
+        odom_R_body: SO3= uk.odom_R_sensor * self._imu_R_body
+
+        dt_seconds = dt * 1e-9
+
+        F = np.block([[np.eye(3), odom_R_body.A * dt_seconds],
+                      [np.zeros((3, 3)), np.eye(3)]])
         
-        Pk = F @ Pkm1 @ F.T
+        Pk = F @ Pkm1 @ F.T + self._Qc * np.sqrt(dt)
         return Pk
 
-    @staticmethod
-    def update(xk_hat: NDArray, Pk_hat: NDArray, zk: NDArray,
+    def update(self, xk_hat: NDArray, Pk_hat: NDArray, zk: NDArray,
                Rk: NDArray, zk_hat: NDArray, H: NDArray) -> Tuple[NDArray, NDArray]:
         """Update state and covariance with measurement"""
+        assert xk_hat.shape == (6, 1) and Pk_hat.shape == (6, 6)
+        assert zk.shape == zk_hat.shape and zk.shape[1] == 1 and len(zk.shape) == 2
+        assert H.shape == (zk.shape[0], xk_hat.shape[0])
+        assert Pk_hat.shape == (xk_hat.shape[0], xk_hat.shape[0])
+        assert Rk.shape == (zk.shape[0], zk.shape[0])
+
+
+
         yk_hat = zk - zk_hat
         Sk = H @ Pk_hat @ H.T + Rk
-        
+
+        self._logger.info(f"update Sk: {Sk.shape}")
         try:
             Sk_inv = np.linalg.inv(Sk)
         except np.linalg.LinAlgError:
             raise ValueError("Sk singular")
-        
+
+
         Kk = Pk_hat @ H.T @ Sk_inv
-        xk = xk_hat.data + Kk @ yk_hat
+        xk = xk_hat + Kk @ yk_hat
         Pk = (np.eye(6) - Kk @ H) @ Pk_hat
-        
+
+        self._logger.info(f"xk_pred: {xk_hat}")
+        self._logger.info(f"zk_pred: {zk_hat}")
+        self._logger.info(f"zk: {zk}")
+        self._logger.info(f"yk: {yk_hat}")
+        self._logger.info(f"Sk: {Sk}")
+        self._logger.info(f"Kk: {Kk}")
+        self._logger.info(f"Pk_hat: {Pk_hat.diagonal()}, H.T: {H.T}, Sk_inv: {Sk_inv}")
+        self._logger.info(f"xk: {xk}")
+
         return xk, Pk
     
     def h_dvl(self, xk: NDArray, uk: EkfControl) -> NDArray:
-        """DVL measurement function"""
+        assert xk.shape == (6, 1) and uk.is_valid()
+
         # Transform velocity to body frame
         v_body_B = xk[3:]
         omega_body_B = self._imu_R_body.inv() * uk.omega_sensor_S
         
         # Create twist vector
-        V_body_B = np.hstack([v_body_B, omega_body_B])
+        V_body_B = np.vstack([v_body_B, omega_body_B])
         
         # Transform to DVL frame
         V_dvl_V = (self._dvl_J_body @ V_body_B)
         return V_dvl_V[:3]
-    
-    def h_depth(self, xk: NDArray, uk: EkfControl) -> float:
-        """Depth measurement function"""
+
+    def h_depth(self, xk: NDArray, uk: EkfControl) -> NDArray:
+        self._logger.info(str(xk.shape))
+        assert xk.shape == (6, 1) and uk.is_valid()
+
         r_body_O = xk[:3]
         odom_R_body: SO3 = uk.odom_R_sensor * self._imu_R_body
 
         # Transform depth sensor position to odom frame
         r_body_depth_O = odom_R_body * self._r_body_depth_B
         r_odom_depth_O = r_body_O + r_body_depth_O
-        return r_odom_depth_O[2]
+        return np.array(r_odom_depth_O[2:3])
 
     @property
-    def H_depth(self):
+    def H_depth(self) -> NDArray:
         return self._H_depth
 
     @property
-    def H_dvl(self):
+    def H_dvl(self) -> NDArray:
         return self._H_dvl
 
 
 class StateEstimatorEkf(Node):
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__('state_estimator_ekf')
         
         # Declare parameters
@@ -452,11 +497,9 @@ class StateEstimatorEkf(Node):
         self.get_logger().info("Waiting for static transforms...")
         self._static_tf_timer = self.create_timer(0.1, self._static_tf_timer_callback)
     
-    def _static_tf_timer_callback(self):
+    def _static_tf_timer_callback(self) -> None:
         # Only run if not already ready
-        if self._transforms_ready:
-            return
-        self.get_logger().debug(f"Loooking up transforms: {self.body_frame}, {self.depth_frame}, {self.dvl_frame}")
+        self.get_logger().debug(f"Looking up transforms: {self.body_frame}, {self.depth_frame}, {self.dvl_frame}")
         try:
             now = self.get_clock().now()
             # Look up depth transform
@@ -484,16 +527,16 @@ class StateEstimatorEkf(Node):
             self._transforms_ready = True
             self.get_logger().info("Static transforms received")
             # Now initialize EKF and processing thread
-            self.ekf = Ekf(self.params, self.static_transforms)
+            self.ekf = Ekf(self.params, self.static_transforms, self.get_logger())
             self.get_logger().info("EKF initialized")
             # Processing thread
             self.start_processing()
             # Stop the timer
             self._static_tf_timer.cancel()
         except Exception as e:
-            self.get_logger().debug(f"Transforms not available yet, waiting... ({e})")
+            self.get_logger().warn(f"Transforms not available yet, waiting... ({e})")
 
-    def start_processing(self):
+    def start_processing(self) -> None:
         self.input_queue = Queue()
         # Setup publishers and subscribers
         qos = QoSProfile(
@@ -508,34 +551,28 @@ class StateEstimatorEkf(Node):
         self.processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
         self.processing_thread.start()
 
-    def imu_callback(self, msg: ImuMsg):
+    def imu_callback(self, msg: ImuMsg) -> None:
         """IMU message callback"""
-        try:
-            t = stamp_to_nanos(msg.header.stamp)
-            u = EkfControl.from_msg(msg)
+        t = stamp_to_nanos(msg.header.stamp)
+        u = EkfControl.from_msg(msg)
+        if self.input_queue is not None:
             self.input_queue.put((EkfInput.IMU, t, u))
-        except Exception as e:
-            self.get_logger().error(f"Error processing IMU message: {e}")
-    
-    def depth_callback(self, msg: DepthMsg):
+
+    def depth_callback(self, msg: DepthMsg) -> None:
         """Depth message callback"""
-        try:
-            t = stamp_to_nanos(msg.header.stamp)
-            depth_input = DepthInput.from_msg(msg)
+        t = stamp_to_nanos(msg.header.stamp)
+        depth_input = DepthInput.from_msg(msg)
+        if self.input_queue is not None:
             self.input_queue.put((EkfInput.DEPTH, t, depth_input))
-        except Exception as e:
-            self.get_logger().error(f"Error processing depth message: {e}")
-    
-    def dvl_callback(self, msg: DvlMsg):
+
+    def dvl_callback(self, msg: DvlMsg) -> None:
         """DVL message callback"""
-        try:
-            t = stamp_to_nanos(msg.header.stamp)
-            dvl_input = DvlInput.from_msg(msg)
+        t = stamp_to_nanos(msg.header.stamp)
+        dvl_input = DvlInput.from_msg(msg)
+        if self.input_queue is not None:
             self.input_queue.put((EkfInput.DVL, t, dvl_input))
-        except Exception as e:
-            self.get_logger().error(f"Error processing DVL message: {e}")
-    
-    def _processing_loop(self):
+
+    def _processing_loop(self) -> None:
         """Main processing loop"""
         self.get_logger().info("EKF processing thread started, waiting for first measurements...")
         
@@ -546,6 +583,8 @@ class StateEstimatorEkf(Node):
         
         while rclpy.ok():
             try:
+                if self.input_queue is None:
+                    continue
                 input_type, t, data = self.input_queue.get(timeout=1.0)
                 
                 if input_type == EkfInput.DEPTH:
@@ -564,6 +603,10 @@ class StateEstimatorEkf(Node):
                 continue
         
         # Initialize history
+        if (depth_input_stamped is None or dvl_input_stamped is None or imu_input_stamped is None):
+            self.get_logger().error("Failed to get initial measurements")
+            return
+            
         t_depth, depth_input = depth_input_stamped
         t_dvl, dvl_input = dvl_input_stamped
         t_imu, imu_input = imu_input_stamped
@@ -578,6 +621,7 @@ class StateEstimatorEkf(Node):
                 imu_input,
                 self.params,
                 50,
+                self.get_logger()
             )
             self.get_logger().info("EKF history initialized")
         except ValueError as e:
@@ -587,34 +631,32 @@ class StateEstimatorEkf(Node):
         # Main processing loop
         while rclpy.ok():
             try:
+                if self.input_queue is None:
+                    continue
                 input_type, t, data = self.input_queue.get(timeout=1.0)
                 
                 if input_type == EkfInput.IMU:
-                    try:
-                        self.history.add_imu_measurement(t, data)
-                    except ValueError as e:
-                        self.get_logger().warn(f"IMU measurement rejected: {e}")
-                
+                    self.history.add_imu_measurement(t, data)
+
                 elif input_type == EkfInput.DEPTH:
-                    try:
+                    # try:
+                    if self.ekf is not None:
                         self.history.add_depth_measurement(t, data, self.ekf)
-                        self._publish_odometry()
-                    except ValueError as e:
-                        self.get_logger().warn(f"Depth measurement rejected: {e}")
+                    self._publish_odometry()
+                    # except ValueError as e:
+                    #     self.get_logger().warn(f"Depth measurement rejected: {e}")
                 
                 elif input_type == EkfInput.DVL:
-                    try:
+                    if self.ekf is not None:
                         self.history.add_dvl_measurement(t, data, self.ekf)
-                        self._publish_odometry()
-                    except ValueError as e:
-                        self.get_logger().warn(f"DVL measurement rejected: {e}")
-                    
+                    self._publish_odometry()
+
             except queue.Empty:
                 continue
-            except Exception as e:
-                self.get_logger().error(f"Error in processing loop: {e}")
+            # except Exception as e:
+            #     self.get_logger().error(f"Error in processing loop: {e}")
     
-    def _publish_odometry(self):
+    def _publish_odometry(self) -> None:
         """Publish current odometry estimate"""
         if self.history is None:
             return
@@ -632,9 +674,11 @@ class StateEstimatorEkf(Node):
         odom_msg.child_frame_id = self.body_frame
         
         # Set position
-        odom_msg.pose.pose.position.x = state_est.state.r_body_O()[0]
-        odom_msg.pose.pose.position.y = state_est.state.r_body_O()[1]
-        odom_msg.pose.pose.position.z = state_est.state.r_body_O()[2]
+        self.get_logger().info(str(state_est[2].shape))
+        self.get_logger().info(str(state_est[3].shape))
+        odom_msg.pose.pose.position.x = float(state_est[2][:3][0])
+        odom_msg.pose.pose.position.y = float(state_est[2][:3][1])
+        odom_msg.pose.pose.position.z = float(state_est[2][:3][2])
         
         # Set orientation (identity for now - only position/velocity tracking)
         odom_msg.pose.pose.orientation.w = 1.0
@@ -643,20 +687,21 @@ class StateEstimatorEkf(Node):
         odom_msg.pose.pose.orientation.z = 0.0
         
         # Set velocity
-        odom_msg.twist.twist.linear.x = state_est.state.v_body_O()[0]
-        odom_msg.twist.twist.linear.y = state_est.state.v_body_O()[1]
-        odom_msg.twist.twist.linear.z = state_est.state.v_body_O()[2]
+        odom_msg.twist.twist.linear.x = float(state_est[2][3:][0])
+        odom_msg.twist.twist.linear.y = float(state_est[2][3:][1])
+        odom_msg.twist.twist.linear.z = float(state_est[2][3:][2])
         
         # Set covariance (flatten 6x6 matrix)
-        pose_cov = state_est.cov[:3, :3].flatten().tolist()
-        twist_cov = state_est.cov[3:, 3:].flatten().tolist()
+        pose_cov = state_est[3][:3, :3].flatten().tolist()
+        twist_cov = state_est[3][3:, 3:].flatten().tolist()
         odom_msg.pose.covariance = pose_cov + [0.0] * 27  # 6x6 matrix
         odom_msg.twist.covariance = [0.0] * 27 + twist_cov  # 6x6 matrix
         
-        self.odom_pub.publish(odom_msg)
+        if self.odom_pub is not None:
+            self.odom_pub.publish(odom_msg)
 
 
-def main(args=None):
+def main(args: Optional[List[str]] = None) -> None:
     rclpy.init(args=args)
     node = StateEstimatorEkf()
     rclpy.spin(node)
@@ -665,4 +710,4 @@ def main(args=None):
 
 
 if __name__ == '__main__':
-    main() 
+    main()

@@ -3,9 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/containers/arena-sdk" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/packages/stonefish_ros2" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/packages/tauv_gnc/gtsam" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/packages/tauv_vehicle/flatbuffers" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/third-party/manif" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/third-party/stonefish" vcs="Git" />
   </component>
