@@ -11,7 +11,7 @@ from rclpy.time import Time
 import numpy as np
 from numpy.typing import NDArray
 from typing import Optional, Tuple, Dict, List, Deque, Any, Union
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from enum import Enum
 import math
 from collections import deque
@@ -20,7 +20,7 @@ from threading import Thread
 import queue
 from queue import Queue
 
-from spatialmath import SE3, SO3
+from spatialmath import SE3, SO3, UnitQuaternion
 
 # ROS2 messages
 from sensor_msgs.msg import Imu as ImuMsg
@@ -28,7 +28,9 @@ from nav_msgs.msg import Odometry
 from tauv_common.util.geometry import numpify
 from tauv_msgs.msg import Depth as DepthMsg
 from tauv_msgs.msg import WaterlinkedDvlFrame as DvlMsg
-from geometry_msgs.msg import TransformStamped, Quaternion, Vector3, Point
+from tauv_msgs.msg import NavigationState
+from geometry_msgs.msg import TransformStamped, Quaternion, Vector3, Point, Pose
+from builtin_interfaces.msg import Time as TimeMsg
 
 # TF2
 import tf2_ros
@@ -188,7 +190,6 @@ class EkfHistory:
         # Apply depth update
         z_pred: NDArray = ekf.h_depth(x_pred, closest_control)
 
-        self._logger.info("Depth update...")
         x_updated, P_updated = ekf.update(x_pred, P_pred, depth.z, depth.R, z_pred, ekf.H_depth)
 
         # Store state
@@ -333,7 +334,6 @@ class Ekf:
         self._logger = logger
     
     def predict(self, xkm1: NDArray, uk: EkfControl, dt: int) -> NDArray:
-        self._logger.info(f"predict: xkm1.shape = {xkm1.shape}")
         assert xkm1.shape == (6, 1) and uk.is_valid() and dt > 0
 
         dt_seconds = dt * 1e-9
@@ -352,11 +352,9 @@ class Ekf:
         r_body_k_O = r_body_km1_O + r_body_km1_body_k_O
         
         # Velocity update: v = v + a*dt
-        self._logger.info(f"v_body_km1_O: {v_body_km1_O.shape}, a_body_O: {a_body_O.shape}")
         v_body_k_O = v_body_km1_O + a_body_O * dt_seconds
         v_body_k_B = odom_R_body.inv() * v_body_k_O
 
-        self._logger.info(f"r_body_k_O: {r_body_k_O.shape}, v_body_k_B: {v_body_k_B.shape}")
         assert r_body_k_O.shape == v_body_k_B.shape == (3, 1)
 
         return np.vstack((r_body_k_O, v_body_k_B))
@@ -389,7 +387,6 @@ class Ekf:
         yk_hat = zk - zk_hat
         Sk = H @ Pk_hat @ H.T + Rk
 
-        self._logger.info(f"update Sk: {Sk.shape}")
         try:
             Sk_inv = np.linalg.inv(Sk)
         except np.linalg.LinAlgError:
@@ -399,15 +396,6 @@ class Ekf:
         Kk = Pk_hat @ H.T @ Sk_inv
         xk = xk_hat + Kk @ yk_hat
         Pk = (np.eye(6) - Kk @ H) @ Pk_hat
-
-        self._logger.info(f"xk_pred: {xk_hat}")
-        self._logger.info(f"zk_pred: {zk_hat}")
-        self._logger.info(f"zk: {zk}")
-        self._logger.info(f"yk: {yk_hat}")
-        self._logger.info(f"Sk: {Sk}")
-        self._logger.info(f"Kk: {Kk}")
-        self._logger.info(f"Pk_hat: {Pk_hat.diagonal()}, H.T: {H.T}, Sk_inv: {Sk_inv}")
-        self._logger.info(f"xk: {xk}")
 
         return xk, Pk
     
@@ -426,7 +414,6 @@ class Ekf:
         return V_dvl_V[:3]
 
     def h_depth(self, xk: NDArray, uk: EkfControl) -> NDArray:
-        self._logger.info(str(xk.shape))
         assert xk.shape == (6, 1) and uk.is_valid()
 
         r_body_O = xk[:3]
@@ -484,7 +471,7 @@ class StateEstimatorEkf(Node):
         self.imu_sub: Optional[Subscription] = None
         self.depth_sub: Optional[Subscription] = None
         self.dvl_sub: Optional[Subscription] = None
-        self.odom_pub: Optional[Publisher] = None
+        self.nav_state_pub: Optional[Publisher] = None
         self.processing_thread: Optional[Thread] = None
 
         # State
@@ -494,7 +481,6 @@ class StateEstimatorEkf(Node):
         self._transforms_ready = False
 
         # Timer for checking static transforms
-        self.get_logger().info("Waiting for static transforms...")
         self._static_tf_timer = self.create_timer(0.1, self._static_tf_timer_callback)
     
     def _static_tf_timer_callback(self) -> None:
@@ -525,7 +511,6 @@ class StateEstimatorEkf(Node):
             body_T_imu = numpify(imu_tf.transform)
             self.static_transforms = EkfStaticTransforms(r_body_depth_B, body_T_dvl, body_T_imu)
             self._transforms_ready = True
-            self.get_logger().info("Static transforms received")
             # Now initialize EKF and processing thread
             self.ekf = Ekf(self.params, self.static_transforms, self.get_logger())
             self.get_logger().info("EKF initialized")
@@ -547,7 +532,7 @@ class StateEstimatorEkf(Node):
         self.imu_sub = self.create_subscription(ImuMsg, 'imu', self.imu_callback, qos)
         self.depth_sub = self.create_subscription(DepthMsg, 'depth', self.depth_callback, qos)
         self.dvl_sub = self.create_subscription(DvlMsg, 'dvl', self.dvl_callback, qos)
-        self.odom_pub = self.create_publisher(Odometry, 'odom', 10)
+        self.nav_state_pub = self.create_publisher(NavigationState, 'navigation_state', 10)
         self.processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
         self.processing_thread.start()
 
@@ -642,22 +627,22 @@ class StateEstimatorEkf(Node):
                     # try:
                     if self.ekf is not None:
                         self.history.add_depth_measurement(t, data, self.ekf)
-                    self._publish_odometry()
+                    self._publish_navigation_state()
                     # except ValueError as e:
                     #     self.get_logger().warn(f"Depth measurement rejected: {e}")
                 
                 elif input_type == EkfInput.DVL:
                     if self.ekf is not None:
                         self.history.add_dvl_measurement(t, data, self.ekf)
-                    self._publish_odometry()
+                    self._publish_navigation_state()
 
             except queue.Empty:
                 continue
             # except Exception as e:
             #     self.get_logger().error(f"Error in processing loop: {e}")
     
-    def _publish_odometry(self) -> None:
-        """Publish current odometry estimate"""
+    def _publish_navigation_state(self) -> None:
+        """Publish current navigation state estimate"""
         if self.history is None:
             return
         
@@ -667,38 +652,69 @@ class StateEstimatorEkf(Node):
         
         t, state_est = latest
         
-        # Create odometry message
-        odom_msg = Odometry()
-        odom_msg.header.stamp = self.get_clock().now().to_msg()
-        odom_msg.header.frame_id = "odom"
-        odom_msg.child_frame_id = self.body_frame
+        # Get latest IMU data for acceleration and angular velocity
+        if not self.history.control_history:
+            return
         
-        # Set position
-        self.get_logger().info(str(state_est[2].shape))
-        self.get_logger().info(str(state_est[3].shape))
-        odom_msg.pose.pose.position.x = float(state_est[2][:3][0])
-        odom_msg.pose.pose.position.y = float(state_est[2][:3][1])
-        odom_msg.pose.pose.position.z = float(state_est[2][:3][2])
+        # TODO: we should be using closest control to the state estimate
+        latest_imu_t_ns, latest_imu = self.history.control_history[-1]
+
+        # Calculate the body orientation
+        odom_R_sensor = latest_imu.odom_R_sensor
+        body_T_sensor = self.static_transforms.body_T_imu
+        body_R_sensor = SO3(body_T_sensor)
+        odom_R_body = odom_R_sensor * body_R_sensor.inv()
+    
+        # Accel
+        a_gravity_O = np.c_[[0.0, 0.0, self.params.gravity]]
+        a_gravity_B = odom_R_body.inv() * a_gravity_O
+        a_sensor_S = latest_imu.a_sensor_S
+        a_body_B = body_R_sensor * a_sensor_S + a_gravity_B
+
+        # We assume that the body frame and IMU frame have the same origin
+        omega_sensor_S = latest_imu.omega_sensor_S
+        omega_body_B = body_R_sensor * omega_sensor_S
         
-        # Set orientation (identity for now - only position/velocity tracking)
-        odom_msg.pose.pose.orientation.w = 1.0
-        odom_msg.pose.pose.orientation.x = 0.0
-        odom_msg.pose.pose.orientation.y = 0.0
-        odom_msg.pose.pose.orientation.z = 0.0
+        # Create NavigationState message
+        nav_msg = NavigationState()
+        nav_msg.header.stamp = TimeMsg(sec=latest_imu_t_ns // 1_000_000_000, nanosec=latest_imu_t_ns % 1_000_000_000)
+        nav_msg.header.frame_id = "odom"
         
-        # Set velocity
-        odom_msg.twist.twist.linear.x = float(state_est[2][3:][0])
-        odom_msg.twist.twist.linear.y = float(state_est[2][3:][1])
-        odom_msg.twist.twist.linear.z = float(state_est[2][3:][2])
+        # Set pose (odom_t_sub)
+        nav_msg.body_pose = Pose()
+        nav_msg.body_pose.position.x = float(state_est[2][0, 0])
+        nav_msg.body_pose.position.y = float(state_est[2][1, 0])
+        nav_msg.body_pose.position.z = float(state_est[2][2, 0])
         
-        # Set covariance (flatten 6x6 matrix)
-        pose_cov = state_est[3][:3, :3].flatten().tolist()
-        twist_cov = state_est[3][3:, 3:].flatten().tolist()
-        odom_msg.pose.covariance = pose_cov + [0.0] * 27  # 6x6 matrix
-        odom_msg.twist.covariance = [0.0] * 27 + twist_cov  # 6x6 matrix
+        # Set orientation from IMU (quaternion from IMU sensor frame to odom frame)
+        odom_q_body = UnitQuaternion(odom_R_body).vec_xyzs  # quaternion [x, y, z, w]
+        nav_msg.body_pose.orientation.x = float(odom_q_body[0])
+        nav_msg.body_pose.orientation.y = float(odom_q_body[1])
+        nav_msg.body_pose.orientation.z = float(odom_q_body[2])
+        nav_msg.body_pose.orientation.w = float(odom_q_body[3])
         
-        if self.odom_pub is not None:
-            self.odom_pub.publish(odom_msg)
+        # Set velocity in body frame (v_b)
+        nav_msg.v_b = Vector3()
+        nav_msg.v_b.x = float(state_est[2][3, 0])
+        nav_msg.v_b.y = float(state_est[2][4, 0])
+        nav_msg.v_b.z = float(state_est[2][5, 0])
+        
+        # Set acceleration in body frame (a_b)
+        # Transform IMU acceleration from sensor frame to body frame
+        nav_msg.a_b = Vector3()
+        nav_msg.a_b.x = float(a_body_B[0, 0])
+        nav_msg.a_b.y = float(a_body_B[1, 0])
+        nav_msg.a_b.z = float(a_body_B[2, 0])
+        
+        # Set angular velocity in body frame (omega_b)
+        # Transform IMU angular velocity from sensor frame to body frame
+        nav_msg.omega_b = Vector3()
+        nav_msg.omega_b.x = float(omega_body_B[0, 0])
+        nav_msg.omega_b.y = float(omega_body_B[1, 0])
+        nav_msg.omega_b.z = float(omega_body_B[2, 0])
+        
+        if self.nav_state_pub is not None:
+            self.nav_state_pub.publish(nav_msg)
 
 
 def main(args: Optional[List[str]] = None) -> None:
