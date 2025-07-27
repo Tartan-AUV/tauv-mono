@@ -43,6 +43,10 @@ class CommanderParams:
     
     # Velocity filtering (for derivative estimation)
     velocity_filter_alpha: float = 0.9  # Low-pass filter for velocity measurements
+
+    # Position control gains (for station keeping)
+    kp_position: float = 1.0            # Proportional gain for position error [1/s²]
+    kd_position: float = 0.5            # Derivative gain for position damping [1/s]
     
     @classmethod
     def default(cls) -> 'CommanderParams':
@@ -78,6 +82,15 @@ class Commander(Node):
         self._previous_angular_velocity: Optional[NDArray] = None
         self._filtered_velocity: Optional[NDArray] = None
         self._filtered_angular_velocity: Optional[NDArray] = None
+
+        # --- Station-keeping (position hold) settings ---
+        # For now we always enable position hold at a hard-coded point in the
+        # world (OS) frame. In the future this can be turned into a proper mode
+        # with a configurable set-point via a dedicated message/service.
+        self._position_hold_enabled = True
+        # Hard-coded hold point in **world frame** [m]. Positive z is up per NED.
+        # Update as needed.
+        self._hold_position_world: NDArray = np.array([[0.0], [0.0], [-8.0]])
         
         # ROS2 interfaces
         self._cmd_sub = self.create_subscription(
@@ -124,28 +137,40 @@ class Commander(Node):
     def _control_loop(self):
         """Main control loop - generates acceleration commands"""
         # Check if we have required inputs
-        if self._nav_state is None or self._velocity_attitude_cmd is None:
+        if self._nav_state is None:
             return
         
-        cmd = self._velocity_attitude_cmd
         nav = self._nav_state
-        
-        # Initialize acceleration command
+
+        # Initialise acceleration commands
         linear_accel_cmd = np.zeros((3, 1))
         angular_accel_cmd = np.zeros((3, 1))
+
+        # ------------------------------------------------------------------
+        # 1. Primary mode: follow externally provided velocity/attitude cmd
+        # ------------------------------------------------------------------
+        cmd = self._velocity_attitude_cmd
+        have_external_cmd = cmd is not None
         
-        # Velocity control
-        if cmd.velocity_control_enabled and self._filtered_velocity is not None:
-            linear_accel_cmd = self._compute_velocity_control(cmd, nav)
-        
-        # Attitude control  
-        if cmd.attitude_control_enabled and self._filtered_angular_velocity is not None:
-            angular_accel_cmd = self._compute_attitude_control(cmd, nav)
-        
-        # Add feedforward acceleration if provided
-        if cmd.velocity_control_enabled:
-            feedforward_accel = numpify(cmd.feedforward_acceleration)
-            linear_accel_cmd += feedforward_accel
+        if have_external_cmd:
+            # Velocity control
+            if cmd.velocity_control_enabled and self._filtered_velocity is not None:
+                linear_accel_cmd = self._compute_velocity_control(cmd, nav)
+
+            # Attitude control
+            if cmd.attitude_control_enabled and self._filtered_angular_velocity is not None:
+                angular_accel_cmd = self._compute_attitude_control(cmd, nav)
+
+            # Feed-forward term
+            if cmd.velocity_control_enabled:
+                feedforward_accel = numpify(cmd.feedforward_acceleration)
+                linear_accel_cmd += feedforward_accel
+
+        # ------------------------------------------------------------------
+        # 2. Fallback / station-keeping mode (position hold)
+        # ------------------------------------------------------------------
+        if not have_external_cmd and self._position_hold_enabled and self._filtered_velocity is not None:
+            linear_accel_cmd = self._compute_position_hold(nav)
         
         # Apply limits
         linear_accel_cmd = self._limit_acceleration(linear_accel_cmd, self.params.max_linear_accel)
@@ -155,7 +180,7 @@ class Commander(Node):
         self._publish_acceleration_command(linear_accel_cmd, angular_accel_cmd)
         
         # Debug logging
-        if cmd.velocity_control_enabled:
+        if have_external_cmd and cmd.velocity_control_enabled:
             vel_error = numpify(cmd.target_velocity) - self._filtered_velocity
             self.get_logger().debug(
                 f"Velocity error: [{vel_error[0,0]:.3f}, {vel_error[1,0]:.3f}, {vel_error[2,0]:.3f}] m/s"
@@ -165,7 +190,7 @@ class Commander(Node):
             f"Accel cmd: linear=[{linear_accel_cmd[0,0]:.2f}, {linear_accel_cmd[1,0]:.2f}, {linear_accel_cmd[2,0]:.2f}] m/s², "
             f"angular=[{angular_accel_cmd[0,0]:.2f}, {angular_accel_cmd[1,0]:.2f}, {angular_accel_cmd[2,0]:.2f}] rad/s²"
         )
-    
+
     def _compute_velocity_control(self, cmd: VelocityAttitudeCommand, nav: NavigationState) -> NDArray:
         """
         Compute linear acceleration command from velocity error
@@ -259,6 +284,40 @@ class Commander(Node):
         accel_msg.accel.angular.z = float(angular_accel[2, 0])
         
         self._accel_cmd_pub.publish(accel_msg)
+
+    # ---------------------------------------------------------------------
+    # New position-hold (station keeping) controller
+    # ---------------------------------------------------------------------
+    def _compute_position_hold(self, nav: NavigationState) -> NDArray:
+        """Compute linear acceleration command to hold position.
+
+        A simple PD controller is used in **world frame** and then converted to
+        body frame before being sent to the INDI controller.
+        """
+        # Current position in world frame
+        p = nav.body_pose.position
+        current_position_world = np.array([[p.x], [p.y], [p.z]])
+
+        # Position error (world frame)
+        pos_error_world = self._hold_position_world - current_position_world
+
+        # Current velocity (body frame) -> convert to world frame
+        current_quat = numpify(nav.body_pose.orientation)  # UnitQuaternion
+        assert isinstance(current_quat, UnitQuaternion)
+
+        v_body = self._filtered_velocity  # 3x1
+        v_world = current_quat.R @ v_body
+
+        # PD control in world frame
+        accel_world = (
+            self.params.kp_position * pos_error_world
+            - self.params.kd_position * v_world
+        )
+
+        # Convert desired acceleration to body frame
+        accel_body = current_quat.inv().R @ accel_world
+
+        return accel_body
 
 
 def main():
