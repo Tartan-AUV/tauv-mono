@@ -19,7 +19,7 @@ SimAdapter::SimAdapter() : Node("sim_adapter") {
   depth_publisher_ = this->create_publisher<tauv_msgs::msg::DepthSensorFrame>(
       "depth_sensor_frame", 10);
   thruster_setpoint_subscription_ =
-      this->create_subscription<tauv_msgs::msg::RpmCommand>(
+      this->create_subscription<tauv_msgs::msg::ThrusterSetpoint>(
           "vehicle/actuators/thruster_setpoint", 10,
           std::bind(&SimAdapter::thruster_setpoint_callback, this, _1));
   thruster_setpoint_publisher_ =
@@ -78,7 +78,7 @@ void SimAdapter::pressure_callback(const sensor_msgs::msg::FluidPressure& msg) {
 }
 
 void SimAdapter::thruster_setpoint_callback(
-    const tauv_msgs::msg::RpmCommand& msg) {
+    const tauv_msgs::msg::ThrusterSetpoint& msg) {
   std_msgs::msg::Float64MultiArray result;
   result.layout.dim.resize(1);
   result.layout.dim[0].label = "data";
@@ -86,10 +86,8 @@ void SimAdapter::thruster_setpoint_callback(
   result.layout.dim[0].stride = msg.enables.size();
   result.layout.data_offset = 0;
   for (size_t i = 0; i < msg.enables.size(); ++i) {
-    double normalized_rpm = msg.rpms[i] / thruster_max_rpm_;
-    double clamped_rpm = std::clamp(normalized_rpm, -1.0, 1.0);
-    result.data.push_back(
-      msg.enables[i] ? clamped_rpm : 0.0f);
+    // Note: we are not normalizing the rpm here, stonefish must be configured correctly
+    result.data.push_back(msg.enables[i] ? msg.omega_radps[i] : 0.0f);
   }
 
   thruster_setpoint_publisher_->publish(result);

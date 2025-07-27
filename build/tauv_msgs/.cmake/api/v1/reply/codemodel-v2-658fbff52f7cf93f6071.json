@@ -1,0 +1,267 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-4bcda3e1b4d56fa42aa2.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						15,
+						16,
+						17,
+						18,
+						19
+					]
+				},
+				{
+					"build" : "tauv_msgs__rs",
+					"jsonFile" : "directory-tauv_msgs__rs-edc14b0595de5e968f01.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/gleb/dev/tauv-mono/build/tauv_msgs/tauv_msgs__rs",
+					"targetIndexes" : 
+					[
+						14
+					]
+				},
+				{
+					"build" : "tauv_msgs__py",
+					"jsonFile" : "directory-tauv_msgs__py-7085118586aa40f77594.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.20"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "/home/gleb/dev/tauv-mono/build/tauv_msgs/tauv_msgs__py",
+					"targetIndexes" : 
+					[
+						4
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "tauv_msgs",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_build_tauv_msgs_egg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_build_tauv_msgs_egg-55654c51621be436e89f.json",
+					"name" : "ament_cmake_python_build_tauv_msgs_egg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_symlink_tauv_msgs::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_symlink_tauv_msgs-a45e9e27c64869e56fb0.json",
+					"name" : "ament_cmake_python_symlink_tauv_msgs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs-ca1b36135163299a680d.json",
+					"name" : "tauv_msgs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__cpp-9d177931ae111fce26ac.json",
+					"name" : "tauv_msgs__cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "tauv_msgs__py::@55bae3e6b8e48eaf39c7",
+					"jsonFile" : "target-tauv_msgs__py-5983b993f1253e8b3c13.json",
+					"name" : "tauv_msgs__py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__rosidl_generator_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__rosidl_generator_c-b2c9acafce8d4b357f16.json",
+					"name" : "tauv_msgs__rosidl_generator_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__rosidl_generator_py::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__rosidl_generator_py-3aafa4af47bab2ec681c.json",
+					"name" : "tauv_msgs__rosidl_generator_py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__rosidl_generator_type_description::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__rosidl_generator_type_description-fb5a58c35ccf3bca6737.json",
+					"name" : "tauv_msgs__rosidl_generator_type_description",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__rosidl_typesupport_c-96a59c0ebe3bdb5fe8f0.json",
+					"name" : "tauv_msgs__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__rosidl_typesupport_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__rosidl_typesupport_cpp-f804355b3d525f33f384.json",
+					"name" : "tauv_msgs__rosidl_typesupport_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__rosidl_typesupport_fastrtps_c-75deab4b32b0d36d00b9.json",
+					"name" : "tauv_msgs__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__rosidl_typesupport_fastrtps_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__rosidl_typesupport_fastrtps_cpp-1ad5cb27fe0d4a1165e8.json",
+					"name" : "tauv_msgs__rosidl_typesupport_fastrtps_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__rosidl_typesupport_introspection_c-d329a93af953b8ecbb9a.json",
+					"name" : "tauv_msgs__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs__rosidl_typesupport_introspection_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs__rosidl_typesupport_introspection_cpp-3fb3c630b22ba234ee8e.json",
+					"name" : "tauv_msgs__rosidl_typesupport_introspection_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "tauv_msgs__rs::@d8a5075d984fac58ee94",
+					"jsonFile" : "target-tauv_msgs__rs-669a432861b50da945d3.json",
+					"name" : "tauv_msgs__rs",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs_s__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs_s__rosidl_typesupport_c-bb67cc7570d11a137c88.json",
+					"name" : "tauv_msgs_s__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs_s__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs_s__rosidl_typesupport_fastrtps_c-82c5736c84f9a3c78e9b.json",
+					"name" : "tauv_msgs_s__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs_s__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs_s__rosidl_typesupport_introspection_c-d3f11c462b09ea2f08b8.json",
+					"name" : "tauv_msgs_s__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "tauv_msgs_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-tauv_msgs_uninstall-18922820872a1674ef2c.json",
+					"name" : "tauv_msgs_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-d22c7e86a2b6e25b132c.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/gleb/dev/tauv-mono/build/tauv_msgs",
+		"source" : "/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 6
+	}
+}

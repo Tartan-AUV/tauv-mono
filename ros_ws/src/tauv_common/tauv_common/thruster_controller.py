@@ -8,13 +8,11 @@ from rclpy.node import Node
 from rclpy.subscription import Subscription
 from rclpy.publisher import Publisher
 
-from tauv_msgs.msg import TargetThrust, RpmCommand
+from tauv_msgs.msg import TargetThrust, ThrusterSetpoint
 
-THRUST_COEFF_FWD = 0.000371
-THRUST_COEFF_REV = 0.000297
-DEADBAND_LOWER = -47.0
-DEADBAND_UPPER = 39.2
-MAX_SETPOINT = 362.0
+THRUST_COEFF_FWD = 3.645e-3 # N/(rad/s)^2
+THRUST_COEFF_REV = 2.905e-3 # N/(rad/s)^2
+MAX_SETPOINT = 362.9 # rad/s
 
 class ThrusterController(Node):
     
@@ -22,25 +20,18 @@ class ThrusterController(Node):
         super().__init__("thruster_controller")
 
         self._target_thrust_sub = self.create_subscription(TargetThrust, "gnc/target_thrust", self._handle_target_thrust, 10)
-        self._rpm_command_pub = self.create_publisher(RpmCommand, "vehicle/actuators/thruster_setpoint", 10)
+        self._thruster_setpoint_pub = self.create_publisher(ThrusterSetpoint, "vehicle/actuators/thruster_setpoint", 10)
 
-    def _get_rpm(self, f: float) -> float:
-        if f < DEADBAND_LOWER:
-            f = abs(f)
-            return -np.sqrt(min(MAX_SETPOINT, f) / THRUST_COEFF_REV)
-        elif f > DEADBAND_UPPER:
-            return np.sqrt(min(MAX_SETPOINT, f) / THRUST_COEFF_FWD)
-        else:
-            return 0
+    def _get_omega(self, f: float) -> float:
+        return np.sqrt(min(MAX_SETPOINT, abs(f)) / THRUST_COEFF_REV) * np.sign(f)
 
     def _handle_target_thrust(self, target_thrust: TargetThrust):
         # Get target thrust
         f = target_thrust.target_thrust  # (n_thrusters,)
-        rpm_command = RpmCommand()
-        rpm_command.rpms = [self._get_rpm(f_i) for f_i in f]
-        rpm_command.enables = [True] * len(f)
-        self._rpm_command_pub.publish(rpm_command)
-
+        thruster_setpoint = ThrusterSetpoint()
+        thruster_setpoint.omega_radps = [self._get_omega(f_i) for f_i in f]
+        thruster_setpoint.enables = [True] * len(f)
+        self._thruster_setpoint_pub.publish(thruster_setpoint)
 
 def main():
     rclpy.init()

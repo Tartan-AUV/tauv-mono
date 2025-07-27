@@ -11,7 +11,7 @@
 #include "sensor_msgs/msg/fluid_pressure.hpp"
 #include "tauv_msgs/msg/depth_sensor_frame.hpp"
 #include "tauv_msgs/msg/waterlinked_dvl_frame.hpp"
-#include "tauv_msgs/msg/rpm_command.hpp"
+#include "tauv_msgs/msg/thruster_setpoint.hpp"
 #include "stonefish_ros2/msg/dvl.hpp"
 
 class SimAdapter final : public rclcpp::Node {
@@ -26,13 +26,13 @@ private:
   rclcpp::Publisher<tauv_msgs::msg::DepthSensorFrame>::SharedPtr depth_publisher_;
 
   // Actuators
-  rclcpp::Subscription<tauv_msgs::msg::RpmCommand>::SharedPtr thruster_setpoint_subscription_;
+  rclcpp::Subscription<tauv_msgs::msg::ThrusterSetpoint>::SharedPtr thruster_setpoint_subscription_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr thruster_setpoint_publisher_;
 
   // Callbacks
   void dvl_callback(const stonefish_ros2::msg::DVL &msg);
   void pressure_callback(const sensor_msgs::msg::FluidPressure &msg);
-  void thruster_setpoint_callback(const tauv_msgs::msg::RpmCommand &msg);
+  void thruster_setpoint_callback(const tauv_msgs::msg::ThrusterSetpoint &msg);
 
   // State variables
   std::optional<rclcpp::Time> last_dvl_reading_stamp;

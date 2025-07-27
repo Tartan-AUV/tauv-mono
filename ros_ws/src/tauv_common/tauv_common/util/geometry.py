@@ -30,3 +30,14 @@ def numpify_cov_6x6(covariance: list) -> NDArray:
         6x6 NDArray of float64
     """
     return np.array(covariance, dtype=np.float64).reshape(6, 6)
+
+def wrench_msg_to_numpy(wrench: Wrench) -> NDArray:
+    """Convert a Wrench message to a 6x1 numpy array [fx, fy, fz, tx, ty, tz].
+    
+    Args:
+        wrench: geometry_msgs/Wrench message
+        
+    Returns:
+        6x1 NDArray with forces and torques
+    """
+    return numpify(wrench)

@@ -1,0 +1,1 @@
+/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/navigation_state__rosidl_typesupport_fastrtps_c.h

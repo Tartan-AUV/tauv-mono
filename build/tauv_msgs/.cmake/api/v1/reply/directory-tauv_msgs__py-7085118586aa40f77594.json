@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "tauv_msgs__py",
+		"source" : "/home/gleb/dev/tauv-mono/build/tauv_msgs/tauv_msgs__py"
+	}
+}

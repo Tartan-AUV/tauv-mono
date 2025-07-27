@@ -6,7 +6,7 @@ from rclpy.duration import Duration
 import numpy as np
 from typing import Optional, List
 import tf2_ros as tf2
-from tauv_common.util.geometry import tf2_transform_to_SE3, wrench_msg_to_numpy
+from tauv_common.util.geometry import numpify, wrench_msg_to_numpy
 from spatialmath import SE3
 from geometry_msgs.msg import WrenchStamped
 from tauv_msgs.msg import TargetThrust
@@ -44,7 +44,7 @@ class ThrusterManager(Node):
                     self.get_clock().now(), 
                     Duration(seconds=0)
                 )
-                W_T_T[i] = tf2_transform_to_SE3(transform.transform)
+                W_T_T[i] = numpify(transform.transform)
             except Exception as e:
                 self.get_logger().error(f"Could not get transform from {wrench_frame} to {thruster_frame}: {e}")
                 return
@@ -66,7 +66,7 @@ class ThrusterManager(Node):
         
         # Publish target thrusts
         target_thrust = TargetThrust()
-        target_thrust.target_thrust = F.tolist()
+        target_thrust.target_thrust = F.flatten().tolist()
         self._target_thrust_pub.publish(target_thrust)
 
 

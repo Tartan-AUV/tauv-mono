@@ -1,0 +1,27 @@
+// generated from rosidl_adapter/resource/msg.idl.em
+// with input from tauv_msgs/msg/DepthSensorFrame.msg
+// generated code does not contain a copyright notice
+
+#include "std_msgs/msg/Header.idl"
+
+module tauv_msgs {
+  module msg {
+    @verbatim (language="comment", text=
+      "DepthFrame.msg")
+    struct DepthSensorFrame {
+      std_msgs::msg::Header header;
+
+      @verbatim (language="comment", text=
+        "depth below the surface in meters as estimated by the sensor")
+      float depth;
+
+      @verbatim (language="comment", text=
+        "pressure in Pa")
+      float pressure;
+
+      @verbatim (language="comment", text=
+        "water temperature")
+      float temperature;
+    };
+  };
+};

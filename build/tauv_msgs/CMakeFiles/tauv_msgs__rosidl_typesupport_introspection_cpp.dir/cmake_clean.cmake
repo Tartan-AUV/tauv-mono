@@ -1,0 +1,41 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth__type_support.cpp.o"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth__type_support.cpp.o.d"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth_sensor_frame__type_support.cpp.o"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth_sensor_frame__type_support.cpp.o.d"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/esc_telemetry__type_support.cpp.o"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/esc_telemetry__type_support.cpp.o.d"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/navigation_state__type_support.cpp.o"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/navigation_state__type_support.cpp.o.d"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/rpm_command__type_support.cpp.o"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/rpm_command__type_support.cpp.o.d"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/target_thrust__type_support.cpp.o"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/target_thrust__type_support.cpp.o.d"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/velocity_attitude_command__type_support.cpp.o"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/velocity_attitude_command__type_support.cpp.o.d"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.cpp.o"
+  "CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.cpp.o.d"
+  "libtauv_msgs__rosidl_typesupport_introspection_cpp.pdb"
+  "libtauv_msgs__rosidl_typesupport_introspection_cpp.so"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth__rosidl_typesupport_introspection_cpp.hpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth__type_support.cpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth_sensor_frame__rosidl_typesupport_introspection_cpp.hpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth_sensor_frame__type_support.cpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/esc_telemetry__rosidl_typesupport_introspection_cpp.hpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/esc_telemetry__type_support.cpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/navigation_state__rosidl_typesupport_introspection_cpp.hpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/navigation_state__type_support.cpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/rpm_command__rosidl_typesupport_introspection_cpp.hpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/rpm_command__type_support.cpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/target_thrust__rosidl_typesupport_introspection_cpp.hpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/target_thrust__type_support.cpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/velocity_attitude_command__rosidl_typesupport_introspection_cpp.hpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/velocity_attitude_command__type_support.cpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/waterlinked_dvl_frame__rosidl_typesupport_introspection_cpp.hpp"
+  "rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.cpp"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

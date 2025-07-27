@@ -1,0 +1,478 @@
+[0.021s] Invoking command in '/home/gleb/dev/tauv-mono/build/tauv_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_tools:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_common:/home/gleb/dev/tauv-mono/ros_ws/install/examples_tf2_py:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_ros_py:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_gnc:/home/gleb/dev/tauv-mono/ros_ws/install/sensor_msgs_py:/home/gleb/dev/tauv-mono/ros_ws/install/camera_pkg:/home/gleb/dev/tauv-mono/ros_ws/install/rust_pubsub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_worker_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_pub_sub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_client_service:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_message_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_parameter_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_logging_demo:/home/gleb/dev/tauv-mono/ros_ws/install/rclrs:/home/gleb/dev/tauv-mono/ros_ws/install/test_interface_files:/home/gleb/dev/tauv-mono/ros_ws/install/rosidl_runtime_rs:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs -DCMAKE_INSTALL_PREFIX=/home/gleb/dev/tauv-mono/install/tauv_msgs
+[0.200s] -- The C compiler identification is GNU 13.3.0
+[0.335s] -- The CXX compiler identification is GNU 13.3.0
+[0.391s] -- Detecting C compiler ABI info
+[0.625s] -- Detecting C compiler ABI info - done
+[0.647s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.648s] -- Detecting C compile features
+[0.649s] -- Detecting C compile features - done
+[0.686s] -- Detecting CXX compiler ABI info
+[1.004s] -- Detecting CXX compiler ABI info - done
+[1.032s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[1.032s] -- Detecting CXX compile features
+[1.033s] -- Detecting CXX compile features - done
+[1.042s] -- Found ament_cmake: 2.5.4 (/opt/ros/jazzy/share/ament_cmake/cmake)
+[1.450s] -- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter 
+[1.692s] -- Found rosidl_default_generators: 1.6.0 (/home/gleb/dev/tauv-mono/ros_ws/install/rosidl_default_generators/share/rosidl_default_generators/cmake)
+[1.738s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[1.890s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[1.987s] -- Found rosidl_adapter: 4.6.5 (/opt/ros/jazzy/share/rosidl_adapter/cmake)
+[1.992s] -- Found std_msgs: 5.3.6 (/home/gleb/dev/tauv-mono/ros_ws/install/std_msgs/share/std_msgs/cmake)
+[2.043s] -- Found geometry_msgs: 5.3.6 (/home/gleb/dev/tauv-mono/ros_ws/install/geometry_msgs/share/geometry_msgs/cmake)
+[3.516s] -- Found ament_cmake_ros: 0.12.0 (/opt/ros/jazzy/share/ament_cmake_ros/cmake)
+[4.762s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[6.353s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[6.780s] -- Found python_cmake_module: 0.11.1 (/opt/ros/jazzy/share/python_cmake_module/cmake)
+[7.018s] -- Found PythonExtra: /usr/bin/python3  
+[7.739s] -- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter Development NumPy Development.Module Development.Embed 
+[7.854s] -- Found ament_lint_auto: 0.17.2 (/opt/ros/jazzy/share/ament_lint_auto/cmake)
+[7.910s] -- Added test 'lint_cmake' to check CMake code style
+[7.913s] -- Added test 'xmllint' to check XML markup files
+[7.919s] -- Configuring done (7.9s)
+[7.984s] -- Generating done (0.1s)
+[8.000s] -- Build files have been written to: /home/gleb/dev/tauv-mono/build/tauv_msgs
+[8.017s] Invoked command in '/home/gleb/dev/tauv-mono/build/tauv_msgs' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_tools:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_common:/home/gleb/dev/tauv-mono/ros_ws/install/examples_tf2_py:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_ros_py:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_gnc:/home/gleb/dev/tauv-mono/ros_ws/install/sensor_msgs_py:/home/gleb/dev/tauv-mono/ros_ws/install/camera_pkg:/home/gleb/dev/tauv-mono/ros_ws/install/rust_pubsub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_worker_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_pub_sub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_client_service:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_message_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_parameter_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_logging_demo:/home/gleb/dev/tauv-mono/ros_ws/install/rclrs:/home/gleb/dev/tauv-mono/ros_ws/install/test_interface_files:/home/gleb/dev/tauv-mono/ros_ws/install/rosidl_runtime_rs:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake /home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs -DCMAKE_INSTALL_PREFIX=/home/gleb/dev/tauv-mono/install/tauv_msgs
+[8.020s] Invoking command in '/home/gleb/dev/tauv-mono/build/tauv_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_tools:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_common:/home/gleb/dev/tauv-mono/ros_ws/install/examples_tf2_py:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_ros_py:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_gnc:/home/gleb/dev/tauv-mono/ros_ws/install/sensor_msgs_py:/home/gleb/dev/tauv-mono/ros_ws/install/camera_pkg:/home/gleb/dev/tauv-mono/ros_ws/install/rust_pubsub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_worker_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_pub_sub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_client_service:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_message_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_parameter_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_logging_demo:/home/gleb/dev/tauv-mono/ros_ws/install/rclrs:/home/gleb/dev/tauv-mono/ros_ws/install/test_interface_files:/home/gleb/dev/tauv-mono/ros_ws/install/rosidl_runtime_rs:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/gleb/dev/tauv-mono/build/tauv_msgs -- -j20 -l20
+[8.145s] [  1%] [34m[1mGenerating type hashes for ROS interfaces[0m
+[8.147s] [  2%] [34m[1mGenerating Rust code for ROS interfaces[0m
+[8.162s] [  2%] Built target ament_cmake_python_copy_tauv_msgs
+[8.519s] running egg_info
+[8.521s] creating tauv_msgs.egg-info
+[8.548s] writing tauv_msgs.egg-info/PKG-INFO
+[8.548s] writing dependency_links to tauv_msgs.egg-info/dependency_links.txt
+[8.548s] writing top-level names to tauv_msgs.egg-info/top_level.txt
+[8.548s] writing manifest file 'tauv_msgs.egg-info/SOURCES.txt'
+[8.638s] reading manifest file 'tauv_msgs.egg-info/SOURCES.txt'
+[8.639s] writing manifest file 'tauv_msgs.egg-info/SOURCES.txt'
+[8.694s] [  2%] Built target ament_cmake_python_build_tauv_msgs_egg
+[8.904s] [  2%] Built target tauv_msgs__rosidl_generator_type_description
+[8.926s] [  3%] [34m[1mGenerating C code for ROS interfaces[0m
+[8.933s] [  3%] Built target tauv_msgs__rs
+[8.946s] [  3%] [34m[1mGenerating C++ code for ROS interfaces[0m
+[10.031s] [  3%] Built target tauv_msgs__cpp
+[10.135s] [  4%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/waterlinked_dvl_frame__description.c.o[0m
+[10.142s] [  5%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/rpm_command__description.c.o[0m
+[10.144s] [  6%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.c.o[0m
+[10.153s] [  7%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/rpm_command__type_support.c.o[0m
+[10.159s] [  9%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/esc_telemetry__description.c.o[0m
+[10.160s] [  9%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/esc_telemetry__functions.c.o[0m
+[10.163s] [ 10%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/waterlinked_dvl_frame__functions.c.o[0m
+[10.163s] [ 11%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/rpm_command__functions.c.o[0m
+[10.167s] [ 12%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/esc_telemetry__type_support.c.o[0m
+[10.168s] [ 13%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/depth_sensor_frame__description.c.o[0m
+[10.173s] [ 14%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/target_thrust__type_support.c.o[0m
+[10.178s] [ 15%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/depth_sensor_frame__type_support.c.o[0m
+[10.178s] [ 16%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/target_thrust__description.c.o[0m
+[10.181s] [ 17%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/navigation_state__functions.c.o[0m
+[10.181s] [ 18%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/depth__type_support.c.o[0m
+[10.185s] [ 19%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/depth_sensor_frame__functions.c.o[0m
+[10.186s] [ 20%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/depth__functions.c.o[0m
+[10.186s] [ 21%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/target_thrust__functions.c.o[0m
+[10.187s] [ 21%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/navigation_state__description.c.o[0m
+[10.188s] [ 22%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/depth__description.c.o[0m
+[10.275s] [ 23%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/velocity_attitude_command__description.c.o[0m
+[10.275s] [ 24%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/navigation_state__type_support.c.o[0m
+[10.288s] [ 25%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/velocity_attitude_command__type_support.c.o[0m
+[10.295s] [ 26%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_c.dir/rosidl_generator_c/tauv_msgs/msg/detail/velocity_attitude_command__functions.c.o[0m
+[10.374s] [ 27%] [32m[1mLinking C shared library libtauv_msgs__rosidl_generator_c.so[0m
+[10.445s] [ 27%] Built target tauv_msgs__rosidl_generator_c
+[10.480s] [ 28%] [34m[1mGenerating C type support for eProsima Fast-RTPS[0m
+[10.484s] [ 29%] [34m[1mGenerating C++ type support dispatch for ROS interfaces[0m
+[10.484s] [ 30%] [34m[1mGenerating C type support dispatch for ROS interfaces[0m
+[10.486s] [ 31%] [34m[1mGenerating C++ type support for eProsima Fast-RTPS[0m
+[10.487s] [ 32%] [34m[1mGenerating C++ introspection for ROS interfaces[0m
+[10.487s] [ 33%] [34m[1mGenerating C introspection for ROS interfaces[0m
+[11.319s] [ 34%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/tauv_msgs/msg/rpm_command__type_support.cpp.o[0m
+[11.321s] [ 34%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/tauv_msgs/msg/depth_sensor_frame__type_support.cpp.o[0m
+[11.332s] [ 35%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/tauv_msgs/msg/esc_telemetry__type_support.cpp.o[0m
+[11.333s] [ 36%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/tauv_msgs/msg/waterlinked_dvl_frame__type_support.cpp.o[0m
+[11.335s] [ 37%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/tauv_msgs/msg/esc_telemetry__type_support.cpp.o[0m
+[11.340s] [ 38%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/tauv_msgs/msg/waterlinked_dvl_frame__type_support.cpp.o[0m
+[11.341s] [ 40%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/tauv_msgs/msg/depth__type_support.cpp.o[0m
+[11.341s] [ 40%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/tauv_msgs/msg/velocity_attitude_command__type_support.cpp.o[0m
+[11.348s] [ 41%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/tauv_msgs/msg/velocity_attitude_command__type_support.cpp.o[0m
+[11.349s] [ 43%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/tauv_msgs/msg/depth_sensor_frame__type_support.cpp.o[0m
+[11.350s] [ 43%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/tauv_msgs/msg/navigation_state__type_support.cpp.o[0m
+[11.350s] [ 44%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/tauv_msgs/msg/target_thrust__type_support.cpp.o[0m
+[11.352s] [ 45%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/tauv_msgs/msg/navigation_state__type_support.cpp.o[0m
+[11.354s] [ 46%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_c.dir/rosidl_typesupport_c/tauv_msgs/msg/target_thrust__type_support.cpp.o[0m
+[11.354s] [ 47%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/tauv_msgs/msg/depth__type_support.cpp.o[0m
+[11.354s] [ 48%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_cpp.dir/rosidl_typesupport_cpp/tauv_msgs/msg/rpm_command__type_support.cpp.o[0m
+[11.493s] [ 49%] [32m[1mLinking CXX shared library libtauv_msgs__rosidl_typesupport_c.so[0m
+[11.598s] [ 50%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.c.o[0m
+[11.611s] [ 51%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/rpm_command__type_support.c.o[0m
+[11.612s] [ 52%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/depth_sensor_frame__type_support.c.o[0m
+[11.613s] [ 52%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/target_thrust__type_support.c.o[0m
+[11.618s] [ 53%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/navigation_state__type_support.c.o[0m
+[11.618s] [ 54%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/esc_telemetry__type_support.c.o[0m
+[11.619s] [ 55%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/velocity_attitude_command__type_support.c.o[0m
+[11.627s] [ 55%] Built target tauv_msgs__rosidl_typesupport_c
+[11.629s] [ 56%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_c.dir/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/depth__type_support.c.o[0m
+[11.632s] [ 57%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.cpp.o[0m
+[11.765s] [ 58%] [32m[1mLinking C shared library libtauv_msgs__rosidl_typesupport_introspection_c.so[0m
+[11.787s] [ 59%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/rpm_command__type_support.cpp.o[0m
+[11.803s] [ 60%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth_sensor_frame__type_support.cpp.o[0m
+[11.803s] [ 61%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/esc_telemetry__type_support.cpp.o[0m
+[11.819s] [ 62%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/target_thrust__type_support.cpp.o[0m
+[11.819s] [ 63%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/depth__type_support.cpp.o[0m
+[11.852s] [ 64%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/velocity_attitude_command__type_support.cpp.o[0m
+[11.854s] [ 65%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_introspection_cpp.dir/rosidl_typesupport_introspection_cpp/tauv_msgs/msg/detail/navigation_state__type_support.cpp.o[0m
+[11.889s] [ 66%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support_c.cpp.o[0m
+[11.893s] [ 67%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/rpm_command__type_support_c.cpp.o[0m
+[11.908s] [ 67%] Built target tauv_msgs__rosidl_typesupport_introspection_c
+[11.921s] [ 68%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/dds_fastrtps/waterlinked_dvl_frame__type_support.cpp.o[0m
+[11.936s] [ 69%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/esc_telemetry__type_support_c.cpp.o[0m
+[11.938s] [ 70%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/depth_sensor_frame__type_support_c.cpp.o[0m
+[11.955s] [ 70%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/depth__type_support_c.cpp.o[0m
+[11.956s] [ 71%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/target_thrust__type_support_c.cpp.o[0m
+[12.003s] [ 72%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/navigation_state__type_support_c.cpp.o[0m
+[12.051s] [ 73%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/dds_fastrtps/rpm_command__type_support.cpp.o[0m
+[12.080s] [ 74%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/dds_fastrtps/depth_sensor_frame__type_support.cpp.o[0m
+[12.093s] [ 75%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/dds_fastrtps/esc_telemetry__type_support.cpp.o[0m
+[12.121s] [ 76%] [32m[1mLinking CXX shared library libtauv_msgs__rosidl_typesupport_cpp.so[0m
+[12.252s] [ 76%] Built target tauv_msgs__rosidl_typesupport_cpp
+[12.278s] [ 77%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_c.dir/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/velocity_attitude_command__type_support_c.cpp.o[0m
+[12.464s] [ 78%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/dds_fastrtps/target_thrust__type_support.cpp.o[0m
+[12.466s] [ 79%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/dds_fastrtps/depth__type_support.cpp.o[0m
+[12.472s] [ 80%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/dds_fastrtps/navigation_state__type_support.cpp.o[0m
+[12.484s] [ 81%] [32mBuilding CXX object CMakeFiles/tauv_msgs__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/dds_fastrtps/velocity_attitude_command__type_support.cpp.o[0m
+[12.591s] [ 82%] [32m[1mLinking CXX shared library libtauv_msgs__rosidl_typesupport_introspection_cpp.so[0m
+[12.807s] [ 82%] Built target tauv_msgs__rosidl_typesupport_introspection_cpp
+[13.227s] [ 83%] [32m[1mLinking CXX shared library libtauv_msgs__rosidl_typesupport_fastrtps_c.so[0m
+[13.275s] [ 84%] [32m[1mLinking CXX shared library libtauv_msgs__rosidl_typesupport_fastrtps_cpp.so[0m
+[13.327s] [ 84%] Built target tauv_msgs__rosidl_typesupport_fastrtps_c
+[13.404s] [ 84%] Built target tauv_msgs__rosidl_typesupport_fastrtps_cpp
+[13.479s] [ 84%] Built target tauv_msgs
+[13.560s] [ 85%] [34m[1mGenerating Python code for ROS interfaces[0m
+[15.092s] [ 85%] Built target tauv_msgs__py
+[15.160s] [ 86%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_py.dir/rosidl_generator_py/tauv_msgs/msg/_waterlinked_dvl_frame_s.c.o[0m
+[15.161s] [ 87%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_py.dir/rosidl_generator_py/tauv_msgs/msg/_rpm_command_s.c.o[0m
+[15.162s] [ 88%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_py.dir/rosidl_generator_py/tauv_msgs/msg/_depth_sensor_frame_s.c.o[0m
+[15.172s] [ 89%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_py.dir/rosidl_generator_py/tauv_msgs/msg/_esc_telemetry_s.c.o[0m
+[15.173s] [ 91%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_py.dir/rosidl_generator_py/tauv_msgs/msg/_velocity_attitude_command_s.c.o[0m
+[15.174s] [ 91%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_py.dir/rosidl_generator_py/tauv_msgs/msg/_depth_s.c.o[0m
+[15.174s] [ 92%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_py.dir/rosidl_generator_py/tauv_msgs/msg/_target_thrust_s.c.o[0m
+[15.180s] [ 93%] [32mBuilding C object CMakeFiles/tauv_msgs__rosidl_generator_py.dir/rosidl_generator_py/tauv_msgs/msg/_navigation_state_s.c.o[0m
+[15.496s] [ 94%] [32m[1mLinking C shared library libtauv_msgs__rosidl_generator_py.so[0m
+[15.641s] [ 94%] Built target tauv_msgs__rosidl_generator_py
+[15.726s] [ 95%] [32mBuilding C object CMakeFiles/tauv_msgs_s__rosidl_typesupport_c.dir/rosidl_generator_py/tauv_msgs/_tauv_msgs_s.ep.rosidl_typesupport_c.c.o[0m
+[15.729s] [ 96%] [32mBuilding C object CMakeFiles/tauv_msgs_s__rosidl_typesupport_introspection_c.dir/rosidl_generator_py/tauv_msgs/_tauv_msgs_s.ep.rosidl_typesupport_introspection_c.c.o[0m
+[15.730s] [ 97%] [32mBuilding C object CMakeFiles/tauv_msgs_s__rosidl_typesupport_fastrtps_c.dir/rosidl_generator_py/tauv_msgs/_tauv_msgs_s.ep.rosidl_typesupport_fastrtps_c.c.o[0m
+[15.918s] [ 99%] [32m[1mLinking C shared module rosidl_generator_py/tauv_msgs/tauv_msgs_s__rosidl_typesupport_fastrtps_c.so[0m
+[15.918s] [ 99%] [32m[1mLinking C shared module rosidl_generator_py/tauv_msgs/tauv_msgs_s__rosidl_typesupport_c.so[0m
+[15.924s] [100%] [32m[1mLinking C shared module rosidl_generator_py/tauv_msgs/tauv_msgs_s__rosidl_typesupport_introspection_c.so[0m
+[16.001s] [100%] Built target tauv_msgs_s__rosidl_typesupport_c
+[16.003s] [100%] Built target tauv_msgs_s__rosidl_typesupport_fastrtps_c
+[16.027s] [100%] Built target tauv_msgs_s__rosidl_typesupport_introspection_c
+[16.072s] Invoked command in '/home/gleb/dev/tauv-mono/build/tauv_msgs' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_tools:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_common:/home/gleb/dev/tauv-mono/ros_ws/install/examples_tf2_py:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_ros_py:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_gnc:/home/gleb/dev/tauv-mono/ros_ws/install/sensor_msgs_py:/home/gleb/dev/tauv-mono/ros_ws/install/camera_pkg:/home/gleb/dev/tauv-mono/ros_ws/install/rust_pubsub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_worker_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_pub_sub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_client_service:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_message_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_parameter_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_logging_demo:/home/gleb/dev/tauv-mono/ros_ws/install/rclrs:/home/gleb/dev/tauv-mono/ros_ws/install/test_interface_files:/home/gleb/dev/tauv-mono/ros_ws/install/rosidl_runtime_rs:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --build /home/gleb/dev/tauv-mono/build/tauv_msgs -- -j20 -l20
+[16.104s] Invoking command in '/home/gleb/dev/tauv-mono/build/tauv_msgs': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_tools:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_common:/home/gleb/dev/tauv-mono/ros_ws/install/examples_tf2_py:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_ros_py:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_gnc:/home/gleb/dev/tauv-mono/ros_ws/install/sensor_msgs_py:/home/gleb/dev/tauv-mono/ros_ws/install/camera_pkg:/home/gleb/dev/tauv-mono/ros_ws/install/rust_pubsub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_worker_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_pub_sub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_client_service:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_message_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_parameter_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_logging_demo:/home/gleb/dev/tauv-mono/ros_ws/install/rclrs:/home/gleb/dev/tauv-mono/ros_ws/install/test_interface_files:/home/gleb/dev/tauv-mono/ros_ws/install/rosidl_runtime_rs:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/gleb/dev/tauv-mono/build/tauv_msgs
+[16.129s] -- Install configuration: ""
+[16.130s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/ament_index/resource_index/rosidl_interfaces/tauv_msgs
+[16.130s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/WaterlinkedDvlFrame.json
+[16.131s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/RpmCommand.json
+[16.131s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/EscTelemetry.json
+[16.131s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/DepthSensorFrame.json
+[16.132s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/Depth.json
+[16.132s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/TargetThrust.json
+[16.132s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/NavigationState.json
+[16.132s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/VelocityAttitudeCommand.json
+[16.132s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs
+[16.132s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg
+[16.133s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/velocity_attitude_command.h
+[16.133s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/target_thrust.h
+[16.133s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/waterlinked_dvl_frame.h
+[16.133s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail
+[16.134s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__struct.h
+[16.134s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__type_support.h
+[16.134s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__type_support.c
+[16.134s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.h
+[16.134s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__functions.h
+[16.135s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__description.c
+[16.135s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__struct.h
+[16.135s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__description.c
+[16.135s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__functions.h
+[16.135s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.c
+[16.135s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__functions.c
+[16.135s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__functions.c
+[16.136s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__functions.c
+[16.136s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__description.c
+[16.136s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__functions.h
+[16.136s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__struct.h
+[16.136s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__struct.h
+[16.136s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__functions.h
+[16.137s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__functions.c
+[16.137s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__type_support.c
+[16.137s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__type_support.h
+[16.137s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__type_support.c
+[16.137s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__functions.c
+[16.138s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__functions.c
+[16.138s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__type_support.h
+[16.138s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__description.c
+[16.138s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__functions.c
+[16.138s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__functions.h
+[16.139s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__type_support.h
+[16.140s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__type_support.h
+[16.140s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__functions.c
+[16.140s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__struct.h
+[16.140s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__type_support.c
+[16.140s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__description.c
+[16.141s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__description.c
+[16.141s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__functions.h
+[16.141s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__struct.h
+[16.141s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__type_support.c
+[16.141s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__functions.h
+[16.141s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__description.c
+[16.142s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__description.c
+[16.142s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__type_support.c
+[16.142s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__struct.h
+[16.142s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__type_support.h
+[16.142s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__type_support.c
+[16.142s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__type_support.h
+[16.142s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__struct.h
+[16.142s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__functions.h
+[16.143s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/esc_telemetry.h
+[16.143s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/navigation_state.h
+[16.143s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/depth.h
+[16.143s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/rpm_command.h
+[16.143s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/rosidl_generator_c__visibility_control.h
+[16.143s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/depth_sensor_frame.h
+[16.143s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/environment/library_path.sh
+[16.143s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/environment/library_path.dsv
+[16.144s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_generator_c.so
+[16.144s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_generator_c.so" to ""
+[16.144s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs
+[16.144s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg
+[16.144s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/rosidl_typesupport_fastrtps_c__visibility_control.h
+[16.144s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail
+[16.144s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__rosidl_typesupport_fastrtps_c.h
+[16.145s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__rosidl_typesupport_fastrtps_c.h
+[16.145s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__rosidl_typesupport_fastrtps_c.h
+[16.145s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__rosidl_typesupport_fastrtps_c.h
+[16.145s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__rosidl_typesupport_fastrtps_c.h
+[16.145s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__rosidl_typesupport_fastrtps_c.h
+[16.145s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__rosidl_typesupport_fastrtps_c.h
+[16.145s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__rosidl_typesupport_fastrtps_c.h
+[16.145s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_fastrtps_c.so
+[16.146s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_fastrtps_c.so" to ""
+[16.146s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs
+[16.146s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg
+[16.146s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail
+[16.146s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__type_support.c
+[16.146s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__rosidl_typesupport_introspection_c.h
+[16.146s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.c
+[16.147s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__rosidl_typesupport_introspection_c.h
+[16.147s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__rosidl_typesupport_introspection_c.h
+[16.147s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__type_support.c
+[16.147s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__type_support.c
+[16.147s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__rosidl_typesupport_introspection_c.h
+[16.147s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__rosidl_typesupport_introspection_c.h
+[16.147s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__rosidl_typesupport_introspection_c.h
+[16.147s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__rosidl_typesupport_introspection_c.h
+[16.147s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__type_support.c
+[16.148s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__type_support.c
+[16.148s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__rosidl_typesupport_introspection_c.h
+[16.149s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__type_support.c
+[16.149s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__type_support.c
+[16.149s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/rosidl_typesupport_introspection_c__visibility_control.h
+[16.150s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_introspection_c.so
+[16.150s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_introspection_c.so" to ""
+[16.150s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_c.so
+[16.150s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_c.so" to ""
+[16.151s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs
+[16.151s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg
+[16.152s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/depth.hpp
+[16.152s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/navigation_state.hpp
+[16.152s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/rpm_command.hpp
+[16.152s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/waterlinked_dvl_frame.hpp
+[16.153s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail
+[16.153s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__type_support.hpp
+[16.153s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__traits.hpp
+[16.153s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__builder.hpp
+[16.154s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__builder.hpp
+[16.155s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__struct.hpp
+[16.155s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__traits.hpp
+[16.155s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__traits.hpp
+[16.155s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__struct.hpp
+[16.156s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__builder.hpp
+[16.156s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__struct.hpp
+[16.156s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__struct.hpp
+[16.157s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__struct.hpp
+[16.157s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__type_support.hpp
+[16.158s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__struct.hpp
+[16.158s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__traits.hpp
+[16.158s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__type_support.hpp
+[16.158s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__builder.hpp
+[16.159s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__traits.hpp
+[16.159s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__struct.hpp
+[16.159s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__builder.hpp
+[16.159s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__type_support.hpp
+[16.159s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.hpp
+[16.159s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__builder.hpp
+[16.159s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__builder.hpp
+[16.159s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__struct.hpp
+[16.160s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__type_support.hpp
+[16.160s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__traits.hpp
+[16.160s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__type_support.hpp
+[16.160s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__traits.hpp
+[16.160s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__traits.hpp
+[16.160s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__type_support.hpp
+[16.160s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__builder.hpp
+[16.160s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/esc_telemetry.hpp
+[16.160s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/velocity_attitude_command.hpp
+[16.161s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/rosidl_generator_cpp__visibility_control.hpp
+[16.161s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/depth_sensor_frame.hpp
+[16.161s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/target_thrust.hpp
+[16.161s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs
+[16.161s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg
+[16.161s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail
+[16.161s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__rosidl_typesupport_fastrtps_cpp.hpp
+[16.162s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__rosidl_typesupport_fastrtps_cpp.hpp
+[16.162s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__rosidl_typesupport_fastrtps_cpp.hpp
+[16.162s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__rosidl_typesupport_fastrtps_cpp.hpp
+[16.162s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__rosidl_typesupport_fastrtps_cpp.hpp
+[16.162s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__rosidl_typesupport_fastrtps_cpp.hpp
+[16.162s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__rosidl_typesupport_fastrtps_cpp.hpp
+[16.162s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__rosidl_typesupport_fastrtps_cpp.hpp
+[16.163s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/dds_fastrtps
+[16.163s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/rosidl_typesupport_fastrtps_cpp__visibility_control.h
+[16.163s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_fastrtps_cpp.so
+[16.163s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_fastrtps_cpp.so" to ""
+[16.164s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs
+[16.164s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg
+[16.164s] -- Up-to-date: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail
+[16.164s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__rosidl_typesupport_introspection_cpp.hpp
+[16.164s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__type_support.cpp
+[16.164s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__rosidl_typesupport_introspection_cpp.hpp
+[16.164s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__type_support.cpp
+[16.165s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth__type_support.cpp
+[16.165s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__rosidl_typesupport_introspection_cpp.hpp
+[16.165s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__rosidl_typesupport_introspection_cpp.hpp
+[16.166s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/waterlinked_dvl_frame__rosidl_typesupport_introspection_cpp.hpp
+[16.166s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__type_support.cpp
+[16.166s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__type_support.cpp
+[16.167s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/target_thrust__rosidl_typesupport_introspection_cpp.hpp
+[16.167s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/velocity_attitude_command__rosidl_typesupport_introspection_cpp.hpp
+[16.167s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/esc_telemetry__rosidl_typesupport_introspection_cpp.hpp
+[16.167s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/navigation_state__type_support.cpp
+[16.168s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/depth_sensor_frame__type_support.cpp
+[16.168s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/include/tauv_msgs/tauv_msgs/msg/detail/rpm_command__type_support.cpp
+[16.168s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_introspection_cpp.so
+[16.168s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_introspection_cpp.so" to ""
+[16.169s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_cpp.so
+[16.169s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_typesupport_cpp.so" to ""
+[16.170s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/ament_index/resource_index/rust_packages/tauv_msgs
+[16.170s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/rust
+[16.170s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/rust/build.rs
+[16.170s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/rust/Cargo.toml
+[16.170s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/rust/src
+[16.171s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/rust/src/lib.rs
+[16.171s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/rust/src/msg.rs
+[16.171s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/environment/pythonpath.sh
+[16.171s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/environment/pythonpath.dsv
+[16.171s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs-0.0.0-py3.12.egg-info
+[16.172s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs-0.0.0-py3.12.egg-info/top_level.txt
+[16.172s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs-0.0.0-py3.12.egg-info/SOURCES.txt
+[16.172s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs-0.0.0-py3.12.egg-info/dependency_links.txt
+[16.172s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs-0.0.0-py3.12.egg-info/PKG-INFO
+[16.172s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs
+[16.173s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/__init__.py
+[16.173s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/tauv_msgs_s__rosidl_typesupport_c.so
+[16.173s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/tauv_msgs_s__rosidl_typesupport_fastrtps_c.so
+[16.173s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg
+[16.173s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_velocity_attitude_command.py
+[16.173s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/__init__.py
+[16.174s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_rpm_command.py
+[16.174s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_navigation_state.py
+[16.174s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_navigation_state_s.c
+[16.174s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_target_thrust_s.c
+[16.175s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_velocity_attitude_command_s.c
+[16.175s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_waterlinked_dvl_frame_s.c
+[16.175s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_target_thrust.py
+[16.176s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_esc_telemetry.py
+[16.176s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_depth.py
+[16.176s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_depth_sensor_frame_s.c
+[16.176s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_depth_s.c
+[16.177s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_rpm_command_s.c
+[16.177s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_waterlinked_dvl_frame.py
+[16.177s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_depth_sensor_frame.py
+[16.177s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_esc_telemetry_s.c
+[16.177s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/tauv_msgs_s__rosidl_typesupport_introspection_c.so
+[16.178s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/_tauv_msgs_s.ep.rosidl_typesupport_c.c
+[16.178s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/_tauv_msgs_s.ep.rosidl_typesupport_fastrtps_c.c
+[16.178s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/_tauv_msgs_s.ep.rosidl_typesupport_introspection_c.c
+[16.272s] Listing '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs'...
+[16.272s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/__init__.py'...
+[16.272s] Listing '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg'...
+[16.272s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/__init__.py'...
+[16.273s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_depth.py'...
+[16.273s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_depth_sensor_frame.py'...
+[16.273s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_esc_telemetry.py'...
+[16.273s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_navigation_state.py'...
+[16.273s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_rpm_command.py'...
+[16.273s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_target_thrust.py'...
+[16.273s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_velocity_attitude_command.py'...
+[16.273s] Compiling '/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/msg/_waterlinked_dvl_frame.py'...
+[16.279s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/tauv_msgs_s__rosidl_typesupport_fastrtps_c.so
+[16.280s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/tauv_msgs_s__rosidl_typesupport_fastrtps_c.so" to ""
+[16.280s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/tauv_msgs_s__rosidl_typesupport_introspection_c.so
+[16.280s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/tauv_msgs_s__rosidl_typesupport_introspection_c.so" to ""
+[16.280s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/tauv_msgs_s__rosidl_typesupport_c.so
+[16.281s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/python3.12/site-packages/tauv_msgs/tauv_msgs_s__rosidl_typesupport_c.so" to ""
+[16.281s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_generator_py.so
+[16.281s] -- Set non-toolchain portion of runtime path of "/home/gleb/dev/tauv-mono/install/tauv_msgs/lib/libtauv_msgs__rosidl_generator_py.so" to ""
+[16.281s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/WaterlinkedDvlFrame.idl
+[16.282s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/RpmCommand.idl
+[16.282s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/EscTelemetry.idl
+[16.282s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/DepthSensorFrame.idl
+[16.282s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/Depth.idl
+[16.282s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/TargetThrust.idl
+[16.282s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/NavigationState.idl
+[16.282s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/VelocityAttitudeCommand.idl
+[16.282s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/WaterlinkedDvlFrame.msg
+[16.283s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/RpmCommand.msg
+[16.283s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/EscTelemetry.msg
+[16.283s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/DepthSensorFrame.msg
+[16.283s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/Depth.msg
+[16.283s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/TargetThrust.msg
+[16.283s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/NavigationState.msg
+[16.283s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/msg/VelocityAttitudeCommand.msg
+[16.283s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/ament_index/resource_index/package_run_dependencies/tauv_msgs
+[16.284s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/ament_index/resource_index/parent_prefix_path/tauv_msgs
+[16.284s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/environment/ament_prefix_path.sh
+[16.284s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/environment/ament_prefix_path.dsv
+[16.284s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/environment/path.sh
+[16.284s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/environment/path.dsv
+[16.284s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/local_setup.bash
+[16.285s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/local_setup.sh
+[16.285s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/local_setup.zsh
+[16.285s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/local_setup.dsv
+[16.285s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/package.dsv
+[16.285s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/ament_index/resource_index/packages/tauv_msgs
+[16.285s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/export_tauv_msgs__rosidl_generator_cExport.cmake
+[16.286s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/export_tauv_msgs__rosidl_generator_cExport-noconfig.cmake
+[16.286s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/export_tauv_msgs__rosidl_typesupport_fastrtps_cExport.cmake
+[16.286s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/export_tauv_msgs__rosidl_typesupport_fastrtps_cExport-noconfig.cmake
+[16.286s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgs__rosidl_typesupport_introspection_cExport.cmake
+[16.286s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgs__rosidl_typesupport_introspection_cExport-noconfig.cmake
+[16.286s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgs__rosidl_typesupport_cExport.cmake
+[16.287s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgs__rosidl_typesupport_cExport-noconfig.cmake
+[16.287s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/export_tauv_msgs__rosidl_generator_cppExport.cmake
+[16.287s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/export_tauv_msgs__rosidl_typesupport_fastrtps_cppExport.cmake
+[16.287s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/export_tauv_msgs__rosidl_typesupport_fastrtps_cppExport-noconfig.cmake
+[16.287s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgs__rosidl_typesupport_introspection_cppExport.cmake
+[16.287s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgs__rosidl_typesupport_introspection_cppExport-noconfig.cmake
+[16.287s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgs__rosidl_typesupport_cppExport.cmake
+[16.288s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgs__rosidl_typesupport_cppExport-noconfig.cmake
+[16.288s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/export_tauv_msgs__rosidl_generator_pyExport.cmake
+[16.288s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/export_tauv_msgs__rosidl_generator_pyExport-noconfig.cmake
+[16.288s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/rosidl_cmake-extras.cmake
+[16.288s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/ament_cmake_export_dependencies-extras.cmake
+[16.288s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/ament_cmake_export_include_directories-extras.cmake
+[16.289s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/ament_cmake_export_libraries-extras.cmake
+[16.289s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/ament_cmake_export_targets-extras.cmake
+[16.289s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/rosidl_cmake_export_typesupport_targets-extras.cmake
+[16.289s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/rosidl_cmake_export_typesupport_libraries-extras.cmake
+[16.289s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgsConfig.cmake
+[16.289s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/cmake/tauv_msgsConfig-version.cmake
+[16.289s] -- Installing: /home/gleb/dev/tauv-mono/install/tauv_msgs/share/tauv_msgs/package.xml
+[16.292s] Invoked command in '/home/gleb/dev/tauv-mono/build/tauv_msgs' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_tools:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_common:/home/gleb/dev/tauv-mono/ros_ws/install/examples_tf2_py:/home/gleb/dev/tauv-mono/ros_ws/install/tf2_ros_py:/home/gleb/dev/tauv-mono/ros_ws/install/tauv_gnc:/home/gleb/dev/tauv-mono/ros_ws/install/sensor_msgs_py:/home/gleb/dev/tauv-mono/ros_ws/install/camera_pkg:/home/gleb/dev/tauv-mono/ros_ws/install/rust_pubsub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_worker_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_pub_sub:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_minimal_client_service:/home/gleb/dev/tauv-mono/ros_ws/install/examples_rclrs_message_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_parameter_demo:/home/gleb/dev/tauv-mono/ros_ws/install/examples_logging_demo:/home/gleb/dev/tauv-mono/ros_ws/install/rclrs:/home/gleb/dev/tauv-mono/ros_ws/install/test_interface_files:/home/gleb/dev/tauv-mono/ros_ws/install/rosidl_runtime_rs:/opt/ros/jazzy DEBUGINFOD_URLS=https://debuginfod.ubuntu.com /usr/bin/cmake --install /home/gleb/dev/tauv-mono/build/tauv_msgs

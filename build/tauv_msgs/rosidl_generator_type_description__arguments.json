@@ -1,0 +1,19 @@
+{
+  "package_name": "tauv_msgs",
+  "output_dir": "/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_generator_type_description/tauv_msgs",
+  "idl_tuples": [
+    "/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/WaterlinkedDvlFrame.idl",
+    "/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/RpmCommand.idl",
+    "/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/EscTelemetry.idl",
+    "/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/DepthSensorFrame.idl",
+    "/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/Depth.idl",
+    "/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/TargetThrust.idl",
+    "/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/NavigationState.idl",
+    "/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/VelocityAttitudeCommand.idl"
+  ],
+  "include_paths": [
+    "std_msgs:/home/gleb/dev/tauv-mono/ros_ws/install/std_msgs/share/std_msgs",
+    "builtin_interfaces:/home/gleb/dev/tauv-mono/ros_ws/install/builtin_interfaces/share/builtin_interfaces",
+    "geometry_msgs:/home/gleb/dev/tauv-mono/ros_ws/install/geometry_msgs/share/geometry_msgs"
+  ]
+}

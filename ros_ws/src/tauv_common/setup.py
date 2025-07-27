@@ -28,6 +28,9 @@ setup(
             'wrench_test = tauv_common.wrench_test:main',
             'thruster_manager = tauv_common.thruster_manager:main',
             'thruster_controller = tauv_common.thruster_controller:main',
+            'commander = tauv_common.commander:main',
+            'indi_controller = tauv_common.controller:main',
+            'commander_example = tauv_common.commander_example:main',
         ],
     },
 ) 

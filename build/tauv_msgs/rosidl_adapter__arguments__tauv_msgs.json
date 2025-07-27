@@ -1,0 +1,13 @@
+{
+  "package_name": "tauv_msgs",
+  "non_idl_tuples": [
+    "/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs:msg/WaterlinkedDvlFrame.msg",
+    "/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs:msg/RpmCommand.msg",
+    "/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs:msg/EscTelemetry.msg",
+    "/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs:msg/DepthSensorFrame.msg",
+    "/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs:msg/Depth.msg",
+    "/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs:msg/TargetThrust.msg",
+    "/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs:msg/NavigationState.msg",
+    "/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs:msg/VelocityAttitudeCommand.msg"
+  ]
+}
