@@ -1,1 +1,0 @@
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_generator_rs/tauv_msgs/rust/src/msg.rs

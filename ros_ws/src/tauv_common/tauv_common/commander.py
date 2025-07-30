@@ -1,339 +1,172 @@
 """
-Commander Module for AUV Velocity and Attitude Control
+Commander node for TartanAUV vehicles.
 
-This module implements a high-level commander that accepts velocity and attitude 
-commands and generates acceleration commands for the INDI controller. It serves 
-as the outer control loop in a cascaded control architecture.
+Initial implementation supports a single operating mode – station keeping –
+which attempts to hold the vehicle at a hard-coded pose in the odom frame.
 
-The commander implements:
-- Proportional velocity control for linear acceleration commands
-- Quaternion-based attitude control for angular acceleration commands
-- Feedforward acceleration support
-- Individual enable flags for velocity and attitude control
+Inputs
+------
+/gnc/navigation_state   (tauv_msgs/NavigationState)
+    Estimated vehicle state from the EKF.
+
+Outputs
+-------
+/gnc/controller_command (tauv_msgs/ControllerCommand)
+    Twist and feed-forward accelerations for the INDI controller.
+
+The node maps position/orientation error to desired body-frame twist using
+simple proportional control:
+
+v_B_target = K_p_pos * R_BO * (r_O_des − r_O)
+ω_B_target = 2 * K_p_att * rotVec(q_des * q_BO⁻¹)
+
+where R_BO is the rotation from body to odom and q_BO is the corresponding
+quaternion.  Feed-forward accelerations are zero for now.
 """
 
-import rclpy
-from rclpy.node import Node
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Optional
+
 import numpy as np
 from numpy.typing import NDArray
-from typing import Optional
-from dataclasses import dataclass
+import rclpy
+from rclpy.node import Node
+from rclpy.publisher import Publisher
+from rclpy.subscription import Subscription
 
-from geometry_msgs.msg import AccelStamped, Vector3, Accel, Quaternion
-from tauv_msgs.msg import NavigationState, VelocityAttitudeCommand
-from tauv_common.util.geometry import numpify
-from spatialmath import SO3, UnitQuaternion
-from std_msgs.msg import Header
+from geometry_msgs.msg import Twist, Vector3
+from tauv_msgs.msg import NavigationState, ControllerCommand
+from tauv_common.util.geometry import numpify, msgify
+from spatialmath import UnitQuaternion, SO3
+
 
 @dataclass
-class CommanderParams:
-    """Parameters for the commander control laws"""
-    
-    # Velocity control gains
-    kp_velocity: float = 2.0        # Proportional gain for velocity error [1/s]
-    kd_velocity: float = 0.1        # Derivative gain for velocity control [1]
-    
-    # Attitude control gains  
-    kp_attitude: float = 1.5        # Proportional gain for attitude error [1/s²]
-    kd_attitude: float = 0.3        # Derivative gain for attitude control [1/s]
-    
-    # Control limits
-    max_linear_accel: float = 2.0   # Maximum linear acceleration command [m/s²]
-    max_angular_accel: float = 1.0  # Maximum angular acceleration command [rad/s²]
-    
-    # Velocity filtering (for derivative estimation)
-    velocity_filter_alpha: float = 0.9  # Low-pass filter for velocity measurements
+class StationKeepingParams:
+    """Gains and set-point for station keeping"""
 
-    # Position control gains (for station keeping)
-    kp_position: float = 1.0            # Proportional gain for position error [1/s²]
-    kd_position: float = 0.5            # Derivative gain for position damping [1/s]
-    
+    # Desired pose expressed in the *odom* frame
+    r_body_desired_O: NDArray  # (3, 1)
+    odom_q_body_desired: UnitQuaternion  # desired body orientation expressed as odom->body
+
+    # Proportional gains
+    kp_pos: float = 0.3  # m/s per metre of position error
+    kp_att: float = 1.0  # rad/s per rad of attitude error
+
     @classmethod
-    def default(cls) -> 'CommanderParams':
-        """Create default commander parameters"""
-        return cls()
+    def default(cls) -> "StationKeepingParams":
+        return cls(
+            r_body_desired_O=np.c_[[0.0, 0.0, -8.0]],
+            odom_q_body_desired=UnitQuaternion(),  # identity – body aligned with odom
+        )
+
 
 class Commander(Node):
-    """
-    AUV Commander Node
-    
-    This node implements velocity and attitude control by generating acceleration
-    commands for the INDI controller. It operates as the outer loop in a cascaded
-    control system.
-    
-    Subscribes to:
-    - /gnc/velocity_attitude_command (tauv_msgs/VelocityAttitudeCommand): Target velocity and attitude
-    - /gnc/navigation_state (tauv_msgs/NavigationState): Current vehicle state
-    
-    Publishes to:
-    - /gnc/acceleration_command (geometry_msgs/AccelStamped): Acceleration commands for INDI controller
-    """
-    
-    def __init__(self):
+    """Commander node generating set-points for the INDI controller."""
+
+    def __init__(self) -> None:
         super().__init__("commander")
-        
+
         # Parameters
-        self.params = CommanderParams.default()
-        
-        # State variables
-        self._nav_state: Optional[NavigationState] = None
-        self._velocity_attitude_cmd: Optional[VelocityAttitudeCommand] = None
-        self._previous_velocity: Optional[NDArray] = None  # For derivative estimation
-        self._previous_angular_velocity: Optional[NDArray] = None
-        self._filtered_velocity: Optional[NDArray] = None
-        self._filtered_angular_velocity: Optional[NDArray] = None
+        self.params = StationKeepingParams.default()
 
-        # --- Station-keeping (position hold) settings ---
-        # For now we always enable position hold at a hard-coded point in the
-        # world (OS) frame. In the future this can be turned into a proper mode
-        # with a configurable set-point via a dedicated message/service.
-        self._position_hold_enabled = True
-        # Hard-coded hold point in **world frame** [m]. Positive z is up per NED.
-        # Update as needed.
-        self._hold_position_world: NDArray = np.array([[0.0], [0.0], [-8.0]])
-        
-        # ROS2 interfaces
-        self._cmd_sub = self.create_subscription(
-            VelocityAttitudeCommand, 'gnc/velocity_attitude_command', 
-            self._handle_velocity_attitude_command, 10
+        # Subscriptions and publishers
+        self._nav_state_sub: Subscription = self.create_subscription(
+            NavigationState,
+            "gnc/navigation_state",
+            self._handle_nav_state,
+            10,
         )
-        
-        self._nav_state_sub = self.create_subscription(
-            NavigationState, 'gnc/navigation_state', 
-            self._handle_nav_state, 10
+        self._cmd_pub: Publisher = self.create_publisher(
+            ControllerCommand,
+            "gnc/controller_command",
+            10,
         )
-        
-        self._accel_cmd_pub = self.create_publisher(
-            AccelStamped, 'gnc/acceleration_command', 10
-        )
-        
-        # Control loop timer (50 Hz)
-        self._control_timer = self.create_timer(0.02, self._control_loop)
-        
-        self.get_logger().info("Commander initialized")
-    
-    def _handle_velocity_attitude_command(self, msg: VelocityAttitudeCommand):
-        """Handle incoming velocity and attitude command"""
-        self._velocity_attitude_cmd = msg
-        
-    def _handle_nav_state(self, msg: NavigationState):
-        """Handle incoming navigation state and update filtered estimates"""
-        self._nav_state = msg
-        
-        # Extract current velocities
-        current_velocity = numpify(msg.v_b)  # Linear velocity in body frame
-        current_angular_velocity = numpify(msg.omega_b)  # Angular velocity in body frame
-        
-        # Apply filtering for smoother derivative estimation
-        alpha = self.params.velocity_filter_alpha
-        
-        if self._filtered_velocity is None:
-            self._filtered_velocity = current_velocity
-            self._filtered_angular_velocity = current_angular_velocity
-        else:
-            self._filtered_velocity = alpha * self._filtered_velocity + (1 - alpha) * current_velocity
-            self._filtered_angular_velocity = alpha * self._filtered_angular_velocity + (1 - alpha) * current_angular_velocity
-    
-    def _control_loop(self):
-        """Main control loop - generates acceleration commands"""
-        # Check if we have required inputs
-        if self._nav_state is None:
-            return
-        
-        nav = self._nav_state
 
-        # Initialise acceleration commands
-        linear_accel_cmd = np.zeros((3, 1))
-        angular_accel_cmd = np.zeros((3, 1))
+        self._last_nav: Optional[NavigationState] = None
+
+        # Timer to republish the last command at fixed rate (optional)
+        self._timer_period = 0.1  # 10 Hz – sufficient for outer loop
+        self.create_timer(self._timer_period, self._timer_callback)
+
+        self.get_logger().info("Commander initialised (station-keeping mode)")
+
+    # ------------------------------------------------------------------
+    # Callbacks
+    # ------------------------------------------------------------------
+
+    def _handle_nav_state(self, msg: NavigationState) -> None:  # noqa: N803 – ROS callback naming
+        """Process latest navigation state and publish controller command."""
+        self._last_nav = msg
+        cmd_msg = self._compute_command(msg)
+        self._cmd_pub.publish(cmd_msg)
+        self._last_cmd: ControllerCommand = cmd_msg  # cache for timer
+
+    def _timer_callback(self) -> None:
+        """Publish the last command if no new nav messages have arrived."""
+        if hasattr(self, "_last_cmd"):
+            self._cmd_pub.publish(self._last_cmd)  # type: ignore[arg-type]
+
+    # ------------------------------------------------------------------
+    # Core logic
+    # ------------------------------------------------------------------
+
+    def _compute_command(self, nav: NavigationState) -> ControllerCommand:
+        """Generate a ControllerCommand for station keeping."""
+        # Extract current pose
+        p_O: NDArray = np.array([
+            nav.body_pose.position.x,
+            nav.body_pose.position.y,
+            nav.body_pose.position.z,
+        ])[:, None]  # shape (3,1)
+
+        q_OB: UnitQuaternion = numpify(nav.body_pose.orientation)  # odom->body
+
+        # Position error expressed in odom
+        e_pos_O: NDArray = self.params.r_body_desired_O - p_O  # (3,1)
+
+        # Convert to body frame: e_B = R_BO * e_O
+        R_OB = q_OB.SO3()  # rotation odom->body
+        e_pos_B: NDArray = R_OB.inv() * e_pos_O 
+
+        # Linear velocity target
+        v_B_target: NDArray = self.params.kp_pos * e_pos_B  # (3,1)
+
+        # Attitude error – quaternion representing rotation from current to desired
+        q_err: UnitQuaternion = self.params.odom_q_body_desired * q_OB.inv()
+
+        theta, v = q_err.angvec()
+        vec_err = v * theta
+
+        w_B_target: NDArray = self.params.kp_att * vec_err[:, np.newaxis]  # (3,1)
 
         # ------------------------------------------------------------------
-        # 1. Primary mode: follow externally provided velocity/attitude cmd
+        # Assemble ControllerCommand message
         # ------------------------------------------------------------------
-        cmd = self._velocity_attitude_cmd
-        have_external_cmd = cmd is not None
-        
-        if have_external_cmd:
-            # Velocity control
-            if cmd.velocity_control_enabled and self._filtered_velocity is not None:
-                linear_accel_cmd = self._compute_velocity_control(cmd, nav)
+        cmd = ControllerCommand()
+        cmd.header = nav.header  # reuse navigation timestamp
+        cmd.target_twist = msgify(np.vstack((v_B_target, w_B_target)), message_type="Twist")
 
-            # Attitude control
-            if cmd.attitude_control_enabled and self._filtered_angular_velocity is not None:
-                angular_accel_cmd = self._compute_attitude_control(cmd, nav)
-
-            # Feed-forward term
-            if cmd.velocity_control_enabled:
-                feedforward_accel = numpify(cmd.feedforward_acceleration)
-                linear_accel_cmd += feedforward_accel
-
-        # ------------------------------------------------------------------
-        # 2. Fallback / station-keeping mode (position hold)
-        # ------------------------------------------------------------------
-        if not have_external_cmd and self._position_hold_enabled and self._filtered_velocity is not None:
-            linear_accel_cmd = self._compute_position_hold(nav)
-        
-        # Apply limits
-        linear_accel_cmd = self._limit_acceleration(linear_accel_cmd, self.params.max_linear_accel)
-        angular_accel_cmd = self._limit_acceleration(angular_accel_cmd, self.params.max_angular_accel)
-        
-        # Publish acceleration command
-        self._publish_acceleration_command(linear_accel_cmd, angular_accel_cmd)
-        
-        # Debug logging
-        if have_external_cmd and cmd.velocity_control_enabled:
-            vel_error = numpify(cmd.target_velocity) - self._filtered_velocity
-            self.get_logger().debug(
-                f"Velocity error: [{vel_error[0,0]:.3f}, {vel_error[1,0]:.3f}, {vel_error[2,0]:.3f}] m/s"
-            )
-        
-        self.get_logger().debug(
-            f"Accel cmd: linear=[{linear_accel_cmd[0,0]:.2f}, {linear_accel_cmd[1,0]:.2f}, {linear_accel_cmd[2,0]:.2f}] m/s², "
-            f"angular=[{angular_accel_cmd[0,0]:.2f}, {angular_accel_cmd[1,0]:.2f}, {angular_accel_cmd[2,0]:.2f}] rad/s²"
-        )
-
-    def _compute_velocity_control(self, cmd: VelocityAttitudeCommand, nav: NavigationState) -> NDArray:
-        """
-        Compute linear acceleration command from velocity error
-        
-        Uses proportional-derivative control:
-        a_cmd = Kp * (v_desired - v_current) + Kd * (a_desired - a_current)
-        
-        Where a_desired is approximated by differentiating v_desired
-        """
-        # Compute velocity error in body frame
-        target_velocity = numpify(cmd.target_velocity)
-        velocity_error = target_velocity - self._filtered_velocity
-        
-        # Proportional term
-        accel_cmd = self.params.kp_velocity * velocity_error
-        
-        # Derivative term (if we have previous velocity measurements)
-        if self._previous_velocity is not None:
-            dt = 0.02  # Control loop period
-            
-            # Estimate acceleration from velocity derivative
-            current_accel_estimate = (self._filtered_velocity - self._previous_velocity) / dt
-            
-            # For simplicity, assume zero desired acceleration
-            # (In practice, you might differentiate the velocity command)
-            desired_accel = np.zeros_like(current_accel_estimate)
-            accel_error = desired_accel - current_accel_estimate
-            
-            accel_cmd += self.params.kd_velocity * accel_error
-        
-        # Store for next iteration
-        self._previous_velocity = self._filtered_velocity.copy()
-        
-        return accel_cmd
-    
-    def _compute_attitude_control(self, cmd: VelocityAttitudeCommand, nav: NavigationState) -> NDArray:
-        """
-        Compute angular acceleration command from attitude error
-        
-        Uses quaternion-based attitude control with proportional-derivative structure.
-        The attitude error is computed using quaternion multiplication and converted
-        to a rotation vector for control purposes.
-        """
-        # Get current and desired orientations as quaternions
-        current_quat = numpify(nav.body_pose.orientation)  # UnitQuaternion
-        target_quat = numpify(cmd.target_attitude)         # UnitQuaternion
-        
-        assert isinstance(current_quat, UnitQuaternion)
-        assert isinstance(target_quat, UnitQuaternion)
-        
-        # Compute attitude error quaternion: q_error = q_target * q_current^(-1)
-        # This gives the rotation needed to go from current to target orientation
-        error_quat = target_quat * current_quat.inv()
-        
-        # Convert to rotation vector (axis-angle representation)
-        # For small angles, this approximates the angular error
-        error_rotation_vector = error_quat.log().vec.reshape((3, 1))
-        
-        # Proportional term
-        angular_accel_cmd = self.params.kp_attitude * error_rotation_vector
-        
-        # Derivative term (angular velocity error)
-        # Desired angular velocity is typically zero for regulation
-        desired_angular_velocity = np.zeros((3, 1))
-        angular_velocity_error = desired_angular_velocity - self._filtered_angular_velocity
-        angular_accel_cmd += self.params.kd_attitude * angular_velocity_error
-        
-        return angular_accel_cmd
-    
-    def _limit_acceleration(self, acceleration: NDArray, max_magnitude: float) -> NDArray:
-        """Apply magnitude limits to acceleration commands"""
-        magnitude = np.linalg.norm(acceleration)
-        if magnitude > max_magnitude:
-            return acceleration * (max_magnitude / magnitude)
-        return acceleration
-    
-    def _publish_acceleration_command(self, linear_accel: NDArray, angular_accel: NDArray):
-        """Publish the computed acceleration command"""
-        accel_msg = AccelStamped()
-        accel_msg.header = Header()
-        accel_msg.header.stamp = self.get_clock().now().to_msg()
-        accel_msg.header.frame_id = "os/body"  # Body frame
-        
-        # Convert numpy arrays to Vector3 messages
-        accel_msg.accel.linear.x = float(linear_accel[0, 0])
-        accel_msg.accel.linear.y = float(linear_accel[1, 0])
-        accel_msg.accel.linear.z = float(linear_accel[2, 0])
-        
-        accel_msg.accel.angular.x = float(angular_accel[0, 0])
-        accel_msg.accel.angular.y = float(angular_accel[1, 0])
-        accel_msg.accel.angular.z = float(angular_accel[2, 0])
-        
-        self._accel_cmd_pub.publish(accel_msg)
-
-    # ---------------------------------------------------------------------
-    # New position-hold (station keeping) controller
-    # ---------------------------------------------------------------------
-    def _compute_position_hold(self, nav: NavigationState) -> NDArray:
-        """Compute linear acceleration command to hold position.
-
-        A simple PD controller is used in **world frame** and then converted to
-        body frame before being sent to the INDI controller.
-        """
-        # Current position in world frame
-        p = nav.body_pose.position
-        current_position_world = np.array([[p.x], [p.y], [p.z]])
-
-        # Position error (world frame)
-        pos_error_world = self._hold_position_world - current_position_world
-
-        # Current velocity (body frame) -> convert to world frame
-        current_quat = numpify(nav.body_pose.orientation)  # UnitQuaternion
-        assert isinstance(current_quat, UnitQuaternion)
-
-        v_body = self._filtered_velocity  # 3x1
-        v_world = current_quat.R @ v_body
-
-        # PD control in world frame
-        accel_world = (
-            self.params.kp_position * pos_error_world
-            - self.params.kd_position * v_world
-        )
-
-        # Convert desired acceleration to body frame
-        accel_body = current_quat.inv().R @ accel_world
-
-        return accel_body
+        return cmd
 
 
-def main():
-    """Main entry point"""
+# ----------------------------------------------------------------------
+# Main entry point
+# ----------------------------------------------------------------------
+
+
+def main() -> None:
     rclpy.init()
-    
+    commander = Commander()
     try:
-        commander = Commander()
         rclpy.spin(commander)
     except KeyboardInterrupt:
         pass
     finally:
-        if 'commander' in locals():
-            commander.destroy_node()
+        commander.destroy_node()
         rclpy.shutdown()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main() 

@@ -1,1 +1,0 @@
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_generator_c/tauv_msgs/msg/detail/waterlinked_dvl_frame__struct.h

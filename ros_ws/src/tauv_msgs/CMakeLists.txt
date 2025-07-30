@@ -20,7 +20,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Depth.msg"
   "msg/TargetThrust.msg"
   "msg/NavigationState.msg"
-  "msg/VelocityAttitudeCommand.msg"
+  "msg/ControllerCommand.msg"
+  "msg/CommanderDebug.msg"
+  "msg/ControllerDebug.msg"
   DEPENDENCIES std_msgs geometry_msgs
 )
 

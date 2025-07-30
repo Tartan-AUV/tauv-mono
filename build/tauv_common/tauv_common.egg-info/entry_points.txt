@@ -1,9 +1,0 @@
-[console_scripts]
-commander = tauv_common.commander:main
-commander_example = tauv_common.commander_example:main
-depth_estimator = tauv_common.depth_estimator:main
-indi_controller = tauv_common.controller:main
-state_estimator_ekf = tauv_common.state_estimator_ekf:main
-thruster_controller = tauv_common.thruster_controller:main
-thruster_manager = tauv_common.thruster_manager:main
-wrench_test = tauv_common.wrench_test:main

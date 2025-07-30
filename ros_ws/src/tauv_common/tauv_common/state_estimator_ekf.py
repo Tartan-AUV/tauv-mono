@@ -25,7 +25,7 @@ from spatialmath import SE3, SO3, UnitQuaternion
 # ROS2 messages
 from sensor_msgs.msg import Imu as ImuMsg
 from nav_msgs.msg import Odometry
-from tauv_common.util.geometry import numpify
+from tauv_common.util.geometry import numpify, msgify
 from tauv_msgs.msg import Depth as DepthMsg
 from tauv_msgs.msg import WaterlinkedDvlFrame as DvlMsg
 from tauv_msgs.msg import NavigationState
@@ -693,11 +693,9 @@ class StateEstimatorEkf(Node):
         nav_msg.body_pose.orientation.z = float(odom_q_body[2])
         nav_msg.body_pose.orientation.w = float(odom_q_body[3])
         
-        # Set velocity in body frame (v_b)
-        nav_msg.v_b = Vector3()
-        nav_msg.v_b.x = float(state_est[2][3, 0])
-        nav_msg.v_b.y = float(state_est[2][4, 0])
-        nav_msg.v_b.z = float(state_est[2][5, 0])
+        # Set body twist
+        V_B = np.vstack([state_est[2][3:6], omega_body_B])
+        nav_msg.body_twist = msgify(V_B, message_type="Twist")
         
         # Set acceleration in body frame (a_b)
         # Transform IMU acceleration from sensor frame to body frame
@@ -705,13 +703,6 @@ class StateEstimatorEkf(Node):
         nav_msg.a_b.x = float(a_body_B[0, 0])
         nav_msg.a_b.y = float(a_body_B[1, 0])
         nav_msg.a_b.z = float(a_body_B[2, 0])
-        
-        # Set angular velocity in body frame (omega_b)
-        # Transform IMU angular velocity from sensor frame to body frame
-        nav_msg.omega_b = Vector3()
-        nav_msg.omega_b.x = float(omega_body_B[0, 0])
-        nav_msg.omega_b.y = float(omega_body_B[1, 0])
-        nav_msg.omega_b.z = float(omega_body_B[2, 0])
         
         if self.nav_state_pub is not None:
             self.nav_state_pub.publish(nav_msg)

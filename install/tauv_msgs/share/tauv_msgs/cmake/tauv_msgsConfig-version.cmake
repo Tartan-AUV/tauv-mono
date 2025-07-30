@@ -1,1 +1,0 @@
-/home/gleb/dev/tauv-mono/build/tauv_msgs/ament_cmake_core/tauv_msgsConfig-version.cmake

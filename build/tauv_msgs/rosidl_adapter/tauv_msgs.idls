@@ -1,8 +1,0 @@
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/WaterlinkedDvlFrame.idl
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/RpmCommand.idl
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/EscTelemetry.idl
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/DepthSensorFrame.idl
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/Depth.idl
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/TargetThrust.idl
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/NavigationState.idl
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_adapter/tauv_msgs:msg/VelocityAttitudeCommand.idl

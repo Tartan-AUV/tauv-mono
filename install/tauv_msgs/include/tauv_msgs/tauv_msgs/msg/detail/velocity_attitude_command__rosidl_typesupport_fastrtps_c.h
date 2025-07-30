@@ -1,1 +1,0 @@
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_typesupport_fastrtps_c/tauv_msgs/msg/detail/velocity_attitude_command__rosidl_typesupport_fastrtps_c.h

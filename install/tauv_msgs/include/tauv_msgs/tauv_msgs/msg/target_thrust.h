@@ -1,1 +1,0 @@
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_generator_c/tauv_msgs/msg/target_thrust.h

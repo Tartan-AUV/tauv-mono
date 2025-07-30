@@ -1,1 +1,0 @@
-/home/gleb/dev/tauv-mono/ros_ws/src/tauv_msgs/msg/NavigationState.msg

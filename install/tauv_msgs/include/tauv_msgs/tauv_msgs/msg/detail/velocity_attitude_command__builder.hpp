@@ -1,1 +1,0 @@
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_generator_cpp/tauv_msgs/msg/detail/velocity_attitude_command__builder.hpp

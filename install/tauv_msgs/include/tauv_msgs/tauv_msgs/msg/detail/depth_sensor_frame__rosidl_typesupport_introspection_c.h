@@ -1,1 +1,0 @@
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/depth_sensor_frame__rosidl_typesupport_introspection_c.h

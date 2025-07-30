@@ -1,1 +1,0 @@
-/home/gleb/dev/tauv-mono/build/tauv_msgs/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/depth__rosidl_typesupport_fastrtps_cpp.hpp
