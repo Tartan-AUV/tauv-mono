@@ -41,7 +41,7 @@ sensors:
     type: pressure
     rate: 100.0
     parameters:
-      pressure_range: '10000.0'
+      pressure_range: '3000000.0'
       pressure_noise: '0.1'
       history_samples: '1'
       ros_topic: sim/pressure

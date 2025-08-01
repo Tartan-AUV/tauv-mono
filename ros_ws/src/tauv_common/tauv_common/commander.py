@@ -52,7 +52,7 @@ class StationKeepingParams:
 
     # Proportional gains
     kp_pos: float = 0.3  # m/s per metre of position error
-    kp_att: float = 1.0  # rad/s per rad of attitude error
+    kp_att: float = 0.7  # rad/s per rad of attitude error
 
     @classmethod
     def default(cls) -> "StationKeepingParams":

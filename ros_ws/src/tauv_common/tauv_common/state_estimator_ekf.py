@@ -163,7 +163,8 @@ class EkfHistory:
             raise ValueError(f"IMU measurement at {t} is not newer than last IMU at {self.last_imu_t}")
         
         if t <= self.last_dvl_t:
-            raise ValueError(f"IMU measurement at {t} is not newer than last DVL at {self.last_dvl_t}")
+            return 
+            # TODO: Handle this case
         
         self.control_history.append((t, imu))
         self.last_imu_t = t
@@ -174,7 +175,9 @@ class EkfHistory:
         if t <= self.last_depth_t:
             raise ValueError("Depth measurement timestamp not newer than last depth")
         if t <= self.last_dvl_t:
-            raise ValueError("Depth measurement timestamp not newer than last DVL")
+            return
+            # TODO: Handle this case
+            # raise ValueError("Depth measurement timestamp not newer than last DVL")
         
         # Find latest state
         state_t, state_est = self._find_latest_state_before(t)

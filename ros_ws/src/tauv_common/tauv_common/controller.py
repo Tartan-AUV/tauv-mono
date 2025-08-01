@@ -35,25 +35,25 @@ class INDIParams:
     K_p: NDArray
 
     # Control limits
-    max_force: float = 100.0   # Maximum force in N
-    max_torque: float = 50.0   # Maximum torque in N⋅m
+    max_force: float = 1000.0   # Maximum force in N
+    max_torque: float = 500.0   # Maximum torque in N⋅m
 
     # Filtering parameters for acceleration measurements
-    accel_filter_alpha: float = 0.0  # Low-pass filter coefficient (0 = no filter, 1 = full filter)
+    accel_filter_alpha: float = 0.3  # Low-pass filter coefficient (0 = no filter, 1 = full filter)
 
     @classmethod
     def default(cls) -> 'INDIParams':
         """Create default INDI parameters with a simple diagonal control effectiveness matrix"""
         # Simple diagonal matrix - assumes direct relationship between forces/torques and accelerations
         # This is a rough approximation that should be identified from system data
-        mass = 21.0  # kg - estimated vehicle mass
+        mass = np.diag([23.0, 23.0, 23.0])  # kg - estimated vehicle mass
         inertia = np.diag([0.566407, 0.556752, 0.824859])  # kg⋅m² - estimated moments of inertia
         
         M = np.zeros((6, 6))
         M[0:3, 0:3] = mass 
         M[3:6, 3:6] = inertia  
 
-        K_p = np.c_[[0.1, 0.1, 0.1, 0.1, 0.1, 0.1]]
+        K_p = np.c_[[0.3, 0.3, 0.3, 0.1, 0.1, 0.1]]
 
         return cls(M=M, K_p=K_p)
 
@@ -83,13 +83,6 @@ class Controller(Node):
         self._last_nav_state: Optional[NavigationState] = None
         self._odom_T_body_latched: Optional[SE3] = None
         self._cmd: Optional[ControllerCommand] = None
-        
-        # Control effectiveness matrix inverse (for computational efficiency)
-        try:
-            self._G_inv = np.linalg.inv(self.params.M)
-        except np.linalg.LinAlgError:
-            self.get_logger().error("Control effectiveness matrix is singular! Using pseudo-inverse.")
-            self._G_inv = np.linalg.pinv(self.params.M)
         
         # ROS2 interfaces
         self._cmd_sub = self.create_subscription(
@@ -138,14 +131,12 @@ class Controller(Node):
     def _update_filtered_acceleration(self, measured_accel: NDArray):
         assert measured_accel.shape == (6, 1)
         assert np.all(np.isfinite(measured_accel))
-        self.get_logger().info(f"measured_accel: {measured_accel}")
-        self.get_logger().info(f"self._V_dI_B_filtered: {self._V_dI_B_filtered}")
 
         if self._V_dI_B_filtered is None:
             self._V_dI_B_filtered = measured_accel
         else:
             alpha = self.params.accel_filter_alpha
-            self._V_dI_B_filtered = measured_accel
+            self._V_dI_B_filtered = alpha * measured_accel + (1 - alpha) * self._V_dI_B_filtered
     
     @staticmethod
     def _estimate_angular_acceleration(current_nav_state: NavigationState, last_nav_state: Optional[NavigationState]) -> Optional[NDArray]:
@@ -229,7 +220,7 @@ class Controller(Node):
         assert np.all(np.isfinite(V_dI_B_target))
         assert np.all(np.isfinite(self._V_dI_B_filtered))
 
-        dF_target = self._G_inv @ V_dI_B_error
+        dF_target = self.params.M @ V_dI_B_error
         assert np.all(np.isfinite(dF_target))
         F_target = self._F_target_prev + dF_target
         assert np.all(np.isfinite(F_target))
