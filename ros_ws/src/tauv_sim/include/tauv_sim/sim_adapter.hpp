@@ -28,14 +28,18 @@ private:
   // Actuators
   rclcpp::Subscription<tauv_msgs::msg::ThrusterSetpoint>::SharedPtr thruster_setpoint_subscription_;
   rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr thruster_setpoint_publisher_;
+  rclcpp::TimerBase::SharedPtr thruster_timeout_timer_;
 
   // Callbacks
   void dvl_callback(const stonefish_ros2::msg::DVL &msg);
   void pressure_callback(const sensor_msgs::msg::FluidPressure &msg);
   void thruster_setpoint_callback(const tauv_msgs::msg::ThrusterSetpoint &msg);
+  void thruster_timeout_callback();
 
   // State variables
   std::optional<rclcpp::Time> last_dvl_reading_stamp;
+  rclcpp::Time last_thruster_command_time_;
+  size_t num_thrusters_;
 
   // Constants
   double external_temperature_;
@@ -43,6 +47,7 @@ private:
 
   static constexpr double PI = 3.14159265358979323846;
   static constexpr double RPM_TO_RAD_PER_SEC = 1.0f / 60.0f * PI;
+  static constexpr std::chrono::milliseconds THRUSTER_TIMEOUT{30};
 };
 
 

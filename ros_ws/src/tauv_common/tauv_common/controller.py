@@ -7,6 +7,7 @@ wrench commands for the thruster allocation system.
 """
 
 from copy import deepcopy
+import logging
 import rclpy
 from rclpy.node import Node
 from rclpy.subscription import Subscription
@@ -27,10 +28,8 @@ from std_msgs.msg import Header
 class INDIParams:
     """Parameters for the INDI controller"""
 
-
-    # Control effectiveness matrix - relates wrench inputs to accelerations
-    # For a 6DOF system: [fx, fy, fz, tx, ty, tz] -> [ax, ay, az, alphax, alphay, alphaz]
-    control_effectiveness: NDArray  # 6x6 matrix
+    # Mass matrix
+    M: NDArray  # 6x6 matrix
     
     # Proportional gain for outer loop
     K_p: NDArray
@@ -40,7 +39,7 @@ class INDIParams:
     max_torque: float = 50.0   # Maximum torque in N⋅m
 
     # Filtering parameters for acceleration measurements
-    accel_filter_alpha: float = 0.8  # Low-pass filter coefficient (0 = no filter, 1 = full filter)
+    accel_filter_alpha: float = 0.0  # Low-pass filter coefficient (0 = no filter, 1 = full filter)
 
     @classmethod
     def default(cls) -> 'INDIParams':
@@ -50,24 +49,25 @@ class INDIParams:
         mass = 21.0  # kg - estimated vehicle mass
         inertia = np.diag([0.566407, 0.556752, 0.824859])  # kg⋅m² - estimated moments of inertia
         
-        G = np.zeros((6, 6))
-        G[0:3, 0:3] = np.eye(3) / mass  # Force to linear acceleration
-        G[3:6, 3:6] = np.linalg.inv(inertia)  # Torque to angular acceleration
+        M = np.zeros((6, 6))
+        M[0:3, 0:3] = mass 
+        M[3:6, 3:6] = inertia  
 
         K_p = np.c_[[0.1, 0.1, 0.1, 0.1, 0.1, 0.1]]
-        
-        return cls(control_effectiveness=G, K_p=K_p)
+
+        return cls(M=M, K_p=K_p)
 
 class Controller(Node):
     """
     INDI Controller Node
     
     Subscribes to:
-    - /gnc/acceleration_command (geometry_msgs/AccelStamped): Desired acceleration
+    - /gnc/controller_command (tauv_msgs/ControllerCommand): Controller commands including target twist and feedforward
     - /gnc/navigation_state (tauv_msgs/NavigationState): Current vehicle state
     
     Publishes to:
     - /gnc/target_wrench (geometry_msgs/WrenchStamped): Control wrench for thruster allocation
+    - /gnc/controller_debug (tauv_msgs/ControllerDebug): Debug information from the controller
     """
     
     def __init__(self):
@@ -86,10 +86,10 @@ class Controller(Node):
         
         # Control effectiveness matrix inverse (for computational efficiency)
         try:
-            self._G_inv = np.linalg.inv(self.params.control_effectiveness)
+            self._G_inv = np.linalg.inv(self.params.M)
         except np.linalg.LinAlgError:
             self.get_logger().error("Control effectiveness matrix is singular! Using pseudo-inverse.")
-            self._G_inv = np.linalg.pinv(self.params.control_effectiveness)
+            self._G_inv = np.linalg.pinv(self.params.M)
         
         # ROS2 interfaces
         self._cmd_sub = self.create_subscription(
@@ -138,12 +138,14 @@ class Controller(Node):
     def _update_filtered_acceleration(self, measured_accel: NDArray):
         assert measured_accel.shape == (6, 1)
         assert np.all(np.isfinite(measured_accel))
+        self.get_logger().info(f"measured_accel: {measured_accel}")
+        self.get_logger().info(f"self._V_dI_B_filtered: {self._V_dI_B_filtered}")
 
         if self._V_dI_B_filtered is None:
             self._V_dI_B_filtered = measured_accel
         else:
             alpha = self.params.accel_filter_alpha
-            self._V_dI_B_filtered = alpha * self._V_dI_B_filtered + (1 - alpha) * measured_accel
+            self._V_dI_B_filtered = measured_accel
     
     @staticmethod
     def _estimate_angular_acceleration(current_nav_state: NavigationState, last_nav_state: Optional[NavigationState]) -> Optional[NDArray]:
@@ -179,21 +181,25 @@ class Controller(Node):
             return
 
         # Run outer loop (velocity)
-        V_dI_B_target = self._get_target_acceleration()
+        V_dI_B_target, velocity_error = self._get_target_acceleration()
 
         # Run inner loop (INDI)
-        F_target, _ = self._get_target_wrench_with_indi(V_dI_B_target)
+        F_target, dF_target = self._get_target_wrench_with_indi(V_dI_B_target)
 
         self._F_target_prev = F_target.copy()
         
         self._publish_wrench(F_target)
+        self._publish_debug_message(V_dI_B_target, velocity_error, dF_target)
 
-    def _get_target_acceleration(self) -> NDArray:
+    def _get_target_acceleration(self) -> tuple[NDArray, NDArray]:
         """Outer loop: compute acceleration command from a body twist command
         
         This is a simple proportional controller with optional additive feedforward.
 
         V_dI_B = K_p * (V_B_target - V_B_current) + V_dI_B_feedforward
+        
+        Returns:
+            tuple: (target_acceleration, velocity_error)
         """
         assert self._cmd is not None
 
@@ -203,7 +209,8 @@ class Controller(Node):
         assert V_B_current.shape == (6, 1)
         assert self.params.K_p.shape == (6, 1)
 
-        V_dI_B_fb = self.params.K_p * (V_B_target - V_B_current)
+        velocity_error = V_B_target - V_B_current
+        V_dI_B_fb = self.params.K_p * velocity_error
         assert V_dI_B_fb.shape == (6, 1)
         V_dI_B_ff = np.vstack([
             numpify(self._cmd.feedforward_linear_accel), 
@@ -211,9 +218,9 @@ class Controller(Node):
         ])
         assert V_dI_B_ff.shape == (6, 1)
         V_dI_B_target = V_dI_B_fb + V_dI_B_ff
-        return V_dI_B_target
+        return V_dI_B_target, velocity_error
 
-    def _get_target_wrench_with_indi(self, V_dI_B_target: NDArray) -> NDArray:
+    def _get_target_wrench_with_indi(self, V_dI_B_target: NDArray) -> tuple[NDArray, NDArray]:
         """Inner loop: compute wrench command from acceleration command"""
         assert V_dI_B_target.shape == (6, 1)
 
@@ -264,6 +271,38 @@ class Controller(Node):
         wrench_msg.wrench = msgify(wrench, message_type="Wrench")
         
         self._wrench_pub.publish(wrench_msg)
+    
+    def _publish_debug_message(self, V_dI_B_target: NDArray, velocity_error: NDArray, dF_target: NDArray, timestamp: Optional[Time] = None):
+        """Publish debug information from the controller"""
+        debug_msg = ControllerDebug()
+        
+        if timestamp is None:
+            timestamp = self.get_clock().now()
+        debug_msg.header = Header()
+        debug_msg.header.stamp = timestamp.to_msg()
+        debug_msg.header.frame_id = self._frame_id
+        
+        # Velocity errors (outer loop)
+        debug_msg.linear_velocity_error = msgify(velocity_error[0:3], message_type="Vector3")
+        debug_msg.angular_velocity_error = msgify(velocity_error[3:6], message_type="Vector3")
+        
+        # Filtered accelerations (measured)
+        debug_msg.filtered_linear_acceleration = msgify(self._V_dI_B_filtered[0:3], message_type="Vector3")
+        debug_msg.filtered_angular_acceleration = msgify(self._V_dI_B_filtered[3:6], message_type="Vector3")
+        
+        # Desired accelerations (from outer loop)
+        debug_msg.desired_linear_acceleration = msgify(V_dI_B_target[0:3], message_type="Vector3")
+        debug_msg.desired_angular_acceleration = msgify(V_dI_B_target[3:6], message_type="Vector3")
+        
+        # Acceleration errors (inner loop)
+        V_dI_B_error = V_dI_B_target - self._V_dI_B_filtered
+        debug_msg.linear_acceleration_error = msgify(V_dI_B_error[0:3], message_type="Vector3")
+        debug_msg.angular_acceleration_error = msgify(V_dI_B_error[3:6], message_type="Vector3")
+        
+        # Control output (wrench increment from INDI)
+        debug_msg.wrench_increment = msgify(dF_target, message_type="Wrench")
+        
+        self._debug_pub.publish(debug_msg)
 
 
 def main():
