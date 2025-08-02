@@ -3,7 +3,7 @@ from spatialmath import SE3, SO3, UnitQuaternion
 import numpy as np
 from typing import Union, overload
 
-from geometry_msgs.msg import Transform, Vector3, Wrench, Quaternion, Twist
+from geometry_msgs.msg import Transform, Vector3, Wrench, Quaternion, Twist, Pose
 
 
 def _validate_finite_values(values: Union[list, tuple, np.ndarray], name: str) -> None:
@@ -41,6 +41,9 @@ def numpify(obj: Vector3) -> NDArray: ...
 def numpify(obj: Quaternion) -> UnitQuaternion: ...
 
 @overload
+def numpify(obj: Pose) -> SE3: ...
+
+@overload
 def numpify(obj: Transform) -> SE3: ...
 
 @overload
@@ -64,6 +67,13 @@ def numpify(obj: Union[Vector3, Quaternion, Transform, Wrench, Twist]) -> Union[
     elif isinstance(obj, Quaternion):
         _validate_quaternion(obj, "Quaternion")
         return UnitQuaternion(obj.w, (obj.x, obj.y, obj.z))
+    elif isinstance(obj, Pose):
+        # Convert Pose → SE3
+        _validate_vector3(obj.position, "Pose position")
+        _validate_quaternion(obj.orientation, "Pose orientation")
+        q = UnitQuaternion(obj.orientation.w,
+                           (obj.orientation.x, obj.orientation.y, obj.orientation.z))
+        return SE3.Rt(q.R, (obj.position.x, obj.position.y, obj.position.z))
     elif isinstance(obj, Transform):
         _validate_vector3(obj.translation, "Transform translation")
         _validate_quaternion(obj.rotation, "Transform rotation")
@@ -172,10 +182,16 @@ def msgify(obj: Union[NDArray, UnitQuaternion, SE3, SO3, np.ndarray], *, message
         # Extract rotation and translation
         rotation_quat = obj.UnitQuaternion()
         translation = obj.t
-        
+
         # Validate translation vector
         _validate_finite_values(translation, "SE3 translation")
-        
+
+        if message_type == "Pose":
+            return Pose(
+                position=Vector3(x=float(translation[0]), y=float(translation[1]), z=float(translation[2])),
+                orientation=msgify(rotation_quat)
+            )
+        # Default → Transform
         return Transform(
             translation=Vector3(x=float(translation[0]), y=float(translation[1]), z=float(translation[2])),
             rotation=msgify(rotation_quat)

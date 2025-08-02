@@ -29,6 +29,7 @@ from tauv_common.util.geometry import numpify, msgify
 from tauv_msgs.msg import Depth as DepthMsg
 from tauv_msgs.msg import WaterlinkedDvlFrame as DvlMsg
 from tauv_msgs.msg import NavigationState
+from tauv_msgs.msg import StateEstimatorDebug
 from geometry_msgs.msg import TransformStamped, Quaternion, Vector3, Point, Pose
 from builtin_interfaces.msg import Time as TimeMsg
 
@@ -475,6 +476,7 @@ class StateEstimatorEkf(Node):
         self.depth_sub: Optional[Subscription] = None
         self.dvl_sub: Optional[Subscription] = None
         self.nav_state_pub: Optional[Publisher] = None
+        self.debug_pub: Optional[Publisher] = None
         self.processing_thread: Optional[Thread] = None
 
         # State
@@ -536,6 +538,7 @@ class StateEstimatorEkf(Node):
         self.depth_sub = self.create_subscription(DepthMsg, 'depth', self.depth_callback, qos)
         self.dvl_sub = self.create_subscription(DvlMsg, 'dvl', self.dvl_callback, qos)
         self.nav_state_pub = self.create_publisher(NavigationState, 'navigation_state', 10)
+        self.debug_pub = self.create_publisher(StateEstimatorDebug, 'state_estimator_debug', 10)
         self.processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
         self.processing_thread.start()
 
@@ -631,6 +634,7 @@ class StateEstimatorEkf(Node):
                     if self.ekf is not None:
                         self.history.add_depth_measurement(t, data, self.ekf)
                     self._publish_navigation_state()
+                    self._publish_debug_state()
                     # except ValueError as e:
                     #     self.get_logger().warn(f"Depth measurement rejected: {e}")
                 
@@ -638,6 +642,7 @@ class StateEstimatorEkf(Node):
                     if self.ekf is not None:
                         self.history.add_dvl_measurement(t, data, self.ekf)
                     self._publish_navigation_state()
+                    self._publish_debug_state()
 
             except queue.Empty:
                 continue

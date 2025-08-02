@@ -1,0 +1,8 @@
+# Goto.srv
+# Command the commander to move to a single pose at a specified velocity.
+
+geometry_msgs/Pose target_pose
+float32 velocity  # Metres per second (<=0 -> use default)
+---
+bool success
+string message

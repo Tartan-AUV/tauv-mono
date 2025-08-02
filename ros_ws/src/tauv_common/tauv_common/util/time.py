@@ -1,5 +1,6 @@
 """Time utilities for TAUV."""
 
+from typing import Union
 from rclpy.duration import Duration as RclpyDuration
 from rclpy.time import Time as RclpyTime
 
@@ -33,3 +34,17 @@ class Time(RclpyTime):
         
         # Convert to our custom Duration, preserving the same nanoseconds value
         return Duration(nanoseconds=rclpy_duration.nanoseconds)
+    
+    def __add__(self, other: Union['Duration', RclpyDuration]) -> 'Time':
+        """Add a Duration to this Time object, returning a new Time.
+        
+        Args:
+            other: Duration object (either util.time.Duration or rclpy.duration.Duration) 
+                   to add to this time.
+                   
+        Returns:
+            New Time object representing the sum of this time and the duration.
+        """
+        rclpy_time: RclpyTime = super().__add__(other)
+        
+        return Time(nanoseconds=rclpy_time.nanoseconds)
