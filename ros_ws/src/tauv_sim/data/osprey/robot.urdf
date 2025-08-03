@@ -2,8 +2,8 @@
 <!-- Generated using onshape-to-robot -->
 <!-- Onshape https://tartanauv.onshape.com/documents/1d3a264128e12a62f4cb4bc2/w/89ba3c0f0e07a75a030ec478/e/21dfbfffd330340c25762d01 -->
 <robot name="osprey">
-  <!-- Link os/body -->
-  <link name="os/body">
+  <!-- Link os_hull -->
+  <link name="os_hull">
     <inertial>
       <origin xyz="-0.0295823 -0.00643136 -0.0139951" rpy="0 0 0"/>
       <mass value="27.6559"/>
@@ -73,20 +73,20 @@
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
     </collision>
-    <!-- Part os/body -->
+    <!-- Part os_hull -->
     <visual>
       <origin xyz="0.037587 0.049 -0.024856" rpy="3.14159 -0 1.5708"/>
       <geometry>
-        <mesh filename="package://assets/os/body.stl"/>
+        <mesh filename="package://assets/os_hull.stl"/>
       </geometry>
-      <material name="os/body_material">
+      <material name="os_hull_material">
         <color rgba="0.498039 0.498039 0.498039 1"/>
       </material>
     </visual>
     <collision>
       <origin xyz="0.037587 0.049 -0.024856" rpy="3.14159 -0 1.5708"/>
       <geometry>
-        <mesh filename="package://assets/os/body.stl"/>
+        <mesh filename="package://assets/os_hull.stl"/>
       </geometry>
     </collision>
     <!-- Part os_launcher -->
@@ -213,7 +213,7 @@
   </link>
   <joint name="os/launcher/right/front_frame" type="fixed">
     <origin xyz="-0.302742 -0.13074 0.0340625" rpy="-1.5708 -1.93383e-14 1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/launcher/right/front"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -228,7 +228,7 @@
   </link>
   <joint name="os/launcher/left/front_frame" type="fixed">
     <origin xyz="-0.302742 -0.07639 0.0340625" rpy="-1.5708 -1.93383e-14 1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/launcher/left/front"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -243,7 +243,7 @@
   </link>
   <joint name="os/camera/right_frame" type="fixed">
     <origin xyz="-0.263197 -0.15875 0.167298" rpy="1.5708 1.15637e-31 -1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/camera/right"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -258,7 +258,7 @@
   </link>
   <joint name="os/camera/left_frame" type="fixed">
     <origin xyz="-0.263197 0.15875 0.167298" rpy="1.5708 -1.90348e-31 -1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/camera/left"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -273,7 +273,7 @@
   </link>
   <joint name="os/thruster/flh_frame" type="fixed">
     <origin xyz="-0.246501 0.205383 -0.0789257" rpy="-1.5708 1.88842e-17 -2.35619"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/thruster/flh"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -288,7 +288,7 @@
   </link>
   <joint name="os/thruster/frh_frame" type="fixed">
     <origin xyz="-0.246501 -0.205383 -0.0789257" rpy="-1.5708 -2.65242e-16 2.35619"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/thruster/frh"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -303,7 +303,7 @@
   </link>
   <joint name="os/thruster/frv_frame" type="fixed">
     <origin xyz="-0.094181 -0.24585 0.0230414" rpy="1.10637e-15 -1.5708 0"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/thruster/frv"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -318,7 +318,7 @@
   </link>
   <joint name="os/thruster/arv_frame" type="fixed">
     <origin xyz="0.094181 -0.24585 0.0230414" rpy="1.5708 -1.5708 0"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/thruster/arv"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -333,7 +333,7 @@
   </link>
   <joint name="os/thruster/arh_frame" type="fixed">
     <origin xyz="0.224911 -0.226973 -0.0789257" rpy="-1.5708 3.75523e-15 -2.35619"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/thruster/arh"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -348,7 +348,7 @@
   </link>
   <joint name="os/thruster/alh_frame" type="fixed">
     <origin xyz="0.224911 0.226973 -0.0789257" rpy="-1.5708 2.22826e-17 2.35619"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/thruster/alh"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -363,7 +363,7 @@
   </link>
   <joint name="os/dropper/left_frame" type="fixed">
     <origin xyz="0.218915 -0.124632 0.09325" rpy="-7.00728e-16 -1.20676e-15 1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/dropper/left"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -378,7 +378,7 @@
   </link>
   <joint name="os/dropper/right_frame" type="fixed">
     <origin xyz="0.218915 -0.157232 0.09325" rpy="-7.00728e-16 -1.20676e-15 1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/dropper/right"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -393,7 +393,7 @@
   </link>
   <joint name="os/thruster/alv_frame" type="fixed">
     <origin xyz="0.094181 0.24585 0.0230414" rpy="3.14159 -1.5708 0"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/thruster/alv"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -408,7 +408,7 @@
   </link>
   <joint name="os/thruster/flv_frame" type="fixed">
     <origin xyz="-0.094181 0.24585 0.0230414" rpy="3.14159 -1.5708 0"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/thruster/flv"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -423,7 +423,7 @@
   </link>
   <joint name="os/launcher/right/back_frame" type="fixed">
     <origin xyz="-0.0837294 -0.13074 0.0340625" rpy="-1.5708 -1.93383e-14 1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/launcher/right/back"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -438,7 +438,7 @@
   </link>
   <joint name="os/launcher/left/back_frame" type="fixed">
     <origin xyz="-0.0838074 -0.07639 0.0340625" rpy="-1.5708 -1.93383e-14 1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/launcher/left/back"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -453,7 +453,7 @@
   </link>
   <joint name="os/dvl_frame" type="fixed">
     <origin xyz="0.140895 -1.18509e-05 0.0199625" rpy="-1.79692e-16 2.07039e-14 1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/dvl"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -468,7 +468,7 @@
   </link>
   <joint name="os/depth_frame" type="fixed">
     <origin xyz="-0.2025 -0.0381 -0.0803025" rpy="-1.5708 -3.33854e-30 1.5708"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/depth"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -483,7 +483,7 @@
   </link>
   <joint name="os/imu_frame" type="fixed">
     <origin xyz="0.037587 0.049 -0.024856" rpy="2.71051e-20 -6.12323e-17 -3.14159"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os/imu"/>
     <axis xyz="0 0 0"/>
   </joint>
@@ -574,10 +574,10 @@
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
     <mimic joint="os/arm/base" multiplier="-0.7647058823529411"/>
   </joint>
-  <!-- Joint from os/body to os_arm_link -->
+  <!-- Joint from os_hull to os_arm_link -->
   <joint name="os/arm/base" type="revolute">
     <origin xyz="-0.242087 0.0838629 0.0949098" rpy="-1.5708 0.349066 3.14159"/>
-    <parent link="os/body"/>
+    <parent link="os_hull"/>
     <child link="os_arm_link"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="0" upper="2.79253"/>

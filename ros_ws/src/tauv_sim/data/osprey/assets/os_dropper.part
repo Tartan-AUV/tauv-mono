@@ -1,0 +1,13 @@
+{
+    "configuration": "default",
+    "documentId": "1d3a264128e12a62f4cb4bc2",
+    "documentMicroversion": "f025b2e66e2653fa4986a28a",
+    "elementId": "7fed931383dfb208a614ce1c",
+    "fullConfiguration": "default",
+    "id": "MpLTxNq/yPiqeGwfK",
+    "isStandardContent": false,
+    "name": "os/dropper <1>",
+    "partId": "JID",
+    "suppressed": false,
+    "type": "Part"
+}

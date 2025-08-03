@@ -1,5 +1,5 @@
 name: osprey
-base_link_mass_override: 23.0
+# base_link_mass_override: 23.0
 material: Aluminium
 look: Red
 thruster_setpoint_topic: sim/thruster_setpoint

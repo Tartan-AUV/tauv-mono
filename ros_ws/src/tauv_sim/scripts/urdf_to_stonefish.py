@@ -30,8 +30,8 @@ class Transform:
         return cls(xyz=T.t.tolist(), rpy=T.rpy(unit='rad', order='zyx').tolist())
     
     @classmethod
-    def from_urdf_origin(cls, origin_elem):
-        """Parse transform from URDF origin element"""
+    def from_urdf_elem(cls, origin_elem):
+        """Parse transform from URDF element with xyz and rpy attributes"""
         xyz_str = origin_elem.get('xyz')
         rpy_str = origin_elem.get('rpy')
         
@@ -63,8 +63,7 @@ class Transform:
 class InertialData:
     """Represents inertial properties (mass, center of gravity, inertia)"""
     mass: float
-    cg_xyz: Tuple[float, float, float]
-    cg_rpy: Tuple[float, float, float]
+    part_T_cg: Transform
     inertia: np.ndarray
     
     @classmethod
@@ -84,8 +83,7 @@ class InertialData:
         xyz_parts = xyz_str.split()
         rpy_parts = rpy_str.split()
         
-        cg_xyz = (float(xyz_parts[0]), float(xyz_parts[1]), float(xyz_parts[2]))
-        cg_rpy = (float(rpy_parts[0]), float(rpy_parts[1]), float(rpy_parts[2]))
+        part_T_cg = Transform.from_urdf_elem(origin_elem)
         
         # Extract inertia (just diagonal elements for Stonefish)
         inertia_elem = inertial_elem.find('inertia')
@@ -103,7 +101,7 @@ class InertialData:
             [ixz, iyz, izz]
         ])
         
-        return cls(mass=mass, cg_xyz=cg_xyz, cg_rpy=cg_rpy, inertia=inertia)
+        return cls(mass=mass, part_T_cg=part_T_cg, inertia=inertia)
     
     def is_valid(self) -> bool:
         """Check if inertial data has meaningful values (mass > 0)"""
@@ -162,19 +160,23 @@ class URDFParser:
         
     def get_sensor_frames(self) -> Dict[str, Transform]:
         """Extract sensor frame transforms from joints"""
-        sensors = {}
+        frames = {}
         
         # Find DVL frame
         for joint in self.root.findall('joint'):
             if joint.get('name') == 'os/dvl_frame':
                 origin = joint.find('origin')
-                sensors['dvl'] = Transform.from_urdf_origin(origin)
+                frames['dvl'] = Transform.from_urdf_elem(origin)
                 
             elif joint.get('name') == 'os/depth_frame':
                 origin = joint.find('origin')
-                sensors['pressure'] = Transform.from_urdf_origin(origin)
+                frames['pressure'] = Transform.from_urdf_elem(origin)
+
+            elif joint.get('name') == 'os/imu_frame':
+                origin = joint.find('origin')
+                frames['imu'] = Transform.from_urdf_elem(origin)
         
-        return sensors
+        return frames
     
     def get_thruster_frames(self) -> List[Tuple[str, Transform]]:
         """Extract thruster frame information in the standard order"""
@@ -196,7 +198,7 @@ class URDFParser:
             for joint in self.root.findall('joint'):
                 if joint.get('name') == f'{thruster_name}_frame':
                     origin = joint.find('origin')
-                    transform = Transform.from_urdf_origin(origin)
+                    transform = Transform.from_urdf_elem(origin)
                     # Extract short name (e.g., 'flh' from 'os/thruster/flh')
                     short_name = thruster_name.split('/')[-1]
                     thrusters.append((short_name, transform))
@@ -224,7 +226,7 @@ class URDFParser:
                     mesh = geometry.find('mesh')
                     if mesh is not None and 'os_arm_base' in mesh.get('filename', ''):
                         origin = visual.find('origin')
-                        arm_info['arm_base_transform'] = Transform.from_urdf_origin(origin)
+                        arm_info['arm_base_transform'] = Transform.from_urdf_elem(origin)
                         break
         
         # Find arm link visual transforms
@@ -233,14 +235,14 @@ class URDFParser:
             visual = arm_link.find('visual')
             if visual is not None:
                 origin = visual.find('origin')
-                arm_info['arm_link_visuals']['os_arm_link'] = Transform.from_urdf_origin(origin)
+                arm_info['arm_link_visuals']['os_arm_link'] = Transform.from_urdf_elem(origin)
         
         arm_tube = self.root.find(".//link[@name='os_arm_tube']")
         if arm_tube is not None:
             visual = arm_tube.find('visual')
             if visual is not None:
                 origin = visual.find('origin')
-                arm_info['arm_link_visuals']['os_arm_tube'] = Transform.from_urdf_origin(origin)
+                arm_info['arm_link_visuals']['os_arm_tube'] = Transform.from_urdf_elem(origin)
         
         # Find arm joints
         for joint in self.root.findall('joint'):
@@ -293,7 +295,7 @@ class URDFParser:
                         
                         # Get transform
                         origin = visual.find('origin')
-                        transform = Transform.from_urdf_origin(origin)
+                        transform = Transform.from_urdf_elem(origin)
                         
                         # Determine material and look based on mesh name
                         material_name = "Aluminium"
@@ -414,49 +416,43 @@ class StonefishGenerator:
         hull_part = None
 
         # Add all hull mesh parts as external parts
-        for part in hull_parts:
+        for mesh_part in hull_parts:
             external_part = ET.SubElement(base_link, 'external_part')
-            external_part.set('name', part.name)
+            external_part.set('name', mesh_part.name)
             external_part.set('type', 'model')
             external_part.set('physics', 'submerged')
             external_part.set('buoyant', 'true')
             
+            # Compound transform (position of this part relative to compound body origin)
+            # Set to zero. All parts' origins match the compound body origin (os/body)
+            # We just set the mesh transform
+            compound_transform = ET.SubElement(external_part, 'compound_transform')
+            compound_transform.set('xyz', '0.0 0.0 0.0')
+            compound_transform.set('rpy', '0.0 0.0 0.0')
+
             # Physical mesh
             physical = ET.SubElement(external_part, 'physical')
             mesh = ET.SubElement(physical, 'mesh')
-            mesh.set('filename', self._format_mesh_path(part.filename))
+            mesh.set('filename', self._format_mesh_path(mesh_part.filename))
             mesh.set('scale', '1.0')
             mesh_origin = ET.SubElement(physical, 'origin')
-            mesh_origin.set('rpy', '0.0 0.0 0.0')
-            mesh_origin.set('xyz', '0.0 0.0 0.0')
+            attrs = mesh_part.transform.to_stonefish_attrs()
+            mesh_origin.set('xyz', attrs['xyz'])
+            mesh_origin.set('rpy', attrs['rpy'])
             
-            # Part origin (its position within the compound body frame)
+            # Unclear what this does or if it's needed.
             part_origin = ET.SubElement(external_part, 'origin')
             part_origin.set('xyz', '0.0 0.0 0.0')
             part_origin.set('rpy', '0.0 0.0 0.0')
             
             # Material and look
             material = ET.SubElement(external_part, 'material')
-            material.set('name', part.material_name)
+            material.set('name', mesh_part.material_name)
             
             look = ET.SubElement(external_part, 'look')
-            look.set('name', part.look_name)
+            look.set('name', mesh_part.look_name)
             
-            # Compound transform (position of this part relative to compound body origin)
-            compound_transform = ET.SubElement(external_part, 'compound_transform')
-            attrs = part.transform.to_stonefish_attrs()
-            compound_transform.set('xyz', attrs['xyz'])
-            compound_transform.set('rpy', attrs['rpy'])
-
-            
-            if part.name == 'os_hull':
-                # Compound frame is the NED vehicle frame of the robot
-                # Body frame is the frame in which the STL mesh is defined
-                # (same origin but WSU orientation)
-                body_T_compound = part.transform.to_se3().inv()
-                assert np.allclose(body_T_compound.t.data, np.zeros((3, 1)))
-                B_R_C = body_T_compound.R
-
+            if mesh_part.name == 'os_hull':
                 mass = ET.SubElement(external_part, 'mass')
                 if self.config.base_link_mass_override is None:
                     mass.set('value', str(hull_inertial.mass))
@@ -464,19 +460,18 @@ class StonefishGenerator:
                     mass.set('value', str(self.config.base_link_mass_override))
                 
                 inertia = ET.SubElement(external_part, 'inertia')
-                inertia_B = B_R_C @ hull_inertial.inertia @ B_R_C.T
-                # TODO: Support off diagonal inertia terms
+
+                # Note that the inertial parameters are defined in the 
+                # part frame, not the compound frame. However, we make these frames match.
+                inertia_B = hull_inertial.inertia
                 inertia.set('xyz', f"{inertia_B[0, 0]} {inertia_B[1, 1]} {inertia_B[2, 2]}")
-                inertia.set('rpy', f"0.0 0.0 0.0")
 
                 cg = ET.SubElement(external_part, 'cg')
-                cg_xyz_C = np.array(hull_inertial.cg_xyz)
-                cg_xyz_B = body_T_compound * cg_xyz_C
-                cg_xyz_B = cg_xyz_B.reshape(3)
-
-                cg.set('xyz', f"{cg_xyz_B[0]} {cg_xyz_B[1]} {cg_xyz_B[2]}")
-                cg.set('rpy', f"0.0 0.0 0.0")
+                attrs = hull_inertial.part_T_cg.to_stonefish_attrs()
+                cg.set('xyz', attrs['xyz'])
+                cg.set('rpy', attrs['rpy'])
             else:
+                # TODO: See if 0 actually breaks anything.
                 epsilon = 1e-12
                 eps_str = str(epsilon)
                 mass = ET.SubElement(external_part, 'mass')
@@ -492,9 +487,9 @@ class StonefishGenerator:
         """Add sensor definitions"""
         sensor_frames = urdf_parser.get_sensor_frames()
         
-        # Add IMU (always at base)
+        # Add IMU 
         if 'imu' in self.config.sensors:
-            self._add_imu_sensor(robot, self.config.sensors['imu'])
+            self._add_imu_sensor(robot, self.config.sensors['imu'], sensor_frames['imu'])
         
         # Add DVL
         if 'dvl' in sensor_frames and 'dvl' in self.config.sensors:
@@ -504,7 +499,7 @@ class StonefishGenerator:
         if 'pressure' in sensor_frames and 'pressure' in self.config.sensors:
             self._add_pressure_sensor(robot, self.config.sensors['pressure'], sensor_frames['pressure'])
     
-    def _add_imu_sensor(self, robot: ET.Element, config: SensorConfig):
+    def _add_imu_sensor(self, robot: ET.Element, config: SensorConfig, transform: Transform):
         """Add IMU sensor"""
         sensor = ET.SubElement(robot, 'sensor')
         sensor.set('name', 'imu')
@@ -513,8 +508,9 @@ class StonefishGenerator:
         
         # Origin at base
         origin = ET.SubElement(sensor, 'origin')
-        origin.set('xyz', '0.0 0.0 0.0')
-        origin.set('rpy', '0.0 0.0 0.0')
+        attrs = transform.to_stonefish_attrs()
+        origin.set('xyz', attrs['xyz'])
+        origin.set('rpy', attrs['rpy'])
         
         # Range
         range_elem = ET.SubElement(sensor, 'range')

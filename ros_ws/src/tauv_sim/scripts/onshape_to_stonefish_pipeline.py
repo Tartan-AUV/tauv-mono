@@ -264,6 +264,24 @@ class OnshapePipeline:
                 print("STDERR:", e.stderr)
             return False
     
+    # TODO: This may mess up STl paths, find a better way.
+    def copy_urdf_to_tauv_config(self, source_urdf: Path) -> bool:
+
+        """Copy robot.urdf into tauv_config with link rename"""
+        try:
+            # Destination path: <repo_root>/ros_ws/src/tauv_config/urdf/osprey.urdf
+            dest_path = Path(__file__).resolve().parents[2] / "tauv_config" / "urdf" / "osprey.urdf"
+            dest_path.parent.mkdir(parents=True, exist_ok=True)
+            content = source_urdf.read_text()
+            # Rename link os_hull -> os/body throughout the file
+            updated_content = content.replace("os_hull", "os/body")
+            dest_path.write_text(updated_content)
+            print(f"Copied URDF to {dest_path} with updated link names")
+            return True
+        except Exception as e:
+            print(f"Error copying URDF: {e}")
+            return False
+
     def run_pipeline(self, osprey_dir: str) -> bool:
         """Run the complete pipeline"""
         osprey_path = Path(osprey_dir)
@@ -284,11 +302,16 @@ class OnshapePipeline:
         if not self.mesh_processor.process_assets_directory(str(assets_dir)):
             print("Warning: Some mesh processing failed, continuing...")
         
-        # Step 3: Convert URDF to Stonefish
+        # Step 3: Copy URDF into tauv_config/urdf with link rename
         urdf_path = osprey_path / "robot.urdf"
         if not urdf_path.exists():
             print(f"Error: robot.urdf not found at {urdf_path}")
             return False
+
+        if not self.copy_urdf_to_tauv_config(urdf_path):
+            return False
+
+        # Step 4: Convert URDF to Stonefish
         
         # Determine output path
         output_filename = self.output_config.get('scenario_file', 'osprey.scn')
