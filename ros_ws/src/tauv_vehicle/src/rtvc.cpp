@@ -12,11 +12,11 @@ RTVCNode::RTVCNode()
   temperature_publisher_ = this->create_publisher<sensor_msgs::msg::Temperature>("temperature", 10);
   pressure_publisher_ = this->create_publisher<sensor_msgs::msg::FluidPressure>("pressure", 10);
   esc_telemetry_publisher_ = this->create_publisher<tauv_msgs::msg::EscTelemetry>("esc_telemetry", 10);
-  depth_publisher_ = this->create_publisher<tauv_msgs::msg::DepthFrame>("depth", 10);
-  rpm_command_subscriber_ =
-      this->create_subscription<tauv_msgs::msg::RpmCommand>(
-          "rpm_command", 10, 
-          std::bind(&RTVCNode::rpm_command_callback, this, std::placeholders::_1));
+  depth_publisher_ = this->create_publisher<tauv_msgs::msg::DepthSensorFrame>("depth", 10);
+  thruster_setpoint_subscriber_ =
+      this->create_subscription<tauv_msgs::msg::ThrusterSetpoint>(
+          "thruster_setpoint", 10, 
+          std::bind(&RTVCNode::thruster_setpoint_callback, this, std::placeholders::_1));
 
   start_receive();
   start_receive_50hz();
@@ -120,7 +120,7 @@ void RTVCNode::parse_eth100_msg(const Eth100HzMsgT &msg) {
   
   // Process depth sensor data if available
   if (msg.depth_data) {
-    tauv_msgs::msg::DepthFrame depth_msg;
+    tauv_msgs::msg::DepthSensorFrame depth_msg;
     depth_msg.header.stamp = this->get_clock()->now();
     depth_msg.depth = msg.depth_data->depth;
     depth_msg.pressure = msg.depth_data->pressure;
@@ -201,13 +201,18 @@ RTVCNode::XsensROSMessages RTVCNode::parse_xsens_fb(
   return output_msgs;
 }
 
-void RTVCNode::rpm_command_callback(const tauv_msgs::msg::RpmCommand::SharedPtr msg) {
+void RTVCNode::thruster_setpoint_callback(const tauv_msgs::msg::ThrusterSetpoint::SharedPtr msg) {
   // Create the top-level Eth50HzTxMsg
   Eth50HzTxMsgT msg_obj;
   
   auto thruster_command = std::make_unique<ThrusterCommandT>();
   thruster_command->enabled = std::vector<bool>(msg->enables.begin(), msg->enables.end());
-  thruster_command->rpm = std::vector<int32_t>(msg->rpms.begin(), msg->rpms.end());
+  // Convert from rad/s to RPM: RPM = (rad/s) * 60 / (2π)
+  thruster_command->rpm.reserve(msg->omega_radps.size());
+  for (const auto& omega_rad_per_sec : msg->omega_radps) {
+    int32_t rpm = static_cast<int32_t>(std::round(omega_rad_per_sec * 60.0 / (2.0 * M_PI)));
+    thruster_command->rpm.push_back(rpm);
+  }
   msg_obj.thruster_command = std::move(thruster_command);
 
   flatbuffers::FlatBufferBuilder builder;
