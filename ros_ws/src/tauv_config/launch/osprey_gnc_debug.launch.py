@@ -46,7 +46,7 @@ def generate_launch_description():
                     'body_frame': 'os/body',
                     'depth_frame': 'os/depth',
                     'dvl_frame': 'os/dvl',
-                    'imu_frame': 'os/body',
+                    'imu_frame': 'os/imu',
                     'initial_position_stddev_m': 0.01,
                     'initial_velocity_stddev_mps': 0.1,
                     'process_noise_density_pos_m_per_sqrt_s': 0.001,

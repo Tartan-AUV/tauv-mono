@@ -39,12 +39,12 @@ execute_process(COMMAND
         -DCMAKE_INSTALL_LIBDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/lib
         -DFLATBUFFERS_BUILD_FLATLIB=NO
         -DFLATBUFFERS_BUILD_TESTS=NO
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../packages/tauv_vehicle/flatbuffers
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../ros_ws/src/tauv_vehicle/flatbuffers
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fb/build)
 execute_process(COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/fb/build --target install)
 
 # build schemas
-set(SCHEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../packages/tauv_vehicle/schemas)
+set(SCHEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../ros_ws/src/tauv_vehicle/schemas)
 set(GENERATED_INCLUDES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/FlatBuffers/)
 file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
 

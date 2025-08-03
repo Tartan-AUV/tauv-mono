@@ -53,21 +53,7 @@ from geometry_msgs.msg import PoseStamped, Pose, Twist
 from tauv_msgs.msg import NavigationState, ControllerCommand
 from tauv_msgs.srv import SetTrajectory, Goto
 from tauv_common.util.geometry import numpify, msgify
-from spatialmath import UnitQuaternion, SO3, SE3
-
-# ---------------------------------------------------------------------------
-# Utility helpers
-# ---------------------------------------------------------------------------
-
-def smooth_step(u: float) -> float:
-    """Cubic smooth-step: 3u² − 2u³ for u∈[0,1]."""
-    return 3 * u * u - 2 * u * u * u
-
-
-def smooth_step_derivative(u: float) -> float:
-    """Derivative of *smooth_step* w.r.t u."""
-    return 6 * u * (1 - u)
-
+from spatialmath import UnitQuaternion, SO3, SE3, SpatialVelocity, SpatialAcceleration
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -78,28 +64,19 @@ class Waypoint:
     """A single trajectory way-point."""
 
     t: Time  # absolute ROS time
-    pose_O: SE3  # Pose expressed in odom frame
+    odom_T_waypoint: SE3  # Pose expressed in odom frame
 
 
 @dataclass
-class StationKeepingParams:
-    """Gains and set-point for station keeping."""
-
-    # Desired pose (odom frame)
-    r_body_desired_O: NDArray  # (3, 1)
-    odom_q_body_desired: UnitQuaternion
-
+class Params:
     # Proportional gains
-    kp_pos: float = 0.3  # m/s per metre of position error
-    kp_att: float = 0.7  # rad/s per rad of attitude error
-
-    @classmethod
-    def default(cls) -> "StationKeepingParams":
-        return cls(
-            r_body_desired_O=np.c_[[0.0, 0.0, -8.0]],
-            odom_q_body_desired=UnitQuaternion(),  # identity – body aligned with odom
-        )
-
+    kp_pos: float = 0.3
+    kp_att: float = 0.7
+    
+    max_linear_velocity: float = 1.0  # [m/s]
+    max_angular_velocity: float = 1.0  # [rad/s]
+    max_linear_acceleration: float = 3.0  # [m/s^2]
+    max_angular_acceleration: float = 3.0  # [rad/s^2]
 
 # ---------------------------------------------------------------------------
 # Commander node
@@ -114,7 +91,7 @@ class Commander(Node):
         # ------------------------------------------------------------------
         # Parameters
         # ------------------------------------------------------------------
-        self.params = StationKeepingParams.default()
+        self.params = Params()
 
         # Motion limits (could be exposed as ROS parameters)
         self._max_velocity: float = 0.6  # m/s & rad/s
@@ -195,40 +172,18 @@ class Commander(Node):
         # Implicit starting waypoint at current pose/time if commander is idle
         if not self._trajectory:  # currently holding position
             current_pose = numpify(self._last_nav.body_pose)
-            waypoints.append(Waypoint(t=now, pose_O=current_pose))
+            waypoints.append(Waypoint(t=now, odom_T_waypoint=current_pose))
 
         # Append user-provided way-points
         for pose in poses:
             pose_se3 = numpify(pose.pose)
-            waypoints.append(Waypoint(t=Time.from_msg(pose.header.stamp), pose_O=pose_se3))
+            waypoints.append(Waypoint(t=Time.from_msg(pose.header.stamp), odom_T_waypoint=pose_se3))
 
         # Check feasibility for every segment
-        for wp0, wp1 in zip(waypoints[:-1], waypoints[1:]):
-            dt = (wp1.t - wp0.t).to_sec()
-            if dt <= 0:
-                res.success = False
-                res.message = "Way-point time-stamps must be strictly increasing"
-                return res
-
-            # Translation limits
-            dist = float(np.linalg.norm(wp1.pose_O.t - wp0.pose_O.t))
-            vmax_req = 1.5 * dist / dt  # peak of cubic profile
-            amax_req = 6.0 * dist / (dt * dt)
-
-            # Orientation limits (use rotation angle)
-            q_rel = wp0.pose_O.UnitQuaternion().inv() * wp1.pose_O.UnitQuaternion()
-            angle, _ = q_rel.angvec()
-            vmax_ang_req = 1.5 * angle / dt
-            amax_ang_req = 6.0 * angle / (dt * dt)
-
-            if vmax_req > self._max_velocity or vmax_ang_req > self._max_velocity:
-                res.success = False
-                res.message = "Velocity limit exceeded on segment"
-                return res
-            if amax_req > self._max_acceleration or amax_ang_req > self._max_acceleration:
-                res.success = False
-                res.message = "Acceleration limit exceeded on segment"
-                return res
+        if not self._check_feasibility(waypoints):
+            res.success = False
+            res.message = "Infeasible trajectory"
+            return res
 
         # Trajectory accepted – replace current trajectory
         self._trajectory = waypoints
@@ -251,8 +206,8 @@ class Commander(Node):
         # Target pose
         target_pose: SE3 = numpify(req.target_pose)
 
-        # Velocity (m/s). Use default if not set or invalid.
-        velocity = req.velocity if req.velocity > 0.0 else 0.5
+        # Velocity (m/s)
+        velocity = req.velocity if req.velocity > 0.0 else self.params.max_linear_velocity
 
         # Distance to travel (translation only)
         dist = float(np.linalg.norm(target_pose.t - current_pose.t))
@@ -267,13 +222,41 @@ class Commander(Node):
 
         # Build new trajectory: start at current pose, end at target
         self._trajectory.clear()
-        self._trajectory.append(Waypoint(t=now, pose_O=current_pose))
-        self._trajectory.append(Waypoint(t=arrival_time, pose_O=target_pose))
+        self._trajectory.append(Waypoint(t=now, odom_T_waypoint=current_pose))
+        self._trajectory.append(Waypoint(t=arrival_time, odom_T_waypoint=target_pose))
         self._traj_final_waypoint = self._trajectory[-1]
 
         res.success = True
         res.message = "Goto accepted"
         return res
+
+    def _check_feasibility(self, waypoints: List[Waypoint]) -> bool:
+        for wp0, wp1 in zip(waypoints[:-1], waypoints[1:]):
+            dt = (wp1.t - wp0.t).to_sec()
+            if dt <= 0:
+                self.get_logger().error("Non-monotonic waypoint timestamps. Rejecting trajectory request.")
+                return False
+            
+            # Translation limits
+            d = np.linalg.norm(wp1.odom_T_waypoint.t - wp0.odom_T_waypoint.t)
+            v_max = self.params.max_linear_velocity
+            a_max = self.params.max_linear_acceleration
+            d_max = v_max * dt - v_max ** 2 / a_max
+            if d > d_max:
+                self.get_logger().error(f"Translation limit exceeded on segment. Rejecting trajectory request.")
+                return False
+
+            # Rotation limits
+            q_rel = wp0.odom_T_waypoint.UnitQuaternion().inv() * wp1.odom_T_waypoint.UnitQuaternion()
+            theta, _ = q_rel.angvec()
+            theta = np.abs(theta)
+            omega_required = theta / dt
+            omega_max = self.params.max_angular_velocity
+            if omega_required > omega_max:
+                self.get_logger().error(f"Angular velocity limit exceeded on segment. Rejecting trajectory request.")
+                return False
+
+            return True
 
     # ------------------------------------------------------------------
     # Core logic
@@ -331,11 +314,16 @@ class Commander(Node):
     def _compute_trajectory_command(self, nav: NavigationState) -> ControllerCommand:
         assert self._trajectory  # non-empty
 
+        # Current state
         t_now = Time.from_msg(nav.header.stamp)
+        v_bo_B = numpify(nav.body_twist)
+        omega_BO: NDArray = numpify(nav.body_twist.angular)
+        odom_R_body = numpify(nav.body_pose.orientation).SO3()
+        r_bo_O = numpify(nav.body_pose.position)
+
+        v_bo_O = odom_R_body * v_bo_B
 
         # If trajectory is finished → hold last point
-        self.get_logger().info(f"t_now clock type: {t_now.clock_type}")
-        self.get_logger().info(f"self._trajectory[-1].t clock type: {self._trajectory[-1].t.clock_type}")
         if t_now >= self._trajectory[-1].t:
             self._trajectory.clear()
             return self._compute_station_keep_at(self._traj_final_waypoint, nav)
@@ -356,18 +344,12 @@ class Commander(Node):
         dSdt = smooth_step_derivative(u) / dt
 
         # ------------------------------------------------------------------
-        # Position & velocity (odom)
+        # Reference point pose and twist
         # ------------------------------------------------------------------
-        pos0 = np.c_[wp0.pose_O.t]
-        pos1 = np.c_[wp1.pose_O.t]
-        p_O_target = pos0 + S * (pos1 - pos0)
-        v_O_target = dSdt * (pos1 - pos0)
+        odom_T_w0 = numpify 
 
-        # ------------------------------------------------------------------
-        # Orientation & angular velocity (odom)
-        # ------------------------------------------------------------------
-        q0 = wp0.pose_O.UnitQuaternion()
-        q1 = wp1.pose_O.UnitQuaternion()
+        R_OB = wp0.odom_T_waypoint.UnitQuaternion()
+        q1 = wp1.odom_T_waypoint.UnitQuaternion()
         q_rel = q0.inv() * q1
         angle, axis = q_rel.angvec()
         if angle < 1e-6:
@@ -382,7 +364,7 @@ class Commander(Node):
         # Convert to body-frame targets
         # ------------------------------------------------------------------
         R_OB = q_target.SO3()
-        v_B_target: NDArray = R_OB.inv() * v_O_target  # (3,1)
+        v_B_target: NDArray = R_OB.inv() * v_ro_O  # (3,1)
         w_B_target: NDArray = R_OB.inv() * w_O_target  # (3,1)
 
         # ------------------------------------------------------------------
@@ -407,8 +389,8 @@ class Commander(Node):
             ])]
             self.params.odom_q_body_desired = numpify(nav.body_pose.orientation)
         else:
-            self.params.r_body_desired_O = np.c_[waypoint.pose_O.t]
-            self.params.odom_q_body_desired = waypoint.pose_O.UnitQuaternion()
+            self.params.r_body_desired_O = np.c_[waypoint.odom_T_waypoint.t]
+            self.params.odom_q_body_desired = waypoint.odom_T_waypoint.UnitQuaternion()
         return self._compute_station_keep_command(nav)
 
 

@@ -14,7 +14,7 @@ services:
               capabilities: [gpu]
     runtime: nvidia
     volumes:
-      - /home/tauv/tauv-mono/packages:/ros_ws/src/tauv-packages
+      - /home/tauv/tauv-mono/ros_ws:/ros_ws
       - /home/tauv/ros-artifacts/install:/ros_ws/install
       - /home/tauv/ros-artifacts/logs:/ros_ws/logs
       - /home/tauv/ros_artifacts/build:/ros_ws/build

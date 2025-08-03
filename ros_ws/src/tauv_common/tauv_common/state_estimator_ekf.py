@@ -29,7 +29,6 @@ from tauv_common.util.geometry import numpify, msgify
 from tauv_msgs.msg import Depth as DepthMsg
 from tauv_msgs.msg import WaterlinkedDvlFrame as DvlMsg
 from tauv_msgs.msg import NavigationState
-from tauv_msgs.msg import StateEstimatorDebug
 from geometry_msgs.msg import TransformStamped, Quaternion, Vector3, Point, Pose
 from builtin_interfaces.msg import Time as TimeMsg
 
@@ -44,19 +43,19 @@ def stamp_to_nanos(stamp: Any) -> int:
 @dataclass
 class EkfControl:
     odom_R_sensor: SO3
-    a_sensor_S: NDArray
-    omega_sensor_S: NDArray
+    a_S: NDArray
+    omega_S: NDArray
 
     @staticmethod
     def from_msg(msg: ImuMsg) -> 'EkfControl':
         return EkfControl(
             odom_R_sensor=SO3(numpify(msg.orientation).R),  # type: ignore
-            a_sensor_S=numpify(msg.linear_acceleration),
-            omega_sensor_S=numpify(msg.angular_velocity),
+            a_S=numpify(msg.linear_acceleration),
+            omega_S=numpify(msg.angular_velocity),
         )
 
     def is_valid(self) -> bool:
-        return self.a_sensor_S.shape == self.omega_sensor_S.shape == (3, 1)
+        return self.a_S.shape == self.omega_S.shape == (3, 1)
 
 @dataclass
 class DvlInput:
@@ -316,8 +315,9 @@ class Ekf:
         self._r_body_depth_B: NDArray = transforms.r_body_depth_B
         dvl_T_body: SE3 = transforms.body_T_dvl.inv()
         self._dvl_J_body: NDArray = dvl_T_body.jacob()
-        assert np.allclose(transforms.body_T_imu.t, 0)
-        self._imu_R_body: SO3 = SO3(transforms.body_T_imu.R).inv()
+        # TODO: remove this
+        assert not np.allclose(transforms.body_T_imu.t, 0)
+        self._body_T_imu: SE3 = transforms.body_T_imu
         
         # Depth measurement Jacobian
         self._H_depth = np.zeros((1, 6))
@@ -341,22 +341,30 @@ class Ekf:
         assert xkm1.shape == (6, 1) and uk.is_valid() and dt > 0
 
         dt_seconds = dt * 1e-9
-        # Transform acceleration to odom frame
-        a_sensor_O = uk.odom_R_sensor * uk.a_sensor_S
 
         # Sensor frame origin is body frame origin
-        a_body_O = a_sensor_O + self._a_g_O
+        body_R_imu = SO3(self._body_T_imu.R)
+        odom_R_body: SO3 = uk.odom_R_sensor * body_R_imu.inv()
+        omega_B = body_R_imu * uk.omega_S
+        r_sensor__body_B = self._body_T_imu.t
 
-        odom_R_body: SO3 = uk.odom_R_sensor * self._imu_R_body
+        self._logger.info(f"omega_B.shape: {omega_B.shape}")
+        self._logger.info(f"r_sensor__body_B.shape: {r_sensor__body_B.shape}")
+        omega_B_flat = omega_B.reshape(3)
+        a_body_B = body_R_imu * uk.a_S - np.cross(omega_B_flat, np.cross(omega_B_flat, r_sensor__body_B)).reshape(3, 1)
+        
+        a_body_O = odom_R_body * a_body_B
+        a_body_O_free = a_body_O + self._a_g_O
+
 
         # Position update: r = r + v*dt + 0.5*a*dt^2
         r_body_km1_O, v_body_km1_B = xkm1[:3], xkm1[3:]
         v_body_km1_O = odom_R_body * v_body_km1_B
-        r_body_km1_body_k_O = v_body_km1_O * dt_seconds + 0.5 * a_body_O * dt_seconds**2
+        r_body_km1_body_k_O = v_body_km1_O * dt_seconds + 0.5 * a_body_O_free * dt_seconds**2
         r_body_k_O = r_body_km1_O + r_body_km1_body_k_O
         
         # Velocity update: v = v + a*dt
-        v_body_k_O = v_body_km1_O + a_body_O * dt_seconds
+        v_body_k_O = v_body_km1_O + a_body_O_free * dt_seconds
         v_body_k_B = odom_R_body.inv() * v_body_k_O
 
         assert r_body_k_O.shape == v_body_k_B.shape == (3, 1)
@@ -367,7 +375,8 @@ class Ekf:
         """Predict covariance"""
         assert Pkm1.shape == (6, 6)
 
-        odom_R_body: SO3= uk.odom_R_sensor * self._imu_R_body
+        body_R_imu = SO3(self._body_T_imu.R)
+        odom_R_body: SO3 = uk.odom_R_sensor * body_R_imu.inv()
 
         dt_seconds = dt * 1e-9
 
@@ -408,7 +417,8 @@ class Ekf:
 
         # Transform velocity to body frame
         v_body_B = xk[3:]
-        omega_body_B = self._imu_R_body.inv() * uk.omega_sensor_S
+        body_R_imu = SO3(self._body_T_imu.R)
+        omega_body_B = body_R_imu * uk.omega_S
         
         # Create twist vector
         V_body_B = np.vstack([v_body_B, omega_body_B])
@@ -421,7 +431,8 @@ class Ekf:
         assert xk.shape == (6, 1) and uk.is_valid()
 
         r_body_O = xk[:3]
-        odom_R_body: SO3 = uk.odom_R_sensor * self._imu_R_body
+        body_R_imu = SO3(self._body_T_imu.R)
+        odom_R_body: SO3 = uk.odom_R_sensor * body_R_imu.inv()
 
         # Transform depth sensor position to odom frame
         r_body_depth_O = odom_R_body * self._r_body_depth_B
@@ -476,7 +487,6 @@ class StateEstimatorEkf(Node):
         self.depth_sub: Optional[Subscription] = None
         self.dvl_sub: Optional[Subscription] = None
         self.nav_state_pub: Optional[Publisher] = None
-        self.debug_pub: Optional[Publisher] = None
         self.processing_thread: Optional[Thread] = None
 
         # State
@@ -514,10 +524,14 @@ class StateEstimatorEkf(Node):
             # Convert DVL transform to isometry matrix
             body_T_dvl = numpify(dvl_tf.transform)
             body_T_imu = numpify(imu_tf.transform)
+            # Log the DVL and IMU transforms for debugging and verification
+            self.get_logger().info(f"DVL Transform (body_T_dvl):\n{body_T_dvl}")
+            self.get_logger().info(f"IMU Transform (body_T_imu):\n{body_T_imu}")
             self.static_transforms = EkfStaticTransforms(r_body_depth_B, body_T_dvl, body_T_imu)
             self._transforms_ready = True
             # Now initialize EKF and processing thread
             self.ekf = Ekf(self.params, self.static_transforms, self.get_logger())
+            self.get_logger().info("got all transforms :D")
             self.get_logger().info("EKF initialized")
             # Processing thread
             self.start_processing()
@@ -538,7 +552,6 @@ class StateEstimatorEkf(Node):
         self.depth_sub = self.create_subscription(DepthMsg, 'depth', self.depth_callback, qos)
         self.dvl_sub = self.create_subscription(DvlMsg, 'dvl', self.dvl_callback, qos)
         self.nav_state_pub = self.create_publisher(NavigationState, 'navigation_state', 10)
-        self.debug_pub = self.create_publisher(StateEstimatorDebug, 'state_estimator_debug', 10)
         self.processing_thread = threading.Thread(target=self._processing_loop, daemon=True)
         self.processing_thread.start()
 
@@ -634,7 +647,6 @@ class StateEstimatorEkf(Node):
                     if self.ekf is not None:
                         self.history.add_depth_measurement(t, data, self.ekf)
                     self._publish_navigation_state()
-                    self._publish_debug_state()
                     # except ValueError as e:
                     #     self.get_logger().warn(f"Depth measurement rejected: {e}")
                 
@@ -642,7 +654,6 @@ class StateEstimatorEkf(Node):
                     if self.ekf is not None:
                         self.history.add_dvl_measurement(t, data, self.ekf)
                     self._publish_navigation_state()
-                    self._publish_debug_state()
 
             except queue.Empty:
                 continue
@@ -676,11 +687,11 @@ class StateEstimatorEkf(Node):
         # Accel
         a_gravity_O = np.c_[[0.0, 0.0, self.params.gravity]]
         a_gravity_B = odom_R_body.inv() * a_gravity_O
-        a_sensor_S = latest_imu.a_sensor_S
+        a_sensor_S = latest_imu.a_S
         a_body_B = body_R_sensor * a_sensor_S + a_gravity_B
 
         # We assume that the body frame and IMU frame have the same origin
-        omega_sensor_S = latest_imu.omega_sensor_S
+        omega_sensor_S = latest_imu.omega_S
         omega_body_B = body_R_sensor * omega_sensor_S
         
         # Create NavigationState message

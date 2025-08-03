@@ -396,7 +396,7 @@ class StonefishGenerator:
         
         # Add world transform
         world_transform = ET.SubElement(robot, 'world_transform')
-        world_transform.set('xyz', '0.0 0.0 1.0')
+        world_transform.set('xyz', '0.0 0.0 0.0')
         world_transform.set('rpy', '0.0 0.0 0.0')
     
     def _add_base_link(self, robot: ET.Element, urdf_parser: URDFParser):
