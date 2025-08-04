@@ -53,7 +53,7 @@ from geometry_msgs.msg import PoseStamped, Pose, Twist
 from tauv_msgs.msg import NavigationState, ControllerCommand
 from tauv_msgs.srv import SetTrajectory, Goto
 from tauv_common.util.geometry import numpify, msgify
-from spatialmath import UnitQuaternion, SO3, SE3, SpatialVelocity, SpatialAcceleration
+from spatialmath import UnitQuaternion, SO3, SE3
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -92,10 +92,7 @@ class Commander(Node):
         # Parameters
         # ------------------------------------------------------------------
         self.params = Params()
-
-        # Motion limits (could be exposed as ROS parameters)
-        self._max_velocity: float = 0.6  # m/s & rad/s
-        self._max_acceleration: float = 0.3  # m/s² & rad/s²
+        self.odom_T_body_target: SE3 = SE3.Rt(SO3(), np.r_[0.0, 0.0, -8.0])
 
         # ------------------------------------------------------------------
         # Internal state
@@ -206,25 +203,35 @@ class Commander(Node):
         # Target pose
         target_pose: SE3 = numpify(req.target_pose)
 
-        # Velocity (m/s)
-        velocity = req.velocity if req.velocity > 0.0 else self.params.max_linear_velocity
+        # Distance
+        v_max = self.params.max_linear_velocity
+        a_max = self.params.max_linear_acceleration
+        d = np.linalg.norm(target_pose.t - current_pose.t)
+        t1 = d / v_max + v_max / a_max
+        t2 = np.sqrt(4 * d / a_max)
 
-        # Distance to travel (translation only)
-        dist = float(np.linalg.norm(target_pose.t - current_pose.t))
+        # Angle
+        q_rel = current_pose.UnitQuaternion().inv() * target_pose.UnitQuaternion()
+        theta, _ = q_rel.angvec()
+        omega_max = self.params.max_angular_velocity
+        alpha_max = self.params.max_angular_acceleration
+        t3 = theta / omega_max + omega_max / alpha_max
+        t4 = np.sqrt(4 * theta / alpha_max)
+        t = max(t1, t2, t3, t4)
 
         # Duration based on velocity (avoid divide-by-zero)
-        travel_time_sec = dist / velocity if velocity > 1e-6 else 0.0
-        duration = Duration(nanoseconds=int(travel_time_sec * 1e9))
+        duration = Duration(nanoseconds=int(t * 1e9))
         arrival_time = now + duration
         # TODO: This is a hack to get the clock type to be ROS_TIME
         arrival_time = Time(nanoseconds=arrival_time.nanoseconds, clock_type=rclpy.time.ClockType.ROS_TIME)
-        self.get_logger().info(f"arrival_time clock type: {arrival_time.clock_type}")
 
         # Build new trajectory: start at current pose, end at target
         self._trajectory.clear()
         self._trajectory.append(Waypoint(t=now, odom_T_waypoint=current_pose))
         self._trajectory.append(Waypoint(t=arrival_time, odom_T_waypoint=target_pose))
         self._traj_final_waypoint = self._trajectory[-1]
+
+        self.odom_T_body_target = target_pose
 
         res.success = True
         res.message = "Goto accepted"
@@ -236,6 +243,10 @@ class Commander(Node):
             if dt <= 0:
                 self.get_logger().error("Non-monotonic waypoint timestamps. Rejecting trajectory request.")
                 return False
+
+            # FROM CHAT:
+            # d_max = v_max * dt - v_max ** 2 / a_max (line 255) becomes negative when dt < v_max / a_max, meaning every translation would fail the test for very short segments. If the intent is the usual triangular/trapezoidal profile, the formula should be
+            # d_max = 0.5 * a_max * dt**2 for a pure triangular profile, or use the proper trapezoidal derivation. (This may be intentional; just flagging it.)
             
             # Translation limits
             d = np.linalg.norm(wp1.odom_T_waypoint.t - wp0.odom_T_waypoint.t)
@@ -256,7 +267,7 @@ class Commander(Node):
                 self.get_logger().error(f"Angular velocity limit exceeded on segment. Rejecting trajectory request.")
                 return False
 
-            return True
+        return True
 
     # ------------------------------------------------------------------
     # Core logic
@@ -264,8 +275,8 @@ class Commander(Node):
 
     def _compute_command(self, nav: NavigationState) -> ControllerCommand:
         """Compute controller command based on current mode (trajectory / hold)."""
-        if self._trajectory:
-            return self._compute_trajectory_command(nav)
+        # if self._trajectory:
+        #     return self._compute_trajectory_command(nav)
         return self._compute_station_keep_command(nav)
 
     # ------------------------------------------------------------------
@@ -279,11 +290,14 @@ class Commander(Node):
             nav.body_pose.position.y,
             nav.body_pose.position.z,
         ])[:, None]  # shape (3,1)
-
         q_OB: UnitQuaternion = numpify(nav.body_pose.orientation)  # odom->body
 
+        # Target pose
+        q_OB_target: UnitQuaternion = self.odom_T_body_target.UnitQuaternion()
+        r_body_target_O: NDArray = self.odom_T_body_target.t.reshape(3, 1)
+
         # Position error in odom
-        e_pos_O: NDArray = self.params.r_body_desired_O - p_O  # (3,1)
+        e_pos_O: NDArray = r_body_target_O - p_O  # (3,1)
 
         # Convert to body frame: e_B = R_BO * e_O
         R_OB = q_OB.SO3()  # rotation odom->body
@@ -293,7 +307,7 @@ class Commander(Node):
         v_B_target: NDArray = self.params.kp_pos * e_pos_B  # (3,1)
 
         # Attitude error – quaternion representing rotation from current to desired
-        q_err: UnitQuaternion = self.params.odom_q_body_desired * q_OB.inv()
+        q_err: UnitQuaternion = q_OB_target * q_OB.inv()
         theta, v = q_err.angvec()
         vec_err = v * theta
 
@@ -312,86 +326,7 @@ class Commander(Node):
     # ------------------------------------------------------------------
 
     def _compute_trajectory_command(self, nav: NavigationState) -> ControllerCommand:
-        assert self._trajectory  # non-empty
-
-        # Current state
-        t_now = Time.from_msg(nav.header.stamp)
-        v_bo_B = numpify(nav.body_twist)
-        omega_BO: NDArray = numpify(nav.body_twist.angular)
-        odom_R_body = numpify(nav.body_pose.orientation).SO3()
-        r_bo_O = numpify(nav.body_pose.position)
-
-        v_bo_O = odom_R_body * v_bo_B
-
-        # If trajectory is finished → hold last point
-        if t_now >= self._trajectory[-1].t:
-            self._trajectory.clear()
-            return self._compute_station_keep_at(self._traj_final_waypoint, nav)
-
-        # Find the active segment index i such that t_i ≤ t < t_{i+1}
-        for i in range(len(self._trajectory) - 1):
-            if self._trajectory[i].t <= t_now < self._trajectory[i + 1].t:
-                break
-        else:  # should never happen due to earlier check
-            return self._compute_station_keep_at(self._traj_final_waypoint, nav)
-
-        wp0 = self._trajectory[i]
-        wp1 = self._trajectory[i + 1]
-        dt = (wp1.t - wp0.t).to_sec()
-        u = (t_now - wp0.t).to_sec() / dt  # ∈ [0,1)
-
-        S = smooth_step(u)
-        dSdt = smooth_step_derivative(u) / dt
-
-        # ------------------------------------------------------------------
-        # Reference point pose and twist
-        # ------------------------------------------------------------------
-        odom_T_w0 = numpify 
-
-        R_OB = wp0.odom_T_waypoint.UnitQuaternion()
-        q1 = wp1.odom_T_waypoint.UnitQuaternion()
-        q_rel = q0.inv() * q1
-        angle, axis = q_rel.angvec()
-        if angle < 1e-6:
-            q_target = q0
-            w_O_target = np.zeros((3, 1))
-        else:
-            # Interpolate orientation using spherical linear interpolation (slerp)
-            q_target = q0.interp(q1, S)
-            w_O_target = (axis * (angle * dSdt))[:, None]  # (3,1)
-
-        # ------------------------------------------------------------------
-        # Convert to body-frame targets
-        # ------------------------------------------------------------------
-        R_OB = q_target.SO3()
-        v_B_target: NDArray = R_OB.inv() * v_ro_O  # (3,1)
-        w_B_target: NDArray = R_OB.inv() * w_O_target  # (3,1)
-
-        # ------------------------------------------------------------------
-        # Assemble ControllerCommand message
-        # ------------------------------------------------------------------
-        cmd = ControllerCommand()
-        cmd.header = nav.header
-        cmd.target_twist = msgify(np.vstack((v_B_target, w_B_target)), message_type="Twist")
-        return cmd
-
-    # ------------------------------------------------------------------
-    # Helper – station keep at an arbitrary pose
-    # ------------------------------------------------------------------
-
-    def _compute_station_keep_at(self, waypoint: Optional[Waypoint], nav: NavigationState) -> ControllerCommand:
-        if waypoint is None:
-            # Fallback – keep current pose
-            self.params.r_body_desired_O = np.c_[np.array([
-                nav.body_pose.position.x,
-                nav.body_pose.position.y,
-                nav.body_pose.position.z,
-            ])]
-            self.params.odom_q_body_desired = numpify(nav.body_pose.orientation)
-        else:
-            self.params.r_body_desired_O = np.c_[waypoint.odom_T_waypoint.t]
-            self.params.odom_q_body_desired = waypoint.odom_T_waypoint.UnitQuaternion()
-        return self._compute_station_keep_command(nav)
+        raise NotImplementedError("Trajectory following not implemented")
 
 
 # ---------------------------------------------------------------------------

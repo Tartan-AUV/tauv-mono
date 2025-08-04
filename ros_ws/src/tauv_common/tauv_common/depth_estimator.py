@@ -41,18 +41,19 @@ class DepthEstimatorNode(Node):
         )
 
     def depth_sensor_frame_callback(self, msg: DepthSensorFrame):
-        with self._reset_lock:
-            if self._reset_triggered:
-                with self._surface_pressure_lock:
-                    self.surface_pressure = float(msg.pressure)
-                self._reset_triggered = False
+        # with self._reset_lock:
+        #     if self._reset_triggered:
+        #         with self._surface_pressure_lock:
+        #             self.surface_pressure = float(msg.pressure)
+        #         self._reset_triggered = False
 
-        with self._surface_pressure_lock:
-            surface_pressure = self.surface_pressure
+        # with self._surface_pressure_lock:
+        #     surface_pressure = self.surface_pressure
 
         depth_msg = Depth()
         depth_msg.header = msg.header
-        depth_msg.depth = (float(msg.pressure) - surface_pressure) / (self.water_density * self.gravity)
+        # depth_msg.depth = (float(msg.pressure) - surface_pressure) / (self.water_density * self.gravity)
+        depth_msg.depth = float(msg.depth)
         depth_msg.variance = self.variance
 
         self.depth_pub.publish(depth_msg)
