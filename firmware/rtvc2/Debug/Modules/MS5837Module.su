@@ -1,0 +1,8 @@
+../Modules/MS5837Message.hpp:37:8:void TAUV::MS5837Message::clear()	16	static
+../Modules/MS5837Module.hpp:31:15:virtual const char* TAUV::MS5837Module::getName() const	16	static
+../Modules/MS5837Module.hpp:32:9:virtual float TAUV::MS5837Module::getFrequency() const	16	static
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/arm-none-eabi/thumb/v7e-m+dp/hard/bits/gthr-default.h:229:1:int __gthread_key_delete(__gthread_key_t)	16	static
+../Util/Logging.hpp:65:20:void __tcf_0()	8	static
+../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	8	static
+../Modules/MS5837Module.cpp:19:18:TAUV::ModuleInitResult TAUV::MS5837Module::init(I2C_HandleTypeDef*)	16	static
+../Modules/MS5837Module.cpp:42:17:virtual TAUV::ModuleRunResult TAUV::MS5837Module::run()	56	static

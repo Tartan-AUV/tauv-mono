@@ -1,0 +1,21 @@
+../Drivers/VESC/VESC_UART.cpp:14:1:TAUV::VESC::VESC_UART::VESC_UART(uint32_t)	1
+../Drivers/VESC/VESC_UART.cpp:18:5:int TAUV::VESC::VESC_UART::receiveUartMessage(uint8_t*)	14
+../Drivers/VESC/VESC_UART.cpp:78:6:bool TAUV::VESC::VESC_UART::unpackPayload(uint8_t*, int, uint8_t*)	2
+../Drivers/VESC/VESC_UART.cpp:119:5:int TAUV::VESC::VESC_UART::packSendPayload(uint8_t*, int)	3
+../Drivers/VESC/VESC_UART.cpp:152:6:bool TAUV::VESC::VESC_UART::processReadPacket(uint8_t*)	3
+../Drivers/VESC/VESC_UART.cpp:229:6:bool TAUV::VESC::VESC_UART::getFWversion()	1
+../Drivers/VESC/VESC_UART.cpp:231:6:bool TAUV::VESC::VESC_UART::getFWversion(uint8_t)	4
+../Drivers/VESC/VESC_UART.cpp:252:6:bool TAUV::VESC::VESC_UART::getVescValues()	1
+../Drivers/VESC/VESC_UART.cpp:254:6:bool TAUV::VESC::VESC_UART::getVescValues(uint8_t)	4
+../Drivers/VESC/VESC_UART.cpp:280:6:bool TAUV::VESC::VESC_UART::setCurrent(float)	1
+../Drivers/VESC/VESC_UART.cpp:282:6:bool TAUV::VESC::VESC_UART::setCurrent(float, uint8_t)	4
+../Drivers/VESC/VESC_UART.cpp:298:6:bool TAUV::VESC::VESC_UART::setBrakeCurrent(float)	1
+../Drivers/VESC/VESC_UART.cpp:302:6:bool TAUV::VESC::VESC_UART::setBrakeCurrent(float, uint8_t)	4
+../Drivers/VESC/VESC_UART.cpp:320:6:bool TAUV::VESC::VESC_UART::setRPM(float)	1
+../Drivers/VESC/VESC_UART.cpp:322:6:bool TAUV::VESC::VESC_UART::setRPM(float, uint8_t)	4
+../Drivers/VESC/VESC_UART.cpp:338:6:bool TAUV::VESC::VESC_UART::setDuty(float)	1
+../Drivers/VESC/VESC_UART.cpp:340:6:bool TAUV::VESC::VESC_UART::setDuty(float, uint8_t)	4
+../Drivers/VESC/VESC_UART.cpp:357:6:bool TAUV::VESC::VESC_UART::sendKeepalive()	1
+../Drivers/VESC/VESC_UART.cpp:359:6:bool TAUV::VESC::VESC_UART::sendKeepalive(uint8_t)	4
+../Drivers/VESC/VESC_UART.cpp:374:6:void TAUV::VESC::VESC_UART::serialPrint(uint8_t*, int)	1
+../Drivers/VESC/VESC_UART.cpp:384:6:void TAUV::VESC::VESC_UART::printVescValues()	1

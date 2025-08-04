@@ -1,0 +1,82 @@
+/******************************************************************************
+ *  TartanAUV - Carnegie Mellon University
+ *  RTVC Firmware
+ *
+ *  Author:      gleb
+ *  Date:        5/14/25
+ *
+ *  Description:
+ *      TODO
+ *
+ *****************************************************************************/
+
+#pragma once
+
+extern "C" {
+#include "stm32f7xx_hal.h"
+}
+
+#include <array>
+
+#include "MS5837.h"
+
+namespace TAUV::Config {
+
+namespace Thrusters {
+
+static constexpr size_t number_escs = 8;
+static constexpr size_t escs_per_group_max = 4;
+
+// Expected ESC firmware version
+static constexpr uint8_t expected_fw_major = 6;
+static constexpr uint8_t expected_fw_minor = 5;
+
+// ESC initialization delay in milliseconds
+static constexpr uint32_t init_delay_ms = 10000;
+
+struct ESC_Group {
+  std::array<uint8_t, escs_per_group_max> vesc_ids;
+  uint8_t
+      uart_connected_id;  // The VESC ID to which UART is physically connected
+};
+
+static constexpr std::array<ESC_Group, 2> esc_groups{
+    ESC_Group{.vesc_ids = {128, 129, 130, 131}, .uart_connected_id = 128},
+    ESC_Group{.vesc_ids = {132, 133, 134, 135}, .uart_connected_id = 132},
+};
+
+static constexpr size_t num_groups = esc_groups.size();
+
+static constexpr std::array<size_t, number_escs> esc_group_idx_map{0, 0, 0, 0,
+                                                                   1, 1, 1, 1};
+
+static constexpr std::array<size_t, number_escs> esc_group_elem_idx_map{
+    0, 1, 2, 3, 0, 1, 2, 3};
+
+static constexpr bool collect_telemetry = false;
+
+}  // namespace Thrusters
+
+namespace Network {
+
+static constexpr uint32_t jetson_1hz_port = 11001;
+static constexpr uint32_t jetson_10hz_port = 11002;
+static constexpr uint32_t jetson_50hz_port = 11004;
+static constexpr uint32_t jetson_100hz_port = 11003;
+static constexpr uint32_t jetson_log_port = 11010;
+
+}  // namespace Network
+
+namespace IMU {
+
+static const USART_TypeDef *uartInstance = USART1;
+static constexpr uint32_t maxMessageDataSize = 128; // max data size for xbus message
+static constexpr size_t queueLength = 3; // max number of messages in the queue
+
+}  // namespace IMU
+
+namespace Depth {
+
+}
+
+};  // namespace TAUV::Config

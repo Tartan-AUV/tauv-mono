@@ -1,0 +1,21 @@
+../Util/Logging.hpp:65:20:void __tcf_0()	1
+../Tasks/IntervalTask.hpp:55:15:static void TAUV::IntervalTask::timerCallback(TimerHandle_t)	3
+../Tasks/IntervalTask.hpp:29:8:bool TAUV::IntervalTask::start(const char*, TickType_t)	2
+../Util/UdpSocket.hpp:39:5:UdpSocket::~UdpSocket()	3
+../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	3
+../Core/Src/main.cpp:588:6:void ITM_Init()	1
+../Core/Src/main.cpp:676:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	2
+../Core/Src/main.cpp:694:6:void Error_Handler()	1
+../Core/Src/main.cpp:234:13:void MX_I2C1_Init()	3
+../Core/Src/main.cpp:574:6:void reset_depth_i2c()	1
+../Core/Src/main.cpp:187:6:void SystemClock_Config()	2
+../Core/Src/main.cpp:91:5:int main()	16
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/std_function.h:368:7:)>::function() [with _Res = void; _ArgTypes = {const ip4_addr&, short unsigned int, const unsigned char*, short unsigned int}]	1
+../Tasks/Task50Hz.hpp:28:7:TAUV::Task50Hz::Task50Hz()	2
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/unique_ptr.h:398:7:std::unique_ptr<_Tp, _Dp>::~unique_ptr() [with _Tp = TAUV::Task50Hz::Resources; _Dp = std::default_delete<TAUV::Task50Hz::Resources>]	2
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/unique_ptr.h:398:7:std::unique_ptr<_Tp, _Dp>::~unique_ptr() [with _Tp = TAUV::Task100Hz::Resources; _Dp = std::default_delete<TAUV::Task100Hz::Resources>]	2
+../Core/Src/main.cpp:614:6:void StartDefaultTask(const void*)	4
+../Tasks/Task100Hz.hpp:32:7:TAUV::Task100Hz::~Task100Hz()	1
+../Tasks/Task100Hz.hpp:32:7:virtual TAUV::Task100Hz::~Task100Hz()	1
+../Core/Src/main.cpp:707:1:cpp)	1
+../Core/Src/main.cpp:707:1:cpp)	1

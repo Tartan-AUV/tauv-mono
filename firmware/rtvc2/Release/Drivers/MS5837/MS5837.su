@@ -1,0 +1,20 @@
+../Util/Logging.hpp:65:20:void __tcf_0()	0	static
+../Drivers/MS5837/MS5837.cpp:17:1:TAUV::MS5837::MS5837()	0	static
+../Drivers/MS5837/MS5837.cpp:23:1:TAUV::MS5837::~MS5837()	0	static
+../Drivers/MS5837/MS5837.cpp:104:6:void TAUV::MS5837::setModel(uint8_t)	0	static
+../Drivers/MS5837/MS5837.cpp:106:9:uint8_t TAUV::MS5837::getModel()	0	static
+../Drivers/MS5837/MS5837.cpp:108:6:void TAUV::MS5837::setFluidDensity(float)	0	static
+../Drivers/MS5837/MS5837.cpp:110:6:bool TAUV::MS5837::requestConversion()	16	static
+../Drivers/MS5837/MS5837.cpp:147:6:void TAUV::MS5837::conversionTimerISRCallback()	8	static
+../Drivers/MS5837/MS5837.cpp:180:6:void TAUV::MS5837::i2cRxCpltISRCallback()	8	static
+../Drivers/MS5837/MS5837.cpp:205:6:void TAUV::MS5837::i2cTxCpltISRCallback()	8	static
+../Drivers/MS5837/MS5837.cpp:254:6:void TAUV::MS5837::i2cErrorISRCallback()	0	static
+../Drivers/MS5837/MS5837.cpp:259:6:void TAUV::MS5837::i2cAbortISRCallback()	0	static
+../Drivers/MS5837/MS5837.cpp:266:6:bool TAUV::MS5837::calculate()	36	static
+../Drivers/MS5837/MS5837.cpp:333:7:float TAUV::MS5837::pressure(float)	0	static
+../Drivers/MS5837/MS5837.cpp:341:7:float TAUV::MS5837::temperature()	0	static
+../Drivers/MS5837/MS5837.cpp:343:7:float TAUV::MS5837::depth()	8	static
+../Drivers/MS5837/MS5837.cpp:347:7:float TAUV::MS5837::altitude()	8	static
+../Drivers/MS5837/MS5837.cpp:351:9:uint8_t TAUV::MS5837::crc4(uint16_t*)	8	static
+../Drivers/MS5837/MS5837.cpp:33:6:bool TAUV::MS5837::init(I2C_HandleTypeDef*)	40	static
+../Drivers/MS5837/MS5837.cpp:31:6:bool TAUV::MS5837::begin(I2C_HandleTypeDef*)	0	static

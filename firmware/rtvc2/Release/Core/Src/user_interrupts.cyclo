@@ -1,0 +1,6 @@
+../Core/Src/user_interrupts.cpp:40:6:void HAL_TIM_OC_DelayElapsedCallback(TIM_HandleTypeDef*)	6
+../Core/Src/user_interrupts.cpp:54:6:void HAL_UART_RxCpltCallback(UART_HandleTypeDef*)	2
+../Core/Src/user_interrupts.cpp:60:6:void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef*)	3
+../Core/Src/user_interrupts.cpp:66:6:void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef*)	3
+../Core/Src/user_interrupts.cpp:72:6:void HAL_I2C_ErrorCallback(I2C_HandleTypeDef*)	3
+../Core/Src/user_interrupts.cpp:78:6:void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef*)	3

@@ -1,0 +1,9 @@
+../Util/Logging.hpp:65:20:void __tcf_0()	1
+../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	3
+../Tasks/LoggingTask.cpp:23:1:TAUV::LoggingTask::~LoggingTask()	2
+../Tasks/LoggingTask.cpp:33:6:bool TAUV::LoggingTask::init()	1
+../Tasks/LoggingTask.cpp:38:6:bool TAUV::LoggingTask::start(const char*, uint32_t)	2
+../Tasks/LoggingTask.cpp:101:6:void TAUV::LoggingTask::outputToUART(const TAUV::LogMessage&)	2
+../Tasks/LoggingTask.cpp:113:6:void TAUV::LoggingTask::outputToITM(const TAUV::LogMessage&)	5
+../Tasks/LoggingTask.cpp:71:6:void TAUV::LoggingTask::run()	6
+../Tasks/LoggingTask.cpp:60:6:static void TAUV::LoggingTask::taskEntryPoint(void*)	2

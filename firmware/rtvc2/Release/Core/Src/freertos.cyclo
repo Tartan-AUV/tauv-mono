@@ -1,0 +1,2 @@
+../Core/Src/freertos.c:65:6:vApplicationGetIdleTaskMemory	1
+../Core/Src/freertos.c:78:6:vApplicationGetTimerTaskMemory	1
