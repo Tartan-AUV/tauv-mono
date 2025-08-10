@@ -7,6 +7,3 @@
 [submodule "third-party/stonefish"]
 	path = third-party/stonefish
 	url = https://github.com/patrykcieslak/stonefish.git
-[submodule "third-party/manif"]
-	path = third-party/manif
-	url = https://github.com/artivis/manif.git
