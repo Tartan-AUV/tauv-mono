@@ -3,19 +3,20 @@
 ../Tasks/IntervalTask.hpp:29:8:bool TAUV::IntervalTask::start(const char*, TickType_t)	24	static
 ../Util/UdpSocket.hpp:39:5:UdpSocket::~UdpSocket()	8	static
 ../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	8	static
-../Core/Src/main.cpp:588:6:void ITM_Init()	0	static
-../Core/Src/main.cpp:676:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	0	static
-../Core/Src/main.cpp:694:6:void Error_Handler()	8	static,ignoring_inline_asm
-../Core/Src/main.cpp:234:13:void MX_I2C1_Init()	8	static
-../Core/Src/main.cpp:574:6:void reset_depth_i2c()	8	static
-../Core/Src/main.cpp:187:6:void SystemClock_Config()	88	static
-../Core/Src/main.cpp:91:5:int main()	176	static
+../Core/Src/main.cpp:662:6:void ITM_Init()	0	static
+../Core/Src/main.cpp:750:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	0	static
+../Core/Src/main.cpp:767:6:void PWM_Start_Synchronous_LL(uint32_t, uint32_t, uint32_t)	8	static
+../Core/Src/main.cpp:794:6:void Error_Handler()	8	static,ignoring_inline_asm
+../Core/Src/main.cpp:245:13:void MX_I2C1_Init()	8	static
+../Core/Src/main.cpp:648:6:void reset_depth_i2c()	8	static
+../Core/Src/main.cpp:198:6:void SystemClock_Config()	88	static
+../Core/Src/main.cpp:96:5:int main()	248	static
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/std_function.h:368:7:)>::function() [with _Res = void; _ArgTypes = {const ip4_addr&, short unsigned int, const unsigned char*, short unsigned int}]	0	static
 ../Tasks/Task50Hz.hpp:28:7:TAUV::Task50Hz::Task50Hz()	32	static,ignoring_inline_asm
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/unique_ptr.h:398:7:std::unique_ptr<_Tp, _Dp>::~unique_ptr() [with _Tp = TAUV::Task50Hz::Resources; _Dp = std::default_delete<TAUV::Task50Hz::Resources>]	8	static
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/unique_ptr.h:398:7:std::unique_ptr<_Tp, _Dp>::~unique_ptr() [with _Tp = TAUV::Task100Hz::Resources; _Dp = std::default_delete<TAUV::Task100Hz::Resources>]	8	static
-../Core/Src/main.cpp:614:6:void StartDefaultTask(const void*)	16	static
+../Core/Src/main.cpp:688:6:void StartDefaultTask(const void*)	16	static
 ../Tasks/Task100Hz.hpp:32:7:TAUV::Task100Hz::~Task100Hz()	8	static
 ../Tasks/Task100Hz.hpp:32:7:virtual TAUV::Task100Hz::~Task100Hz()	8	static
-../Core/Src/main.cpp:707:1:cpp)	24	static
-../Core/Src/main.cpp:707:1:cpp)	8	static
+../Core/Src/main.cpp:807:1:cpp)	24	static
+../Core/Src/main.cpp:807:1:cpp)	8	static

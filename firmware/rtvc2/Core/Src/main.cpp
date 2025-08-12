@@ -26,6 +26,7 @@ extern "C" {
 #include "LoggingTask.hpp"
 #include "lwip/inet.h"
 #include "Task100Hz.hpp"
+#include "stm32f7xx_ll_tim.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,6 +49,7 @@ extern "C" {
 I2C_HandleTypeDef hi2c1;
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim5;
 
 UART_HandleTypeDef huart4;
@@ -73,10 +75,13 @@ static void MX_UART5_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM1_Init(void);
+static void MX_TIM2_Init(void);
 void StartDefaultTask(void const * argument);
+
 
 /* USER CODE BEGIN PFP */
 void ITM_Init(void);
+void PWM_Start_Synchronous_LL(uint32_t arr, uint32_t psc, uint32_t ccr);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -118,10 +123,16 @@ int main(void)
   MX_USART1_UART_Init();
   MX_I2C1_Init();
   MX_TIM1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   ITM_Init();
 
   HAL_TIM_OC_Start_IT(&htim5, TIM_CHANNEL_1);
+
+  const uint32_t arr = 5399999;
+  const uint32_t psc = 0;
+  const uint32_t ccr = arr / 2;
+  PWM_Start_Synchronous_LL(arr, psc, ccr);
 
   // Initialize logging system
   if (!TAUV::Logging::getInstance().init(&huart3, TAUV::LogOutputMode::LOG_OUTPUT_MODE_UART)) {
@@ -569,6 +580,69 @@ static void MX_GPIO_Init(void)
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 5399999;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+  HAL_TIM_MspPostInit(&htim2);
+
+}
+
 /* USER CODE BEGIN 4 */
 
 void reset_depth_i2c() {
@@ -685,6 +759,32 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE BEGIN Callback 1 */
 
   /* USER CODE END Callback 1 */
+}
+
+/**
+ * @brief Start camera timer
+ */
+void PWM_Start_Synchronous_LL(uint32_t arr, uint32_t psc, uint32_t ccr)
+{
+    LL_TIM_DisableCounter(TIM2);
+
+    LL_TIM_SetPrescaler(TIM2, psc);
+    LL_TIM_SetAutoReload(TIM2, arr);
+    LL_TIM_EnableARRPreload(TIM2);
+
+    // CH3 + CH4 config: PWM1, preload enabled, polarity high
+    LL_TIM_OC_SetMode(TIM2, LL_TIM_CHANNEL_CH3, LL_TIM_OCMODE_PWM1);
+    LL_TIM_OC_EnablePreload(TIM2, LL_TIM_CHANNEL_CH3);
+    LL_TIM_OC_SetCompareCH3(TIM2, ccr);
+
+    LL_TIM_OC_SetMode(TIM2, LL_TIM_CHANNEL_CH4, LL_TIM_OCMODE_PWM1);
+    LL_TIM_OC_EnablePreload(TIM2, LL_TIM_CHANNEL_CH4);
+    LL_TIM_OC_SetCompareCH4(TIM2, ccr);
+
+    LL_TIM_SetCounter(TIM2, 0);
+    LL_TIM_CC_EnableChannel(TIM2, LL_TIM_CHANNEL_CH3 | LL_TIM_CHANNEL_CH4);
+    LL_TIM_GenerateEvent_UPDATE(TIM2);   // latch ARR/CCR
+    LL_TIM_EnableCounter(TIM2);
 }
 
 /**
