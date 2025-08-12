@@ -21,6 +21,8 @@ RUN mkdir arena-python && \
     chmod +x ArenaSDK_Linux_ARM64/Arena_SDK_ARM64.conf && \
     ./ArenaSDK_Linux_ARM64/Arena_SDK_ARM64.conf && \
     python3 -m pip install arena-python/arena_api-2.7.1-py3-none-any.whl --break-system-packages
+
+RUN echo "alias 'build'='colcon build --symlink-install --merge-install'" >> /root/.bashrc
     
 RUN mkdir /ros_ws
 WORKDIR /ros_ws

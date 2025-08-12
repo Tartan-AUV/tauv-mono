@@ -15,10 +15,7 @@ services:
     runtime: nvidia
     volumes:
       - /home/tauv/tauv-mono/ros_ws:/ros_ws
-      - /home/tauv/ros-artifacts/install:/ros_ws/install
-      - /home/tauv/ros-artifacts/logs:/ros_ws/logs
-      - /home/tauv/ros_artifacts/build:/ros_ws/build
-  
+
   desktop-dev:
     image: tartanauv/desktop-dev:latest
     network_mode: host

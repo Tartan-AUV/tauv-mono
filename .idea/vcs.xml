@@ -3,7 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/containers/arena-sdk" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/third-party/manif" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/third-party/stonefish" vcs="Git" />
   </component>
 </project>
