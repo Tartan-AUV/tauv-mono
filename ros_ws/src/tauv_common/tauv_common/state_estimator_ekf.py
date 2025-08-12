@@ -25,7 +25,7 @@ from spatialmath import SE3, SO3, UnitQuaternion
 # ROS2 messages
 from sensor_msgs.msg import Imu as ImuMsg
 from nav_msgs.msg import Odometry
-from tauv_common.util.geometry import numpify
+from tauv_common.util.geometry import numpify, msgify
 from tauv_msgs.msg import Depth as DepthMsg
 from tauv_msgs.msg import WaterlinkedDvlFrame as DvlMsg
 from tauv_msgs.msg import NavigationState
@@ -43,19 +43,19 @@ def stamp_to_nanos(stamp: Any) -> int:
 @dataclass
 class EkfControl:
     odom_R_sensor: SO3
-    a_sensor_S: NDArray
-    omega_sensor_S: NDArray
+    a_S: NDArray
+    omega_S: NDArray
 
     @staticmethod
     def from_msg(msg: ImuMsg) -> 'EkfControl':
         return EkfControl(
             odom_R_sensor=SO3(numpify(msg.orientation).R),  # type: ignore
-            a_sensor_S=numpify(msg.linear_acceleration),
-            omega_sensor_S=numpify(msg.angular_velocity),
+            a_S=numpify(msg.linear_acceleration),
+            omega_S=numpify(msg.angular_velocity),
         )
 
     def is_valid(self) -> bool:
-        return self.a_sensor_S.shape == self.omega_sensor_S.shape == (3, 1)
+        return self.a_S.shape == self.omega_S.shape == (3, 1)
 
 @dataclass
 class DvlInput:
@@ -163,7 +163,8 @@ class EkfHistory:
             raise ValueError(f"IMU measurement at {t} is not newer than last IMU at {self.last_imu_t}")
         
         if t <= self.last_dvl_t:
-            raise ValueError(f"IMU measurement at {t} is not newer than last DVL at {self.last_dvl_t}")
+            return 
+            # TODO: Handle this case
         
         self.control_history.append((t, imu))
         self.last_imu_t = t
@@ -174,7 +175,9 @@ class EkfHistory:
         if t <= self.last_depth_t:
             raise ValueError("Depth measurement timestamp not newer than last depth")
         if t <= self.last_dvl_t:
-            raise ValueError("Depth measurement timestamp not newer than last DVL")
+            return
+            # TODO: Handle this case
+            # raise ValueError("Depth measurement timestamp not newer than last DVL")
         
         # Find latest state
         state_t, state_est = self._find_latest_state_before(t)
@@ -312,8 +315,9 @@ class Ekf:
         self._r_body_depth_B: NDArray = transforms.r_body_depth_B
         dvl_T_body: SE3 = transforms.body_T_dvl.inv()
         self._dvl_J_body: NDArray = dvl_T_body.jacob()
-        assert np.allclose(transforms.body_T_imu.t, 0)
-        self._imu_R_body: SO3 = SO3(transforms.body_T_imu.R).inv()
+        # TODO: remove this
+        assert not np.allclose(transforms.body_T_imu.t, 0)
+        self._body_T_imu: SE3 = transforms.body_T_imu
         
         # Depth measurement Jacobian
         self._H_depth = np.zeros((1, 6))
@@ -337,22 +341,30 @@ class Ekf:
         assert xkm1.shape == (6, 1) and uk.is_valid() and dt > 0
 
         dt_seconds = dt * 1e-9
-        # Transform acceleration to odom frame
-        a_sensor_O = uk.odom_R_sensor * uk.a_sensor_S
 
         # Sensor frame origin is body frame origin
-        a_body_O = a_sensor_O + self._a_g_O
+        body_R_imu = SO3(self._body_T_imu.R)
+        odom_R_body: SO3 = uk.odom_R_sensor * body_R_imu.inv()
+        omega_B = body_R_imu * uk.omega_S
+        r_sensor__body_B = self._body_T_imu.t
 
-        odom_R_body: SO3 = uk.odom_R_sensor * self._imu_R_body
+        self._logger.info(f"omega_B.shape: {omega_B.shape}")
+        self._logger.info(f"r_sensor__body_B.shape: {r_sensor__body_B.shape}")
+        omega_B_flat = omega_B.reshape(3)
+        a_body_B = body_R_imu * uk.a_S - np.cross(omega_B_flat, np.cross(omega_B_flat, r_sensor__body_B)).reshape(3, 1)
+        
+        a_body_O = odom_R_body * a_body_B
+        a_body_O_free = a_body_O + self._a_g_O
+
 
         # Position update: r = r + v*dt + 0.5*a*dt^2
         r_body_km1_O, v_body_km1_B = xkm1[:3], xkm1[3:]
         v_body_km1_O = odom_R_body * v_body_km1_B
-        r_body_km1_body_k_O = v_body_km1_O * dt_seconds + 0.5 * a_body_O * dt_seconds**2
+        r_body_km1_body_k_O = v_body_km1_O * dt_seconds + 0.5 * a_body_O_free * dt_seconds**2
         r_body_k_O = r_body_km1_O + r_body_km1_body_k_O
         
         # Velocity update: v = v + a*dt
-        v_body_k_O = v_body_km1_O + a_body_O * dt_seconds
+        v_body_k_O = v_body_km1_O + a_body_O_free * dt_seconds
         v_body_k_B = odom_R_body.inv() * v_body_k_O
 
         assert r_body_k_O.shape == v_body_k_B.shape == (3, 1)
@@ -363,7 +375,8 @@ class Ekf:
         """Predict covariance"""
         assert Pkm1.shape == (6, 6)
 
-        odom_R_body: SO3= uk.odom_R_sensor * self._imu_R_body
+        body_R_imu = SO3(self._body_T_imu.R)
+        odom_R_body: SO3 = uk.odom_R_sensor * body_R_imu.inv()
 
         dt_seconds = dt * 1e-9
 
@@ -404,7 +417,8 @@ class Ekf:
 
         # Transform velocity to body frame
         v_body_B = xk[3:]
-        omega_body_B = self._imu_R_body.inv() * uk.omega_sensor_S
+        body_R_imu = SO3(self._body_T_imu.R)
+        omega_body_B = body_R_imu * uk.omega_S
         
         # Create twist vector
         V_body_B = np.vstack([v_body_B, omega_body_B])
@@ -417,7 +431,8 @@ class Ekf:
         assert xk.shape == (6, 1) and uk.is_valid()
 
         r_body_O = xk[:3]
-        odom_R_body: SO3 = uk.odom_R_sensor * self._imu_R_body
+        body_R_imu = SO3(self._body_T_imu.R)
+        odom_R_body: SO3 = uk.odom_R_sensor * body_R_imu.inv()
 
         # Transform depth sensor position to odom frame
         r_body_depth_O = odom_R_body * self._r_body_depth_B
@@ -509,10 +524,14 @@ class StateEstimatorEkf(Node):
             # Convert DVL transform to isometry matrix
             body_T_dvl = numpify(dvl_tf.transform)
             body_T_imu = numpify(imu_tf.transform)
+            # Log the DVL and IMU transforms for debugging and verification
+            self.get_logger().info(f"DVL Transform (body_T_dvl):\n{body_T_dvl}")
+            self.get_logger().info(f"IMU Transform (body_T_imu):\n{body_T_imu}")
             self.static_transforms = EkfStaticTransforms(r_body_depth_B, body_T_dvl, body_T_imu)
             self._transforms_ready = True
             # Now initialize EKF and processing thread
             self.ekf = Ekf(self.params, self.static_transforms, self.get_logger())
+            self.get_logger().info("got all transforms :D")
             self.get_logger().info("EKF initialized")
             # Processing thread
             self.start_processing()
@@ -668,11 +687,11 @@ class StateEstimatorEkf(Node):
         # Accel
         a_gravity_O = np.c_[[0.0, 0.0, self.params.gravity]]
         a_gravity_B = odom_R_body.inv() * a_gravity_O
-        a_sensor_S = latest_imu.a_sensor_S
+        a_sensor_S = latest_imu.a_S
         a_body_B = body_R_sensor * a_sensor_S + a_gravity_B
 
         # We assume that the body frame and IMU frame have the same origin
-        omega_sensor_S = latest_imu.omega_sensor_S
+        omega_sensor_S = latest_imu.omega_S
         omega_body_B = body_R_sensor * omega_sensor_S
         
         # Create NavigationState message
@@ -693,11 +712,9 @@ class StateEstimatorEkf(Node):
         nav_msg.body_pose.orientation.z = float(odom_q_body[2])
         nav_msg.body_pose.orientation.w = float(odom_q_body[3])
         
-        # Set velocity in body frame (v_b)
-        nav_msg.v_b = Vector3()
-        nav_msg.v_b.x = float(state_est[2][3, 0])
-        nav_msg.v_b.y = float(state_est[2][4, 0])
-        nav_msg.v_b.z = float(state_est[2][5, 0])
+        # Set body twist
+        V_B = np.vstack([state_est[2][3:6], omega_body_B])
+        nav_msg.body_twist = msgify(V_B, message_type="Twist")
         
         # Set acceleration in body frame (a_b)
         # Transform IMU acceleration from sensor frame to body frame
@@ -705,13 +722,6 @@ class StateEstimatorEkf(Node):
         nav_msg.a_b.x = float(a_body_B[0, 0])
         nav_msg.a_b.y = float(a_body_B[1, 0])
         nav_msg.a_b.z = float(a_body_B[2, 0])
-        
-        # Set angular velocity in body frame (omega_b)
-        # Transform IMU angular velocity from sensor frame to body frame
-        nav_msg.omega_b = Vector3()
-        nav_msg.omega_b.x = float(omega_body_B[0, 0])
-        nav_msg.omega_b.y = float(omega_body_B[1, 0])
-        nav_msg.omega_b.z = float(omega_body_B[2, 0])
         
         if self.nav_state_pub is not None:
             self.nav_state_pub.publish(nav_msg)

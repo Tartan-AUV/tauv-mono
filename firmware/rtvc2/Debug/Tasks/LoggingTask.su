@@ -1,0 +1,12 @@
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/arm-none-eabi/thumb/v7e-m+dp/hard/bits/gthr-default.h:229:1:int __gthread_key_delete(__gthread_key_t)	16	static
+../Drivers/CMSIS/Include/core_cm7.h:2606:26:uint32_t ITM_SendChar(uint32_t)	16	static,ignoring_inline_asm
+../Util/Logging.hpp:61:24:static QueueDefinition* TAUV::Logging::getMessageQueue()	4	static
+../Util/Logging.hpp:65:20:void __tcf_0()	8	static
+../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	8	static
+../Tasks/LoggingTask.cpp:23:1:TAUV::LoggingTask::~LoggingTask()	16	static
+../Tasks/LoggingTask.cpp:33:6:bool TAUV::LoggingTask::init()	16	static
+../Tasks/LoggingTask.cpp:38:6:bool TAUV::LoggingTask::start(const char*, uint32_t)	40	static
+../Tasks/LoggingTask.cpp:60:6:static void TAUV::LoggingTask::taskEntryPoint(void*)	24	static
+../Tasks/LoggingTask.cpp:71:6:void TAUV::LoggingTask::run()	288	static
+../Tasks/LoggingTask.cpp:101:6:void TAUV::LoggingTask::outputToUART(const TAUV::LogMessage&)	24	static
+../Tasks/LoggingTask.cpp:113:6:void TAUV::LoggingTask::outputToITM(const TAUV::LogMessage&)	24	static

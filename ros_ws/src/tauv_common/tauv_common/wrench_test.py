@@ -38,7 +38,7 @@ class WrenchKeyboardNode(Node):
         self.torque_z = 0.0  # Yaw
         
         # Magnitudes
-        self.force_magnitude = 300.0  # N
+        self.force_magnitude = 100.0  # N
         self.torque_magnitude = 100.0  # Nm
         
         # Terminal settings for keyboard input

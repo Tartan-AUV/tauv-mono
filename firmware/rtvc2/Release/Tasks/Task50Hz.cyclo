@@ -1,0 +1,4 @@
+../Tasks/Task50Hz.hpp:28:7:TAUV::Task50Hz::~Task50Hz()	4
+../Tasks/Task50Hz.hpp:28:7:virtual TAUV::Task50Hz::~Task50Hz()	1
+../Tasks/Task50Hz.cpp:19:6:bool TAUV::Task50Hz::init(std::unique_ptr<Resources>)	2
+../Tasks/Task50Hz.cpp:26:6:virtual void TAUV::Task50Hz::run()	1

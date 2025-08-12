@@ -1,0 +1,12 @@
+# SetTrajectory.srv
+# Request to set an arbitrary trajectory for the commander to follow.
+# Each pose is expressed in the odom frame and must have a strictly
+# increasing timestamp in its header.
+#
+# If an empty array is supplied the current trajectory is cleared and the
+# commander will hold position (station keep).
+
+geometry_msgs/PoseStamped[] poses
+---
+bool success
+string message

@@ -1,0 +1,1 @@
+../Drivers/VESC/crc.cpp:54:16:short unsigned int crc16(unsigned char*, unsigned int)	24	static

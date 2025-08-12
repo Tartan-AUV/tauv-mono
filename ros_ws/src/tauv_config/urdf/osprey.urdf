@@ -5,29 +5,13 @@
   <!-- Link os/body -->
   <link name="os/body">
     <inertial>
-      <origin xyz="0.0634081 0.0571963 0.0103396" rpy="0 0 0"/>
-      <mass value="20.4159"/>
-      <inertia ixx="0.566407" ixy="0.00868179" ixz="-0.094331" iyy="0.556752" iyz="-0.00916975" izz="0.824859"/>
+      <origin xyz="-0.0295823 -0.00643136 -0.0139951" rpy="0 0 0"/>
+      <mass value="27.6559"/>
+      <inertia ixx="0.85867" ixy="0.0143073" ixz="0.134619" iyy="0.839758" iyz="0.00651412" izz="1.23509"/>
     </inertial>
-    <!-- Part frame -->
-    <visual>
-      <origin xyz="0.121394 0.12539 0.0589185" rpy="-1.5708 -1.93383e-14 -1.5708"/>
-      <geometry>
-        <mesh filename="package://assets/frame.stl"/>
-      </geometry>
-      <material name="frame_material">
-        <color rgba="0.917647 0.917647 0.917647 1"/>
-      </material>
-    </visual>
-    <collision>
-      <origin xyz="0.121394 0.12539 0.0589185" rpy="-1.5708 -1.93383e-14 -1.5708"/>
-      <geometry>
-        <mesh filename="package://assets/frame.stl"/>
-      </geometry>
-    </collision>
     <!-- Part thruster -->
     <visual>
-      <origin xyz="0.131768 -0.19685 0.0379078" rpy="1.70074e-16 -0 -9.8687e-17"/>
+      <origin xyz="-0.094181 0.24585 0.0130518" rpy="1.70074e-16 -5.55112e-17 3.14159"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
@@ -36,14 +20,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0.131768 -0.19685 0.0379078" rpy="1.70074e-16 -0 -9.8687e-17"/>
+      <origin xyz="-0.094181 0.24585 0.0130518" rpy="1.70074e-16 -5.55112e-17 3.14159"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
     </collision>
     <!-- Part thruster_2 -->
     <visual>
-      <origin xyz="-0.194387 -0.170909 -0.0540697" rpy="0.785398 1.5708 0"/>
+      <origin xyz="0.231974 0.219909 -0.0789257" rpy="-2.35619 1.5708 0"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
@@ -52,14 +36,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="-0.194387 -0.170909 -0.0540697" rpy="0.785398 1.5708 0"/>
+      <origin xyz="0.231974 0.219909 -0.0789257" rpy="-2.35619 1.5708 0"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
     </collision>
     <!-- Part thruster_3 -->
     <visual>
-      <origin xyz="0.277024 -0.163447 -0.0540697" rpy="-0.785398 1.5708 0"/>
+      <origin xyz="-0.239437 0.212447 -0.0789257" rpy="2.35619 1.5708 0"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
@@ -68,14 +52,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0.277024 -0.163447 -0.0540697" rpy="-0.785398 1.5708 0"/>
+      <origin xyz="-0.239437 0.212447 -0.0789257" rpy="2.35619 1.5708 0"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
     </collision>
     <!-- Part thruster_4 -->
     <visual>
-      <origin xyz="0.131768 0.29485 0.0379078" rpy="1.70074e-16 -7.4271e-49 -3.14159"/>
+      <origin xyz="-0.094181 -0.24585 0.0130518" rpy="1.70074e-16 5.55112e-17 9.41879e-16"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
@@ -84,14 +68,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0.131768 0.29485 0.0379078" rpy="1.70074e-16 -7.4271e-49 -3.14159"/>
+      <origin xyz="-0.094181 -0.24585 0.0130518" rpy="1.70074e-16 5.55112e-17 9.41879e-16"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
     </collision>
     <!-- Part os/body -->
     <visual>
-      <origin xyz="0 0 0" rpy="3.14159 -0 -1.5708"/>
+      <origin xyz="0.037587 0.049 -0.024856" rpy="3.14159 -0 1.5708"/>
       <geometry>
         <mesh filename="package://assets/os/body.stl"/>
       </geometry>
@@ -100,14 +84,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0 0 0" rpy="3.14159 -0 -1.5708"/>
+      <origin xyz="0.037587 0.049 -0.024856" rpy="3.14159 -0 1.5708"/>
       <geometry>
         <mesh filename="package://assets/os/body.stl"/>
       </geometry>
     </collision>
     <!-- Part os_launcher -->
     <visual>
-      <origin xyz="0.381647 0.232596 -0.16529" rpy="0 1.93383e-14 1.5708"/>
+      <origin xyz="-0.34406 -0.183596 -0.190146" rpy="0 1.93383e-14 -1.5708"/>
       <geometry>
         <mesh filename="package://assets/os_launcher.stl"/>
       </geometry>
@@ -116,14 +100,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0.381647 0.232596 -0.16529" rpy="0 1.93383e-14 1.5708"/>
+      <origin xyz="-0.34406 -0.183596 -0.190146" rpy="0 1.93383e-14 -1.5708"/>
       <geometry>
         <mesh filename="package://assets/os_launcher.stl"/>
       </geometry>
     </collision>
     <!-- Part thruster_5 -->
     <visual>
-      <origin xyz="-0.056594 -0.19685 0.0379078" rpy="1.70074e-16 -0 -9.8687e-17"/>
+      <origin xyz="0.094181 0.24585 0.0130518" rpy="1.70074e-16 -5.55112e-17 3.14159"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
@@ -132,14 +116,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="-0.056594 -0.19685 0.0379078" rpy="1.70074e-16 -0 -9.8687e-17"/>
+      <origin xyz="0.094181 0.24585 0.0130518" rpy="1.70074e-16 -5.55112e-17 3.14159"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
     </collision>
     <!-- Part thruster_6 -->
     <visual>
-      <origin xyz="0.277024 0.261447 -0.0540697" rpy="2.35619 -1.5708 0"/>
+      <origin xyz="-0.239437 -0.212447 -0.0789257" rpy="-0.785398 -1.5708 0"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
@@ -148,14 +132,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0.277024 0.261447 -0.0540697" rpy="2.35619 -1.5708 0"/>
+      <origin xyz="-0.239437 -0.212447 -0.0789257" rpy="-0.785398 -1.5708 0"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
     </collision>
     <!-- Part os_arm_base -->
     <visual>
-      <origin xyz="0.317929 -0.192861 0.458247" rpy="3.14159 -0 -3.14159"/>
+      <origin xyz="-0.280342 0.241861 0.433391" rpy="3.14159 -0 6.12323e-17"/>
       <geometry>
         <mesh filename="package://assets/os_arm_base.stl"/>
       </geometry>
@@ -164,14 +148,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0.317929 -0.192861 0.458247" rpy="3.14159 -0 -3.14159"/>
+      <origin xyz="-0.280342 0.241861 0.433391" rpy="3.14159 -0 6.12323e-17"/>
       <geometry>
         <mesh filename="package://assets/os_arm_base.stl"/>
       </geometry>
     </collision>
     <!-- Part thruster_7 -->
     <visual>
-      <origin xyz="-0.194387 0.268909 -0.0540697" rpy="-2.35619 -1.5708 0"/>
+      <origin xyz="0.231974 -0.219909 -0.0789257" rpy="0.785398 -1.5708 0"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
@@ -180,14 +164,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="-0.194387 0.268909 -0.0540697" rpy="-2.35619 -1.5708 0"/>
+      <origin xyz="0.231974 -0.219909 -0.0789257" rpy="0.785398 -1.5708 0"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
     </collision>
     <!-- Part os_dropper -->
     <visual>
-      <origin xyz="-0.115387 0.189932 0.040056" rpy="3.14159 -0 1.5708"/>
+      <origin xyz="0.152974 -0.140932 0.0152" rpy="3.14159 -0 -1.5708"/>
       <geometry>
         <mesh filename="package://assets/os_dropper.stl"/>
       </geometry>
@@ -196,14 +180,14 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="-0.115387 0.189932 0.040056" rpy="3.14159 -0 1.5708"/>
+      <origin xyz="0.152974 -0.140932 0.0152" rpy="3.14159 -0 -1.5708"/>
       <geometry>
         <mesh filename="package://assets/os_dropper.stl"/>
       </geometry>
     </collision>
     <!-- Part thruster_8 -->
     <visual>
-      <origin xyz="-0.056594 0.29485 0.0379078" rpy="1.70074e-16 -7.4271e-49 -3.14159"/>
+      <origin xyz="0.094181 -0.24585 0.0130518" rpy="1.70074e-16 5.55112e-17 9.41879e-16"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
@@ -212,7 +196,7 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="-0.056594 0.29485 0.0379078" rpy="1.70074e-16 -7.4271e-49 -3.14159"/>
+      <origin xyz="0.094181 -0.24585 0.0130518" rpy="1.70074e-16 5.55112e-17 9.41879e-16"/>
       <geometry>
         <mesh filename="package://assets/thruster.stl"/>
       </geometry>
@@ -228,7 +212,7 @@
     </inertial>
   </link>
   <joint name="os/launcher/right/front_frame" type="fixed">
-    <origin xyz="0.340329 0.17974 0.0589185" rpy="-1.5708 -1.93383e-14 -1.5708"/>
+    <origin xyz="-0.302742 -0.13074 0.0340625" rpy="-1.5708 -1.93383e-14 1.5708"/>
     <parent link="os/body"/>
     <child link="os/launcher/right/front"/>
     <axis xyz="0 0 0"/>
@@ -243,7 +227,7 @@
     </inertial>
   </link>
   <joint name="os/launcher/left/front_frame" type="fixed">
-    <origin xyz="0.340329 0.12539 0.0589185" rpy="-1.5708 -1.93383e-14 -1.5708"/>
+    <origin xyz="-0.302742 -0.07639 0.0340625" rpy="-1.5708 -1.93383e-14 1.5708"/>
     <parent link="os/body"/>
     <child link="os/launcher/left/front"/>
     <axis xyz="0 0 0"/>
@@ -258,7 +242,7 @@
     </inertial>
   </link>
   <joint name="os/camera/right_frame" type="fixed">
-    <origin xyz="0.300784 0.20775 0.192154" rpy="1.5708 -2.29489e-31 1.5708"/>
+    <origin xyz="-0.263197 -0.15875 0.167298" rpy="1.5708 1.15637e-31 -1.5708"/>
     <parent link="os/body"/>
     <child link="os/camera/right"/>
     <axis xyz="0 0 0"/>
@@ -273,7 +257,7 @@
     </inertial>
   </link>
   <joint name="os/camera/left_frame" type="fixed">
-    <origin xyz="0.300784 -0.10975 0.192154" rpy="1.5708 2.89093e-31 1.5708"/>
+    <origin xyz="-0.263197 0.15875 0.167298" rpy="1.5708 -1.90348e-31 -1.5708"/>
     <parent link="os/body"/>
     <child link="os/camera/left"/>
     <axis xyz="0 0 0"/>
@@ -288,7 +272,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/flh_frame" type="fixed">
-    <origin xyz="0.284088 -0.156383 -0.0540697" rpy="-1.5708 1.88842e-17 0.785398"/>
+    <origin xyz="-0.246501 0.205383 -0.0789257" rpy="-1.5708 1.88842e-17 -2.35619"/>
     <parent link="os/body"/>
     <child link="os/thruster/flh"/>
     <axis xyz="0 0 0"/>
@@ -303,7 +287,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/frh_frame" type="fixed">
-    <origin xyz="0.284088 0.254383 -0.0540697" rpy="-1.5708 3.23543e-16 -0.785398"/>
+    <origin xyz="-0.246501 -0.205383 -0.0789257" rpy="-1.5708 -2.65242e-16 2.35619"/>
     <parent link="os/body"/>
     <child link="os/thruster/frh"/>
     <axis xyz="0 0 0"/>
@@ -318,7 +302,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/frv_frame" type="fixed">
-    <origin xyz="0.131768 0.29485 0.0478974" rpy="-3.14159 -1.5708 0"/>
+    <origin xyz="-0.094181 -0.24585 0.0230414" rpy="1.10637e-15 -1.5708 0"/>
     <parent link="os/body"/>
     <child link="os/thruster/frv"/>
     <axis xyz="0 0 0"/>
@@ -333,7 +317,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/arv_frame" type="fixed">
-    <origin xyz="-0.056594 0.29485 0.0478974" rpy="-1.5708 -1.5708 0"/>
+    <origin xyz="0.094181 -0.24585 0.0230414" rpy="1.5708 -1.5708 0"/>
     <parent link="os/body"/>
     <child link="os/thruster/arv"/>
     <axis xyz="0 0 0"/>
@@ -348,7 +332,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/arh_frame" type="fixed">
-    <origin xyz="-0.187324 0.275973 -0.0540697" rpy="-1.5708 3.75523e-15 0.785398"/>
+    <origin xyz="0.224911 -0.226973 -0.0789257" rpy="-1.5708 3.75523e-15 -2.35619"/>
     <parent link="os/body"/>
     <child link="os/thruster/arh"/>
     <axis xyz="0 0 0"/>
@@ -363,7 +347,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/alh_frame" type="fixed">
-    <origin xyz="-0.187324 -0.177973 -0.0540697" rpy="-1.5708 -3.70241e-16 -0.785398"/>
+    <origin xyz="0.224911 0.226973 -0.0789257" rpy="-1.5708 2.22826e-17 2.35619"/>
     <parent link="os/body"/>
     <child link="os/thruster/alh"/>
     <axis xyz="0 0 0"/>
@@ -378,7 +362,7 @@
     </inertial>
   </link>
   <joint name="os/dropper/left_frame" type="fixed">
-    <origin xyz="-0.181328 0.173632 0.118106" rpy="-7.00728e-16 -8.04509e-16 -1.5708"/>
+    <origin xyz="0.218915 -0.124632 0.09325" rpy="-7.00728e-16 -1.20676e-15 1.5708"/>
     <parent link="os/body"/>
     <child link="os/dropper/left"/>
     <axis xyz="0 0 0"/>
@@ -393,7 +377,7 @@
     </inertial>
   </link>
   <joint name="os/dropper/right_frame" type="fixed">
-    <origin xyz="-0.181328 0.206232 0.118106" rpy="-7.00728e-16 -8.04509e-16 -1.5708"/>
+    <origin xyz="0.218915 -0.157232 0.09325" rpy="-7.00728e-16 -1.20676e-15 1.5708"/>
     <parent link="os/body"/>
     <child link="os/dropper/right"/>
     <axis xyz="0 0 0"/>
@@ -408,7 +392,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/alv_frame" type="fixed">
-    <origin xyz="-0.056594 -0.19685 0.0478974" rpy="-9.8687e-17 -1.5708 0"/>
+    <origin xyz="0.094181 0.24585 0.0230414" rpy="3.14159 -1.5708 0"/>
     <parent link="os/body"/>
     <child link="os/thruster/alv"/>
     <axis xyz="0 0 0"/>
@@ -423,7 +407,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/flv_frame" type="fixed">
-    <origin xyz="0.131768 -0.19685 0.0478974" rpy="-9.8687e-17 -1.5708 0"/>
+    <origin xyz="-0.094181 0.24585 0.0230414" rpy="3.14159 -1.5708 0"/>
     <parent link="os/body"/>
     <child link="os/thruster/flv"/>
     <axis xyz="0 0 0"/>
@@ -438,9 +422,24 @@
     </inertial>
   </link>
   <joint name="os/launcher/right/back_frame" type="fixed">
-    <origin xyz="0.121316 0.17974 0.0589185" rpy="-1.5708 -1.93383e-14 -1.5708"/>
+    <origin xyz="-0.0837294 -0.13074 0.0340625" rpy="-1.5708 -1.93383e-14 1.5708"/>
     <parent link="os/body"/>
     <child link="os/launcher/right/back"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame os/launcher/left/back (dummy link + fixed joint) -->
+  <link name="os/launcher/left/back">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="os/launcher/left/back_frame" type="fixed">
+    <origin xyz="-0.0838074 -0.07639 0.0340625" rpy="-1.5708 -1.93383e-14 1.5708"/>
+    <parent link="os/body"/>
+    <child link="os/launcher/left/back"/>
     <axis xyz="0 0 0"/>
   </joint>
   <!-- Frame os/dvl (dummy link + fixed joint) -->
@@ -453,7 +452,7 @@
     </inertial>
   </link>
   <joint name="os/dvl_frame" type="fixed">
-    <origin xyz="-0.103308 0.0490119 0.0448185" rpy="-1.79692e-16 2.07039e-14 -1.5708"/>
+    <origin xyz="0.140895 -1.18509e-05 0.0199625" rpy="-1.79692e-16 2.07039e-14 1.5708"/>
     <parent link="os/body"/>
     <child link="os/dvl"/>
     <axis xyz="0 0 0"/>
@@ -468,30 +467,45 @@
     </inertial>
   </link>
   <joint name="os/depth_frame" type="fixed">
-    <origin xyz="0.240087 0.0871 -0.0554465" rpy="-1.5708 -2.33274e-31 -1.5708"/>
+    <origin xyz="-0.2025 -0.0381 -0.0803025" rpy="-1.5708 -3.33854e-30 1.5708"/>
     <parent link="os/body"/>
     <child link="os/depth"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+  <!-- Frame os/imu (dummy link + fixed joint) -->
+  <link name="os/imu">
+    <origin xyz="0 0 0" rpy="0 -0 0"/>
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-9"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
+  <joint name="os/imu_frame" type="fixed">
+    <origin xyz="0.037587 0.049 -0.024856" rpy="2.71051e-20 -6.12323e-17 -3.14159"/>
+    <parent link="os/body"/>
+    <child link="os/imu"/>
     <axis xyz="0 0 0"/>
   </joint>
   <!-- Link os_arm_link -->
   <link name="os_arm_link">
     <inertial>
-      <origin xyz="-0.102633 0.0373583 -0.0017328" rpy="0 0 0"/>
-      <mass value="0.682725"/>
-      <inertia ixx="0.000890947" ixy="0.00174753" ixz="0.000248429" iyy="0.00505691" iyz="-9.04024e-05" izz="0.00583082"/>
+      <origin xyz="-0.0994583 0.036203 -0.00219433" rpy="0 0 0"/>
+      <mass value="0.736942"/>
+      <inertia ixx="0.000949967" ixy="0.00185596" ixz="0.000240872" iyy="0.00537443" iyz="-8.76508e-05" izz="0.00621057"/>
     </inertial>
     <!-- Part os_arm_link -->
     <visual>
-      <origin xyz="-0.0382553 0.338481 -0.157942" rpy="1.5708 -4.996e-16 -2.46519e-32"/>
+      <origin xyz="-0.0382553 0.338481 -0.157942" rpy="1.5708 -4.996e-16 -2.22218e-17"/>
       <geometry>
         <mesh filename="package://assets/os_arm_link.stl"/>
       </geometry>
       <material name="os_arm_link_material">
-        <color rgba="0.917647 0.917647 0.917647 1"/>
+        <color rgba="0.294118 0.294118 0.294118 1"/>
       </material>
     </visual>
     <collision>
-      <origin xyz="-0.0382553 0.338481 -0.157942" rpy="1.5708 -4.996e-16 -2.46519e-32"/>
+      <origin xyz="-0.0382553 0.338481 -0.157942" rpy="1.5708 -4.996e-16 -2.22218e-17"/>
       <geometry>
         <mesh filename="package://assets/os_arm_link.stl"/>
       </geometry>
@@ -500,13 +514,13 @@
   <!-- Link os_arm_tube -->
   <link name="os_arm_tube">
     <inertial>
-      <origin xyz="0.000348364 -0.0262834 -0.0580553" rpy="0 0 0"/>
-      <mass value="0.780591"/>
-      <inertia ixx="0.00432862" ixy="-1.43189e-05" ixz="1.82386e-07" iyy="0.00185548" iyz="-2.21968e-05" izz="0.00431034"/>
+      <origin xyz="-5.75182e-05 -0.0295561 -0.057812" rpy="0 0 0"/>
+      <mass value="0.889825"/>
+      <inertia ixx="0.00518868" ixy="2.42988e-06" ixz="-7.44611e-08" iyy="0.0021435" iyz="-3.27023e-05" izz="0.00515098"/>
     </inertial>
     <!-- Part os_arm_tube -->
     <visual>
-      <origin xyz="0.166033 -0.264126 0.179792" rpy="-1.5708 8.54658e-16 -4.93038e-32"/>
+      <origin xyz="0.166033 -0.264126 0.179792" rpy="-1.5708 8.54658e-16 1.94138e-18"/>
       <geometry>
         <mesh filename="package://assets/os_arm_tube.stl"/>
       </geometry>
@@ -515,7 +529,7 @@
       </material>
     </visual>
     <collision>
-      <origin xyz="0.166033 -0.264126 0.179792" rpy="-1.5708 8.54658e-16 -4.93038e-32"/>
+      <origin xyz="0.166033 -0.264126 0.179792" rpy="-1.5708 8.54658e-16 1.94138e-18"/>
       <geometry>
         <mesh filename="package://assets/os_arm_tube.stl"/>
       </geometry>
@@ -531,7 +545,7 @@
     </inertial>
   </link>
   <joint name="os/arm/intake_frame" type="fixed">
-    <origin xyz="1.66533e-16 -0.1397 -0.0587375" rpy="1.5708 -1.5708 0"/>
+    <origin xyz="2.08167e-16 -0.1397 -0.0587375" rpy="1.5708 -1.5708 0"/>
     <parent link="os_arm_tube"/>
     <child link="os/arm/intake"/>
     <axis xyz="0 0 0"/>
@@ -546,26 +560,26 @@
     </inertial>
   </link>
   <joint name="os/arm/thruster_frame" type="fixed">
-    <origin xyz="0.001 0.031518 -0.0587375" rpy="1.5708 -1.5708 0"/>
+    <origin xyz="0.001 0.031518 -0.0587375" rpy="3.03274e-15 1.10685e-17 1.5708"/>
     <parent link="os_arm_tube"/>
     <child link="os/arm/thruster"/>
     <axis xyz="0 0 0"/>
   </joint>
   <!-- Joint from os_arm_link to os_arm_tube -->
   <joint name="os/arm/link" type="revolute">
-    <origin xyz="-0.204288 0.0743547 0.02185" rpy="-3.14159 -1.67456e-16 -1.62897e-16"/>
+    <origin xyz="-0.204288 0.0743547 0.02185" rpy="-3.14159 8.89355e-16 -2.13546"/>
     <parent link="os_arm_link"/>
     <child link="os_arm_tube"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="-3.141592653589793" upper="3.141592653589793"/>
-    <mimic joint="os/arm/base" multiplier="-0.6666666666666666"/>
+    <mimic joint="os/arm/base" multiplier="-0.7647058823529411"/>
   </joint>
   <!-- Joint from os/body to os_arm_link -->
   <joint name="os/arm/base" type="revolute">
-    <origin xyz="0.279674 -0.0348629 0.119766" rpy="1.5708 1.79519e-16 3.14159"/>
+    <origin xyz="-0.242087 0.0838629 0.0949098" rpy="-1.5708 0.349066 3.14159"/>
     <parent link="os/body"/>
     <child link="os_arm_link"/>
     <axis xyz="0 0 1"/>
-    <limit effort="10" velocity="10" lower="-2.79253" upper="8.88178e-16"/>
+    <limit effort="10" velocity="10" lower="0" upper="2.79253"/>
   </joint>
 </robot>

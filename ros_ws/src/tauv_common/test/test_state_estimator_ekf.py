@@ -20,8 +20,8 @@ class TestEkfControl(unittest.TestCase):
         control = EkfControl(odom_R_sensor, a_sensor, omega_sensor)
         
         self.assertTrue(control.is_valid())
-        np.testing.assert_array_equal(control.a_sensor_S, a_sensor)
-        np.testing.assert_array_equal(control.omega_sensor_S, omega_sensor)
+        np.testing.assert_array_equal(control.a_S, a_sensor)
+        np.testing.assert_array_equal(control.omega_S, omega_sensor)
     
     def test_ekf_control_invalid(self):
         """Test EkfControl with invalid dimensions"""
@@ -94,8 +94,8 @@ class TestEkf(unittest.TestCase):
         state = np.array([1.0, 2.0, 3.0, 0.0, 0.0, 0.0])
         control = EkfControl(
             odom_R_sensor=SO3(),
-            a_sensor_S=np.array([0.0, 0.0, 0.0]),
-            omega_sensor_S=np.array([0.0, 0.0, 0.0])
+            a_S=np.array([0.0, 0.0, 0.0]),
+            omega_S=np.array([0.0, 0.0, 0.0])
         )
         dt = 1_000_000_000  # 1 second in nanoseconds
         
@@ -138,8 +138,8 @@ class TestEkf(unittest.TestCase):
         state = np.array([1.0, 2.0, 3.0, 0.1, 0.2, 0.3])
         control = EkfControl(
             odom_R_sensor=SO3(),
-            a_sensor_S=np.array([0.0, 0.0, 9.8]),
-            omega_sensor_S=np.array([0.0, 0.0, 0.0])
+            a_S=np.array([0.0, 0.0, 9.8]),
+            omega_S=np.array([0.0, 0.0, 0.0])
         )
         
         depth_pred = self.ekf.h_depth(state, control)
@@ -155,8 +155,8 @@ class TestEkf(unittest.TestCase):
         state = np.array([1.0, 2.0, 3.0, 0.1, 0.0, 0.0])  # Moving forward in body frame
         control = EkfControl(
             odom_R_sensor=SO3(),
-            a_sensor_S=np.array([0.0, 0.0, 9.8]),
-            omega_sensor_S=np.array([0.0, 0.0, 0.0])  # Zero angular velocity
+            a_S=np.array([0.0, 0.0, 9.8]),
+            omega_S=np.array([0.0, 0.0, 0.0])  # Zero angular velocity
         )
         
         dvl_pred = self.ekf.h_dvl(state, control)
@@ -170,8 +170,8 @@ class TestEkf(unittest.TestCase):
         state_rotating = np.array([1.0, 2.0, 3.0, 0.0, 0.0, 0.0])  # No body translation
         control_rotating = EkfControl(
             odom_R_sensor=SO3(),
-            a_sensor_S=np.array([0.0, 0.0, 9.8]),
-            omega_sensor_S=np.array([0.0, 0.0, 1.0])  # 1 rad/s about z-axis
+            a_S=np.array([0.0, 0.0, 9.8]),
+            omega_S=np.array([0.0, 0.0, 1.0])  # 1 rad/s about z-axis
         )
         
         dvl_pred_rotating = self.ekf.h_dvl(state_rotating, control_rotating)
@@ -227,8 +227,8 @@ class TestEkf(unittest.TestCase):
         state_combined = np.array([0.0, 0.0, 0.0, 0.2, 0.1, 0.0])  # Body moving forward and right
         control_combined = EkfControl(
             odom_R_sensor=SO3(),
-            a_sensor_S=np.array([0.0, 0.0, 9.8]),
-            omega_sensor_S=np.array([0.0, 0.0, 0.5])  # Rotating about z-axis
+            a_S=np.array([0.0, 0.0, 9.8]),
+            omega_S=np.array([0.0, 0.0, 0.5])  # Rotating about z-axis
         )
         
         dvl_combined = self.ekf.h_dvl(state_combined, control_combined)
@@ -253,8 +253,8 @@ class TestEkf(unittest.TestCase):
         omega_imu_rotated = np.array([0.5, 0.0, 0.0])  # 0.5 rad/s about IMU x-axis
         control_imu_rotated = EkfControl(
             odom_R_sensor=SO3(),
-            a_sensor_S=np.array([0.0, 0.0, 9.8]),
-            omega_sensor_S=omega_imu_rotated
+            a_S=np.array([0.0, 0.0, 9.8]),
+            omega_S=omega_imu_rotated
         )
         
         state_zero_vel = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -297,8 +297,8 @@ class TestEkfHistory(unittest.TestCase):
         self.dvl_input = DvlInput(v_dvl_V=np.array([0.1, 0.0, 0.0]), R=np.eye(3) * 0.01)
         self.imu_input = EkfControl(
             odom_R_sensor=SO3(),
-            a_sensor_S=np.array([0.0, 0.0, 9.8]),
-            omega_sensor_S=np.array([0.0, 0.0, 0.0])
+            a_S=np.array([0.0, 0.0, 9.8]),
+            omega_S=np.array([0.0, 0.0, 0.0])
         )
     
     def test_history_initialization(self):
@@ -332,8 +332,8 @@ class TestEkfHistory(unittest.TestCase):
         
         new_imu = EkfControl(
             odom_R_sensor=SO3(),
-            a_sensor_S=np.array([0.1, 0.0, 9.8]),
-            omega_sensor_S=np.array([0.0, 0.1, 0.0])
+            a_S=np.array([0.1, 0.0, 9.8]),
+            omega_S=np.array([0.0, 0.1, 0.0])
         )
         
         history.add_imu_measurement(self.t_base + 30000000, new_imu)
@@ -349,8 +349,8 @@ class TestEkfHistory(unittest.TestCase):
         
         new_imu = EkfControl(
             odom_R_sensor=SO3(),
-            a_sensor_S=np.array([0.1, 0.0, 9.8]),
-            omega_sensor_S=np.array([0.0, 0.1, 0.0])
+            a_S=np.array([0.1, 0.0, 9.8]),
+            omega_S=np.array([0.0, 0.1, 0.0])
         )
         
         # Try to add IMU measurement with earlier timestamp

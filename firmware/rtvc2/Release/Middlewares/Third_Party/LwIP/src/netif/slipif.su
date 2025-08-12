@@ -1,0 +1,5 @@
+../Middlewares/Third_Party/LwIP/src/netif/slipif.c:310:1:slipif_rxbyte_input	24	static
+../Middlewares/Third_Party/LwIP/src/netif/slipif.c:330:1:slipif_loop_thread	24	static
+../Middlewares/Third_Party/LwIP/src/netif/slipif.c:172:1:slipif_output_v4	16	static
+../Middlewares/Third_Party/LwIP/src/netif/slipif.c:360:1:slipif_init	24	static
+../Middlewares/Third_Party/LwIP/src/netif/slipif.c:426:1:slipif_poll	24	static

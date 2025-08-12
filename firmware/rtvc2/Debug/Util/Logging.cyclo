@@ -1,0 +1,24 @@
+../Drivers/CMSIS/Include/core_cm7.h:2606:26:uint32_t ITM_SendChar(uint32_t)	5
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/arm-none-eabi/thumb/v7e-m+dp/hard/bits/gthr-default.h:229:1:int __gthread_key_delete(__gthread_key_t)	1
+../Util/Logging.hpp:65:20:void __tcf_0()	1
+../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	3
+../Util/Logging.cpp:30:1:TAUV::Logging::Logging()	2
+../Util/Logging.cpp:45:1:TAUV::Logging::~Logging()	1
+../Util/Logging.cpp:49:6:void TAUV::Logging::setLogLevel(TAUV::LogLevel)	2
+../Util/Logging.cpp:56:10:TAUV::LogLevel TAUV::Logging::getLogLevel() const	1
+../Util/Logging.cpp:60:15:TAUV::LogOutputMode TAUV::Logging::getOutputMode() const	1
+../Util/Logging.cpp:64:21:UART_HandleTypeDef* TAUV::Logging::getUartHandle() const	1
+../Util/Logging.cpp:68:6:bool TAUV::Logging::init(UART_HandleTypeDef*, TAUV::LogOutputMode)	2
+../Util/Logging.cpp:78:6:)	1
+../Util/Logging.cpp:85:6:)	1
+../Util/Logging.cpp:92:6:)	1
+../Util/Logging.cpp:99:6:)	1
+../Util/Logging.cpp:106:6:)	1
+../Util/Logging.cpp:113:6:)	1
+../Util/Logging.cpp:120:6:)	1
+../Util/Logging.cpp:127:6:void TAUV::Logging::log(TAUV::LogLevel, const char*, va_list)	6
+../Util/Logging.cpp:165:6:void TAUV::Logging::logRaw(const char*, va_list)	5
+../Util/Logging.cpp:194:6:bool TAUV::Logging::queueMessage(const char*, size_t)	10
+../Util/Logging.cpp:234:10:uint32_t TAUV::Logging::getTimestamp()	1
+../Util/Logging.cpp:239:16:)	1
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/array:208:7:constexpr const std::array<_Tp, _Nm>::value_type& std::array<_Tp, _Nm>::operator[](size_type) const [with _Tp = const char*; unsigned int _Nm = 5]	1

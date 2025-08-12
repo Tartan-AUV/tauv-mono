@@ -1,0 +1,7 @@
+---
+description:
+globs: **/*.py
+alwaysApply: false
+---
+
+Always use pathlib.Path instead of os.path

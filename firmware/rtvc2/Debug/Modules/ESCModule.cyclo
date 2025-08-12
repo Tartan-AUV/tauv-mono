@@ -1,0 +1,18 @@
+../Drivers/VESC/VESC_UART.hpp:60:8:bool TAUV::VESC::VESC_UART::setUART(UART_HandleTypeDef*)	2
+../Modules/ESCInterface.hpp:28:62:const std::array<long int, 8>& TAUV::ESCInterface::get_rpm() const	1
+../Modules/ESCInterface.hpp:32:59:const std::array<bool, 8>& TAUV::ESCInterface::get_enable() const	1
+../Modules/ESCInterface.hpp:36:8:bool TAUV::ESCInterface::is_valid() const	1
+../Modules/ESCModule.hpp:30:15:virtual const char* TAUV::ESCModule::getName() const	1
+../Modules/ESCModule.hpp:31:9:virtual float TAUV::ESCModule::getFrequency() const	1
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/arm-none-eabi/thumb/v7e-m+dp/hard/bits/gthr-default.h:229:1:int __gthread_key_delete(__gthread_key_t)	1
+../Util/Logging.hpp:65:20:void __tcf_0()	1
+../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	3
+../Modules/ESCModule.cpp:18:19:TAUV::ModuleInitResult TAUV::ESCModule::init(const std::array<__UART_HandleTypeDef*, 2>&)	10
+../Modules/ESCModule.cpp:98:17:virtual TAUV::ModuleRunResult TAUV::ESCModule::run()	6
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/array:208:7:constexpr const std::array<_Tp, _Nm>::value_type& std::array<_Tp, _Nm>::operator[](size_type) const [with _Tp = __UART_HandleTypeDef*; unsigned int _Nm = 2]	1
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/array:200:7:constexpr std::array<_Tp, _Nm>::value_type& std::array<_Tp, _Nm>::operator[](size_type) [with _Tp = TAUV::VESC::VESC_UART; unsigned int _Nm = 2]	1
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/array:208:7:constexpr const std::array<_Tp, _Nm>::value_type& std::array<_Tp, _Nm>::operator[](size_type) const [with _Tp = unsigned int; unsigned int _Nm = 8]	1
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/array:208:7:constexpr const std::array<_Tp, _Nm>::value_type& std::array<_Tp, _Nm>::operator[](size_type) const [with _Tp = TAUV::Config::Thrusters::ESC_Group; unsigned int _Nm = 2]	1
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/array:208:7:constexpr const std::array<_Tp, _Nm>::value_type& std::array<_Tp, _Nm>::operator[](size_type) const [with _Tp = unsigned char; unsigned int _Nm = 4]	1
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/array:208:7:constexpr const std::array<_Tp, _Nm>::value_type& std::array<_Tp, _Nm>::operator[](size_type) const [with _Tp = bool; unsigned int _Nm = 8]	1
+/Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/array:208:7:constexpr const std::array<_Tp, _Nm>::value_type& std::array<_Tp, _Nm>::operator[](size_type) const [with _Tp = long int; unsigned int _Nm = 8]	1

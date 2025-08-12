@@ -1,0 +1,17 @@
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:668:19:prvInsertTimerInActiveList	8	static
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:916:13:prvCheckForValidListAndQueue	32	static
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:349:13:prvInitialiseNewTimer	24	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:227:12:xTimerCreateTimerTask	40	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:282:16:xTimerCreate	32	static
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:309:16:xTimerCreateStatic	32	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:381:12:xTimerGenericCommand	32	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:645:19:prvSampleTimeNow	40	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:523:8:prvTimerTask	56	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:424:14:xTimerGetTimerDaemonTaskHandle	0	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:433:12:xTimerGetPeriod	0	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:442:6:vTimerSetReloadMode	16	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:462:12:xTimerGetExpiryTime	0	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:473:14:pcTimerGetName	0	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:967:12:xTimerIsTimerActive	8	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:992:7:pvTimerGetTimerID	8	static,ignoring_inline_asm
+../Middlewares/Third_Party/FreeRTOS/Source/timers.c:1009:6:vTimerSetTimerID	16	static,ignoring_inline_asm

@@ -1,0 +1,6 @@
+../Modules/MTI300Module.hpp:31:15:virtual const char* TAUV::MTI300Module::getName() const	1
+../Modules/MTI300Module.hpp:32:9:virtual float TAUV::MTI300Module::getFrequency() const	1
+../Util/Logging.hpp:65:20:void __tcf_0()	1
+../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	3
+../Modules/MTI300Module.cpp:37:17:virtual TAUV::ModuleRunResult TAUV::MTI300Module::run()	14
+../Modules/MTI300Module.cpp:21:18:TAUV::ModuleInitResult TAUV::MTI300Module::init(UART_HandleTypeDef*)	2

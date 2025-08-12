@@ -1,0 +1,16 @@
+../Drivers/VESC/buffer.cpp:25:6:void buffer_append_int16(uint8_t*, int16_t, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:30:6:void buffer_append_uint16(uint8_t*, uint16_t, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:35:6:void buffer_append_int32(uint8_t*, int32_t, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:42:6:void buffer_append_uint32(uint8_t*, uint32_t, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:49:6:void buffer_append_float16(uint8_t*, float, float, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:54:6:void buffer_append_float32(uint8_t*, float, float, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:101:6:void buffer_append_float32_auto(uint8_t*, float, int32_t*)	48	static
+../Drivers/VESC/buffer.cpp:126:9:int16_t buffer_get_int16(const uint8_t*, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:133:10:uint16_t buffer_get_uint16(const uint8_t*, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:140:9:int32_t buffer_get_int32(const uint8_t*, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:148:10:uint32_t buffer_get_uint32(const uint8_t*, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:156:7:float buffer_get_float16(const uint8_t*, float, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:160:7:float buffer_get_float32(const uint8_t*, float, int32_t*)	24	static
+../Drivers/VESC/buffer.cpp:164:7:float buffer_get_float32_auto(const uint8_t*, int32_t*)	40	static
+../Drivers/VESC/buffer.cpp:184:6:bool buffer_get_bool(const uint8_t*, int32_t*)	16	static
+../Drivers/VESC/buffer.cpp:194:6:void buffer_append_bool(uint8_t*, bool, int32_t*)	24	static

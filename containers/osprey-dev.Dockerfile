@@ -22,6 +22,5 @@ RUN mkdir arena-python && \
     ./ArenaSDK_Linux_ARM64/Arena_SDK_ARM64.conf && \
     python3 -m pip install arena-python/arena_api-2.7.1-py3-none-any.whl --break-system-packages
     
-WORKDIR /
-RUN mkdir /ros_ws && cd ros_ws && mkdir install build logs src
+RUN mkdir /ros_ws
 WORKDIR /ros_ws
