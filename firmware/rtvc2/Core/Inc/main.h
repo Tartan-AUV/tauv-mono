@@ -56,6 +56,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define GPIO_KILLSWITCH_OUT_Pin GPIO_PIN_0
+#define GPIO_KILLSWITCH_OUT_GPIO_Port GPIOD
+#define GPIO_KILLSWITCH_IN_Pin GPIO_PIN_1
+#define GPIO_KILLSWITCH_IN_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
 

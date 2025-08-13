@@ -563,6 +563,7 @@ static void MX_USART3_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
@@ -574,6 +575,22 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIO_KILLSWITCH_OUT_GPIO_Port, GPIO_KILLSWITCH_OUT_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin : GPIO_KILLSWITCH_OUT_Pin */
+  GPIO_InitStruct.Pin = GPIO_KILLSWITCH_OUT_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIO_KILLSWITCH_OUT_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : GPIO_KILLSWITCH_IN_Pin */
+  GPIO_InitStruct.Pin = GPIO_KILLSWITCH_IN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(GPIO_KILLSWITCH_IN_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

@@ -51,19 +51,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 }
 
 void HAL_I2C_MasterTxCpltCallback(I2C_HandleTypeDef *hi2c) {
-  // MS5837 no longer uses I2C interrupts - using blocking calls with osDelay instead
 }
 
 void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
-  // MS5837 no longer uses I2C interrupts - using blocking calls with osDelay instead
 }
 
 void HAL_I2C_ErrorCallback(I2C_HandleTypeDef *hi2c) {
-  // MS5837 no longer uses I2C interrupts - using blocking calls with osDelay instead
 }
 
 void HAL_I2C_AbortCpltCallback(I2C_HandleTypeDef *hi2c) {
-  // MS5837 no longer uses I2C interrupts - using blocking calls with osDelay instead
 }
 
 }

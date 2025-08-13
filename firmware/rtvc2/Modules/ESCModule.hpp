@@ -38,6 +38,9 @@ class ESCModule final : public ModuleBase<ESCInterface, ESCMessage> {
   // VESC UART interfaces for the ESC groups
   std::array<VESC::VESC_UART, Config::Thrusters::num_groups> vesc_interfaces_;
   std::array<UART_HandleTypeDef *, Config::Thrusters::num_groups> uarts{};
+  
+  // Killswitch latch state - once triggered, stays active until system reset
+  bool killswitch_latched_ = false;
 };
 
 }  // namespace TAUV

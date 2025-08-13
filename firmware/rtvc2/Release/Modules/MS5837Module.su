@@ -1,6 +1,0 @@
-../Modules/MS5837Module.hpp:31:15:virtual const char* TAUV::MS5837Module::getName() const	0	static
-../Modules/MS5837Module.hpp:32:9:virtual float TAUV::MS5837Module::getFrequency() const	0	static
-../Util/Logging.hpp:65:20:void __tcf_0()	0	static
-../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	8	static
-../Modules/MS5837Module.cpp:49:17:virtual TAUV::ModuleRunResult TAUV::MS5837Module::run()	32	static
-../Modules/MS5837Module.cpp:21:18:TAUV::ModuleInitResult TAUV::MS5837Module::init(I2C_HandleTypeDef*)	16	static

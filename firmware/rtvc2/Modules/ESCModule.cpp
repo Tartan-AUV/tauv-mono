@@ -10,10 +10,11 @@
  *
  *****************************************************************************/
  #include "ESCModule.hpp"
- #include "ESCMessage.hpp"
- #include "Logging.hpp"
+#include "ESCMessage.hpp"
+#include "Logging.hpp"
+#include "main.h"  // For GPIO pin definitions
 
- using namespace TAUV;
+using namespace TAUV;
 
  ModuleInitResult ESCModule::init(const std::array<UART_HandleTypeDef *, Config::Thrusters::num_groups> &uarts) {
   LOG_INFO("ESCModule: Initializing with %d UART groups", Config::Thrusters::num_groups);
@@ -96,6 +97,20 @@
 }
 
 ModuleRunResult ESCModule::run() {
+  // Check killswitch state - if low (GPIO_PIN_RESET), latch the killswitch
+  GPIO_PinState killswitch_state = HAL_GPIO_ReadPin(GPIO_KILLSWITCH_IN_GPIO_Port, GPIO_KILLSWITCH_IN_Pin);
+  
+  // Once the killswitch goes low, latch it permanently (until system reset)
+  if (killswitch_state == GPIO_PIN_RESET && !killswitch_latched_) {
+    killswitch_latched_ = true;
+    LOG_WARN("ESCModule: Killswitch activated and LATCHED - all ESCs will remain disabled until system reset");
+  }
+  
+  // Log current state periodically for debugging
+  static uint32_t log_counter = 0;
+  if (killswitch_latched_ && (++log_counter % 50) == 0) {  // Log every 50 cycles (1 second at 50Hz)
+    LOG_DEBUG("ESCModule: Killswitch remains latched - sending zero RPM to all ESCs");
+  }
 
   // Process commands for each ESC
   for (size_t i = 0; i < Config::Thrusters::number_escs; i++) {
@@ -109,26 +124,20 @@ ModuleRunResult ESCModule::run() {
     // Check if this ESC requires direct UART communication
     bool is_uart_connected = (vesc_id == Config::Thrusters::esc_groups[group_idx].uart_connected_id);
 
-    // Apply the commanded RPM or stop the motor if not enabled
-    if (input_interface_.is_valid()) {
-      if (input_interface_.get_enable()[i]) {
-        // Send RPM command to this ESC
-        if (is_uart_connected) {
-          vesc_interfaces_[group_idx].setRPM(
-            input_interface_.get_rpm()[i]);
-        } else {
-          // For CAN-connected ESCs, we need to specify the CAN ID
-          vesc_interfaces_[group_idx].setRPM(
-            input_interface_.get_rpm()[i], vesc_id);
-        }
-      } else {
-        // If not enabled, stop the motor (RPM = 0)
-        if (is_uart_connected) {
-          vesc_interfaces_[group_idx].setRPM(0);
-        } else {
-          vesc_interfaces_[group_idx].setRPM(0, vesc_id);
-        }
-      }
+    // Determine the RPM to send based on killswitch latch and enable state
+    float rpm_command = 0;
+    
+    // Only send non-zero RPM if killswitch is NOT latched
+    if (!killswitch_latched_ && input_interface_.is_valid() && input_interface_.get_enable()[i]) {
+      rpm_command = input_interface_.get_rpm()[i];
+    }
+    
+    // Send the RPM command to the ESC
+    if (is_uart_connected) {
+      vesc_interfaces_[group_idx].setRPM(rpm_command);
+    } else {
+      // For CAN-connected ESCs, we need to specify the CAN ID
+      vesc_interfaces_[group_idx].setRPM(rpm_command, vesc_id);
     }
 
     // Collect telemetry data from ESCs
