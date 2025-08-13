@@ -1,0 +1,12 @@
+# Goal definition
+geometry_msgs/Pose target_pose  # Target pose in odom frame
+float32 velocity                # Desired velocity in m/s
+---
+# Result definition
+bool success                    # Whether the goto was completed
+string message                  # Status message
+---
+# Feedback definition
+geometry_msgs/Pose current_pose # Current pose in odom frame
+float32 distance_remaining      # Distance remaining to target in meters
+float32 current_velocity        # Current velocity magnitude in m/s
