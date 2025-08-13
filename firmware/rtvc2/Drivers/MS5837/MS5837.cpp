@@ -7,26 +7,17 @@
 #include "cmsis_os.h"
 #include "main.h"
 
-extern TIM_HandleTypeDef htim1;
-
 extern void reset_depth_i2c();
 
 namespace TAUV {
 
-
 MS5837::MS5837() {
   fluidDensity = 1029;
   hi2c_ = nullptr;
-  _htim = &htim1;
 }
 
 MS5837::~MS5837() {
-  if (MS5837::activeInstance_ == this) {
-    MS5837::activeInstance_ = nullptr;
-  }
 }
-
-MS5837 *MS5837::activeInstance_ = nullptr;
 
 bool MS5837::begin(I2C_HandleTypeDef *hi2c) { return (init(hi2c)); }
 
@@ -90,13 +81,9 @@ bool MS5837::init(I2C_HandleTypeDef *hi2c) {
     _model = MS5837_UNRECOGNISED;
   }
 
-  data_ready = false;
-  conversion_state = ConversionState::IDLE;
-
-  activeInstance_ = this;
-
-  // Initialize TIM1 for interrupts - make sure it's stopped initially
-  HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
+  data_ready_ = false;
+  temp_ready_ = false;
+  pressure_ready_ = false;
 
   return true;
 }
@@ -107,165 +94,120 @@ uint8_t MS5837::getModel() { return (_model); }
 
 void MS5837::setFluidDensity(float density) { fluidDensity = density; }
 
-bool MS5837::requestConversion() {
-  data_ready = false;
+uint32_t MS5837::getConversionDelayMs() const {
+  return conversion_delays_ms[static_cast<size_t>(OSR)];
+}
 
+bool MS5837::requestTemperatureConversion() {
   if (hi2c_ == nullptr) {
     return false;
   }
 
-  if (conversion_state != ConversionState::IDLE) {
-//    LOG_WARN("MS5837 new conversion request while conversion in progress.");
-    osDelay(1);
-//    reset_depth_i2c();
-    conversion_state = ConversionState::IDLE;
-    return false;
-  }
+  // Clear ready flags when starting new conversion cycle
+  data_ready_ = false;
+  temp_ready_ = false;
+  pressure_ready_ = false;
 
-  if (isr_error_flag_) {
-    LOG_WARN("MS5837 I2C error occured in an ISR.");
-    __HAL_I2C_CLEAR_FLAG(hi2c_, I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR);
-    hi2c_->ErrorCode = HAL_I2C_ERROR_NONE;
-    isr_error_flag_ = false;
-  }
-
-  // Request temperature conversion
+  // Request temperature conversion (D2)
   uint8_t cmd = oversampling_command_map_temperature[static_cast<size_t>(OSR)];
-
-  conversion_state = ConversionState::REQUESTING_TEMP;
-  tx_data_ = cmd;
-  if (HAL_I2C_Master_Transmit_IT(hi2c_, MS5837_ADDR << 1, &tx_data_, 1) !=
-      HAL_OK) {
-	reset_depth_i2c();
-    conversion_state = ConversionState::IDLE;
+  
+  if (HAL_I2C_Master_Transmit(hi2c_, MS5837_ADDR << 1, &cmd, 1,
+                              HAL_MAX_DELAY) != HAL_OK) {
+    LOG_WARN("MS5837: Failed to request temperature conversion");
+    reset_depth_i2c();
     return false;
   }
 
   return true;
 }
 
-void MS5837::conversionTimerISRCallback() {
-  // stop timer
-  auto res = HAL_TIM_OC_Stop_IT(_htim, TIM_CHANNEL_1);
-  if (res != HAL_OK) {
-    // something is very wrong
-    Error_Handler();
+bool MS5837::readTemperature() {
+  if (hi2c_ == nullptr) {
+    return false;
   }
-  switch (conversion_state) {
-    case ConversionState::AWAITING_TEMP:
-      conversion_state = ConversionState::READING_TEMP;
-      tx_data_ = MS5837_ADC_READ;
-      res = HAL_I2C_Master_Transmit_IT(hi2c_, MS5837_ADDR << 1, &tx_data_, 1);
-      if (res != HAL_OK) {
-        conversion_state = ConversionState::IDLE;
-        isr_error_flag_ = true;
-      }
-      break;
-    case ConversionState::AWAITING_PRESSURE:
-      conversion_state = ConversionState::READING_PRESSURE;
-      tx_data_ = MS5837_ADC_READ;
-      res = HAL_I2C_Master_Transmit_IT(hi2c_, MS5837_ADDR << 1, &tx_data_, 1);
-      if (res != HAL_OK) {
-        conversion_state = ConversionState::IDLE;
-        isr_error_flag_ = true;
-      }
-      break;
-    default:
-      conversion_state = ConversionState::IDLE;
-      isr_error_flag_ = true;
-      break;
+
+  // Send ADC read command
+  uint8_t cmd = MS5837_ADC_READ;
+  if (HAL_I2C_Master_Transmit(hi2c_, MS5837_ADDR << 1, &cmd, 1,
+                              HAL_MAX_DELAY) != HAL_OK) {
+    LOG_WARN("MS5837: Failed to send ADC read command for temperature");
+    reset_depth_i2c();
+    return false;
   }
-}
 
-void MS5837::i2cRxCpltISRCallback() {
-  switch (conversion_state) {
-    case ConversionState::READING_TEMP:
-      D2_temp = rx_data_[0] << 16 | rx_data_[1] << 8 | rx_data_[2];
-      conversion_state = ConversionState::REQUESTING_PRESSURE;
-      tx_data_ = oversampling_command_map_pressure[static_cast<size_t>(OSR)];
-      if (HAL_I2C_Master_Transmit_IT(hi2c_, MS5837_ADDR << 1, &tx_data_, 1) !=
-          HAL_OK) {
-        conversion_state = ConversionState::IDLE;
-        isr_error_flag_ = true;
-        break;
-      }
-      break;
-    case ConversionState::READING_PRESSURE:
-      D1_pres = rx_data_[0] << 16 | rx_data_[1] << 8 | rx_data_[2];
-      conversion_state = ConversionState::IDLE;
-      data_ready = true;
-      break;
-    default:
-      conversion_state = ConversionState::IDLE;
-      isr_error_flag_ = true;
-      break;
+  // Read 3 bytes of temperature data
+  uint8_t data[3];
+  if (HAL_I2C_Master_Receive(hi2c_, MS5837_ADDR << 1, data, 3,
+                             HAL_MAX_DELAY) != HAL_OK) {
+    LOG_WARN("MS5837: Failed to read temperature data");
+    reset_depth_i2c();
+    return false;
   }
+
+  // Store temperature data
+  D2_temp = (data[0] << 16) | (data[1] << 8) | data[2];
+  temp_ready_ = true;
+
+  return true;
 }
 
-void MS5837::i2cTxCpltISRCallback() {
-  HAL_StatusTypeDef res;
-  switch (conversion_state) {
-    case ConversionState::IDLE:
-      isr_error_flag_ = true;
-      break;
-    case ConversionState::REQUESTING_TEMP:
-      conversion_state = ConversionState::AWAITING_TEMP;
-      __HAL_TIM_SET_COUNTER(_htim, 0);
-      __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_US);
-      res = HAL_TIM_OC_Start_IT(_htim, TIM_CHANNEL_1);
-      if (res != HAL_OK) {
-        Error_Handler();
-      }
-      break;
-    case ConversionState::AWAITING_TEMP:
-      conversion_state = ConversionState::IDLE;
-      isr_error_flag_ = true;
-      break;
-    case ConversionState::READING_TEMP:
-      res = HAL_I2C_Master_Receive_IT(hi2c_, MS5837_ADDR << 1, rx_data_, 3);
-      if (res != HAL_OK) {
-        conversion_state = ConversionState::IDLE;
-        isr_error_flag_ = true;
-      }
-      break;
-    case ConversionState::REQUESTING_PRESSURE:
-      conversion_state = ConversionState::AWAITING_PRESSURE;
-      __HAL_TIM_SET_COUNTER(_htim, 0);
-      __HAL_TIM_SET_COMPARE(_htim, TIM_CHANNEL_1, CONVERSION_TIME_US);
-      res = HAL_TIM_OC_Start_IT(_htim, TIM_CHANNEL_1);
-      if (res != HAL_OK) {
-        Error_Handler();
-      }
-      break;
-    case ConversionState::AWAITING_PRESSURE:
-      conversion_state = ConversionState::IDLE;
-      isr_error_flag_ = true;
-      break;
-    case ConversionState::READING_PRESSURE:
-      res = HAL_I2C_Master_Receive_IT(hi2c_, MS5837_ADDR << 1, rx_data_, 3);
-      if (res != HAL_OK) {
-        conversion_state = ConversionState::IDLE;
-        isr_error_flag_ = true;
-      }
-      break;
+bool MS5837::requestPressureConversion() {
+  if (hi2c_ == nullptr) {
+    return false;
   }
+
+  // Request pressure conversion (D1)
+  uint8_t cmd = oversampling_command_map_pressure[static_cast<size_t>(OSR)];
+  
+  if (HAL_I2C_Master_Transmit(hi2c_, MS5837_ADDR << 1, &cmd, 1,
+                              HAL_MAX_DELAY) != HAL_OK) {
+    LOG_WARN("MS5837: Failed to request pressure conversion");
+    reset_depth_i2c();
+    return false;
+  }
+
+  return true;
 }
 
-void MS5837::i2cErrorISRCallback() {
-  conversion_state = ConversionState::IDLE;
-  isr_error_flag_ = true;
-}
+bool MS5837::readPressure() {
+  if (hi2c_ == nullptr) {
+    return false;
+  }
 
-void MS5837::i2cAbortISRCallback() {
-  __HAL_I2C_CLEAR_FLAG(hi2c_, I2C_FLAG_BERR | I2C_FLAG_ARLO | I2C_FLAG_OVR);
-  hi2c_->ErrorCode = HAL_I2C_ERROR_NONE;
-  i2c_ready_ = true;
-}
+  // Send ADC read command
+  uint8_t cmd = MS5837_ADC_READ;
+  if (HAL_I2C_Master_Transmit(hi2c_, MS5837_ADDR << 1, &cmd, 1,
+                              HAL_MAX_DELAY) != HAL_OK) {
+    LOG_WARN("MS5837: Failed to send ADC read command for pressure");
+    reset_depth_i2c();
+    return false;
+  }
 
+  // Read 3 bytes of pressure data
+  uint8_t data[3];
+  if (HAL_I2C_Master_Receive(hi2c_, MS5837_ADDR << 1, data, 3,
+                             HAL_MAX_DELAY) != HAL_OK) {
+    LOG_WARN("MS5837: Failed to read pressure data");
+    reset_depth_i2c();
+    return false;
+  }
+
+  // Store pressure data
+  D1_pres = (data[0] << 16) | (data[1] << 8) | data[2];
+  pressure_ready_ = true;
+
+  // Both temperature and pressure are now ready
+  if (temp_ready_ && pressure_ready_) {
+    data_ready_ = true;
+  }
+
+  return true;
+}
 
 bool MS5837::calculate() {
-  if (!data_ready)
+  if (!data_ready_)
     return false;
+    
   // Given C1-C6 and D1, D2, calculated TEMP and P
   // Do conversion first and then second order temp compensation
 

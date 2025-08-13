@@ -42,12 +42,8 @@ THE SOFTWARE.
 
 #include "FreeRTOS.h"
 #include "stm32f7xx_hal.h"
-#include "timers.h"
 
 namespace TAUV {
-
-// Forward declaration of TIM1 interrupt handler function
-void MS5837_TIM1_OC_Callback();
 
 class MS5837 {
  public:
@@ -75,18 +71,40 @@ class MS5837 {
    */
   void setFluidDensity(float density);
 
-  /** Start the conversion cycle by requesting temperature first
-   * This function initiates I2C temperature conversion and starts TIM1
+  /** Request temperature conversion (D2)
+   * Sends the command to start temperature conversion
    */
-  bool requestConversion();
+  bool requestTemperatureConversion();
 
-  bool isI2CError() {
-    if (isr_error_flag_) {
-      isr_error_flag_ = false;
-      return true;
-    }
-    return false;
-  }
+  /** Read temperature data after conversion
+   * Must be called after appropriate delay from requestTemperatureConversion()
+   */
+  bool readTemperature();
+
+  /** Request pressure conversion (D1)
+   * Sends the command to start pressure conversion
+   */
+  bool requestPressureConversion();
+
+  /** Read pressure data after conversion
+   * Must be called after appropriate delay from requestPressureConversion()
+   */
+  bool readPressure();
+
+  /** Calculate compensated pressure and temperature from raw values
+   * Call this after reading both temperature and pressure
+   * Returns true if calculation was successful
+   */
+  bool calculate();
+
+  /** Check if both temperature and pressure data are ready for calculation
+   */
+  bool isDataReady() const { return data_ready_; }
+
+  /** Get the conversion delay needed for the current OSR setting
+   * Returns delay in milliseconds
+   */
+  uint32_t getConversionDelayMs() const;
 
   /** Pressure returned in mbar or mbar*conversion rate.
    */
@@ -105,17 +123,7 @@ class MS5837 {
    */
   float altitude();
 
-  // Pointer to the instance for ISR access
-  static MS5837* activeInstance_;
 
-  // ISR callbacks
-  void conversionTimerISRCallback();
-  void i2cRxCpltISRCallback();
-  void i2cTxCpltISRCallback();
-  void i2cErrorISRCallback();
-  void i2cAbortISRCallback();
-
-  bool calculate();
 
  private:
   enum class OverSamplingRatio : uint8_t {
@@ -127,15 +135,7 @@ class MS5837 {
     MS5837_OS_8192,
     Count
   };
-  enum class ConversionState : uint8_t {
-    IDLE,
-    REQUESTING_TEMP,
-    AWAITING_TEMP,
-    READING_TEMP,
-    REQUESTING_PRESSURE,
-    AWAITING_PRESSURE,
-    READING_PRESSURE,
-  };
+
 
   static constexpr uint8_t MS5837_ADDR = 0x76;
   static constexpr uint8_t MS5837_RESET = 0x1E;
@@ -149,9 +149,11 @@ class MS5837 {
       0x15;  // Sensor version: From MS5837_02BA datasheet Version PROM Word 0
   static constexpr uint8_t MS5837_30BA26 =
       0x1A;  // Sensor version: From MS5837_30BA datasheet Version PROM Word 0
-  static constexpr uint32_t CONVERSION_TIME_US = 2300; // TIM1 period is 1 us todo: needs to be changed dynamically for different OSRs
-
-  static constexpr OverSamplingRatio OSR = OverSamplingRatio::MS5837_OS_1024;
+  static constexpr OverSamplingRatio OSR = OverSamplingRatio::MS5837_OS_512;
+  
+  // Conversion delays in milliseconds for each OSR setting
+  static constexpr std::array<uint32_t, static_cast<size_t>(OverSamplingRatio::Count)>
+      conversion_delays_ms = {1, 2, 3, 5, 9, 18};
 
   static constexpr std::array<uint8_t, static_cast<size_t>(OverSamplingRatio::Count)>
       oversampling_command_map_pressure = {0x40, 0x42, 0x44, 0x46, 0x48, 0x4A};
@@ -161,11 +163,9 @@ class MS5837 {
                                               0x56, 0x58, 0x5A};
 
   // State variables
-  ConversionState conversion_state = ConversionState::IDLE;
-  bool data_ready = false;  // Set when both temperature and pressure are valid, reset on calculate
-  bool isr_error_flag_ = false;  // Error flag
-  uint8_t rx_data_[3]; // rx buffer
-  uint8_t tx_data_;    // tx buffer
+  bool data_ready_ = false;  // Set when both temperature and pressure are valid, reset on calculate
+  bool temp_ready_ = false;  // Temperature data has been read
+  bool pressure_ready_ = false;  // Pressure data has been read
 
   uint16_t C[8];
   uint32_t D1_pres, D2_temp;
@@ -177,9 +177,6 @@ class MS5837 {
 
   // Handles
   I2C_HandleTypeDef *hi2c_;
-  TIM_HandleTypeDef *_htim;
-
-  bool i2c_ready_ = true;
 
   uint8_t crc4(uint16_t n_prom[]);
 };

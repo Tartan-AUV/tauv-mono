@@ -22,6 +22,18 @@
 ../Modules/Eth100HzModule.hpp:31:3:TAUV::Eth100HzModule::Eth100HzModule(const TAUV::Eth100HzInterface&, TAUV::Eth100HzMessage&)	1
 ../Modules/MS5837Module.hpp:26:3:TAUV::MS5837Module::MS5837Module(const TAUV::MS5837InputInterface&, TAUV::MS5837Message&)	1
 ../Modules/MTI300Module.hpp:26:3:TAUV::MTI300Module::MTI300Module(const TAUV::MTI300InputInterface&, TAUV::MTI300Message&)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:1313:22:void LL_TIM_EnableCounter(TIM_TypeDef*)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:1324:22:void LL_TIM_DisableCounter(TIM_TypeDef*)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:1493:22:void LL_TIM_EnableARRPreload(TIM_TypeDef*)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:1566:22:void LL_TIM_SetCounter(TIM_TypeDef*, uint32_t)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:1608:22:void LL_TIM_SetPrescaler(TIM_TypeDef*, uint32_t)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:1635:22:void LL_TIM_SetAutoReload(TIM_TypeDef*, uint32_t)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:1848:22:void LL_TIM_CC_EnableChannel(TIM_TypeDef*, uint32_t)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:1996:22:void LL_TIM_OC_SetMode(TIM_TypeDef*, uint32_t, uint32_t)	9
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:2273:22:void LL_TIM_OC_EnablePreload(TIM_TypeDef*, uint32_t)	9
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:2478:22:void LL_TIM_OC_SetCompareCH3(TIM_TypeDef*, uint32_t)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:2495:22:void LL_TIM_OC_SetCompareCH4(TIM_TypeDef*, uint32_t)	1
+../Drivers/STM32F7xx_HAL_Driver/Inc/stm32f7xx_ll_tim.h:4599:22:void LL_TIM_GenerateEvent_UPDATE(TIM_TypeDef*)	1
 ../Tasks/LoggingTask.hpp:31:5:TAUV::LoggingTask::LoggingTask()	1
 ../Tasks/IntervalTask.hpp:24:11:TAUV::IntervalTask::~IntervalTask()	1
 ../Tasks/IntervalTask.hpp:24:11:virtual TAUV::IntervalTask::~IntervalTask()	1
@@ -30,25 +42,27 @@
 ../Modules/MS5837Module.hpp:24:7:TAUV::MS5837Module::~MS5837Module()	1
 ../Modules/Eth100HzModule.hpp:29:7:TAUV::Eth100HzModule::~Eth100HzModule()	1
 ../Tasks/Task100Hz.hpp:32:7:TAUV::Task100Hz::Task100Hz()	1
-../Core/Src/main.cpp:91:5:int main()	5
-../Core/Src/main.cpp:187:6:void SystemClock_Config()	3
-../Core/Src/main.cpp:234:13:void MX_I2C1_Init()	4
-../Core/Src/main.cpp:282:13:void MX_TIM1_Init()	5
-../Core/Src/main.cpp:351:13:void MX_TIM5_Init()	6
-../Core/Src/main.cpp:411:13:void MX_UART4_Init()	2
-../Core/Src/main.cpp:446:13:void MX_UART5_Init()	2
-../Core/Src/main.cpp:481:13:void MX_USART1_UART_Init()	2
-../Core/Src/main.cpp:518:13:void MX_USART3_UART_Init()	2
-../Core/Src/main.cpp:553:13:void MX_GPIO_Init()	1
-../Core/Src/main.cpp:574:6:void reset_depth_i2c()	1
-../Core/Src/main.cpp:588:6:void ITM_Init()	1
+../Core/Src/main.cpp:96:5:int main()	5
+../Core/Src/main.cpp:198:6:void SystemClock_Config()	3
+../Core/Src/main.cpp:245:13:void MX_I2C1_Init()	4
+../Core/Src/main.cpp:293:13:void MX_TIM1_Init()	5
+../Core/Src/main.cpp:362:13:void MX_TIM5_Init()	6
+../Core/Src/main.cpp:422:13:void MX_UART4_Init()	2
+../Core/Src/main.cpp:457:13:void MX_UART5_Init()	2
+../Core/Src/main.cpp:492:13:void MX_USART1_UART_Init()	2
+../Core/Src/main.cpp:529:13:void MX_USART3_UART_Init()	2
+../Core/Src/main.cpp:564:13:void MX_GPIO_Init()	1
+../Core/Src/main.cpp:588:13:void MX_TIM2_Init()	7
+../Core/Src/main.cpp:648:6:void reset_depth_i2c()	1
+../Core/Src/main.cpp:662:6:void ITM_Init()	1
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/unique_ptr.h:242:7:std::__uniq_ptr_data<_Tp, _Dp, <anonymous>, <anonymous> >::__uniq_ptr_data(std::__uniq_ptr_data<_Tp, _Dp, <anonymous>, <anonymous> >&&) [with _Tp = TAUV::Task50Hz::Resources; _Dp = std::default_delete<TAUV::Task50Hz::Resources>; bool <anonymous> = true; bool <anonymous> = true]	1
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/unique_ptr.h:366:7:std::unique_ptr<_Tp, _Dp>::unique_ptr(std::unique_ptr<_Tp, _Dp>&&) [with _Tp = TAUV::Task50Hz::Resources; _Dp = std::default_delete<TAUV::Task50Hz::Resources>]	1
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/unique_ptr.h:242:7:std::__uniq_ptr_data<_Tp, _Dp, <anonymous>, <anonymous> >::__uniq_ptr_data(std::__uniq_ptr_data<_Tp, _Dp, <anonymous>, <anonymous> >&&) [with _Tp = TAUV::Task100Hz::Resources; _Dp = std::default_delete<TAUV::Task100Hz::Resources>; bool <anonymous> = true; bool <anonymous> = true]	1
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/unique_ptr.h:366:7:std::unique_ptr<_Tp, _Dp>::unique_ptr(std::unique_ptr<_Tp, _Dp>&&) [with _Tp = TAUV::Task100Hz::Resources; _Dp = std::default_delete<TAUV::Task100Hz::Resources>]	1
-../Core/Src/main.cpp:614:6:void StartDefaultTask(const void*)	4
-../Core/Src/main.cpp:676:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	2
-../Core/Src/main.cpp:694:6:void Error_Handler()	1
+../Core/Src/main.cpp:688:6:void StartDefaultTask(const void*)	4
+../Core/Src/main.cpp:750:6:void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef*)	2
+../Core/Src/main.cpp:767:6:void PWM_Start_Synchronous_LL(uint32_t, uint32_t, uint32_t)	1
+../Core/Src/main.cpp:794:6:void Error_Handler()	1
 ../Modules/ModuleBase.hpp:41:3:TAUV::ModuleBase<I, M>::ModuleBase(const I&, M&) [with I = TAUV::ESCInterface; M = TAUV::ESCMessage]	1
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/std_function.h:239:5:constexpr std::_Function_base::_Function_base()	1
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/bits/std_function.h:368:7:)>::function() [with _Res = void; _ArgTypes = {const ip4_addr&, short unsigned int, const unsigned char*, short unsigned int}]	1
@@ -137,11 +151,11 @@
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/tuple:125:7:static constexpr _Head& std::_Head_base<_Idx, _Head, true>::_M_head(std::_Head_base<_Idx, _Head, true>&) [with unsigned int _Idx = 1; _Head = std::default_delete<TAUV::Task100Hz::Resources>]	1
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/tuple:237:7:static constexpr const _Head& std::_Head_base<_Idx, _Head, false>::_M_head(const std::_Head_base<_Idx, _Head, false>&) [with unsigned int _Idx = 0; _Head = TAUV::Task50Hz::Resources*]	1
 /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.13.3.rel1.macos64_1.0.0.202411102158/tools/arm-none-eabi/include/c++/13.3.1/tuple:237:7:static constexpr const _Head& std::_Head_base<_Idx, _Head, false>::_M_head(const std::_Head_base<_Idx, _Head, false>&) [with unsigned int _Idx = 0; _Head = TAUV::Task100Hz::Resources*]	1
-../Core/Src/main.cpp:707:1:void __static_initialization_and_destruction_0()	1
+../Core/Src/main.cpp:807:1:void __static_initialization_and_destruction_0()	1
 ../Tasks/Task100Hz.hpp:32:7:TAUV::Task100Hz::~Task100Hz()	1
 ../Tasks/Task100Hz.hpp:32:7:virtual TAUV::Task100Hz::~Task100Hz()	1
 ../Tasks/Task50Hz.hpp:28:7:TAUV::Task50Hz::~Task50Hz()	1
 ../Tasks/Task50Hz.hpp:28:7:virtual TAUV::Task50Hz::~Task50Hz()	1
-../Core/Src/main.cpp:707:1:void __static_initialization_and_destruction_1()	1
-../Core/Src/main.cpp:707:1:cpp)	1
-../Core/Src/main.cpp:707:1:cpp)	1
+../Core/Src/main.cpp:807:1:void __static_initialization_and_destruction_1()	1
+../Core/Src/main.cpp:807:1:cpp)	1
+../Core/Src/main.cpp:807:1:cpp)	1
