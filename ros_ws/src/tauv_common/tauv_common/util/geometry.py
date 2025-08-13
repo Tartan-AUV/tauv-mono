@@ -1,4 +1,3 @@
-from numpy._typing import NDArray
 from spatialmath import SE3, SO3, UnitQuaternion
 import numpy as np
 from typing import Union, overload
@@ -35,7 +34,7 @@ def _validate_quaternion(quat: Quaternion, name: str) -> None:
     _validate_finite_values([quat.w, quat.x, quat.y, quat.z], f"{name} Quaternion")
 
 @overload
-def numpify(obj: Vector3) -> NDArray: ...
+def numpify(obj: Vector3) -> np.ndarray: ...
 
 @overload
 def numpify(obj: Quaternion) -> UnitQuaternion: ...
@@ -50,9 +49,9 @@ def numpify(obj: Transform) -> SE3: ...
 def numpify(obj: Wrench) -> np.ndarray: ...
 
 @overload
-def numpify(obj: Twist) -> NDArray: ...
+def numpify(obj: Twist) -> np.ndarray: ...
 
-def numpify(obj: Union[Vector3, Quaternion, Transform, Wrench, Twist]) -> Union[NDArray, UnitQuaternion, SE3, np.ndarray]:
+def numpify(obj: Union[Vector3, Quaternion, Transform, Wrench, Twist]) -> Union[np.ndarray, UnitQuaternion, SE3, np.ndarray]:
     """Convert ROS geometry messages to numpy/spatialmath objects.
     
     Validates that all input values are finite (non-nan and non-inf).
@@ -91,7 +90,7 @@ def numpify(obj: Union[Vector3, Quaternion, Transform, Wrench, Twist]) -> Union[
     else:
         raise TypeError(f"Unsupported type for numpify: {type(obj)}")
 
-def numpify_cov_6x6(covariance: list) -> NDArray:
+def numpify_cov_6x6(covariance: list) -> np.ndarray:
     """Convert ROS2 covariance array to 6x6 numpy array.
     
     Validates that all input values are finite (non-nan and non-inf).
@@ -100,7 +99,7 @@ def numpify_cov_6x6(covariance: list) -> NDArray:
         covariance: 36-element list representing row-major flattened 6x6 covariance matrix
         
     Returns:
-        6x6 NDArray of float64
+        6x6 np.ndarray of float64
         
     Raises:
         ValueError: If any covariance values are nan or inf, or if list length is not 36
@@ -113,7 +112,7 @@ def numpify_cov_6x6(covariance: list) -> NDArray:
 
 
 @overload
-def msgify(obj: NDArray, *, message_type: str = None) -> Union[Vector3, Quaternion, Wrench, Twist]: ...
+def msgify(obj: np.ndarray, *, message_type: str = None) -> Union[Vector3, Quaternion, Wrench, Twist]: ...
 
 @overload
 def msgify(obj: UnitQuaternion) -> Quaternion: ...
@@ -124,14 +123,14 @@ def msgify(obj: SE3) -> Transform: ...
 @overload
 def msgify(obj: SO3) -> Quaternion: ...
 
-def msgify(obj: Union[NDArray, UnitQuaternion, SE3, SO3, np.ndarray], *, message_type: str = None) -> Union[Vector3, Quaternion, Transform, Wrench, Twist]:
+def msgify(obj: Union[np.ndarray, UnitQuaternion, SE3, SO3, np.ndarray], *, message_type: str = None) -> Union[Vector3, Quaternion, Transform, Wrench, Twist]:
     """Convert numpy/spatialmath objects to ROS geometry messages.
     
     Validates that all input values are finite (non-nan and non-inf).
     
     Args:
         obj: The object to convert
-        message_type: For NDArray inputs, specify the target message type ("Vector3", "Quaternion", "Wrench", "Twist").
+        message_type: For np.ndarray inputs, specify the target message type ("Vector3", "Quaternion", "Wrench", "Twist").
                      None is allowed for 3-element arrays (defaults to Vector3).
                      Required for other array shapes.
                      

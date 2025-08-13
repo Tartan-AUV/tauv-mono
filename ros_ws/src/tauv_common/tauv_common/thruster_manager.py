@@ -23,8 +23,8 @@ class ThrusterManager(Node):
         self._tf_buffer: tf2.Buffer = tf2.Buffer()
         self._tf_listener: tf2.TransformListener = tf2.TransformListener(self._tf_buffer, self)
 
-        self._wrench_sub = self.create_subscription(WrenchStamped, 'gnc/target_wrench', self._handle_wrench, 10)
-        self._target_thrust_pub = self.create_publisher(TargetThrust, 'gnc/target_thrust', 10)
+        self._wrench_sub = self.create_subscription(WrenchStamped, 'target_wrench', self._handle_wrench, 10)
+        self._target_thrust_pub = self.create_publisher(TargetThrust, 'target_thrust', 10)
         
         self._thruster_frames = [f"{TF_NAMESPACE}/thruster/{thruster_id}" for thruster_id in THRUSTER_IDS]
         self._n_thrusters = len(THRUSTER_IDS)

@@ -13,7 +13,6 @@ from rclpy.node import Node
 from rclpy.subscription import Subscription
 from rclpy.publisher import Publisher
 import numpy as np
-from numpy.typing import NDArray
 from typing import Optional
 from dataclasses import dataclass
 
@@ -29,10 +28,10 @@ class INDIParams:
     """Parameters for the INDI controller"""
 
     # Mass matrix
-    M: NDArray  # 6x6 matrix
+    M: np.ndarray  # 6x6 matrix
     
     # Proportional gain for outer loop
-    K_p: NDArray
+    K_p: np.ndarray
 
     # Control limits
     max_force: float = 1000.0   # Maximum force in N
@@ -78,8 +77,8 @@ class Controller(Node):
         self._frame_id = "os/body"
         
         # State variables
-        self._F_target_prev: NDArray = np.zeros((6, 1)) # Previous control input (6x1)
-        self._V_dI_B_filtered: Optional[NDArray] = None   # Filtered acceleration measurements (6x1)
+        self._F_target_prev: np.ndarray = np.zeros((6, 1)) # Previous control input (6x1)
+        self._V_dI_B_filtered: Optional[np.ndarray] = None   # Filtered acceleration measurements (6x1)
         self._last_nav_state: Optional[NavigationState] = None
         self._odom_T_body_latched: Optional[SE3] = None
         self._cmd: Optional[ControllerCommand] = None
@@ -128,7 +127,7 @@ class Controller(Node):
 
         self._update_filtered_acceleration(measured_accel)
         
-    def _update_filtered_acceleration(self, measured_accel: NDArray):
+    def _update_filtered_acceleration(self, measured_accel: np.ndarray):
         assert measured_accel.shape == (6, 1)
         assert np.all(np.isfinite(measured_accel))
 
@@ -139,7 +138,7 @@ class Controller(Node):
             self._V_dI_B_filtered = alpha * measured_accel + (1 - alpha) * self._V_dI_B_filtered
     
     @staticmethod
-    def _estimate_angular_acceleration(current_nav_state: NavigationState, last_nav_state: Optional[NavigationState]) -> Optional[NDArray]:
+    def _estimate_angular_acceleration(current_nav_state: NavigationState, last_nav_state: Optional[NavigationState]) -> Optional[np.ndarray]:
         """
         Compute angular acceleration from angular velocity with finite differences
         """
@@ -182,7 +181,7 @@ class Controller(Node):
         self._publish_wrench(F_target)
         self._publish_debug_message(V_dI_B_target, velocity_error, dF_target)
 
-    def _get_target_acceleration(self) -> tuple[NDArray, NDArray]:
+    def _get_target_acceleration(self) -> tuple[np.ndarray, np.ndarray]:
         """Outer loop: compute acceleration command from a body twist command
         
         This is a simple proportional controller with optional additive feedforward.
@@ -211,7 +210,7 @@ class Controller(Node):
         V_dI_B_target = V_dI_B_fb + V_dI_B_ff
         return V_dI_B_target, velocity_error
 
-    def _get_target_wrench_with_indi(self, V_dI_B_target: NDArray) -> tuple[NDArray, NDArray]:
+    def _get_target_wrench_with_indi(self, V_dI_B_target: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Inner loop: compute wrench command from acceleration command"""
         assert V_dI_B_target.shape == (6, 1)
 
@@ -232,7 +231,7 @@ class Controller(Node):
 
         return F_target, dF_target
     
-    def _apply_limits(self, wrench: NDArray) -> NDArray:
+    def _apply_limits(self, wrench: np.ndarray) -> np.ndarray:
         """Apply force and torque limits to the wrench command"""
         limited_wrench = wrench.copy()
         hit_limits = False
@@ -251,7 +250,7 @@ class Controller(Node):
         
         return limited_wrench, hit_limits
     
-    def _publish_wrench(self, wrench: NDArray, timestamp: Optional[Time] = None):
+    def _publish_wrench(self, wrench: np.ndarray, timestamp: Optional[Time] = None):
         """Publish the computed wrench command"""
         wrench_msg = WrenchStamped()
         if timestamp is None:
@@ -263,7 +262,7 @@ class Controller(Node):
         
         self._wrench_pub.publish(wrench_msg)
     
-    def _publish_debug_message(self, V_dI_B_target: NDArray, velocity_error: NDArray, dF_target: NDArray, timestamp: Optional[Time] = None):
+    def _publish_debug_message(self, V_dI_B_target: np.ndarray, velocity_error: np.ndarray, dF_target: np.ndarray, timestamp: Optional[Time] = None):
         """Publish debug information from the controller"""
         debug_msg = ControllerDebug()
         

@@ -42,7 +42,6 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import numpy as np
-from numpy.typing import NDArray
 import rclpy
 from rclpy.node import Node
 from rclpy.publisher import Publisher
@@ -285,7 +284,7 @@ class Commander(Node):
 
     def _compute_station_keep_command(self, nav: NavigationState) -> ControllerCommand:
         # Extract current pose
-        p_O: NDArray = np.array([
+        p_O: np.ndarray = np.array([
             nav.body_pose.position.x,
             nav.body_pose.position.y,
             nav.body_pose.position.z,
@@ -294,24 +293,24 @@ class Commander(Node):
 
         # Target pose
         q_OB_target: UnitQuaternion = self.odom_T_body_target.UnitQuaternion()
-        r_body_target_O: NDArray = self.odom_T_body_target.t.reshape(3, 1)
+        r_body_target_O: np.ndarray = self.odom_T_body_target.t.reshape(3, 1)
 
         # Position error in odom
-        e_pos_O: NDArray = r_body_target_O - p_O  # (3,1)
+        e_pos_O: np.ndarray = r_body_target_O - p_O  # (3,1)
 
         # Convert to body frame: e_B = R_BO * e_O
         R_OB = q_OB.SO3()  # rotation odom->body
-        e_pos_B: NDArray = R_OB.inv() * e_pos_O
+        e_pos_B: np.ndarray = R_OB.inv() * e_pos_O
 
         # Linear velocity target
-        v_B_target: NDArray = self.params.kp_pos * e_pos_B  # (3,1)
+        v_B_target: np.ndarray = self.params.kp_pos * e_pos_B  # (3,1)
 
         # Attitude error – quaternion representing rotation from current to desired
         q_err: UnitQuaternion = q_OB_target * q_OB.inv()
         theta, v = q_err.angvec()
         vec_err = v * theta
 
-        w_B_target: NDArray = self.params.kp_att * vec_err[:, np.newaxis]  # (3,1)
+        w_B_target: np.ndarray = self.params.kp_att * vec_err[:, np.newaxis]  # (3,1)
 
         # ------------------------------------------------------------------
         # Assemble ControllerCommand message

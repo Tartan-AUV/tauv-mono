@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.31)
+cmake_minimum_required(VERSION 3.22)
 project(tauv_vehicle)
 if (CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic)
@@ -100,7 +100,8 @@ install(
 
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
-        scripts/waterlinked_dvl.py
+        scripts/waterlinked_driver
+        scripts/lucid_driver
         DESTINATION lib/${PROJECT_NAME}
 )
 
