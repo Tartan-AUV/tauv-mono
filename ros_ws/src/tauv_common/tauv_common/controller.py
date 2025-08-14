@@ -22,6 +22,7 @@ from tauv_common.util.geometry import numpify, msgify
 from tauv_common.util.time import Time
 from spatialmath import SO3, SE3, UnitQuaternion
 from std_msgs.msg import Header
+import rclpy.logging
 
 @dataclass
 class INDIParams:
@@ -147,12 +148,14 @@ class Controller(Node):
             prev_timestamp = Time.from_msg(last_nav_state.header.stamp)
             dt = (curr_timestamp - prev_timestamp).to_sec()
             if dt <= 0.0:
+                logging.warning("Controller: dt <= 0.0")
                 return None
             omega_b = numpify(current_nav_state.omega_b)
             omega_b_prev = numpify(last_nav_state.omega_b)
             angular_accel = (omega_b - omega_b_prev) / dt
             return angular_accel
         else:
+            logging.warning("Controller: last_nav_state is None")
             return None
     
     def _control_loop(self):
@@ -165,10 +168,8 @@ class Controller(Node):
         elif self._V_dI_B_filtered is None:
             self._publish_wrench(np.zeros((6, 1)))
             return
-        elif self._cmd is None:
-            self.get_logger().warn("Controller: Missing controller command")
-            self._publish_wrench(np.zeros((6, 1)))
-            return
+        # elif self._cmd is None:
+        #     self.get_logger().warn("Controller: Missing controller command")
 
         # Run outer loop (velocity)
         V_dI_B_target, velocity_error = self._get_target_acceleration()
@@ -178,7 +179,7 @@ class Controller(Node):
 
         self._F_target_prev = F_target.copy()
         
-        self._publish_wrench(F_target)
+        # self._publish_wrench(F_target)
         self._publish_debug_message(V_dI_B_target, velocity_error, dF_target)
 
     def _get_target_acceleration(self) -> tuple[np.ndarray, np.ndarray]:
@@ -191,10 +192,19 @@ class Controller(Node):
         Returns:
             tuple: (target_acceleration, velocity_error)
         """
-        assert self._cmd is not None
+        # assert self._cmd is not None
 
-        V_B_target = numpify(self._cmd.target_twist)
-        V_B_current = numpify(self._last_nav_state.body_twist)
+        if self._cmd is None:
+            V_B_target = np.zeros((6, 1))
+            V_B_current = np.zeros((6, 1))
+            V_dI_B_ff = np.zeros((6, 1))
+        else:
+            V_B_target = numpify(self._cmd.target_twist)
+            V_B_current = numpify(self._last_nav_state.body_twist)
+            V_dI_B_ff = np.vstack([
+                numpify(self._cmd.feedforward_linear_accel), 
+                numpify(self._cmd.feedforward_angular_accel)
+            ])
         assert V_B_target.shape == (6, 1)
         assert V_B_current.shape == (6, 1)
         assert self.params.K_p.shape == (6, 1)
@@ -202,10 +212,6 @@ class Controller(Node):
         velocity_error = V_B_target - V_B_current
         V_dI_B_fb = self.params.K_p * velocity_error
         assert V_dI_B_fb.shape == (6, 1)
-        V_dI_B_ff = np.vstack([
-            numpify(self._cmd.feedforward_linear_accel), 
-            numpify(self._cmd.feedforward_angular_accel)
-        ])
         assert V_dI_B_ff.shape == (6, 1)
         V_dI_B_target = V_dI_B_fb + V_dI_B_ff
         return V_dI_B_target, velocity_error
@@ -226,8 +232,8 @@ class Controller(Node):
 
         # Apply control limits
         F_target, hit_limits = self._apply_limits(F_target)
-        if hit_limits:
-            self.get_logger().warn("Controller: Hit limits")
+        # if hit_limits:
+        #     self.get_logger().warn("Controller: Hit limits")
 
         return F_target, dF_target
     

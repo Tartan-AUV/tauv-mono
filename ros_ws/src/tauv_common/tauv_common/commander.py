@@ -88,7 +88,7 @@ class Commander(Node):
         # Parameters
         # ------------------------------------------------------------------
         self.params = Params()
-        self.odom_T_body_target: SE3 = SE3.Rt(SO3(), np.r_[0.0, 0.0, -8.0])
+        self.odom_T_body_target: SE3 = SE3.Rt(SO3(), np.r_[0.0, 0.0, 0.5])
 
         # ------------------------------------------------------------------
         # Internal state
@@ -124,7 +124,7 @@ class Commander(Node):
         )
 
         # Timer to republish last command at fixed rate (outer-loop frequency)
-        self._timer_period = 0.01  # 10 Hz
+        self._timer_period = 0.02  # 50 Hz
         self.create_timer(self._timer_period, self._timer_callback)
 
         self.get_logger().info("Commander initialised – station-keeping mode")

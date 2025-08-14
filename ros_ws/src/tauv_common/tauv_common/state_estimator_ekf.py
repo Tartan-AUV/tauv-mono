@@ -180,6 +180,8 @@ class EkfHistory:
         
         # Find latest state
         state_t, state_est = self._find_latest_state_before(t)
+        if state_est is None:
+            return
         
         # Find the closest control
         closest_control_t, closest_control = self._find_closest_control(t)
@@ -215,6 +217,8 @@ class EkfHistory:
         
         # 1. Find the latest state estimate before t
         state_t, state_est = self._find_latest_state_before(t)
+        if state_est is None:
+            return
         
         # 2. Find closest IMU/control for t
         closest_control_t, closest_control = self._find_closest_control(t)
@@ -250,6 +254,8 @@ class EkfHistory:
             elif mtype == MeasurementType.DEPTH:
                 # For simplicity, use the predicted depth value as a placeholder
                 latest_t, latest_est = self._find_latest_state_before(replay_t)
+                if latest_est is None:
+                    return
                 closest_control_t, closest_control_data = self._find_closest_control(replay_t)
                 dt_replay = replay_t - latest_t
                 x_pred = ekf.predict(latest_est[2], closest_control_data, dt_replay)
@@ -285,7 +291,8 @@ class EkfHistory:
         """Find latest state estimate before given time"""
         valid_times = [time for time in self.state_history.keys() if time < t]
         if not valid_times:
-            raise ValueError("No state estimate found before the given time")
+            self._logger.warning(f"No state estimate found before the given time {t}")
+            return None, None
         
         latest_time = max(valid_times)
         return latest_time, self.state_history[latest_time]
@@ -685,7 +692,7 @@ class StateEstimatorEkf(Node):
         a_gravity_O = np.c_[[0.0, 0.0, self.params.gravity]]
         a_gravity_B = odom_R_body.inv() * a_gravity_O
         a_sensor_S = latest_imu.a_S
-        a_body_B = body_R_sensor * a_sensor_S + a_gravity_B
+        a_body_B = a_sensor_S # + a_gravity_B
 
         # We assume that the body frame and IMU frame have the same origin
         omega_sensor_S = latest_imu.omega_S
