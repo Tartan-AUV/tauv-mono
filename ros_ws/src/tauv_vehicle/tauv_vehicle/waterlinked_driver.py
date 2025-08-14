@@ -1,18 +1,24 @@
-#!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
 import asyncio
 import json
 import time
+import numpy as np
 from std_msgs.msg import String
 from std_srvs.srv import Trigger
 from tauv_msgs.msg import WaterlinkedDvlFrame
 
-class WaterlinkedDVL(Node):
+class WaterlinkedDriver(Node):
 
     JSON_PROTOCOL_VERSION = "json_v3.1"
-
+    
+    # Float64 limits
+    FLOAT64_MAX = np.finfo(np.float64).max
+    FLOAT64_MIN = np.finfo(np.float64).min
+    
+    # Reasonable threshold for covariance values (adjust as needed)
+    COVARIANCE_WARNING_THRESHOLD = 1e6  # Warn when covariance exceeds this
+    
     def __init__(self):
         super().__init__("waterlinked_dvl")
         self.declare_parameter("speed_of_sound", 1481.0)
@@ -27,6 +33,10 @@ class WaterlinkedDVL(Node):
         self.reader = None
         self.writer = None
         self.awaiting_ack = False
+        
+        # Track excessive covariance warnings
+        self.excessive_covariance_count = 0
+        self.last_covariance_warning_time = 0
 
         self.packet_publisher = self.create_publisher(WaterlinkedDvlFrame, "dvl_frame", 10)
 
@@ -37,8 +47,10 @@ class WaterlinkedDVL(Node):
         try:
             self.reader, self.writer = await asyncio.open_connection(address, port)
             self.get_logger().info(f"Connected to {address}:{port}")
+            return True
         except Exception as e:
-            self.get_logger().error(f"Failed to connect: {e}")
+            self.get_logger().error(f"Failed to connect to {address}:{port}: {e}")
+            return False
 
     async def disconnect(self):
         if self.writer:
@@ -104,6 +116,10 @@ class WaterlinkedDVL(Node):
         self.get_logger().error("Failed to receive valid response within connection timeout.")
 
     async def listen_for_packets(self):
+        if not self.reader:
+            self.get_logger().error("Cannot listen for packets: not connected")
+            return
+        
         while rclpy.ok():
             try:
                 line = await self.reader.readline()
@@ -133,8 +149,49 @@ class WaterlinkedDVL(Node):
                 msg.status = int(packet["status"])
                 msg.time_of_validity = int(packet["time_of_validity"])
                 msg.time_of_transmission = int(packet["time_of_transmission"])
-                # Covariance
-                flat_cov = [c for row in packet["covariance"] for c in row]
+                
+                # Process covariance matrix with overflow handling
+                covariance_matrix = packet["covariance"]
+                flat_cov = []
+                has_excessive_values = False
+                max_cov_value = 0
+                
+                for row in covariance_matrix:
+                    for val in row:
+                        # Track maximum absolute value
+                        abs_val = abs(val) if not np.isinf(val) else float('inf')
+                        max_cov_value = max(max_cov_value, abs_val)
+                        
+                        # Check if value exceeds warning threshold
+                        if abs_val > self.COVARIANCE_WARNING_THRESHOLD:
+                            has_excessive_values = True
+                        
+                        # Clamp to float64 range
+                        if val > self.FLOAT64_MAX or np.isinf(val):
+                            clamped_val = self.FLOAT64_MAX
+                        elif val < self.FLOAT64_MIN or np.isneginf(val):
+                            clamped_val = self.FLOAT64_MIN
+                        elif np.isnan(val):
+                            # Handle NaN values - use a large but finite value
+                            clamped_val = self.FLOAT64_MAX
+                            self.get_logger().warn("NaN value detected in covariance matrix")
+                        else:
+                            clamped_val = float(val)
+                        
+                        flat_cov.append(clamped_val)
+                
+                # Log warning for excessive covariance (rate-limited to once per second)
+                if has_excessive_values:
+                    self.excessive_covariance_count += 1
+                    current_time = time.time()
+                    if current_time - self.last_covariance_warning_time > 1.0:
+                        self.get_logger().error(
+                            f"Excessive covariance detected! Max value: {max_cov_value:.2e}, "
+                            f"threshold: {self.COVARIANCE_WARNING_THRESHOLD:.2e}. "
+                            f"Total occurrences: {self.excessive_covariance_count}"
+                        )
+                        self.last_covariance_warning_time = current_time
+                
                 msg.covariance = flat_cov
                 # Transducers (assumes fixed size of 4)
                 for i, t in enumerate(packet["transducers"]):
@@ -152,10 +209,13 @@ class WaterlinkedDVL(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = WaterlinkedDVL()
+    node = WaterlinkedDriver()
 
     async def runner():
-        await node.connect()
+        if not await node.connect():
+            node.get_logger().error("Failed to establish connection. Exiting.")
+            return
+        
         await node.upload_config()
 
         asyncio.create_task(node.listen_for_packets())
@@ -170,5 +230,3 @@ def main(args=None):
     finally:
         rclpy.shutdown()
 
-if __name__ == '__main__':
-    main()

@@ -38,8 +38,8 @@ class WrenchKeyboardNode(Node):
         self.torque_z = 0.0  # Yaw
         
         # Magnitudes
-        self.force_magnitude = 100.0  # N
-        self.torque_magnitude = 100.0  # Nm
+        self.force_magnitude = 400.0  # N
+        self.torque_magnitude = 200.0  # Nm
         
         # Terminal settings for keyboard input
         self.settings = termios.tcgetattr(sys.stdin)

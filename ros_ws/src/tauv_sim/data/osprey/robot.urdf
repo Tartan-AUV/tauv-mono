@@ -80,7 +80,7 @@
         <mesh filename="package://assets/os_hull.stl"/>
       </geometry>
       <material name="os_hull_material">
-        <color rgba="0.498039 0.498039 0.498039 1"/>
+        <color rgba="0.498039 0.498039 0.498039 0.509804"/>
       </material>
     </visual>
     <collision>
@@ -302,7 +302,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/frv_frame" type="fixed">
-    <origin xyz="-0.094181 -0.24585 0.0230414" rpy="1.10637e-15 -1.5708 0"/>
+    <origin xyz="-0.094181 -0.24585 0.0230414" rpy="3.14159 1.5708 0"/>
     <parent link="os_hull"/>
     <child link="os/thruster/frv"/>
     <axis xyz="0 0 0"/>
@@ -317,7 +317,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/arv_frame" type="fixed">
-    <origin xyz="0.094181 -0.24585 0.0230414" rpy="1.5708 -1.5708 0"/>
+    <origin xyz="0.094181 -0.24585 0.0230414" rpy="-1.5708 1.5708 0"/>
     <parent link="os_hull"/>
     <child link="os/thruster/arv"/>
     <axis xyz="0 0 0"/>
@@ -392,7 +392,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/alv_frame" type="fixed">
-    <origin xyz="0.094181 0.24585 0.0230414" rpy="3.14159 -1.5708 0"/>
+    <origin xyz="0.094181 0.24585 0.0230414" rpy="9.8687e-17 1.5708 0"/>
     <parent link="os_hull"/>
     <child link="os/thruster/alv"/>
     <axis xyz="0 0 0"/>
@@ -407,7 +407,7 @@
     </inertial>
   </link>
   <joint name="os/thruster/flv_frame" type="fixed">
-    <origin xyz="-0.094181 0.24585 0.0230414" rpy="3.14159 -1.5708 0"/>
+    <origin xyz="-0.094181 0.24585 0.0230414" rpy="9.8687e-17 1.5708 0"/>
     <parent link="os_hull"/>
     <child link="os/thruster/flv"/>
     <axis xyz="0 0 0"/>
@@ -545,7 +545,7 @@
     </inertial>
   </link>
   <joint name="os/arm/intake_frame" type="fixed">
-    <origin xyz="2.08167e-16 -0.1397 -0.0587375" rpy="1.5708 -1.5708 0"/>
+    <origin xyz="1.52656e-16 -0.1397 -0.0587375" rpy="1.5708 -1.5708 0"/>
     <parent link="os_arm_tube"/>
     <child link="os/arm/intake"/>
     <axis xyz="0 0 0"/>
@@ -581,5 +581,37 @@
     <child link="os_arm_link"/>
     <axis xyz="0 0 1"/>
     <limit effort="10" velocity="10" lower="0" upper="2.79253"/>
+  </joint>
+  <!-- Link frame -->
+  <link name="frame">
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1e-09"/>
+      <inertia ixx="1e-09" ixy="0" ixz="0" iyy="1e-09" iyz="0" izz="1e-09"/>
+    </inertial>
+    <!-- Part frame -->
+    <visual>
+      <origin xyz="-1.28537e-52 1.53081e-19 0" rpy="3.14159 -0 0"/>
+      <geometry>
+        <mesh filename="package://assets/frame.stl"/>
+      </geometry>
+      <material name="frame_material">
+        <color rgba="0.917647 0.917647 0.917647 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin xyz="-1.28537e-52 1.53081e-19 0" rpy="3.14159 -0 0"/>
+      <geometry>
+        <mesh filename="package://assets/frame.stl"/>
+      </geometry>
+    </collision>
+  </link>
+  <!-- Joint from os_hull to frame -->
+  <joint name="os/body" type="fixed">
+    <origin xyz="9.3735e-36 -1.53081e-19 0" rpy="3.14159 -0 -3.14159"/>
+    <parent link="os_hull"/>
+    <child link="frame"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="10" velocity="10"/>
   </joint>
 </robot>

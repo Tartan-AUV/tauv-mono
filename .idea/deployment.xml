@@ -3,6 +3,23 @@
   <component name="PublishConfigData" autoUpload="Always" serverName="osprey" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
+      <paths name="desktop-jetson">
+        <serverdata>
+          <mappings>
+            <mapping deploy="tauv-mono" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/firmware" />
+            <excludedPath local="true" path="$PROJECT_DIR$/ros_ws/src/tauv_sim" />
+            <excludedPath local="true" path="$PROJECT_DIR$/ros_ws/src/stonefish_ros2" />
+            <excludedPath local="true" path="$PROJECT_DIR$/tools" />
+            <excludedPath local="true" path="$PROJECT_DIR$/third-party/stonefish" />
+            <excludedPath local="true" path="$PROJECT_DIR$/ros_ws/build" />
+            <excludedPath local="true" path="$PROJECT_DIR$/ros_ws/install" />
+            <excludedPath local="true" path="$PROJECT_DIR$/ros_ws/logs" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
       <paths name="osprey">
         <serverdata>
           <mappings>

@@ -19,8 +19,8 @@ class ThrusterController(Node):
     def __init__(self):
         super().__init__("thruster_controller")
 
-        self._target_thrust_sub = self.create_subscription(TargetThrust, "gnc/target_thrust", self._handle_target_thrust, 10)
-        self._thruster_setpoint_pub = self.create_publisher(ThrusterSetpoint, "vehicle/actuators/thruster_setpoint", 10)
+        self._target_thrust_sub = self.create_subscription(TargetThrust, "target_thrust", self._handle_target_thrust, 10)
+        self._thruster_setpoint_pub = self.create_publisher(ThrusterSetpoint, "thruster_setpoint", 10)
 
     def _get_omega(self, f: float) -> float:
         return np.sqrt(min(MAX_SETPOINT, abs(f)) / THRUST_COEFF_REV) * np.sign(f)

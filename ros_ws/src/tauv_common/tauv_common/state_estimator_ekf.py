@@ -9,7 +9,6 @@ from rclpy.publisher import Publisher
 from rclpy.time import Time
 
 import numpy as np
-from numpy.typing import NDArray
 from typing import Optional, Tuple, Dict, List, Deque, Any, Union
 from dataclasses import asdict, dataclass
 from enum import Enum
@@ -43,8 +42,8 @@ def stamp_to_nanos(stamp: Any) -> int:
 @dataclass
 class EkfControl:
     odom_R_sensor: SO3
-    a_S: NDArray
-    omega_S: NDArray
+    a_S: np.ndarray
+    omega_S: np.ndarray
 
     @staticmethod
     def from_msg(msg: ImuMsg) -> 'EkfControl':
@@ -60,8 +59,8 @@ class EkfControl:
 @dataclass
 class DvlInput:
     """DVL measurement input"""
-    v_dvl_V: NDArray  # Velocity in DVL frame
-    R: NDArray        # Measurement covariance
+    v_dvl_V: np.ndarray  # Velocity in DVL frame
+    R: np.ndarray        # Measurement covariance
 
     @staticmethod
     def from_msg(msg: DvlMsg) -> 'DvlInput':
@@ -74,8 +73,8 @@ class DvlInput:
 @dataclass
 class DepthInput:
     """Depth measurement input"""
-    z: NDArray          # Depth measurement (1, 1)
-    R: NDArray          # Measurement variance (1, 1)
+    z: np.ndarray          # Depth measurement (1, 1)
+    R: np.ndarray          # Measurement variance (1, 1)
 
     @staticmethod
     def from_msg(msg: DepthMsg) -> 'DepthInput':
@@ -116,7 +115,7 @@ class EkfParams:
 @dataclass
 class EkfStaticTransforms:
     """Static transforms for the EKF"""
-    r_body_depth_B: NDArray
+    r_body_depth_B: np.ndarray
     body_T_dvl: SE3
     body_T_imu: SE3
 
@@ -137,7 +136,7 @@ class EkfHistory:
         # Initialize
         self.control_history: Deque[Tuple[int, EkfControl]] = deque(maxlen=max_length)
         # t -> (MeasurementType, Measurement, State, Covariance)
-        self.state_history: Dict[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], NDArray, NDArray]] = {}
+        self.state_history: Dict[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], np.ndarray, np.ndarray]] = {}
         self.last_depth_t: int = t_depth
         self.last_dvl_t: int = t_dvl
         self.last_imu_t: int = t_imu
@@ -191,7 +190,7 @@ class EkfHistory:
         P_pred = ekf.predict_cov(state_est[3], closest_control, dt)
         
         # Apply depth update
-        z_pred: NDArray = ekf.h_depth(x_pred, closest_control)
+        z_pred: np.ndarray = ekf.h_depth(x_pred, closest_control)
 
         x_updated, P_updated = ekf.update(x_pred, P_pred, depth.z, depth.R, z_pred, ekf.H_depth)
 
@@ -282,7 +281,7 @@ class EkfHistory:
         idx = min(range(len(times)), key=lambda i: abs(times[i] - t))
         return self.control_history[idx]
     
-    def _find_latest_state_before(self, t: int) -> Tuple[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], NDArray, NDArray]]:
+    def _find_latest_state_before(self, t: int) -> Tuple[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], np.ndarray, np.ndarray]]:
         """Find latest state estimate before given time"""
         valid_times = [time for time in self.state_history.keys() if time < t]
         if not valid_times:
@@ -291,7 +290,7 @@ class EkfHistory:
         latest_time = max(valid_times)
         return latest_time, self.state_history[latest_time]
     
-    def get_latest_state(self) -> Optional[Tuple[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], NDArray, NDArray]]]:
+    def get_latest_state(self) -> Optional[Tuple[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], np.ndarray, np.ndarray]]]:
         """Get the current best estimate (latest state)"""
         if not self.state_history:
             return None
@@ -312,9 +311,9 @@ class Ekf:
     
     def __init__(self, params: EkfParams, transforms: EkfStaticTransforms, logger: Logger):
         """Initialize EKF with parameters and transforms"""
-        self._r_body_depth_B: NDArray = transforms.r_body_depth_B
+        self._r_body_depth_B: np.ndarray = transforms.r_body_depth_B
         dvl_T_body: SE3 = transforms.body_T_dvl.inv()
-        self._dvl_J_body: NDArray = dvl_T_body.jacob()
+        self._dvl_J_body: np.ndarray = dvl_T_body.jacob()
         # TODO: remove this
         assert not np.allclose(transforms.body_T_imu.t, 0)
         self._body_T_imu: SE3 = transforms.body_T_imu
@@ -337,7 +336,7 @@ class Ekf:
         # Logger
         self._logger = logger
     
-    def predict(self, xkm1: NDArray, uk: EkfControl, dt: int) -> NDArray:
+    def predict(self, xkm1: np.ndarray, uk: EkfControl, dt: int) -> np.ndarray:
         assert xkm1.shape == (6, 1) and uk.is_valid() and dt > 0
 
         dt_seconds = dt * 1e-9
@@ -371,7 +370,7 @@ class Ekf:
 
         return np.vstack((r_body_k_O, v_body_k_B))
 
-    def predict_cov(self, Pkm1: NDArray, uk: EkfControl, dt: int) -> NDArray:
+    def predict_cov(self, Pkm1: np.ndarray, uk: EkfControl, dt: int) -> np.ndarray:
         """Predict covariance"""
         assert Pkm1.shape == (6, 6)
 
@@ -386,8 +385,8 @@ class Ekf:
         Pk = F @ Pkm1 @ F.T + self._Qc * np.sqrt(dt)
         return Pk
 
-    def update(self, xk_hat: NDArray, Pk_hat: NDArray, zk: NDArray,
-               Rk: NDArray, zk_hat: NDArray, H: NDArray) -> Tuple[NDArray, NDArray]:
+    def update(self, xk_hat: np.ndarray, Pk_hat: np.ndarray, zk: np.ndarray,
+               Rk: np.ndarray, zk_hat: np.ndarray, H: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Update state and covariance with measurement"""
         assert xk_hat.shape == (6, 1) and Pk_hat.shape == (6, 6)
         assert zk.shape == zk_hat.shape and zk.shape[1] == 1 and len(zk.shape) == 2
@@ -412,7 +411,7 @@ class Ekf:
 
         return xk, Pk
     
-    def h_dvl(self, xk: NDArray, uk: EkfControl) -> NDArray:
+    def h_dvl(self, xk: np.ndarray, uk: EkfControl) -> np.ndarray:
         assert xk.shape == (6, 1) and uk.is_valid()
 
         # Transform velocity to body frame
@@ -427,7 +426,7 @@ class Ekf:
         V_dvl_V = (self._dvl_J_body @ V_body_B)
         return V_dvl_V[:3]
 
-    def h_depth(self, xk: NDArray, uk: EkfControl) -> NDArray:
+    def h_depth(self, xk: np.ndarray, uk: EkfControl) -> np.ndarray:
         assert xk.shape == (6, 1) and uk.is_valid()
 
         r_body_O = xk[:3]
@@ -440,11 +439,11 @@ class Ekf:
         return np.array(r_odom_depth_O[2:3])
 
     @property
-    def H_depth(self) -> NDArray:
+    def H_depth(self) -> np.ndarray:
         return self._H_depth
 
     @property
-    def H_dvl(self) -> NDArray:
+    def H_dvl(self) -> np.ndarray:
         return self._H_dvl
 
 
