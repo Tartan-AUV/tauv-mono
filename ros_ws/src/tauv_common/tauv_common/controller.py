@@ -35,6 +35,9 @@ class INDIParams:
     
     # Proportional gain for outer loop
     K_p: np.ndarray
+    
+    # Derivative gain for outer loop (damping)
+    K_d: np.ndarray
 
     # Control limits
     max_force: float = 1000.0   # Maximum force in N
@@ -42,8 +45,8 @@ class INDIParams:
 
     # Filtering parameters for acceleration measurements
     # Elliptical filter parameters
-    linear_accel_cutoff: float = 4.0   # Passband edge frequency for linear acceleration filter (Hz)
-    angular_accel_cutoff: float = 4.0  # Passband edge frequency for angular acceleration filter (Hz)
+    linear_accel_cutoff: float = 15.0   # Passband edge frequency for linear acceleration filter (Hz)
+    angular_accel_cutoff: float = 15.0  # Passband edge frequency for angular acceleration filter (Hz)
     linear_accel_stopband: float = 20.0  # Stopband edge frequency for linear acceleration filter (Hz)
     angular_accel_stopband: float = 20.0 # Stopband edge frequency for angular acceleration filter (Hz)
     passband_ripple: float = 1.0        # Passband ripple in dB
@@ -64,8 +67,9 @@ class INDIParams:
         M[3:6, 3:6] = inertia  
 
         K_p = np.c_[[0.3, 0.3, 0.3, 0.1, 0.1, 0.1]]
+        K_d = np.c_[[0.1, 0.1, 0.1, 0.05, 0.05, 0.05]]  # Damping gains
 
-        return cls(M=M, K_p=K_p)
+        return cls(M=M, K_p=K_p, K_d=K_d)
 
 class Controller(Node):
     """
@@ -142,7 +146,7 @@ class Controller(Node):
         )
         
         self._wrench_pub = self.create_publisher(
-            WrenchStamped, 'gnc/target_wrench_test', 10
+            WrenchStamped, 'gnc/target_wrench', 10
         )
         
         self._debug_pub = self.create_publisher(
@@ -238,7 +242,8 @@ class Controller(Node):
                 return None
             omega_b = numpify(current_nav_state.body_twist.angular)
             omega_b_prev = numpify(last_nav_state.body_twist.angular)
-            angular_accel = (omega_b - omega_b_prev) / 0.01
+            # TODO: use dt from nav_state
+            angular_accel = (omega_b - omega_b_prev) / 0.02
             return angular_accel
         else:
             logging.warning("Controller: last_nav_state is None")
@@ -271,9 +276,9 @@ class Controller(Node):
     def _get_target_acceleration(self) -> tuple[np.ndarray, np.ndarray]:
         """Outer loop: compute acceleration command from a body twist command
         
-        This is a simple proportional controller with optional additive feedforward.
+        This is a PD controller with optional additive feedforward and damping.
 
-        V_dI_B = K_p * (V_B_target - V_B_current) + V_dI_B_feedforward
+        V_dI_B = K_p * (V_B_target - V_B_current) - K_d * V_B_current_accel + V_dI_B_feedforward
         
         Returns:
             tuple: (target_acceleration, velocity_error)
@@ -281,8 +286,11 @@ class Controller(Node):
         # assert self._cmd is not None
 
         V_B_current = numpify(self._last_nav_state.body_twist)
+        # Use filtered acceleration for damping term
+        V_B_current_accel = self._V_dI_B_filtered.copy()  # Already contains filtered [linear; angular] acceleration
+        
         if self._cmd is None:
-            V_B_target = np.c_[[0.0, 0.0, -0.1, 0.0, 0.0, 0.0]]
+            V_B_target = np.c_[[0.0, 0.0, 0.0, 0.0, 0.0, 0.3]]
             V_dI_B_ff = np.zeros((6, 1))
         else:
             V_B_target = numpify(self._cmd.target_twist)
@@ -292,13 +300,17 @@ class Controller(Node):
             ])
         assert V_B_target.shape == (6, 1)
         assert V_B_current.shape == (6, 1)
+        assert V_B_current_accel.shape == (6, 1)
         assert self.params.K_p.shape == (6, 1)
+        assert self.params.K_d.shape == (6, 1)
 
         velocity_error = V_B_target - V_B_current
         V_dI_B_fb = self.params.K_p * velocity_error
+        V_dI_B_damping = -self.params.K_d * V_B_current_accel  # Damping term
         assert V_dI_B_fb.shape == (6, 1)
+        assert V_dI_B_damping.shape == (6, 1)
         assert V_dI_B_ff.shape == (6, 1)
-        V_dI_B_target = V_dI_B_fb + V_dI_B_ff
+        V_dI_B_target = V_dI_B_fb + V_dI_B_damping + V_dI_B_ff
         return V_dI_B_target, velocity_error
 
     def _get_target_wrench_with_indi(self, V_dI_B_target: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

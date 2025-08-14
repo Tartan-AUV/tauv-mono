@@ -354,8 +354,8 @@ class Ekf:
         a_body_B = body_R_imu * uk.a_S - np.cross(omega_B_flat, np.cross(omega_B_flat, r_sensor__body_B)).reshape(3, 1)
         
         a_body_O = odom_R_body * a_body_B
-        # a_body_O_free = a_body_O + self._a_g_O
-        a_body_O_free = a_body_O
+        a_body_O_free = a_body_O + self._a_g_O
+        # a_body_O_free = a_body_O
 
 
         # Position update: r = r + v*dt + 0.5*a*dt^2

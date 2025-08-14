@@ -22,15 +22,15 @@ class WrenchTestNode(Node):
         self.timer = self.create_timer(0.01, self.publish_wrench)  # 100 Hz
         
         # Timer for toggling wrench on/off
-        self.toggle_timer = self.create_timer(5.0, self.toggle_wrench)  # 1 Hz toggle
+        self.toggle_timer = self.create_timer(1000.0, self.toggle_wrench)  # 1 Hz toggle
         
         # Wrench toggle state
         self.wrench_enabled = True
         
         # Hardcoded wrench values (in NED frame)
-        self.force_x = 10.0   # North (N)
+        self.force_x = 0.0   # North (N)
         self.force_y = 0.0    # East (N)
-        self.force_z = 0.0   # Up (N, negative down)
+        self.force_z = -30.0   # Up (N, negative down)
         self.torque_x = 0.0   # Roll (Nm)
         self.torque_y = 0.0   # Pitch (Nm)
         self.torque_z = 0.0   # Yaw (Nm)
