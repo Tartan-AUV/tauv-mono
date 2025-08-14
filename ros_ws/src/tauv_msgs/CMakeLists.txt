@@ -25,6 +25,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ControllerDebug.msg"
   "srv/Goto.srv"
   "srv/SetTrajectory.srv"
+  "action/GotoVelocity.action"
   DEPENDENCIES std_msgs geometry_msgs
 )
 
