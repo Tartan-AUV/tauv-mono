@@ -15,6 +15,8 @@ from rclpy.publisher import Publisher
 import numpy as np
 from typing import Optional
 from dataclasses import dataclass
+from scipy import signal
+from scipy.signal import ellipord, ellip, sosfilt, sosfilt_zi
 
 from geometry_msgs.msg import WrenchStamped, Wrench, Vector3, Accel
 from tauv_msgs.msg import NavigationState, ControllerDebug, ControllerCommand
@@ -39,14 +41,22 @@ class INDIParams:
     max_torque: float = 500.0   # Maximum torque in N⋅m
 
     # Filtering parameters for acceleration measurements
-    accel_filter_alpha: float = 0.5  # Low-pass filter coefficient (0 = no filter, 1 = full filter)
+    # Elliptical filter parameters
+    linear_accel_cutoff: float = 4.0   # Passband edge frequency for linear acceleration filter (Hz)
+    angular_accel_cutoff: float = 4.0  # Passband edge frequency for angular acceleration filter (Hz)
+    linear_accel_stopband: float = 20.0  # Stopband edge frequency for linear acceleration filter (Hz)
+    angular_accel_stopband: float = 20.0 # Stopband edge frequency for angular acceleration filter (Hz)
+    passband_ripple: float = 1.0        # Passband ripple in dB
+    stopband_attenuation: float = 60.0  # Stopband attenuation in dB
+    filter_order: int = 3               # Fixed elliptical filter order for low latency
+    sampling_freq: float = 50.0         # Expected sampling frequency (Hz)
 
     @classmethod
     def default(cls) -> 'INDIParams':
         """Create default INDI parameters with a simple diagonal control effectiveness matrix"""
         # Simple diagonal matrix - assumes direct relationship between forces/torques and accelerations
         # This is a rough approximation that should be identified from system data
-        mass = np.diag([23.0, 23.0, 23.0])  # kg - estimated vehicle mass
+        mass = np.diag([27.0, 27.0, 27.0])  # kg - estimated vehicle mass
         inertia = np.diag([0.566407, 0.556752, 0.824859])  # kg⋅m² - estimated moments of inertia
         
         M = np.zeros((6, 6))
@@ -84,6 +94,44 @@ class Controller(Node):
         self._odom_T_body_latched: Optional[SE3] = None
         self._cmd: Optional[ControllerCommand] = None
         
+        # Initialize Elliptical SOS filters for acceleration
+        # Create separate filters for linear and angular acceleration
+        nyquist_freq = self.params.sampling_freq / 2.0
+        
+        # Linear acceleration filter (3 channels)
+        linear_wp = self.params.linear_accel_cutoff / nyquist_freq  # normalized passband edge
+        linear_ws = self.params.linear_accel_stopband / nyquist_freq  # normalized stopband edge
+        self._linear_filter_sos = ellip(
+            self.params.filter_order,
+            self.params.passband_ripple,
+            self.params.stopband_attenuation,
+            linear_wp,
+            btype='lowpass',
+            output='sos'
+        )
+        # Initialize filter states for 3 linear acceleration channels
+        self._linear_filter_states = [
+            sosfilt_zi(self._linear_filter_sos) * 0.0 
+            for _ in range(3)
+        ]
+        
+        # Angular acceleration filter (3 channels)
+        angular_wp = self.params.angular_accel_cutoff / nyquist_freq  # normalized passband edge
+        angular_ws = self.params.angular_accel_stopband / nyquist_freq  # normalized stopband edge
+        self._angular_filter_sos = ellip(
+            self.params.filter_order,
+            self.params.passband_ripple,
+            self.params.stopband_attenuation,
+            angular_wp,
+            btype='lowpass',
+            output='sos'
+        )
+        # Initialize filter states for 3 angular acceleration channels
+        self._angular_filter_states = [
+            sosfilt_zi(self._angular_filter_sos) * 0.0 
+            for _ in range(3)
+        ]
+        
         # ROS2 interfaces
         self._cmd_sub = self.create_subscription(
             ControllerCommand, 'gnc/controller_command', self._handle_cmd, 10
@@ -94,7 +142,7 @@ class Controller(Node):
         )
         
         self._wrench_pub = self.create_publisher(
-            WrenchStamped, 'gnc/target_wrench', 10
+            WrenchStamped, 'gnc/target_wrench_test', 10
         )
         
         self._debug_pub = self.create_publisher(
@@ -104,7 +152,15 @@ class Controller(Node):
         # Control loop timer (50 Hz)
         self._control_timer = self.create_timer(0.02, self._control_loop)
         
-        self.get_logger().info("Controller initialized")
+        self.get_logger().info(f"Controller initialized with elliptical SOS filters: "
+                              f"linear_cutoff={self.params.linear_accel_cutoff}Hz, "
+                              f"linear_stopband={self.params.linear_accel_stopband}Hz, "
+                              f"angular_cutoff={self.params.angular_accel_cutoff}Hz, "
+                              f"angular_stopband={self.params.angular_accel_stopband}Hz, "
+                              f"order={self.params.filter_order}, "
+                              f"passband_ripple={self.params.passband_ripple}dB, "
+                              f"stopband_attenuation={self.params.stopband_attenuation}dB, "
+                              f"sampling_freq={self.params.sampling_freq}Hz")
     
     def _handle_cmd(self, msg: ControllerCommand):
         """Handle incoming acceleration command"""
@@ -129,14 +185,44 @@ class Controller(Node):
         self._update_filtered_acceleration(measured_accel)
         
     def _update_filtered_acceleration(self, measured_accel: np.ndarray):
+        """Apply SOS elliptical filters to acceleration measurements
+        
+        Uses separate elliptical filters for linear and angular acceleration components
+        with configurable passband and stopband frequencies, providing sharp cutoff
+        characteristics with minimal passband ripple.
+        """
         assert measured_accel.shape == (6, 1)
         assert np.all(np.isfinite(measured_accel))
 
+        # Initialize filtered acceleration array
+        filtered_accel = np.zeros((6, 1))
+        
+        # Filter linear acceleration (first 3 components)
+        for i in range(3):
+            # Apply elliptical SOS filter to each channel separately
+            filtered_value, self._linear_filter_states[i] = sosfilt(
+                self._linear_filter_sos,
+                [measured_accel[i, 0]],  # Input as 1D array
+                zi=self._linear_filter_states[i]
+            )
+            filtered_accel[i, 0] = filtered_value[0]
+        
+        # Filter angular acceleration (last 3 components)
+        for i in range(3):
+            # Apply elliptical SOS filter to each channel separately
+            filtered_value, self._angular_filter_states[i] = sosfilt(
+                self._angular_filter_sos,
+                [measured_accel[i+3, 0]],  # Input as 1D array
+                zi=self._angular_filter_states[i]
+            )
+            filtered_accel[i+3, 0] = filtered_value[0]
+        
+        # Update the filtered acceleration state
         if self._V_dI_B_filtered is None:
-            self._V_dI_B_filtered = measured_accel
+            # First measurement - initialize with filtered value
+            self._V_dI_B_filtered = filtered_accel
         else:
-            alpha = self.params.accel_filter_alpha
-            self._V_dI_B_filtered = alpha * measured_accel + (1 - alpha) * self._V_dI_B_filtered
+            self._V_dI_B_filtered = filtered_accel
     
     @staticmethod
     def _estimate_angular_acceleration(current_nav_state: NavigationState, last_nav_state: Optional[NavigationState]) -> Optional[np.ndarray]:
@@ -152,7 +238,7 @@ class Controller(Node):
                 return None
             omega_b = numpify(current_nav_state.body_twist.angular)
             omega_b_prev = numpify(last_nav_state.body_twist.angular)
-            angular_accel = (omega_b - omega_b_prev) / dt
+            angular_accel = (omega_b - omega_b_prev) / 0.01
             return angular_accel
         else:
             logging.warning("Controller: last_nav_state is None")
@@ -196,7 +282,7 @@ class Controller(Node):
 
         V_B_current = numpify(self._last_nav_state.body_twist)
         if self._cmd is None:
-            V_B_target = np.zeros((6, 1))
+            V_B_target = np.c_[[0.0, 0.0, -0.1, 0.0, 0.0, 0.0]]
             V_dI_B_ff = np.zeros((6, 1))
         else:
             V_B_target = numpify(self._cmd.target_twist)

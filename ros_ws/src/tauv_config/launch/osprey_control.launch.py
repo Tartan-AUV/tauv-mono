@@ -33,7 +33,7 @@ def generate_launch_description():
                 output='screen',
                 # No remapping needed - topics are already in gnc namespace
                 parameters=[{
-                    'accel_filter_alpha': 0.8,
+                    'accel_filter_alpha': 0.5,
                     'max_force': 100.0,
                     'max_torque': 50.0
                 }]

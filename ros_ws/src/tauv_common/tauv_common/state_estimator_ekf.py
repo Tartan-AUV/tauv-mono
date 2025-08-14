@@ -122,23 +122,16 @@ class EkfStaticTransforms:
 class EkfHistory:
     """History management for the EKF"""
     
-    def __init__(self, t_depth: int, t_dvl: int, t_imu: int,
-                depth: DepthInput, dvl: DvlInput, imu: EkfControl,
-                params: EkfParams, max_length: int, logger: Logger):
-
-        # Validate inputs
-        # max_dt: int = 200_000_000  # 200ms maximum time difference between measurements
-        # if (abs(t_depth - t_dvl) > max_dt or
-        #         abs(t_depth - t_imu) > max_dt or
-        #         abs(t_imu - t_dvl) > max_dt):
-        #     raise ValueError("Initial measurements are too far apart in time")
+    def __init__(self, t_depth: int, t_imu: int, depth: DepthInput, imu: EkfControl,
+                params: EkfParams, max_length: int, logger: Logger,
+                t_dvl: Optional[int] = None, dvl: Optional[DvlInput] = None):
 
         # Initialize
         self.control_history: Deque[Tuple[int, EkfControl]] = deque(maxlen=max_length)
         # t -> (MeasurementType, Measurement, State, Covariance)
         self.state_history: Dict[int, Tuple[MeasurementType, Union[DepthInput, DvlInput], np.ndarray, np.ndarray]] = {}
         self.last_depth_t: int = t_depth
-        self.last_dvl_t: int = t_dvl
+        self.last_dvl_t: int = t_dvl if t_dvl is not None else 0
         self.last_imu_t: int = t_imu
 
         # Initialize state using depth measurement
@@ -152,7 +145,10 @@ class EkfHistory:
 
         # Add initial states
         self.state_history[t_depth] = (MeasurementType.DEPTH, depth, state, cov)
-        self.state_history[t_dvl] = (MeasurementType.DVL, dvl, state, cov)
+        
+        # Only add DVL state if DVL measurement is provided
+        if t_dvl is not None and dvl is not None:
+            self.state_history[t_dvl] = (MeasurementType.DVL, dvl, state, cov)
 
         self._logger = logger
 
@@ -585,10 +581,12 @@ class StateEstimatorEkf(Node):
         """Main processing loop"""
         self.get_logger().info("EKF processing thread started, waiting for first measurements...")
         
-        # Wait for initial measurements
+        # Wait for initial measurements (only depth and IMU required)
         depth_input_stamped = None
-        dvl_input_stamped = None
         imu_input_stamped = None
+        
+        # Store any DVL measurements that arrive before initialization
+        pending_dvl_measurements = []
         
         while rclpy.ok():
             try:
@@ -599,43 +597,55 @@ class StateEstimatorEkf(Node):
                 if input_type == EkfInput.DEPTH:
                     depth_input_stamped = (t, data)
                 elif input_type == EkfInput.DVL:
-                    dvl_input_stamped = (t, data)
+                    # Store DVL measurements that arrive before initialization
+                    pending_dvl_measurements.append((t, data))
                 elif input_type == EkfInput.IMU:
                     imu_input_stamped = (t, data)
                 
+                # Only wait for depth and IMU to start
                 if (depth_input_stamped is not None and 
-                    dvl_input_stamped is not None and 
                     imu_input_stamped is not None):
                     break
                     
             except queue.Empty:
                 continue
         
-        # Initialize history
-        if (depth_input_stamped is None or dvl_input_stamped is None or imu_input_stamped is None):
-            self.get_logger().error("Failed to get initial measurements")
+        # Initialize history with depth and IMU only
+        if (depth_input_stamped is None or imu_input_stamped is None):
+            self.get_logger().error("Failed to get initial depth and IMU measurements")
             return
             
         t_depth, depth_input = depth_input_stamped
-        t_dvl, dvl_input = dvl_input_stamped
         t_imu, imu_input = imu_input_stamped
         
         try:
             self.history = EkfHistory(
                 t_depth,
-                t_dvl,
                 t_imu,
                 depth_input,
-                dvl_input,
                 imu_input,
                 self.params,
                 50,
                 self.get_logger()
             )
-            self.get_logger().info("EKF history initialized")
+            self.get_logger().info("EKF history initialized without DVL - ready to publish navigation state")
+            
+            # Publish initial navigation state
+            self._publish_navigation_state()
+            
         except ValueError as e:
             self.get_logger().error(f"Failed to initialize EKF history: {e}")
             return
+        
+        # Process any pending DVL measurements that arrived before initialization
+        for t_dvl, dvl_data in pending_dvl_measurements:
+            try:
+                if self.ekf is not None:
+                    self.history.add_dvl_measurement(t_dvl, dvl_data, self.ekf)
+                    self._publish_navigation_state()
+                    self.get_logger().info(f"Processed pending DVL measurement from {t_dvl}")
+            except Exception as e:
+                self.get_logger().warn(f"Failed to process pending DVL measurement: {e}")
         
         # Main processing loop
         while rclpy.ok():
