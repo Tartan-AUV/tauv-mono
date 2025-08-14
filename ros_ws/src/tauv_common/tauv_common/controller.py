@@ -39,7 +39,7 @@ class INDIParams:
     max_torque: float = 500.0   # Maximum torque in N⋅m
 
     # Filtering parameters for acceleration measurements
-    accel_filter_alpha: float = 0.3  # Low-pass filter coefficient (0 = no filter, 1 = full filter)
+    accel_filter_alpha: float = 0.5  # Low-pass filter coefficient (0 = no filter, 1 = full filter)
 
     @classmethod
     def default(cls) -> 'INDIParams':
@@ -114,7 +114,7 @@ class Controller(Node):
         """Handle incoming navigation state"""
         # Estimate angular acceleration
         angular_accel = self._estimate_angular_acceleration(nav_state, self._last_nav_state)
-
+        
         self._last_nav_state = deepcopy(nav_state)
 
         if angular_accel is None:
@@ -150,8 +150,8 @@ class Controller(Node):
             if dt <= 0.0:
                 logging.warning("Controller: dt <= 0.0")
                 return None
-            omega_b = numpify(current_nav_state.omega_b)
-            omega_b_prev = numpify(last_nav_state.omega_b)
+            omega_b = numpify(current_nav_state.body_twist.angular)
+            omega_b_prev = numpify(last_nav_state.body_twist.angular)
             angular_accel = (omega_b - omega_b_prev) / dt
             return angular_accel
         else:
@@ -179,7 +179,7 @@ class Controller(Node):
 
         self._F_target_prev = F_target.copy()
         
-        # self._publish_wrench(F_target)
+        self._publish_wrench(F_target)
         self._publish_debug_message(V_dI_B_target, velocity_error, dF_target)
 
     def _get_target_acceleration(self) -> tuple[np.ndarray, np.ndarray]:
@@ -194,13 +194,12 @@ class Controller(Node):
         """
         # assert self._cmd is not None
 
+        V_B_current = numpify(self._last_nav_state.body_twist)
         if self._cmd is None:
             V_B_target = np.zeros((6, 1))
-            V_B_current = np.zeros((6, 1))
             V_dI_B_ff = np.zeros((6, 1))
         else:
             V_B_target = numpify(self._cmd.target_twist)
-            V_B_current = numpify(self._last_nav_state.body_twist)
             V_dI_B_ff = np.vstack([
                 numpify(self._cmd.feedforward_linear_accel), 
                 numpify(self._cmd.feedforward_angular_accel)

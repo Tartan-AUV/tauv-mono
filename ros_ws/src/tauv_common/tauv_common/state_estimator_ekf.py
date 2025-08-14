@@ -358,7 +358,8 @@ class Ekf:
         a_body_B = body_R_imu * uk.a_S - np.cross(omega_B_flat, np.cross(omega_B_flat, r_sensor__body_B)).reshape(3, 1)
         
         a_body_O = odom_R_body * a_body_B
-        a_body_O_free = a_body_O + self._a_g_O
+        # a_body_O_free = a_body_O + self._a_g_O
+        a_body_O_free = a_body_O
 
 
         # Position update: r = r + v*dt + 0.5*a*dt^2
@@ -692,7 +693,8 @@ class StateEstimatorEkf(Node):
         a_gravity_O = np.c_[[0.0, 0.0, self.params.gravity]]
         a_gravity_B = odom_R_body.inv() * a_gravity_O
         a_sensor_S = latest_imu.a_S
-        a_body_B = a_sensor_S # + a_gravity_B
+        glebs_magic_matrix = np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]])
+        a_body_B = glebs_magic_matrix @ a_sensor_S # + a_gravity_B
 
         # We assume that the body frame and IMU frame have the same origin
         omega_sensor_S = latest_imu.omega_S
