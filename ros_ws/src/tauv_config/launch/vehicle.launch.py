@@ -24,10 +24,10 @@ def generate_launch_description():
                 name='rtvc_driver',
                 output='screen',
                 remappings=[
-                    ('imu', 'vehicle/sensors/imu'),
+                    ('imu', 'imu_old'),
                     ('depth', 'vehicle/sensors/depth'),
-                    ('temperature', 'vehicle/sensors/temperature'),
-                    ('pressure', 'vehicle/sensors/pressure'),
+                    ('temperature', 'temp_old'),
+                    ('pressure', 'pressure_old'),
                     ('esc_telemetry', 'vehicle/esc_telemetry'),
                     ('thruster_setpoint', 'vehicle/actuators/thruster_setpoint'),
                 ],
@@ -44,6 +44,45 @@ def generate_launch_description():
                 output='screen',
                 remappings=[
                     ('dvl_frame', 'vehicle/sensors/dvl')
+                ]
+            ),
+
+            # Xsens MTi IMU node
+            Node(
+                package='xsens_mti_ros2_driver',
+                executable='xsens_mti_node',
+                name='xsens_mti_node',
+                output='screen',
+                parameters=[
+                    Path(get_package_share_directory('xsens_mti_ros2_driver'), 'param', 'xsens_mti_node.yaml')
+                ],
+                remappings=[
+                    # Main IMU data goes to the standard vehicle sensors location
+                    ('/imu/data', 'vehicle/sensors/imu'),
+                    
+                    # All other topics go to raw subdirectory
+                    ('/filter/free_acceleration', 'vehicle/sensors/imu/raw/filter/free_acceleration'),
+                    ('/filter/positionlla', 'vehicle/sensors/imu/raw/filter/positionlla'),
+                    ('/filter/quaternion', 'vehicle/sensors/imu/raw/filter/quaternion'),
+                    ('/filter/euler', 'vehicle/sensors/imu/raw/filter/euler'),
+                    ('/filter/twist', 'vehicle/sensors/imu/raw/filter/twist'),
+                    ('/filter/velocity', 'vehicle/sensors/imu/raw/filter/velocity'),
+                    ('/gnss', 'vehicle/sensors/imu/raw/gnss'),
+                    ('/gnss_pose', 'vehicle/sensors/imu/raw/gnss_pose'),
+                    ('/imu/acceleration', 'vehicle/sensors/imu/raw/imu/acceleration'),
+                    ('/imu/angular_velocity', 'vehicle/sensors/imu/raw/imu/angular_velocity'),
+                    ('/imu/dq', 'vehicle/sensors/imu/raw/imu/dq'),
+                    ('/imu/dv', 'vehicle/sensors/imu/raw/imu/dv'),
+                    ('/imu/mag', 'vehicle/sensors/imu/raw/imu/mag'),
+                    ('/imu/time_ref', 'vehicle/sensors/imu/raw/imu/time_ref'),
+                    ('/imu/utctime', 'vehicle/sensors/imu/raw/imu/utctime'),
+                    ('/imu/acceleration_hr', 'vehicle/sensors/imu/raw/imu/acceleration_hr'),
+                    ('/imu/angular_velocity_hr', 'vehicle/sensors/imu/raw/imu/angular_velocity_hr'),
+                    ('/nmea', 'vehicle/sensors/imu/raw/nmea'),
+                    ('/pressure', 'vehicle/sensors/imu/raw/pressure'),
+                    ('/status', 'vehicle/sensors/imu/raw/status'),
+                    ('/temperature', 'vehicle/sensors/imu/raw/temperature'),
+                    ('/tf', 'vehicle/sensors/imu/raw/tf'),
                 ]
             )
         ]),

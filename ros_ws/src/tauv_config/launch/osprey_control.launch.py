@@ -26,18 +26,18 @@ def generate_launch_description():
             # ),
 
             # INDI Controller node - converts acceleration commands to wrench commands
-            Node(
-                package='tauv_common',
-                executable='indi_controller',
-                name='indi_controller',
-                output='screen',
-                # No remapping needed - topics are already in gnc namespace
-                parameters=[{
-                    'accel_filter_alpha': 0.5,
-                    'max_force': 100.0,
-                    'max_torque': 50.0
-                }]
-            ),
+            # Node(
+            #     package='tauv_common',
+            #     executable='indi_controller',
+            #     name='indi_controller',
+            #     output='screen',
+            #     # No remapping needed - topics are already in gnc namespace
+            #     parameters=[{
+            #         'accel_filter_alpha': 0.5,
+            #         'max_force': 100.0,
+            #         'max_torque': 50.0
+            #     }]
+            # ),
 
             # Launch thruster manager node
             Node(

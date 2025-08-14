@@ -100,23 +100,23 @@ void RTVCNode::packet_callback_50hz(boost::system::error_code ec, std::size_t by
 
 void RTVCNode::parse_eth100_msg(const Eth100HzMsgT &msg) {
   // Use a reference instead of copying
-  const auto &fb_imu_data = msg.imu_data;
+//   const auto &fb_imu_data = msg.imu_data;
 
-  for (const auto &fb_frame : fb_imu_data) {
-    auto msgs = parse_xsens_fb(*fb_frame);
-    if (msgs.imu_msg.has_value()) {
-      msgs.imu_msg.value().header.stamp = this->get_clock()->now();
-      this->imu_publisher_->publish(msgs.imu_msg.value());
-    }
-    if (msgs.temperature.has_value()) {
-      msgs.temperature.value().header.stamp = this->get_clock()->now();
-      this->temperature_publisher_->publish(msgs.temperature.value());
-    }
-    if (msgs.pressure.has_value()) {
-      msgs.pressure.value().header.stamp = this->get_clock()->now();
-      this->pressure_publisher_->publish(msgs.pressure.value());
-    }
-  }
+//   for (const auto &fb_frame : fb_imu_data) {
+//     auto msgs = parse_xsens_fb(*fb_frame);
+//     if (msgs.imu_msg.has_value()) {
+//       msgs.imu_msg.value().header.stamp = this->get_clock()->now();
+//       this->imu_publisher_->publish(msgs.imu_msg.value());
+//     }
+//     if (msgs.temperature.has_value()) {
+//       msgs.temperature.value().header.stamp = this->get_clock()->now();
+//       this->temperature_publisher_->publish(msgs.temperature.value());
+//     }
+//     if (msgs.pressure.has_value()) {
+//       msgs.pressure.value().header.stamp = this->get_clock()->now();
+//       this->pressure_publisher_->publish(msgs.pressure.value());
+//     }
+//   }
   
   // Process depth sensor data if available
   if (msg.depth_data) {
