@@ -1,0 +1,1 @@
+/home/tauv/tauv-mono/build/tauv_msgs/rosidl_typesupport_fastrtps_cpp/tauv_msgs/msg/detail/controller_command__rosidl_typesupport_fastrtps_cpp.hpp

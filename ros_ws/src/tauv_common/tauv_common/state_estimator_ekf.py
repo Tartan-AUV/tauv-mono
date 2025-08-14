@@ -127,11 +127,11 @@ class EkfHistory:
                 params: EkfParams, max_length: int, logger: Logger):
 
         # Validate inputs
-        max_dt: int = 200_000_000  # 200ms maximum time difference between measurements
-        if (abs(t_depth - t_dvl) > max_dt or
-                abs(t_depth - t_imu) > max_dt or
-                abs(t_imu - t_dvl) > max_dt):
-            raise ValueError("Initial measurements are too far apart in time")
+        # max_dt: int = 200_000_000  # 200ms maximum time difference between measurements
+        # if (abs(t_depth - t_dvl) > max_dt or
+        #         abs(t_depth - t_imu) > max_dt or
+        #         abs(t_imu - t_dvl) > max_dt):
+        #     raise ValueError("Initial measurements are too far apart in time")
 
         # Initialize
         self.control_history: Deque[Tuple[int, EkfControl]] = deque(maxlen=max_length)
@@ -347,8 +347,6 @@ class Ekf:
         omega_B = body_R_imu * uk.omega_S
         r_sensor__body_B = self._body_T_imu.t
 
-        self._logger.info(f"omega_B.shape: {omega_B.shape}")
-        self._logger.info(f"r_sensor__body_B.shape: {r_sensor__body_B.shape}")
         omega_B_flat = omega_B.reshape(3)
         a_body_B = body_R_imu * uk.a_S - np.cross(omega_B_flat, np.cross(omega_B_flat, r_sensor__body_B)).reshape(3, 1)
         

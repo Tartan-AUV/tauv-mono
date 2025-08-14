@@ -1,0 +1,1 @@
+/home/tauv/tauv-mono/build/tauv_msgs/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/thruster_setpoint__rosidl_typesupport_introspection_c.h

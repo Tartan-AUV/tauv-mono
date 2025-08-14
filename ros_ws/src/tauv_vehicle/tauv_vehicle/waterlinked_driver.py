@@ -1,10 +1,11 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 import asyncio
 import json
 import time
 import numpy as np
-from std_msgs.msg import String
+from std_msgs.msg import String, Header
 from std_srvs.srv import Trigger
 from tauv_msgs.msg import WaterlinkedDvlFrame
 
@@ -139,6 +140,15 @@ class WaterlinkedDriver(Node):
 
             if packet.get("type") == "velocity":
                 msg = WaterlinkedDvlFrame()
+                
+                # Set header with timestamp converted from Unix microseconds
+                msg.header = Header()
+                msg.header.frame_id = "os/dvl"  # Set appropriate frame_id
+                # Convert Unix timestamp from microseconds to ROS2 time
+                unix_time_us = int(packet["time_of_validity"])
+                unix_time_sec = unix_time_us / 1_000_000.0  # Convert microseconds to seconds
+                msg.header.stamp = Time(seconds=int(unix_time_sec), nanoseconds=int((unix_time_sec % 1) * 1e9)).to_msg()
+                
                 msg.time = float(packet["time"])
                 msg.vx = float(packet["vx"])
                 msg.vy = float(packet["vy"])

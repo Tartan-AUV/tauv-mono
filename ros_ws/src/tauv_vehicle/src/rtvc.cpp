@@ -209,8 +209,10 @@ void RTVCNode::thruster_setpoint_callback(const tauv_msgs::msg::ThrusterSetpoint
   thruster_command->enabled = std::vector<bool>(msg->enables.begin(), msg->enables.end());
   // Convert from rad/s to RPM: RPM = (rad/s) * 60 / (2π)
   thruster_command->rpm.reserve(msg->omega_radps.size());
-  for (const auto& omega_rad_per_sec : msg->omega_radps) {
-    int32_t rpm = static_cast<int32_t>(std::round(omega_rad_per_sec * 60.0 / (2.0 * M_PI)));
+  // Invert direction only for thrusters 0, 3, 4, 7
+  for (size_t i = 0; i < msg->omega_radps.size(); ++i) {
+    double omega_rad_per_sec = msg->omega_radps[i];
+    int32_t rpm = static_cast<int32_t>(std::round(omega_rad_per_sec * 60.0 / (2.0 * M_PI))) * 7;
     thruster_command->rpm.push_back(rpm);
   }
   msg_obj.thruster_command = std::move(thruster_command);

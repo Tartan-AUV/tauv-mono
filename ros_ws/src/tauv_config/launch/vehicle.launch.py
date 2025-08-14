@@ -1,10 +1,17 @@
 from launch import LaunchDescription
-from launch.actions import GroupAction
+from launch.actions import GroupAction, IncludeLaunchDescription
+from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 from launch_ros.actions import PushRosNamespace, Node
-
+from launch_ros.substitutions import FindPackageShare
+from launch.substitutions import PathJoinSubstitution
+from pathlib import Path
+from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     """Launch the RTVC (Real-Time Vehicle Controller) node with appropriate topic mappings."""
+
+    foxglove_bridge_share = Path(get_package_share_directory('foxglove_bridge'))
+
     return LaunchDescription([
         GroupAction(actions=[
             # Use the same namespace as osprey_gnc_debug
@@ -39,5 +46,12 @@ def generate_launch_description():
                     ('dvl_frame', 'vehicle/sensors/dvl')
                 ]
             )
-        ])
+        ]),
+        # Include the foxglove bridge launch file (in root namespace)
+        IncludeLaunchDescription(
+            XMLLaunchDescriptionSource([
+                str(foxglove_bridge_share / 'launch' / 'foxglove_bridge_launch.xml')
+            ]),
+            launch_arguments={'port': '8765'}.items()
+        ),
     ])

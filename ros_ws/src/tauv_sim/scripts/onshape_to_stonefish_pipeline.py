@@ -274,7 +274,7 @@ class OnshapePipeline:
             dest_path.parent.mkdir(parents=True, exist_ok=True)
             content = source_urdf.read_text()
             # Rename link os_hull -> os/body throughout the file
-            updated_content = content.replace("os_hull", "os/body")
+            updated_content = content.replace("os_hull", "os/hull")
             dest_path.write_text(updated_content)
             print(f"Copied URDF to {dest_path} with updated link names")
             return True

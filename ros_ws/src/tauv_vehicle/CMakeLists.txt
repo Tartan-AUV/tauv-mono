@@ -11,6 +11,7 @@ find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tauv_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system thread)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -75,7 +76,8 @@ add_dependencies(rtvc generate_flatbuffers_headers)
 target_include_directories(rtvc PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-        ${CMAKE_CURRENT_BINARY_DIR}/fb/include)
+        ${CMAKE_CURRENT_BINARY_DIR}/fb/include
+        ${Boost_INCLUDE_DIRS})
 
 target_compile_features(rtvc PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
 
@@ -87,6 +89,8 @@ ament_target_dependencies(
         "tauv_msgs"
         "sensor_msgs"
 )
+
+target_link_libraries(rtvc ${Boost_LIBRARIES})
 
 # Install executables
 install(TARGETS rtvc

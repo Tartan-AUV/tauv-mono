@@ -482,7 +482,7 @@
     </inertial>
   </link>
   <joint name="os/imu_frame" type="fixed">
-    <origin xyz="0.037587 0.049 -0.024856" rpy="2.71051e-20 -6.12323e-17 -3.14159"/>
+    <origin xyz="0.037587 0.049 -0.024856" rpy="2.71051e-20 -6.12323e-17 0"/>
     <parent link="os/hull"/>
     <child link="os/imu"/>
     <axis xyz="0 0 0"/>

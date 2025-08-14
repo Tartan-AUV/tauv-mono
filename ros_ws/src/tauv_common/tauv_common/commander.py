@@ -118,7 +118,7 @@ class Commander(Node):
         self.create_service(Goto, "gnc/goto", self._handle_goto)
 
         # Timer to republish last command at fixed rate (outer-loop frequency)
-        self._timer_period = 0.1  # 10 Hz
+        self._timer_period = 0.01  # 10 Hz
         self.create_timer(self._timer_period, self._timer_callback)
 
         self.get_logger().info("Commander initialised – station-keeping mode")

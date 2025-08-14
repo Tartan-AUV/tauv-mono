@@ -1,0 +1,1 @@
+/home/tauv/tauv-mono/build/tauv_msgs/rosidl_generator_c/tauv_msgs/msg/detail/controller_command__type_support.h

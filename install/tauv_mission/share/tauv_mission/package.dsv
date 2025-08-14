@@ -1,0 +1,9 @@
+source;share/tauv_mission/hook/pythonpath.ps1
+source;share/tauv_mission/hook/pythonpath.dsv
+source;share/tauv_mission/hook/pythonpath.sh
+source;share/tauv_mission/hook/ament_prefix_path.ps1
+source;share/tauv_mission/hook/ament_prefix_path.dsv
+source;share/tauv_mission/hook/ament_prefix_path.sh
+source;../../build/tauv_mission/share/tauv_mission/hook/pythonpath_develop.ps1
+source;../../build/tauv_mission/share/tauv_mission/hook/pythonpath_develop.dsv
+source;../../build/tauv_mission/share/tauv_mission/hook/pythonpath_develop.sh
