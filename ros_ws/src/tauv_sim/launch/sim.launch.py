@@ -15,8 +15,8 @@ def generate_launch_description():
                 join(pkg_share, 'data'),
                 join(pkg_share, 'scenarios/osprey_irvine.scn'),
                 '300',
-                '640',
                 '480',
+                '640',
                 'low'
             ],
             remappings=[
