@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'centernet_node = tauv_vision.centernet_node:main',
         ],
     },
 )

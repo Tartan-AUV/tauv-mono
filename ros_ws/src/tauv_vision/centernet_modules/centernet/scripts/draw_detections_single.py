@@ -12,7 +12,7 @@ from centernet.model.centernet import Centernet, initialize_weights
 from centernet.model.backbones.dla import DLABackbone
 from centernet.model.loss import loss
 from centernet.model.config import ObjectConfig, ObjectConfigSet, AngleConfig, ModelConfig, TrainConfig
-from tauv_vision.datasets.load.pose_dataset import PoseDataset, PoseSample, Split
+from tauv_vision.centernet_modules.datasets.load.pose_dataset import PoseDataset, PoseSample, Split
 from centernet.model.decode import decode_keypoints, KeypointDetection
 from centernet.model.decode import decode, Detection
 

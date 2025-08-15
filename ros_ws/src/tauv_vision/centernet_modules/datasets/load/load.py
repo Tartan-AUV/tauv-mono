@@ -6,4 +6,4 @@ class Split(Enum):
     TEST = "test"
 
 
-class PoseDataset(Dataset):
+# class PoseDataset(Dataset):

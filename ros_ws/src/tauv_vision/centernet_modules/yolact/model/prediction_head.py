@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models.resnet import Bottleneck
 
-from tauv_vision.yolact.model.config import ModelConfig
+from tauv_vision.centernet_modules.yolact.model.config import ModelConfig
 
 
 class PredictionHead(nn.Module):

@@ -9,8 +9,8 @@ from math import pi, atan2
 import torch.nn.functional as F
 from spatialmath import SE3, SO3
 
-from centernet.model.centernet import Prediction
-from centernet.model.config import ModelConfig, ObjectConfigSet
+from centernet_modules.centernet.model.centernet import Prediction
+from centernet_modules.centernet.model.config import ModelConfig, ObjectConfigSet
 
 
 @dataclass
@@ -98,7 +98,7 @@ def decode_keypoints(prediction: Prediction,
             sample_detections.append(detection)
 
         for keypoint_i in range(keypoint_n_detections):
-            keypoint_score = float(detected_keypoint_score[sample_i, keypoint_i])
+            keypoint_score = float(detected_keypoint_score[sample_i, keypoint_i].detach())
             if keypoint_score < keypoint_score_threshold:
                 break
 
@@ -177,7 +177,7 @@ def decode_keypoints(prediction: Prediction,
 
 
 def decode(prediction: Prediction, model_config: ModelConfig,
-           n_detections: int, score_threshold: float) -> [[Detection]]:
+           n_detections: int, score_threshold: float) -> List[List[Detection]]:
 
     heatmap = F.sigmoid(prediction.heatmap)
     heatmap = heatmap_nms(heatmap, kernel_size=3)

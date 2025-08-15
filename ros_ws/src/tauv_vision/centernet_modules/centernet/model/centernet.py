@@ -3,8 +3,8 @@ from typing_extensions import Self
 from dataclasses import dataclass
 from math import pi
 
-from centernet.model.backbones.dla import DLABackbone
-from centernet.model.config import ObjectConfig, ObjectConfigSet, AngleConfig
+from centernet_modules.centernet.model.backbones.dla import DLABackbone
+from centernet_modules.centernet.model.config import ObjectConfig, ObjectConfigSet, AngleConfig
 
 import torch
 import torch.nn as nn
@@ -111,7 +111,7 @@ def initialize_weights(module: nn.Module, excluded_modules: List[nn.Module]):
 			print(f"Skipping {name}")
 
 
-def get_head_channels(object_config: ObjectConfigSet) -> [int]:
+def get_head_channels(object_config: ObjectConfigSet) -> List[int]:
 	n_heatmaps = object_config.n_labels
 	n_keypoints = object_config.n_keypoints
 	n_keypoint_affinity = 2 * n_keypoints

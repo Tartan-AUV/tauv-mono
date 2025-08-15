@@ -9,7 +9,7 @@ from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 import numpy as np
 
-from tauv_vision.yolo_pose.model.boxes import corners_to_box, box_to_corners
+from tauv_vision.centernet_modules.yolo_pose.model.boxes import corners_to_box, box_to_corners
 
 def closest_rotation_matrix(matrix):
     U, _, Vt = np.linalg.svd(matrix)

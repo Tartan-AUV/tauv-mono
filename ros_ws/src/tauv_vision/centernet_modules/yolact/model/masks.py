@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 from typing import Optional
 
-from tauv_vision.yolact.model.boxes import box_to_mask
+from tauv_vision.centernet_modules.yolact.model.boxes import box_to_mask
 
 
 def assemble_mask(mask_prototype: torch.Tensor, mask_coeff: torch.Tensor, box: Optional[torch.Tensor]) -> torch.Tensor:

@@ -5,8 +5,8 @@ from dataclasses import dataclass, asdict
 
 @dataclass
 class ModelConfig:
-    backbone_heights: [int]
-    backbone_channels: [int]
+    backbone_heights: List[int]
+    backbone_channels: List[int]
 
     in_h: int
     in_w: int
@@ -123,8 +123,8 @@ class ObjectConfig:
 
 class ObjectConfigSet:
 
-    def __init__(self, configs: [ObjectConfig]):
-        self.configs: [ObjectConfig] = configs
+    def __init__(self, configs: List[ObjectConfig]):
+        self.configs: List[ObjectConfig] = configs
 
         keypoint_index_encode: Dict[Tuple[int, int], int] = {}
         keypoint_index_decode: Dict[int, Tuple[int, int]] = {}

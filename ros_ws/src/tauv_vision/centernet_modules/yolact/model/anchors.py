@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from math import sqrt
 
-from tauv_vision.yolact.model.config import ModelConfig
+from tauv_vision.centernet_modules.yolact.model.config import ModelConfig
 
 
 def get_anchor(fpn_i: int, fpn_size: (int, int), config: ModelConfig):

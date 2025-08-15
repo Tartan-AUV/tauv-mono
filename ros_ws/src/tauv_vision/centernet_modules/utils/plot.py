@@ -8,7 +8,7 @@ import cv2
 from typing import Optional
 import torch.nn.functional as F
 from typing import Optional
-from tauv_vision.yolact.model.boxes import box_to_corners
+from tauv_vision.centernet_modules.yolact.model.boxes import box_to_corners
 import pathlib
 
 

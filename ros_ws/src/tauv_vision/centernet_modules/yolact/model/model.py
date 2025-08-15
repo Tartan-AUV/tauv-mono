@@ -4,15 +4,15 @@ from PIL import Image
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 
-from tauv_vision.yolact.model.config import ModelConfig
-from tauv_vision.yolact.model.weights import initialize_weights
-from tauv_vision.yolact.model.backbone import Resnet101Backbone
-from tauv_vision.yolact.model.feature_pyramid import FeaturePyramid
-from tauv_vision.yolact.model.masknet import Masknet
-from tauv_vision.yolact.model.prediction_head import PredictionHead
-from tauv_vision.yolact.model.anchors import get_anchor
-from tauv_vision.yolact.model.loss import loss
-from tauv_vision.yolact.model.boxes import iou_matrix, box_to_mask
+from tauv_vision.centernet_modules.yolact.model.config import ModelConfig
+from tauv_vision.centernet_modules.yolact.model.weights import initialize_weights
+from tauv_vision.centernet_modules.yolact.model.backbone import Resnet101Backbone
+from tauv_vision.centernet_modules.yolact.model.feature_pyramid import FeaturePyramid
+from tauv_vision.centernet_modules.yolact.model.masknet import Masknet
+from tauv_vision.centernet_modules.yolact.model.prediction_head import PredictionHead
+from tauv_vision.centernet_modules.yolact.model.anchors import get_anchor
+from tauv_vision.centernet_modules.yolact.model.loss import loss
+from tauv_vision.centernet_modules.yolact.model.boxes import iou_matrix, box_to_mask
 
 
 class Yolact(nn.Module):

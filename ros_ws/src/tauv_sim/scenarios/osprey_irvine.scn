@@ -17,6 +17,7 @@
         <look name="Red" rgb="1.0 0.0 0.0" roughness="0.3"/>
         <look name="PaleBlue" rgb="0.1 0.1 0.6" roughness="0.3"/>
         <look name="Pool" gray="1.0" roughness="0.8" texture="irvine/pool_base.png"/>
+		<look name="Yellow" rgb="1.0 1.0 0.0" roughness="0.3"/>
     </looks>
 
     <materials>
@@ -55,7 +56,16 @@
 		<look name="Pool"/>
 		<world_transform rpy="3.14159 0.0 0.0" xyz="0.0 0.0 0.0"/>
 	</static>
-
+	<static name="Bottle" type="model">
+		<physical>
+			<mesh filename="irvine/bottle.obj" scale="4.0"/>
+			<origin rpy="0 0 0" xyz="0 0 0"/>
+		</physical>
+		<material name="Rock"/>
+		<look name="Yellow"/>
+		<world_transform rpy="0 0 0" xyz="-1.25 0 3.0"/>
+	</static>
+	
     <include file="$(find tauv_sim)/scenarios/osprey.scn"/>
 
 </scenario>

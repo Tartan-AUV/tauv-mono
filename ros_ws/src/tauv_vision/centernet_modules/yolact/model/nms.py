@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from tauv_vision.yolact.model.boxes import iou_matrix
+from tauv_vision.centernet_modules.yolact.model.boxes import iou_matrix
 
 
 def nms(classification: torch.Tensor, box: torch.Tensor, top_k: int, iou_threshold: float, confidence_threshold: float):
