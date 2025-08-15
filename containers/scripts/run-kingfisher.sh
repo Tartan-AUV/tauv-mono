@@ -4,12 +4,12 @@ set -e
 
 docker run \
   --privileged \
-  --gpus=all \
+  --runtime=nvidia \
   -v /dev:/dev \
   -v /tm.X11-unix/:/tmp/.X11-unix \
   -v /tmp/.docker.xauth:/tmp/.docker.xauth \
-  -v /home/tartanauv/tauv-mono/packages:/tauv-packages \
-  -v /home/tartanauv/shared:/shared \
+  -v /home/tauv/tauv-mono/packages:/tauv-packages \
+  -v /home/tauv/shared:/shared \
   -e XAUTHORITY=/tmp/.docker.xauth \
   --net=host \
   -it \

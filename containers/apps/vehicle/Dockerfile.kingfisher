@@ -38,7 +38,7 @@ RUN mkdir -p cv_bridge_ws/src && \
     cd vision_opencv && \
     git checkout noetic
 
-SHELL ["/bin/bash", "-c"]  # todo: move up
+SHELL ["/bin/bash", "-c"]
 
 RUN cd cv_bridge_ws && \
     source /opt/ros/noetic/setup.bash && \
@@ -46,8 +46,8 @@ RUN cd cv_bridge_ws && \
     catkin build cv_bridge -DCMAKE_BUILD_TYPE=Release && \
     source /opt/tauv/packages/setup.bash
 
-# this is sus, but pip install depthai-sdk doesn't work
-RUN python3 -m pip install --extra-index-url https://artifacts.luxonis.com/artifactory/luxonis-python-snapshot-local/ depthai
+# # this is sus, but pip install depthai-sdk doesn't work
+RUN python3 -m pip install adafruit-circuitpython-pca9685 adafruit-circuitpython-servokit
 
 RUN apt-get update && apt-get install -y \
     ros-noetic-rosserial-python
