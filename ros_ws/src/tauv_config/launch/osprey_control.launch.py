@@ -9,26 +9,26 @@ def generate_launch_description():
             PushRosNamespace("os"),
 
             # Commander node - converts velocity/attitude commands to acceleration commands
-            Node(
-                package='tauv_common',
-                executable='commander',
-                name='commander',
-                output='screen',
-            ),
+            # Node(
+            #     package='tauv_common',
+            #     executable='commander',
+            #     name='commander',
+            #     output='screen',
+            # ),
 
-            # INDI Controller node - converts acceleration commands to wrench commands
-            Node(
-                package='tauv_common',
-                executable='indi_controller',
-                name='indi_controller',
-                output='screen',
-                # No remapping needed - topics are already in gnc namespace
-                parameters=[{
-                    'accel_filter_alpha': 0.5,
-                    'max_force': 100.0,
-                    'max_torque': 50.0
-                }]
-            ),
+            # # # INDI Controller node - converts acceleration commands to wrench commands
+            # Node(
+            #     package='tauv_common',
+            #     executable='indi_controller',
+            #     name='indi_controller',
+            #     output='screen',
+            #     # No remapping needed - topics are already in gnc namespace
+            #     parameters=[{
+            #         'accel_filter_alpha': 0.5,
+            #         'max_force': 100.0,
+            #         'max_torque': 50.0
+            #     }]
+            # ),
 
             # Launch thruster manager node
             Node(

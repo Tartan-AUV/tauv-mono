@@ -259,8 +259,9 @@ class Controller(Node):
         elif self._V_dI_B_filtered is None:
             self._publish_wrench(np.zeros((6, 1)))
             return
-        # elif self._cmd is None:
-        #     self.get_logger().warn("Controller: Missing controller command")
+        elif self._cmd is None:
+            self.get_logger().warn("Controller: Missing controller command")
+            # return
 
         # Run outer loop (velocity)
         V_dI_B_target, velocity_error = self._get_target_acceleration()
@@ -290,7 +291,7 @@ class Controller(Node):
         V_B_current_accel = self._V_dI_B_filtered.copy()  # Already contains filtered [linear; angular] acceleration
         
         if self._cmd is None:
-            V_B_target = np.c_[[0.0, 0.0, 0.0, 0.0, 0.0, 0.3]]
+            V_B_target = np.c_[[0.0, 0.0, 0.1, 0.0, 0.0, 0.0]]
             V_dI_B_ff = np.zeros((6, 1))
         else:
             V_B_target = numpify(self._cmd.target_twist)
