@@ -22,18 +22,12 @@ def generate_launch_description():
             # ),
 
             # # # INDI Controller node - converts acceleration commands to wrench commands
-            # Node(
-            #     package='tauv_common',
-            #     executable='indi_controller',
-            #     name='indi_controller',
-            #     output='screen',
-            #     # No remapping needed - topics are already in gnc namespace
-            #     parameters=[{
-            #         'accel_filter_alpha': 0.5,
-            #         'max_force': 100.0,
-            #         'max_torque': 50.0
-            #     }]
-            # ),
+            Node(
+                package='tauv_common',
+                executable='controller',
+                name='controller',
+                output='screen',
+            ),
 
             # Launch thruster manager node
             Node(
@@ -45,7 +39,7 @@ def generate_launch_description():
                     ('target_thrust', 'gnc/target_thrust'),
                 ]
             ),
-
+            
             # Launch thruster controller node
             Node(
                 package='tauv_vehicle',
@@ -53,22 +47,17 @@ def generate_launch_description():
                 name='thruster_controller',
                 remappings=[
                     ('target_thrust', 'gnc/target_thrust'),
+                    ('thruster_setpoint', 'vehicle/actuators/thruster_setpoint'),
                 ]
             ),
-            
-            # Launch wrench test node - publishes test wrench commands
-            Node(
-                package='tauv_common',
-                executable='wrench_test',
-                name='wrench_test',
-                output='screen',
-            ),
+
+            # # Launch wrench test node - publishes test wrench commands
+            # Node(
+            #     package='tauv_common',
+            #     executable='wrench_test',
+            #     name='wrench_test',
+            #     output='screen',
+            # ),
         ]),
-        
-        # Include the static TF publisher launch file
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([
-                str(tauv_config_share / 'launch' / 'static_tf.launch.py')
-            ])
-        ),
+
     ])

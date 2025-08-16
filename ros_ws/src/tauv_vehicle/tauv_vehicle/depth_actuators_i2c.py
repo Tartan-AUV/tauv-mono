@@ -149,6 +149,8 @@ class DepthActuatorsI2C(Node):
 
     def _handle_thruster_setpoint(self, msg: ThrusterSetpoint):
         """Handle incoming thruster setpoint commands and set PWM outputs."""
+        self.get_logger().info(f"Received thruster setpoint: {msg}")
+
         omega_values = msg.omega_radps
         enables = msg.enables
         

@@ -1,12 +1,17 @@
 """
-PID Position Hold Controller for TartanAUV vehicles.
+PD Yaw Controller with Wrench Test Sequence for TartanAUV vehicles.
 
-This controller implements cascaded PID control loops to hold the vehicle
-at a fixed pose:
-- Outer loop: Position control (generates velocity commands)
-- Inner loop: Velocity control (generates wrench commands)
+This controller implements:
+1. A timed wrench test sequence that applies different wrenches over time
+2. A proportional-derivative control loop for yaw orientation
+3. The final output is the sum of test wrench and yaw control wrench
 
-For rotation control, Kd is ignored since angular acceleration is not available.
+Test sequence:
+1. Wait phase: Output zero wrench (overrides yaw control)
+2. Down phase: Apply downward force
+3. Roll phase: Apply roll torque
+4. Forward phase: Apply forward force with downward component
+5. Stopped phase: Return to normal yaw control only
 """
 
 from __future__ import annotations
@@ -16,56 +21,46 @@ import rclpy
 from rclpy.node import Node
 from rclpy.publisher import Publisher
 from rclpy.subscription import Subscription
+from rclpy.client import Client
 from spatialmath import SE3, SO3, UnitQuaternion
+import math
+import time
+from enum import Enum
 
 from geometry_msgs.msg import WrenchStamped, Pose, Twist, Vector3
 from tauv_msgs.msg import NavigationState
 from std_msgs.msg import Header
+from std_srvs.srv import Empty
 from tauv_common.util.geometry import numpify, msgify
 
 # ---------------------------------------------------------------------------
-# PID Controller Parameters
+# Test Phase Enum
 # ---------------------------------------------------------------------------
 
-class PIDGains:
-    """PID gains for position and velocity control."""
+class TestPhase(Enum):
+    """Test phases for the wrench test sequence"""
+    WAIT1 = 1
+    WAIT2 = 2
+    ROTATE = 3
+    DOWN = 4
+    ROLL = 5
+    FORWARD = 6
+    STOPPED = 7
+
+# ---------------------------------------------------------------------------
+# Yaw Controller Parameters
+# ---------------------------------------------------------------------------
+
+class YawControllerGains:
+    """Proportional and derivative gains for yaw control only."""
     
     def __init__(self):
-        # Position control gains (outer loop)
-        # These generate velocity commands from position errors
-        self.position_kp = np.array([0.3, 0.3, 0.3])  # x, y, z
-        self.position_ki = np.array([0.01, 0.01, 0.02])
-        self.position_kd = np.array([0.1, 0.1, 0.15])
-        
-        # Orientation control gains (outer loop)
-        # These generate angular velocity commands from orientation errors
-        self.orientation_kp = np.array([0.3, 0.3, 0.3])  # roll, pitch, yaw
-        self.orientation_ki = np.array([0.0, 0.0, 0.0))
-        # No Kd for orientation as we don't have angular acceleration
-        
-        # Velocity control gains (inner loop)
-        # These generate forces from velocity errors
-        self.velocity_kp = np.array([100.0, 100.0, 100.0])  # x, y, z
-        self.velocity_ki = np.array([0.0, 0.0, 0.0])
-        self.velocity_kd = np.array([10.0, 10.0, 10.0])
-        
-        # Angular velocity control gains (inner loop)
-        # These generate torques from angular velocity errors
-        self.angular_velocity_kp = np.array([50.0, 50.0, 50.0])  # roll, pitch, yaw
-        self.angular_velocity_ki = np.array([0.0, 0.0, 0.0])
-        # No Kd for angular velocity as we don't have angular acceleration
+        # Yaw control gains
+        self.yaw_kp = 50.0  # Proportional gain for yaw control
+        self.yaw_kd = 5.0   # Derivative (damping) gain for yaw control
         
         # Control limits
-        self.max_linear_velocity = 1.0  # m/s
-        self.max_angular_velocity = 0.5  # rad/s
-        self.max_force = 100.0  # N
-        self.max_torque = 50.0  # N⋅m
-        
-        # Integral windup limits
-        self.position_integral_limit = 0.5
-        self.orientation_integral_limit = 0.2
-        self.velocity_integral_limit = 20.0
-        self.angular_velocity_integral_limit = 5.0
+        self.max_torque = 10000.0  # N⋅m
 
 # ---------------------------------------------------------------------------
 # Controller Node
@@ -73,78 +68,132 @@ class PIDGains:
 
 class Controller(Node):
     """
-    PID Position Hold Controller Node.
+    PD Yaw Controller with Wrench Test Sequence.
+    
+    Runs a timed wrench test sequence while maintaining yaw control.
+    The output wrench is the sum of test wrench and yaw control wrench,
+    except during WAITING phase where output is zero.
+    
+    Test sequence:
+    1. Wait phase (5s): Zero wrench output
+    2. Down phase (4s): Downward force
+    3. Roll phase (3s): Roll torque
+    4. Forward phase (6s): Forward force with downward component
+    5. Stopped phase: Return to yaw control only
     
     Subscribes to:
-    - NavigationState: Current vehicle state (pose, twist, accelerations)
+    - NavigationState: Current vehicle state (yaw from pose, yaw rate from twist)
     
     Publishes to:
-    - target_wrench: Wrench command for thruster allocation
+    - target_wrench: Combined wrench command for thruster allocation
     """
     
     def __init__(self) -> None:
-        super().__init__("controller")
+        super().__init__("yaw_controller")
         
         # ------------------------------------------------------------------
-        # Target pose (hardcoded)
+        # Target yaw angle (hardcoded)
         # ------------------------------------------------------------------
-        self.target_position = np.array([0.0, 0.0, 1.0])  # x, y, z in meters
-        # Identity quaternion - vehicle level and facing forward
-        self.target_orientation = UnitQuaternion()  # Identity quaternion (w=1, x=y=z=0)
+        self.target_yaw = 0.0  # Target yaw angle in radians
         
         # ------------------------------------------------------------------
-        # PID gains and parameters
+        # Controller gains and parameters
         # ------------------------------------------------------------------
-        self.gains = PIDGains()
+        self.gains = YawControllerGains()
         
         # ------------------------------------------------------------------
-        # PID state variables
+        # Test sequence timing and parameters
         # ------------------------------------------------------------------
-        # Position control
-        self.position_integral = np.zeros(3)
-        self.last_position_error = np.zeros(3)
+        self.start_time = time.time()
+        self.wait1_duration = 10.0    # seconds
+        self.wait2_duration = 15.0    # seconds  
+        self.rotate_duration = 15.0   # seconds
+        self.down_duration = 4.0     # seconds
+        self.roll_duration = 3.0     # seconds
+        self.forward_duration = 6.0  # seconds
+        self.current_phase = TestPhase.WAIT1
+        self.service_called = False  # Flag to track if retare service was called
         
-        # Orientation control
-        self.orientation_integral = np.zeros(3)
-        self.last_orientation_error = np.zeros(3)
+        # Down phase wrench values (in NED frame)
+        self.down_force_x = 0.0      # North (N)
+        self.down_force_y = 0.0      # East (N)
+        self.down_force_z = 600.0    # Down (N)
+        self.down_torque_x = 0.0     # Roll (Nm)
+        self.down_torque_y = 0.0     # Pitch (Nm)
+        self.down_torque_z = 0.0     # Yaw (Nm)
         
-        # Velocity control
-        self.velocity_integral = np.zeros(3)
-        self.last_velocity_error = np.zeros(3)
-        self.last_linear_acceleration = np.zeros(3)
+        # Roll phase wrench values (in NED frame)
+        self.roll_force_x = 0.0      # North (N)
+        self.roll_force_y = 0.0      # East (N)
+        self.roll_force_z = 240.0      # Down (N)
+        self.roll_torque_x = 600.0     # Roll (Nm)
+        self.roll_torque_y = 0.0     # Pitch (Nm)
+        self.roll_torque_z = 0.0     # Yaw (Nm)
         
-        # Angular velocity control
-        self.angular_velocity_integral = np.zeros(3)
-        self.last_angular_velocity_error = np.zeros(3)
+        # Rotate phase wrench values (in NED frame)
+        self.rotate_force_x = 0.0     # North (N)
+        self.rotate_force_y = 0.0     # East (N)
+        self.rotate_force_z = 0.0     # Down (N)
+        self.rotate_torque_x = 0.0    # Roll (Nm)
+        self.rotate_torque_y = 0.0    # Pitch (Nm)
+        self.rotate_torque_z = 0.0  # Yaw torque for rotation (Nm)
         
-        # Timing
-        self.last_control_time = None
+        # Forward phase wrench values (in NED frame)
+        self.forward_force_x = 600.0  # North (N)
+        self.forward_force_y = 0.0    # East (N)
+        self.forward_force_z = 240.0  # Down (N)
+        self.forward_torque_x = 0.0   # Roll (Nm)
+        self.forward_torque_y = 0.0   # Pitch (Nm)
+        self.forward_torque_z = 0.0   # Yaw (Nm)
         
         # ------------------------------------------------------------------
         # ROS interfaces
         # ------------------------------------------------------------------
         self._nav_state_sub: Subscription = self.create_subscription(
             NavigationState,
-            "navigation_state",
+            "gnc/navigation_state",
             self._navigation_callback,
             10,
         )
         
         self._wrench_pub: Publisher = self.create_publisher(
             WrenchStamped,
-            "target_wrench",
+            "gnc/target_wrench",
             10,
         )
         
-        # Control loop timer at 50 Hz
+        # Service client for retaring local frame
+        self._retare_client: Client = self.create_client(
+            Empty,
+            "/os/retare_local_frame"
+        )
+        
+        # Control loop timer at 50 Hz (changed from 100 Hz in wrench_test)
         self._control_timer = self.create_timer(0.02, self._control_loop)
         
-        self.get_logger().info(
-            f"PID Controller initialized - Target pose: "
-            f"position=({self.target_position[0]:.2f}, {self.target_position[1]:.2f}, {self.target_position[2]:.2f}), "
-            f"orientation=(w={self.target_orientation.s:.2f}, x={self.target_orientation.vec[0]:.2f}, "
-            f"y={self.target_orientation.vec[1]:.2f}, z={self.target_orientation.vec[2]:.2f})"
-        )
+        # ------------------------------------------------------------------
+        # Initialization logging
+        # ------------------------------------------------------------------
+        self.get_logger().info("PD Yaw Controller with Wrench Test initialized")
+        self.get_logger().info(f"Yaw control - Target: {self.target_yaw:.2f} rad ({np.degrees(self.target_yaw):.1f} deg), "
+                              f"Kp: {self.gains.yaw_kp:.1f}, Kd: {self.gains.yaw_kd:.1f}")
+        self.get_logger().info("Test sequence:")
+        self.get_logger().info(f"  1. WAIT1 for {self.wait1_duration} seconds (zero wrench)")
+        self.get_logger().info(f"  2. Call retare_local_frame service")
+        self.get_logger().info(f"  3. WAIT2 for {self.wait2_duration} seconds (zero wrench)")
+        self.get_logger().info(f"  4. ROTATE wrench for {self.rotate_duration} seconds")
+        self.get_logger().info(f"  5. DOWN wrench for {self.down_duration} seconds")
+        self.get_logger().info(f"  6. ROLL wrench for {self.roll_duration} seconds")
+        self.get_logger().info(f"  7. FORWARD wrench for {self.forward_duration} seconds")
+        self.get_logger().info(f"  8. STOPPED (yaw control only)")
+        self.get_logger().info(f"  Rotate Force: [{self.rotate_force_x:.1f}, {self.rotate_force_y:.1f}, {self.rotate_force_z:.1f}] N")
+        self.get_logger().info(f"  Rotate Torque: [{self.rotate_torque_x:.1f}, {self.rotate_torque_y:.1f}, {self.rotate_torque_z:.1f}] Nm")
+        self.get_logger().info(f"  Down Force: [{self.down_force_x:.1f}, {self.down_force_y:.1f}, {self.down_force_z:.1f}] N")
+        self.get_logger().info(f"  Down Torque: [{self.down_torque_x:.1f}, {self.down_torque_y:.1f}, {self.down_torque_z:.1f}] Nm")
+        self.get_logger().info(f"  Roll Force: [{self.roll_force_x:.1f}, {self.roll_force_y:.1f}, {self.roll_force_z:.1f}] N")
+        self.get_logger().info(f"  Roll Torque: [{self.roll_torque_x:.1f}, {self.roll_torque_y:.1f}, {self.roll_torque_z:.1f}] Nm")
+        self.get_logger().info(f"  Forward Force: [{self.forward_force_x:.1f}, {self.forward_force_y:.1f}, {self.forward_force_z:.1f}] N")
+        self.get_logger().info(f"  Forward Torque: [{self.forward_torque_x:.1f}, {self.forward_torque_y:.1f}, {self.forward_torque_z:.1f}] Nm")
         
         # Store latest navigation state
         self.current_nav_state = None
@@ -158,212 +207,184 @@ class Controller(Node):
         self.current_nav_state = msg
     
     def _control_loop(self) -> None:
-        """Main control loop - runs at 50 Hz."""
-        if self.current_nav_state is None:
+        """Main control loop - runs at 50 Hz. Combines test wrench with yaw control."""
+        # Update test phase based on elapsed time
+        self.update_test_phase()
+        
+        # ------------------------------------------------------------------
+        # Get test sequence wrench based on current phase
+        # ------------------------------------------------------------------
+        test_wrench = self._get_test_wrench()
+        
+        # ------------------------------------------------------------------
+        # Calculate yaw control wrench (if nav state available and not in WAITING)
+        # ------------------------------------------------------------------
+        yaw_wrench = np.zeros(6)
+        
+        if self.current_phase == TestPhase.WAIT1 or self.current_phase == TestPhase.WAIT2:
+            # During WAIT phases, output only zero wrench
+            combined_wrench = np.zeros(6)
+        else:
+            # Calculate yaw control if navigation state is available
+            if self.current_nav_state is not None:
+                current_yaw = self._extract_yaw_from_nav_state()
+                current_yaw_rate = self._extract_yaw_rate_from_nav_state()
+                yaw_torque = self._yaw_pd_control(current_yaw, current_yaw_rate)
+                yaw_wrench[5] = yaw_torque  # Only yaw torque (tz) component
+            
+            # Combine test wrench and yaw control wrench
+            combined_wrench = test_wrench + yaw_wrench
+        
+        # ------------------------------------------------------------------
+        # Publish combined wrench command
+        # ------------------------------------------------------------------
+        self._publish_combined_wrench(combined_wrench)
+    
+    def _extract_yaw_from_nav_state(self) -> float:
+        """Extract yaw angle (in radians) from the NavigationState body_pose quaternion."""
+        pose = numpify(self.current_nav_state.body_pose.orientation)
+        
+        # Convert quaternion to euler angles (roll, pitch, yaw)
+        _, _, yaw = pose.rpy()
+        return yaw
+    
+    def _extract_yaw_rate_from_nav_state(self) -> float:
+        """Extract yaw rate (angular velocity around z-axis) from NavigationState body_twist."""
+        return self.current_nav_state.body_twist.angular.z
+    
+    def _yaw_pd_control(self, current_yaw: float, current_yaw_rate: float) -> float:
+        """
+        Proportional-derivative controller for yaw orientation with damping.
+        Returns yaw torque command.
+        """
+        # Calculate yaw error (handle angle wrapping)
+        yaw_error = self.target_yaw - current_yaw
+        
+        # Wrap error to [-pi, pi]
+        while yaw_error > np.pi:
+            yaw_error -= 2 * np.pi
+        while yaw_error < -np.pi:
+            yaw_error += 2 * np.pi
+        
+        # Proportional control + derivative (damping) term
+        # PD control: u = Kp * error - Kd * rate (negative because we want to oppose the rate)
+        yaw_torque = self.gains.yaw_kp * yaw_error - self.gains.yaw_kd * current_yaw_rate
+        
+        # Apply torque limits
+        yaw_torque = np.clip(yaw_torque, -self.gains.max_torque, self.gains.max_torque)
+        
+        return yaw_torque
+    
+    # ------------------------------------------------------------------
+    # Test sequence methods
+    # ------------------------------------------------------------------
+    
+    def update_test_phase(self):
+        """Update the current test phase based on elapsed time"""
+        elapsed_time = time.time() - self.start_time
+        previous_phase = self.current_phase
+        
+        if elapsed_time < self.wait1_duration:
+            self.current_phase = TestPhase.WAIT1
+        elif elapsed_time < self.wait1_duration + self.wait2_duration:
+            self.current_phase = TestPhase.WAIT2
+            # Call retare service after WAIT1 ends (once only)
+            if previous_phase == TestPhase.WAIT1 and not self.service_called:
+                self._call_retare_service()
+        elif elapsed_time < self.wait1_duration + self.wait2_duration + self.rotate_duration:
+            self.current_phase = TestPhase.ROTATE
+        elif elapsed_time < self.wait1_duration + self.wait2_duration + self.rotate_duration + self.down_duration:
+            self.current_phase = TestPhase.DOWN
+        elif elapsed_time < self.wait1_duration + self.wait2_duration + self.rotate_duration + self.down_duration + self.roll_duration:
+            self.current_phase = TestPhase.ROLL
+        elif elapsed_time < self.wait1_duration + self.wait2_duration + self.rotate_duration + self.down_duration + self.roll_duration + self.forward_duration:
+            self.current_phase = TestPhase.FORWARD
+        else:
+            self.current_phase = TestPhase.STOPPED
+        
+        # Log phase transitions
+        if self.current_phase != previous_phase:
+            if self.current_phase == TestPhase.WAIT2:
+                self.get_logger().info(f"Phase transition: Starting WAIT2 phase (t={elapsed_time:.1f}s)")
+            elif self.current_phase == TestPhase.ROTATE:
+                self.get_logger().info(f"Phase transition: Starting ROTATE wrench (t={elapsed_time:.1f}s)")
+            elif self.current_phase == TestPhase.DOWN:
+                self.get_logger().info(f"Phase transition: Starting DOWN wrench (t={elapsed_time:.1f}s)")
+            elif self.current_phase == TestPhase.ROLL:
+                self.get_logger().info(f"Phase transition: Starting ROLL wrench (t={elapsed_time:.1f}s)")
+            elif self.current_phase == TestPhase.FORWARD:
+                self.get_logger().info(f"Phase transition: Starting FORWARD wrench (t={elapsed_time:.1f}s)")
+            elif self.current_phase == TestPhase.STOPPED:
+                self.get_logger().info(f"Phase transition: Test complete, yaw control only (t={elapsed_time:.1f}s)")
+    
+    def _get_test_wrench(self) -> np.ndarray:
+        """Get the test wrench based on current phase. Returns 6D wrench vector."""
+        wrench = np.zeros(6)  # [fx, fy, fz, tx, ty, tz]
+        
+        if self.current_phase == TestPhase.DOWN:
+            wrench[0] = self.down_force_x
+            wrench[1] = self.down_force_y
+            wrench[2] = self.down_force_z
+            wrench[3] = self.down_torque_x
+            wrench[4] = self.down_torque_y
+            wrench[5] = self.down_torque_z
+        elif self.current_phase == TestPhase.ROTATE:
+            wrench[0] = self.rotate_force_x
+            wrench[1] = self.rotate_force_y
+            wrench[2] = self.rotate_force_z
+            wrench[3] = self.rotate_torque_x
+            wrench[4] = self.rotate_torque_y
+            wrench[5] = self.rotate_torque_z
+        elif self.current_phase == TestPhase.ROLL:
+            wrench[0] = self.roll_force_x
+            wrench[1] = self.roll_force_y
+            wrench[2] = self.roll_force_z
+            wrench[3] = self.roll_torque_x
+            wrench[4] = self.roll_torque_y
+            wrench[5] = self.roll_torque_z
+        elif self.current_phase == TestPhase.FORWARD:
+            wrench[0] = self.forward_force_x
+            wrench[1] = self.forward_force_y
+            wrench[2] = self.forward_force_z
+            wrench[3] = self.forward_torque_x
+            wrench[4] = self.forward_torque_y
+            wrench[5] = self.forward_torque_z
+        # For WAIT1, WAIT2 and STOPPED phases, return zero wrench
+        
+        return wrench
+    
+    def _call_retare_service(self):
+        """Call the retare local frame service asynchronously"""
+        if not self._retare_client.service_is_ready():
+            self.get_logger().warn("Retare service not available, skipping call")
+            self.service_called = True  # Mark as called to avoid repeated attempts
             return
+            
+        req = Empty.Request()
+        future = self._retare_client.call_async(req)
         
-        # Calculate dt
-        current_time = self.get_clock().now()
-        if self.last_control_time is None:
-            dt = 0.02  # Assume first iteration is at expected rate
-        else:
-            dt = (current_time - self.last_control_time).nanoseconds / 1e9
-            if dt <= 0:
-                return
-        self.last_control_time = current_time
+        def service_callback(future):
+            try:
+                response = future.result()
+                self.get_logger().info("Successfully called retare_local_frame service")
+            except Exception as e:
+                self.get_logger().error(f"Failed to call retare_local_frame service: {e}")
         
-        # Extract current state using numpify
-        current_pose = numpify(self.current_nav_state.body_pose)  # SE3
-        current_position = current_pose.t  # Translation vector
-        current_orientation = current_pose.UnitQuaternion()  # Rotation as quaternion
-        
-        # Extract velocities and accelerations
-        current_twist = numpify(self.current_nav_state.body_twist)  # 6x1 array
-        current_linear_velocity = current_twist[0:3, 0]  # First 3 elements
-        current_angular_velocity = current_twist[3:6, 0]  # Last 3 elements
-        
-        current_linear_acceleration = numpify(self.current_nav_state.a_b).flatten()
-        
-        # ------------------------------------------------------------------
-        # Outer Loop: Position to Velocity
-        # ------------------------------------------------------------------
-        target_linear_velocity = self._position_pid(
-            current_position, self.target_position, dt
-        )
-        
-        target_angular_velocity = self._orientation_pid(
-            current_orientation, self.target_orientation, dt
-        )
-        
-        # ------------------------------------------------------------------
-        # Inner Loop: Velocity to Wrench
-        # ------------------------------------------------------------------
-        force = self._velocity_pid(
-            current_linear_velocity, target_linear_velocity, 
-            current_linear_acceleration, dt
-        )
-        
-        torque = self._angular_velocity_pid(
-            current_angular_velocity, target_angular_velocity, dt
-        )
-        
-        # Store acceleration for next iteration
-        self.last_linear_acceleration = current_linear_acceleration
-        
-        # ------------------------------------------------------------------
-        # Publish wrench command
-        # ------------------------------------------------------------------
-        self._publish_wrench(force, torque)
-    
-    # ------------------------------------------------------------------
-    # PID control methods
-    # ------------------------------------------------------------------
-    
-    def _position_pid(self, current: np.ndarray, target: np.ndarray, dt: float) -> np.ndarray:
-        """
-        Position PID controller (outer loop).
-        Generates velocity commands from position errors.
-        """
-        error = target - current
-        
-        # Proportional term
-        p_term = self.gains.position_kp * error
-        
-        # Integral term
-        self.position_integral += error * dt
-        self.position_integral = np.clip(
-            self.position_integral,
-            -self.gains.position_integral_limit,
-            self.gains.position_integral_limit
-        )
-        i_term = self.gains.position_ki * self.position_integral
-        
-        # Derivative term
-        if np.any(self.last_position_error != 0):
-            d_term = self.gains.position_kd * (error - self.last_position_error) / dt
-        else:
-            d_term = np.zeros(3)
-        self.last_position_error = error
-        
-        # Combine terms and apply limits
-        velocity_cmd = p_term + i_term + d_term
-        velocity_cmd = np.clip(
-            velocity_cmd,
-            -self.gains.max_linear_velocity,
-            self.gains.max_linear_velocity
-        )
-        
-        return velocity_cmd
-    
-    def _orientation_pid(self, current: UnitQuaternion, target: UnitQuaternion, dt: float) -> np.ndarray:
-        """
-        Orientation PID controller (outer loop) using quaternions.
-        Generates angular velocity commands from quaternion orientation errors.
-        Note: Kd term is omitted as we don't have angular acceleration.
-        """
-        # Calculate quaternion error
-        # error_quat = target * current.inv() gives rotation needed to reach target
-        error_quat = target * current.inv()
-        
-        error_angle, error_vec = error_quat.angvec()
-        
-        # Proportional term
-        p_term = self.gains.orientation_kp * error_vec * error_angle
-        
-        # Integral term
-        self.orientation_integral += error_vec * dt
-        self.orientation_integral = np.clip(
-            self.orientation_integral,
-            -self.gains.orientation_integral_limit,
-            self.gains.orientation_integral_limit
-        )
-        i_term = self.gains.orientation_ki * self.orientation_integral
-        
-        # No derivative term for orientation (as specified)
-        
-        # Combine terms and apply limits
-        angular_velocity_cmd = p_term + i_term
-        angular_velocity_cmd = np.clip(
-            angular_velocity_cmd,
-            -self.gains.max_angular_velocity,
-            self.gains.max_angular_velocity
-        )
-        
-        return angular_velocity_cmd
-    
-    def _velocity_pid(self, current: np.ndarray, target: np.ndarray, 
-                     current_accel: np.ndarray, dt: float) -> np.ndarray:
-        """
-        Velocity PID controller (inner loop).
-        Generates force commands from velocity errors.
-        """
-        error = target - current
-        
-        # Proportional term
-        p_term = self.gains.velocity_kp * error
-        
-        # Integral term
-        self.velocity_integral += error * dt
-        self.velocity_integral = np.clip(
-            self.velocity_integral,
-            -self.gains.velocity_integral_limit,
-            self.gains.velocity_integral_limit
-        )
-        i_term = self.gains.velocity_ki * self.velocity_integral
-        
-        # Derivative term (using acceleration)
-        d_term = -self.gains.velocity_kd * current_accel
-        
-        # Combine terms and apply limits
-        force = p_term + i_term + d_term
-        force_magnitude = np.linalg.norm(force)
-        if force_magnitude > self.gains.max_force:
-            force = force * (self.gains.max_force / force_magnitude)
-        
-        return force
-    
-    def _angular_velocity_pid(self, current: np.ndarray, target: np.ndarray, dt: float) -> np.ndarray:
-        """
-        Angular velocity PID controller (inner loop).
-        Generates torque commands from angular velocity errors.
-        Note: Kd term is omitted as we don't have angular acceleration.
-        """
-        error = target - current
-        
-        # Proportional term
-        p_term = self.gains.angular_velocity_kp * error
-        
-        # Integral term
-        self.angular_velocity_integral += error * dt
-        self.angular_velocity_integral = np.clip(
-            self.angular_velocity_integral,
-            -self.gains.angular_velocity_integral_limit,
-            self.gains.angular_velocity_integral_limit
-        )
-        i_term = self.gains.angular_velocity_ki * self.angular_velocity_integral
-        
-        # No derivative term (as specified)
-        
-        # Combine terms and apply limits
-        torque = p_term + i_term
-        torque_magnitude = np.linalg.norm(torque)
-        if torque_magnitude > self.gains.max_torque:
-            torque = torque * (self.gains.max_torque / torque_magnitude)
-        
-        return torque
+        future.add_done_callback(service_callback)
+        self.service_called = True
+        self.get_logger().info("Called retare_local_frame service")
     
     # ------------------------------------------------------------------
     # Helper methods
     # ------------------------------------------------------------------
     
-    def _publish_wrench(self, force: np.ndarray, torque: np.ndarray) -> None:
-        """Publish wrench command using msgify utility."""
+    def _publish_combined_wrench(self, wrench_vec: np.ndarray) -> None:
+        """Publish combined wrench command."""
         msg = WrenchStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = "body"
+        msg.header.frame_id = "os/body"
         
-        # Combine force and torque into 6D wrench vector and use msgify
-        wrench_vec = np.concatenate([force, torque])
+        # Convert numpy array to Wrench message
         msg.wrench = msgify(wrench_vec, message_type="Wrench")
         
         self._wrench_pub.publish(msg)
@@ -373,7 +394,7 @@ class Controller(Node):
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    """Run the PID controller node."""
+    """Run the yaw controller node."""
     rclpy.init()
     controller = Controller()
     
@@ -387,4 +408,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+        main()
