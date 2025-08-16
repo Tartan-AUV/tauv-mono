@@ -107,6 +107,7 @@ install(PROGRAMS
         scripts/waterlinked_driver
         scripts/lucid_driver
         scripts/thruster_controller
+        scripts/depth_actuators_i2c
         DESTINATION lib/${PROJECT_NAME}
 )
 

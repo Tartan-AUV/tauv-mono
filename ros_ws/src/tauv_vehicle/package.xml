@@ -22,6 +22,7 @@
   <exec_depend>python3-adafruit-circuitpython-servokit</exec_depend>
   <exec_depend>python3-adafruit-circuitpython-extended-bus</exec_depend>
   <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-smbus</exec_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

@@ -30,6 +30,7 @@ from tauv_msgs.msg import WaterlinkedDvlFrame as DvlMsg
 from tauv_msgs.msg import NavigationState
 from geometry_msgs.msg import TransformStamped, Quaternion, Vector3, Point, Pose
 from builtin_interfaces.msg import Time as TimeMsg
+from std_srvs.srv import Empty
 
 # TF2
 import tf2_ros
@@ -41,14 +42,14 @@ def stamp_to_nanos(stamp: Any) -> int:
 
 @dataclass
 class EkfControl:
-    odom_R_sensor: SO3
+    local_R_sensor: SO3
     a_S: np.ndarray
     omega_S: np.ndarray
 
     @staticmethod
     def from_msg(msg: ImuMsg) -> 'EkfControl':
         return EkfControl(
-            odom_R_sensor=SO3(numpify(msg.orientation).R),  # type: ignore
+            local_R_sensor=SO3(numpify(msg.orientation).R),  # type: ignore
             a_S=numpify(msg.linear_acceleration),
             omega_S=numpify(msg.angular_velocity),
         )
@@ -158,18 +159,20 @@ class EkfHistory:
             raise ValueError(f"IMU measurement at {t} is not newer than last IMU at {self.last_imu_t}")
         
         if t <= self.last_dvl_t:
+            self._logger.warning(f"IMU measurement at {t} is not newer than last DVL at {self.last_dvl_t}")
             return 
             # TODO: Handle this case
         
         self.control_history.append((t, imu))
         self.last_imu_t = t
     
-    def add_depth_measurement(self, t: int, depth: DepthInput, ekf: 'Ekf') -> None:
+    def add_depth_measurement(self, t: int, depth: DepthInput, ekf: 'Ekf', local_T_odom: SE3) -> None:
         """Add depth measurement"""
         # Check constraints
         if t <= self.last_depth_t:
             raise ValueError("Depth measurement timestamp not newer than last depth")
         if t <= self.last_dvl_t:
+            self._logger.warning(f"Depth measurement at {t} is not newer than last DVL at {self.last_dvl_t}")
             return
             # TODO: Handle this case
             # raise ValueError("Depth measurement timestamp not newer than last DVL")
@@ -184,11 +187,11 @@ class EkfHistory:
         
         # Predict from state_t to t
         dt = t - state_t
-        x_pred = ekf.predict(state_est[2], closest_control, dt)
-        P_pred = ekf.predict_cov(state_est[3], closest_control, dt)
+        x_pred = ekf.predict(state_est[2], closest_control, dt, local_T_odom)
+        P_pred = ekf.predict_cov(state_est[3], closest_control, dt, local_T_odom)
         
         # Apply depth update
-        z_pred: np.ndarray = ekf.h_depth(x_pred, closest_control)
+        z_pred: np.ndarray = ekf.h_depth(x_pred, closest_control, local_T_odom)
 
         x_updated, P_updated = ekf.update(x_pred, P_pred, depth.z, depth.R, z_pred, ekf.H_depth)
 
@@ -201,7 +204,7 @@ class EkfHistory:
         # Cleanup old states
         self._cleanup()
 
-    def add_dvl_measurement(self, t: int, dvl: DvlInput, ekf: 'Ekf') -> None:
+    def add_dvl_measurement(self, t: int, dvl: DvlInput, ekf: 'Ekf', local_T_odom: SE3) -> None:
         """Add DVL measurement and perform update, replaying all subsequent states."""
         import logging
 
@@ -224,11 +227,11 @@ class EkfHistory:
         if dt < 0:
             raise ValueError("Negative time delta in prediction")
         
-        x_pred = ekf.predict(state_est[2], closest_control, dt)
-        P_pred = ekf.predict_cov(state_est[3], closest_control, dt)
+        x_pred = ekf.predict(state_est[2], closest_control, dt, local_T_odom)
+        P_pred = ekf.predict_cov(state_est[3], closest_control, dt, local_T_odom)
         
         # 4. Apply DVL update using analytic Jacobian
-        z_pred = ekf.h_dvl(x_pred, closest_control)
+        z_pred = ekf.h_dvl(x_pred, closest_control, local_T_odom)
         z = dvl.v_dvl_V
         R = dvl.R
 
@@ -254,11 +257,11 @@ class EkfHistory:
                     return
                 closest_control_t, closest_control_data = self._find_closest_control(replay_t)
                 dt_replay = replay_t - latest_t
-                x_pred = ekf.predict(latest_est[2], closest_control_data, dt_replay)
-                P_pred = ekf.predict_cov(latest_est[3], closest_control_data, dt_replay)
+                x_pred = ekf.predict(latest_est[2], closest_control_data, dt_replay, local_T_odom)
+                P_pred = ekf.predict_cov(latest_est[3], closest_control_data, dt_replay, local_T_odom)
                 
                 # Predict the depth
-                z_pred = ekf.h_depth(x_pred, closest_control_data)
+                z_pred = ekf.h_depth(x_pred, closest_control_data, local_T_odom)
                 z = meas.z
                 R = meas.R
 
@@ -318,7 +321,7 @@ class Ekf:
         dvl_T_body: SE3 = transforms.body_T_dvl.inv()
         self._dvl_J_body: np.ndarray = dvl_T_body.jacob()
         # TODO: remove this
-        assert not np.allclose(transforms.body_T_imu.t, 0)
+        # assert not np.allclose(transforms.body_T_imu.t, 0)
         self._body_T_imu: SE3 = transforms.body_T_imu
         
         # Depth measurement Jacobian
@@ -339,14 +342,16 @@ class Ekf:
         # Logger
         self._logger = logger
     
-    def predict(self, xkm1: np.ndarray, uk: EkfControl, dt: int) -> np.ndarray:
+    def predict(self, xkm1: np.ndarray, uk: EkfControl, dt: int, local_T_odom: SE3) -> np.ndarray:
         assert xkm1.shape == (6, 1) and uk.is_valid() and dt > 0
 
         dt_seconds = dt * 1e-9
 
-        # Sensor frame origin is body frame origin
-        body_R_imu = SO3(self._body_T_imu.R)
-        odom_R_body: SO3 = uk.odom_R_sensor * body_R_imu.inv()
+        # Transform chain: sensor -> body -> local -> odom
+        body_R_imu = SO3()
+        local_R_body: SO3 = uk.local_R_sensor * body_R_imu.inv()
+        odom_R_body: SO3 = SO3(local_T_odom.R).inv() * local_R_body
+        
         omega_B = body_R_imu * uk.omega_S
         r_sensor__body_B = self._body_T_imu.t
 
@@ -356,7 +361,6 @@ class Ekf:
         a_body_O = odom_R_body * a_body_B
         a_body_O_free = a_body_O + self._a_g_O
         # a_body_O_free = a_body_O
-
 
         # Position update: r = r + v*dt + 0.5*a*dt^2
         r_body_km1_O, v_body_km1_B = xkm1[:3], xkm1[3:]
@@ -372,12 +376,14 @@ class Ekf:
 
         return np.vstack((r_body_k_O, v_body_k_B))
 
-    def predict_cov(self, Pkm1: np.ndarray, uk: EkfControl, dt: int) -> np.ndarray:
+    def predict_cov(self, Pkm1: np.ndarray, uk: EkfControl, dt: int, local_T_odom: SE3) -> np.ndarray:
         """Predict covariance"""
         assert Pkm1.shape == (6, 6)
 
-        body_R_imu = SO3(self._body_T_imu.R)
-        odom_R_body: SO3 = uk.odom_R_sensor * body_R_imu.inv()
+        # Transform chain: sensor -> body -> local -> odom
+        body_R_imu = SO3()
+        local_R_body: SO3 = uk.local_R_sensor * body_R_imu.inv()
+        odom_R_body: SO3 = SO3(local_T_odom.R).inv() * local_R_body
 
         dt_seconds = dt * 1e-9
 
@@ -413,12 +419,12 @@ class Ekf:
 
         return xk, Pk
     
-    def h_dvl(self, xk: np.ndarray, uk: EkfControl) -> np.ndarray:
+    def h_dvl(self, xk: np.ndarray, uk: EkfControl, local_T_odom: SE3) -> np.ndarray:
         assert xk.shape == (6, 1) and uk.is_valid()
 
-        # Transform velocity to body frame
+        # Transform velocity to body frame - the velocity is already in body frame
         v_body_B = xk[3:]
-        body_R_imu = SO3(self._body_T_imu.R)
+        body_R_imu = SO3()
         omega_body_B = body_R_imu * uk.omega_S
         
         # Create twist vector
@@ -428,12 +434,14 @@ class Ekf:
         V_dvl_V = (self._dvl_J_body @ V_body_B)
         return V_dvl_V[:3]
 
-    def h_depth(self, xk: np.ndarray, uk: EkfControl) -> np.ndarray:
+    def h_depth(self, xk: np.ndarray, uk: EkfControl, local_T_odom: SE3) -> np.ndarray:
         assert xk.shape == (6, 1) and uk.is_valid()
 
         r_body_O = xk[:3]
-        body_R_imu = SO3(self._body_T_imu.R)
-        odom_R_body: SO3 = uk.odom_R_sensor * body_R_imu.inv()
+        # Transform chain: sensor -> body -> local -> odom
+        body_R_imu = SO3()
+        local_R_body: SO3 = uk.local_R_sensor * body_R_imu.inv()
+        odom_R_body: SO3 = SO3(local_T_odom.R).inv() * local_R_body
 
         # Transform depth sensor position to odom frame
         r_body_depth_O = odom_R_body * self._r_body_depth_B
@@ -495,6 +503,12 @@ class StateEstimatorEkf(Node):
         self.history: Optional[EkfHistory] = None
         self.static_transforms: Optional[EkfStaticTransforms] = None
         self._transforms_ready = False
+        
+        # Local to odom transform (initialized to identity)
+        self.local_T_odom: SE3 = SE3()
+        
+        # ROS service for retaring
+        self.retare_service = self.create_service(Empty, 'retare_local_frame', self._retare_callback)
 
         # Timer for checking static transforms
         self._static_tf_timer = self.create_timer(0.1, self._static_tf_timer_callback)
@@ -525,6 +539,7 @@ class StateEstimatorEkf(Node):
             # Convert DVL transform to isometry matrix
             body_T_dvl = numpify(dvl_tf.transform)
             body_T_imu = numpify(imu_tf.transform)
+            body_T_imu = SE3()
             # Log the DVL and IMU transforms for debugging and verification
             self.get_logger().info(f"DVL Transform (body_T_dvl):\n{body_T_dvl}")
             self.get_logger().info(f"IMU Transform (body_T_imu):\n{body_T_imu}")
@@ -540,6 +555,42 @@ class StateEstimatorEkf(Node):
             self._static_tf_timer.cancel()
         except Exception as e:
             self.get_logger().warn(f"Transforms not available yet, waiting... ({e})")
+
+    def _retare_callback(self, request: Empty.Request, response: Empty.Response) -> Empty.Response:
+        """Service callback to retare the local frame to current body frame"""
+        self.get_logger().info("Retaring local frame to align with current body frame")
+        
+        # Get the current local to odom transform for logging
+        old_transform = self.local_T_odom
+        self.get_logger().info(f"Previous local_T_odom: {old_transform}")
+        
+        # Check if we have the necessary data for retare operation
+        if self.history is None or not self.history.control_history:
+            self.get_logger().warn("No IMU data available for retare operation")
+            return response
+            
+        if self.static_transforms is None:
+            self.get_logger().warn("Static transforms not available for retare operation")
+            return response
+            
+        # Get latest IMU measurement
+        latest_imu_t_ns, latest_imu = self.history.control_history[-1]
+        
+        # Calculate current local_T_body transformation
+        local_R_sensor = latest_imu.local_R_sensor
+        body_T_sensor = SE3()
+        local_R_body = local_R_sensor
+        
+        # Create local_T_body transform (assuming same origin for local and body frames)
+        local_T_body = SE3.Rt(local_R_body.R, np.zeros(3))
+        
+        # Set local_T_odom to current local_T_body
+        self.local_T_odom = local_T_body
+        
+        self.get_logger().info(f"New local_T_odom (local_T_body): {self.local_T_odom}")
+        self.get_logger().info("Local frame has been retared to align with current body frame")
+        
+        return response
 
     def start_processing(self) -> None:
         self.input_queue = Queue()
@@ -641,7 +692,7 @@ class StateEstimatorEkf(Node):
         for t_dvl, dvl_data in pending_dvl_measurements:
             try:
                 if self.ekf is not None:
-                    self.history.add_dvl_measurement(t_dvl, dvl_data, self.ekf)
+                    self.history.add_dvl_measurement(t_dvl, dvl_data, self.ekf, self.local_T_odom)
                     self._publish_navigation_state()
                     self.get_logger().info(f"Processed pending DVL measurement from {t_dvl}")
             except Exception as e:
@@ -660,14 +711,14 @@ class StateEstimatorEkf(Node):
                 elif input_type == EkfInput.DEPTH:
                     # try:
                     if self.ekf is not None:
-                        self.history.add_depth_measurement(t, data, self.ekf)
+                        self.history.add_depth_measurement(t, data, self.ekf, self.local_T_odom)
                     self._publish_navigation_state()
                     # except ValueError as e:
                     #     self.get_logger().warn(f"Depth measurement rejected: {e}")
                 
                 elif input_type == EkfInput.DVL:
                     if self.ekf is not None:
-                        self.history.add_dvl_measurement(t, data, self.ekf)
+                        self.history.add_dvl_measurement(t, data, self.ekf, self.local_T_odom)
                     self._publish_navigation_state()
 
             except queue.Empty:
@@ -693,21 +744,24 @@ class StateEstimatorEkf(Node):
         # TODO: we should be using closest control to the state estimate
         latest_imu_t_ns, latest_imu = self.history.control_history[-1]
 
-        # Calculate the body orientation
-        odom_R_sensor = latest_imu.odom_R_sensor
-        body_T_sensor = self.static_transforms.body_T_imu
-        body_R_sensor = SO3(body_T_sensor)
-        odom_R_body = odom_R_sensor * body_R_sensor.inv()
+        # Calculate the body orientation using local frame
+        local_R_sensor = latest_imu.local_R_sensor
+        body_R_sensor = SO3()
+        local_R_body = local_R_sensor * body_R_sensor.inv()
+        odom_R_body = SO3(self.local_T_odom.R).inv() * local_R_body
     
         # Accel
         a_gravity_O = np.c_[[0.0, 0.0, self.params.gravity]]
         a_gravity_B = odom_R_body.inv() * a_gravity_O
         a_sensor_S = latest_imu.a_S
         # glebs_magic_matrix = np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 1]])
+        self.get_logger().info(f"a_sensor_S: {a_sensor_S}")
         a_body_B = body_R_sensor * a_sensor_S + a_gravity_B
+        self.get_logger().info(f"a_body_B: {a_body_B}")
 
         # We assume that the body frame and IMU frame have the same origin
         omega_sensor_S = latest_imu.omega_S
+        self.get_logger().info(f"body_R_sensor: {omega_sensor_S}")
         omega_body_B = body_R_sensor * omega_sensor_S
         
         # Create NavigationState message

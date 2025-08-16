@@ -20,21 +20,13 @@ def generate_launch_description():
             # RTVC node - interfaces with the real-time vehicle controller
             Node(
                 package='tauv_vehicle',
-                executable='rtvc',
-                name='rtvc_driver',
+                executable='depth_actuators_i2c',
+                name='depth_actuators_i2c',
                 output='screen',
                 remappings=[
-                    ('imu', 'imu_old'),
                     ('depth', 'vehicle/sensors/depth'),
-                    ('temperature', 'temp_old'),
-                    ('pressure', 'pressure_old'),
-                    ('esc_telemetry', 'vehicle/esc_telemetry'),
                     ('thruster_setpoint', 'vehicle/actuators/thruster_setpoint'),
                 ],
-                parameters=[{
-                    # Add any RTVC-specific parameters here if needed
-                    # For example, network configuration, update rates, etc.
-                }]
             ),
 
             Node(

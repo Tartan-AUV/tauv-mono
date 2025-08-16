@@ -1,10 +1,35 @@
 from launch import LaunchDescription
-from launch.actions import GroupAction
+from launch.actions import GroupAction, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import PushRosNamespace, Node
+from launch.substitutions import PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
     return LaunchDescription([
+        # Include static transforms (robot state publisher)
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                PathJoinSubstitution([
+                    FindPackageShare('tauv_config'),
+                    'launch',
+                    'static_tf.launch.py'
+                ])
+            ])
+        ),
+        
+        # Include vehicle launch (sensors, actuators)
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                PathJoinSubstitution([
+                    FindPackageShare('tauv_config'),
+                    'launch',
+                    'vehicle.launch.py'
+                ])
+            ])
+        ),
+        
         GroupAction(actions=[
             PushRosNamespace("os"),
 
