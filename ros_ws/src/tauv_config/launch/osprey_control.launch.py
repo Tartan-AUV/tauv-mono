@@ -1,9 +1,14 @@
 from launch import LaunchDescription
-from launch.actions import GroupAction
+from launch.actions import GroupAction, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import PushRosNamespace, Node
+from ament_index_python.packages import get_package_share_directory
+from pathlib import Path
 
 
 def generate_launch_description():
+    tauv_config_share = Path(get_package_share_directory('tauv_config'))
+    
     return LaunchDescription([
         GroupAction(actions=[
             PushRosNamespace("os"),
@@ -43,13 +48,27 @@ def generate_launch_description():
 
             # Launch thruster controller node
             Node(
-                package='tauv_common',
+                package='tauv_vehicle',
                 executable='thruster_controller',
                 name='thruster_controller',
                 remappings=[
                     ('target_thrust', 'gnc/target_thrust'),
-                    ('thruster_setpoint', 'vehicle/actuators/thruster_setpoint'),
                 ]
             ),
+            
+            # Launch wrench test node - publishes test wrench commands
+            Node(
+                package='tauv_common',
+                executable='wrench_test',
+                name='wrench_test',
+                output='screen',
+            ),
         ]),
+        
+        # Include the static TF publisher launch file
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                str(tauv_config_share / 'launch' / 'static_tf.launch.py')
+            ])
+        ),
     ])

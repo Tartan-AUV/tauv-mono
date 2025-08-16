@@ -1,14 +1,9 @@
 from launch import LaunchDescription
-from launch.actions import GroupAction, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import GroupAction
 from launch_ros.actions import PushRosNamespace, Node
-from ament_index_python.packages import get_package_share_directory
-from pathlib import Path
 
 
 def generate_launch_description():
-    tauv_config_share = Path(get_package_share_directory('tauv_config'))
-
     return LaunchDescription([
         GroupAction(actions=[
             PushRosNamespace("os"),
@@ -62,11 +57,4 @@ def generate_launch_description():
                 # arguments=['--ros-args', '--log-level', 'debug']
             ),
         ]),
-
-        # Include the static TF publisher launch file
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource([
-                str(tauv_config_share / 'launch' / 'static_tf.launch.py')
-            ])
-        ),
     ])

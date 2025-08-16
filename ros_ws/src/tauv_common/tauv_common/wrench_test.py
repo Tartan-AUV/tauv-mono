@@ -10,8 +10,9 @@ class TestPhase(Enum):
     """Test phases for the wrench test sequence"""
     WAITING = 1
     DOWN = 2
-    FORWARD = 3
-    STOPPED = 4
+    ROLL = 3
+    FORWARD = 4
+    STOPPED = 5
 
 class WrenchTestNode(Node):
     """
@@ -37,23 +38,32 @@ class WrenchTestNode(Node):
         
         # Test sequence timing
         self.start_time = time.time()
-        self.wait_duration = 60.0  # seconds
-        self.down_duration = 5.0   # seconds
-        self.forward_duration = 12.0  # seconds
+        self.wait_duration = 5.0  # seconds
+        self.down_duration = 4.0   # seconds
+        self.roll_duration = 3  # seconds
+        self.forward_duration = 6.0  # seconds
         self.current_phase = TestPhase.WAITING
         
         # Down phase wrench values (in NED frame)
         self.down_force_x = 0.0    # North (N)
         self.down_force_y = 0.0    # East (N)
-        self.down_force_z = 300.0    # Up (N, negative down)
+        self.down_force_z = 600.0    # Up (N, negative down)
         self.down_torque_x = 0.0   # Roll (Nm)
         self.down_torque_y = 0.0   # Pitch (Nm)
         self.down_torque_z = 0.0   # Yaw (Nm)
+
+        # Roll phase wrench values (in NED frame)
+        self.roll_force_x = 0.0    # North (N)
+        self.roll_force_y = 0.0    # East (N)
+        self.roll_force_z = 0.0    # Up (N, negative down)
+        self.roll_torque_x = 0.0   # Roll (Nm)
+        self.roll_torque_y = 10000.0   # Pitch (Nm)
+        self.roll_torque_z = 0.0   # Yaw (Nm)
         
         # Forward phase wrench values (in NED frame)
-        self.forward_force_x = 300.0  # North (N)
+        self.forward_force_x = 600.0  # North (N)
         self.forward_force_y = 0.0   # East (N)
-        self.forward_force_z = 120.0   # Up (N, negative down)
+        self.forward_force_z = 240.0   # Up (N, negative down)
         self.forward_torque_x = 0.0  # Roll (Nm)
         self.forward_torque_y = 0.0  # Pitch (Nm)
         self.forward_torque_z = 0.0  # Yaw (Nm)
@@ -87,6 +97,13 @@ class WrenchTestNode(Node):
             wrench_msg.wrench.torque.x = self.down_torque_x
             wrench_msg.wrench.torque.y = self.down_torque_y
             wrench_msg.wrench.torque.z = self.down_torque_z
+        elif self.current_phase == TestPhase.ROLL:
+            wrench_msg.wrench.force.x = self.roll_force_x
+            wrench_msg.wrench.force.y = self.roll_force_y
+            wrench_msg.wrench.force.z = self.roll_force_z
+            wrench_msg.wrench.torque.x = self.roll_torque_x
+            wrench_msg.wrench.torque.y = self.roll_torque_y
+            wrench_msg.wrench.torque.z = self.roll_torque_z
         elif self.current_phase == TestPhase.FORWARD:
             wrench_msg.wrench.force.x = self.forward_force_x
             wrench_msg.wrench.force.y = self.forward_force_y
@@ -114,7 +131,9 @@ class WrenchTestNode(Node):
             self.current_phase = TestPhase.WAITING
         elif elapsed_time < self.wait_duration + self.down_duration:
             self.current_phase = TestPhase.DOWN
-        elif elapsed_time < self.wait_duration + self.down_duration + self.forward_duration:
+        elif elapsed_time < self.wait_duration + self.down_duration + self.roll_duration:
+            self.current_phase = TestPhase.ROLL
+        elif elapsed_time < self.wait_duration + self.down_duration + self.roll_duration + self.forward_duration:
             self.current_phase = TestPhase.FORWARD
         else:
             self.current_phase = TestPhase.STOPPED
@@ -123,6 +142,8 @@ class WrenchTestNode(Node):
         if self.current_phase != previous_phase:
             if self.current_phase == TestPhase.DOWN:
                 self.get_logger().info(f"Phase transition: Starting DOWN wrench (t={elapsed_time:.1f}s)")
+            elif self.current_phase == TestPhase.ROLL:
+                self.get_logger().info(f"Phase transition: Starting ROLL wrench (t={elapsed_time:.1f}s)")
             elif self.current_phase == TestPhase.FORWARD:
                 self.get_logger().info(f"Phase transition: Starting FORWARD wrench (t={elapsed_time:.1f}s)")
             elif self.current_phase == TestPhase.STOPPED:

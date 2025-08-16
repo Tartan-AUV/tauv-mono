@@ -106,6 +106,7 @@ ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
         scripts/waterlinked_driver
         scripts/lucid_driver
+        scripts/thruster_controller
         DESTINATION lib/${PROJECT_NAME}
 )
 

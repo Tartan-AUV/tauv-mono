@@ -106,12 +106,11 @@ def generate_launch_description():
 
             # Launch thruster controller node
             Node(
-                package='tauv_common',
+                package='tauv_vehicle',
                 executable='thruster_controller',
                 name='thruster_controller',
                 remappings=[
                     ('target_thrust', 'gnc/target_thrust'),
-                    ('thruster_setpoint', 'vehicle/actuators/thruster_setpoint'),
                 ]
             ),
         ]),

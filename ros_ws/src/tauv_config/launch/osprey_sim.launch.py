@@ -44,7 +44,7 @@ def generate_launch_description():
             
             # Launch thruster controller node
             Node(
-                package='tauv_common',
+                package='tauv_vehicle',
                 executable='thruster_controller',
                 name='thruster_controller'
             )
