@@ -1,17 +1,13 @@
 .git
 .idea
 .github
-.CLAUDE
 .pre-commit-config.yaml
 .devcontainer
-.cursor
 cmake-build-*/
 ros_ws/build
 ros_ws/install
 ros_ws/log
 ros_ws/src/tauv_vehicle/generated/
 ros_ws/src/tauv_sim
-ros_ws/src/stonefish_ros2
 ros_ws/venv
 firmware
-third-party/stonefish

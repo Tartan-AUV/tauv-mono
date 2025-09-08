@@ -1,5 +1,0 @@
-build/
-install/
-log/
-.cargo/
-**/__pycache__/
