@@ -9,8 +9,8 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='stonefish_ros2',
-            executable='stonefish_simulator',
-            name='stonefish_simulator',
+            executable='tauv_sim',
+            name='tauv_sim',
             arguments=[
                 join(pkg_share, 'data'),
                 join(pkg_share, 'scenarios/osprey_irvine.scn'),
@@ -20,18 +20,13 @@ def generate_launch_description():
                 'low'
             ],
             remappings=[
-                ('sim/imu', 'sensors/imu')
+                ('sim/imu', 'sensors/imu'),
+                # Publish sim DVL/pressure directly to vehicle topics
+                ('sim/dvl', 'vehicle/sensors/dvl'),
+                ('sim/pressure', 'vehicle/sensors/depth'),
+                # Accept TAUV thruster setpoints on vehicle topic
+                ('sim/thruster_setpoint', 'vehicle/actuators/thruster_setpoint')
             ],
             output='screen'
         ),
-        Node(
-            package='tauv_sim',
-            executable='sim_adapter',
-            name='sim_adapter',
-            output='screen',
-            remappings=[
-                ('dvl', 'vehicle/sensors/dvl'),
-                ('depth_sensor_frame', 'vehicle/sensors/depth')
-            ],
-        )
     ])

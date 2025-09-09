@@ -1,0 +1,5 @@
+build:
+  packages-skip:
+    - tauv_vehicle
+  symlink-install: true
+  merge-install: true

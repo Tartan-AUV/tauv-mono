@@ -1,0 +1,14 @@
+{
+    "name": "tauv-desktop",
+    "workspaceFolder": "/ros_ws/src",
+    "dockerComposeFile": "../containers/docker-compose.yaml",
+    "service": "tauv-desktop",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "Ranch-Hand-Robotics.rde-ros-2"
+            ]
+        }
+    },
+    "shutdownAction": "stopCompose"
+}

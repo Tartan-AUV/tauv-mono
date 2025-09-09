@@ -1,0 +1,65 @@
+name: Release - Build desktop_nogpu (develop)
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'containers/**'
+
+jobs:
+  build-desktop-nogpu:
+    name: Build desktop_nogpu (amd64)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure SSH agent for BuildKit
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push (linux/amd64) with latest
+        working-directory: containers
+        env:
+          IMAGE: ghcr.io/tartan-auv/desktop_nogpu
+          SHA: ${{ github.sha }}
+        run: |
+          docker buildx bake \
+            --allow=ssh \
+            --push \
+            -f docker-bake.hcl \
+            --set desktop_nogpu.platform=linux/amd64 \
+            --set desktop_nogpu.tags=${IMAGE}:${SHA}-amd64 \
+            --set desktop_nogpu.tags+=${IMAGE}:latest-amd64 \
+            desktop_nogpu
+
+      - name: Test colcon build (sim) in container
+        env:
+          IMAGE: ghcr.io/tartan-auv/desktop_nogpu
+          SHA: ${{ github.sha }}
+        run: |
+          mkdir -p .ros_build .ros_install .ros_log
+          docker run --rm \
+            -v ${{ github.workspace }}/packages:/ros_ws/src \
+            -v ${{ github.workspace }}/.ros_build:/ros_ws/build \
+            -v ${{ github.workspace }}/.ros_install:/ros_ws/install \
+            -v ${{ github.workspace }}/.ros_log:/ros_ws/log \
+            ${IMAGE}:${SHA}-amd64 \
+            bash -lc "colcon build --event-handlers console_direct+"
