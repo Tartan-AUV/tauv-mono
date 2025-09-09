@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   tauv-desktop:
-    image: ghcr.io/tartan-auv/desktop_nogpu:latest
+    image: ghcr.io/tartan-auv/desktop_nogpu_user:latest
     network_mode: "host"
     privileged: true
     cap_add:
@@ -10,10 +10,7 @@ services:
     security_opt:
       - seccomp:unconfined   
     volumes:
-      - ../packages:/ros_ws/src
-      - ../.ros_build:/ros_ws/build
-      - ../.ros_install:/ros_ws/install
-      - ../.ros_log:/ros_ws/log
+      - ../:/tauv-mono
     devices:
       - /dev:/dev
     command: /bin/sh -c "while sleep 1000; do :; done"

@@ -1,1 +1,0 @@
-/home/tauv/tauv-mono/ros_ws/src/tauv_msgs/msg/ControllerDebug.msg

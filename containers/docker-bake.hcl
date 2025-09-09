@@ -2,21 +2,24 @@
 // Default build: base_nogpu -> common -> desktop_nogpu
 // Final image tag: ghcr.io/Tartan-AUV/desktop_nogpu:latest
 
-// Build the desktop_nogpu image by default
+// Build the user_config image by default
 group "default" {
-  targets = ["desktop_nogpu"]
+  targets = ["desktop_nogpu_user"]
 }
 
 // Registry and tagging
 variable "REGISTRY"     { default = "ghcr.io/tartan-auv" }
 variable "IMAGE_NAME"   { default = "desktop_nogpu" }
 variable "IMAGE_TAG"    { default = "latest" }
+// Local cache directory for Buildx (relative to this HCL file)
+variable "LOCAL_CACHE_DIR" { default = ".buildx-cache" }
 
 // File locations (relative to this HCL file in containers/)
 variable "BASE_CONTEXT"      { default = "." }
 variable "BASE_DOCKERFILE"   { default = "base_nogpu/base_nogpu.Dockerfile" }
 variable "COMMON_DOCKERFILE" { default = "common/common.Dockerfile" }
 variable "APP_DOCKERFILE"    { default = "desktop/desktop.Dockerfile" }
+variable "USERCFG_DOCKERFILE" { default = "user_config/user_config.Dockerfile" }
 
 // Base layer (e.g., Ubuntu + ROS, toolchains, etc.)
 // Uses SSH forwarding for git clone in the Dockerfile.
@@ -24,7 +27,15 @@ target "base" {
   context    = "${BASE_CONTEXT}"
   dockerfile = "${BASE_DOCKERFILE}"
   target     = "base"
-  ssh        = ["default"]
+  // Enable both local and registry-backed caches for local and CI builds
+  cache-to = [
+    "type=local,dest=${LOCAL_CACHE_DIR},mode=max",
+    "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache,mode=max",
+  ]
+  cache-from = [
+    "type=local,src=${LOCAL_CACHE_DIR}",
+    "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache",
+  ]
 }
 
 // Common layer, built FROM base via BuildKit context named "base"
@@ -35,6 +46,15 @@ target "common" {
   contexts = {
     base = "target:base"
   }
+  // Use the same cache settings to ensure cross-target reuse
+  cache-to = [
+    "type=local,dest=${LOCAL_CACHE_DIR},mode=max",
+    "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache,mode=max",
+  ]
+  cache-from = [
+    "type=local,src=${LOCAL_CACHE_DIR}",
+    "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache",
+  ]
 }
 
 // Application layer for desktop_nogpu, built FROM common via BuildKit context named "base"
@@ -46,7 +66,25 @@ target "desktop_nogpu" {
     base = "target:common"
   }
   tags = ["${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"]
-  // Use registry-backed cache to speed up CI builds
-  cache-to = ["type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache,mode=max"]
-  cache-from = ["type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache"]
+  // Use both local cache (fast for local builds) and registry cache (useful in CI)
+  cache-to = [
+    "type=local,dest=${LOCAL_CACHE_DIR},mode=max",
+    "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache,mode=max",
+  ]
+  cache-from = [
+    "type=local,src=${LOCAL_CACHE_DIR}",
+    "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache",
+  ]
+}
+
+// User-specific config layer applied on top of desktop_nogpu
+// Not cached so it can reflect different users instantly without cache hits
+target "desktop_nogpu_user" {
+  context    = "."
+  dockerfile = "${USERCFG_DOCKERFILE}"
+  contexts = {
+    base = "target:desktop_nogpu"
+  }
+  tags = ["${REGISTRY}/desktop_nogpu_user:${IMAGE_TAG}"]
+  no-cache = true
 }

@@ -59,7 +59,7 @@ RUN mkdir -p -m 0755 /etc/ssh \
 
 # 7) Clone tauv-stonefish via SSH (requires BuildKit and --ssh)
 # Build with: docker build --ssh default -f containers/base_desktop/base_desktop.Dockerfile .
-RUN --mount=type=ssh git clone git@github.com:Tartan-AUV/tauv-stonefish.git /opt/tauv-stonefish
+RUN git clone https://github.com/Tartan-AUV/tauv-stonefish.git /opt/tauv-stonefish
 
 WORKDIR /opt/tauv-stonefish
 

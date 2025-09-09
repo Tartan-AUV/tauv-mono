@@ -1,1 +1,0 @@
-/home/tauv/tauv-mono/build/tauv_msgs/rosidl_typesupport_fastrtps_c/tauv_msgs/srv/detail/set_trajectory__rosidl_typesupport_fastrtps_c.h

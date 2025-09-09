@@ -1,1 +1,0 @@
-/home/tauv/tauv-mono/ros_ws/src/tauv_config/launch/lucid_driver_cpp.launch.py

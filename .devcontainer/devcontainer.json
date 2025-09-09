@@ -1,6 +1,6 @@
 {
     "name": "tauv-desktop",
-    "workspaceFolder": "/ros_ws/src",
+    "workspaceFolder": "/tauv-mono/ros_ws",
     "dockerComposeFile": "../containers/docker-compose.yaml",
     "service": "tauv-desktop",
     "customizations": {

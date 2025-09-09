@@ -1,1 +1,0 @@
-/home/tauv/tauv-mono/build/tauv_vehicle/ament_cmake_python/tauv_vehicle/tauv_vehicle.egg-info/dependency_links.txt

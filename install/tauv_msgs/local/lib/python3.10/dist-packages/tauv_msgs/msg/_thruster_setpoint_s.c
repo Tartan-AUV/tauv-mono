@@ -1,1 +1,0 @@
-/home/tauv/tauv-mono/build/tauv_msgs/rosidl_generator_py/tauv_msgs/msg/_thruster_setpoint_s.c

@@ -8,6 +8,19 @@ RUN apt-get update && apt-get install -y \
 RUN python3 -m pip install --break-system-packages \
     pre-commit
 
-ENV COLCON_DEFAULTS_FILE=/ros_ws/src/config/colcon_defaults.sim.yaml
+# New workspace layout: repository mounted at /tauv-mono, workspace in /tauv-mono/ros_ws
+ENV COLCON_DEFAULTS_FILE=/tauv-mono/ros_ws/colcon_defaults.sim.yaml
 
-WORKDIR /ros_ws
+WORKDIR /tauv-mono/ros_ws
+
+# Install C++ and Python tooling for pre-commit hooks
+# - clang-format, clang-tidy from apt
+# - ruff, pyright from pip
+RUN apt-get update && apt-get install -y \
+    clang-format \
+    clang-tidy \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --break-system-packages \
+    ruff \
+    pyright
