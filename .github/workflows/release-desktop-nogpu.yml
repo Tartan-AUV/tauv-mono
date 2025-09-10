@@ -43,12 +43,11 @@ jobs:
         run: |
           docker buildx bake \
             --allow=ssh \
-            --push \
             -f docker-bake.hcl \
             --set desktop_nogpu.platform=linux/amd64 \
             --set desktop_nogpu.tags=${IMAGE}:${SHA}-amd64 \
             --set desktop_nogpu.tags+=${IMAGE}:latest-amd64 \
-            desktop_nogpu
+            desktop_nogpu_release
 
       - name: Test colcon build (sim) in container
         env:

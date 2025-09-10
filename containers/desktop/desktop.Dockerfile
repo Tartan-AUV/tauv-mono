@@ -32,3 +32,11 @@ RUN apt-get update && apt-get install -y \
 RUN python3 -m pip install --break-system-packages \
     ruff \
     pyright
+
+# Configure global git hook to run pre-commit on commit for all repos
+# This applies to the mounted repo at /tauv-mono without needing per-repo `pre-commit install`
+RUN mkdir -p /root/.git-hooks \
+  && printf '%s\n' '#!/usr/bin/env sh' 'exec pre-commit run --hook-stage pre-commit "$@"' > /root/.git-hooks/pre-commit \
+  && chmod +x /root/.git-hooks/pre-commit \
+  && git config --global core.hooksPath /root/.git-hooks \
+  && git config --global --add safe.directory /tauv-mono

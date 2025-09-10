@@ -11,8 +11,6 @@ group "default" {
 variable "REGISTRY"     { default = "ghcr.io/tartan-auv" }
 variable "IMAGE_NAME"   { default = "desktop_nogpu" }
 variable "IMAGE_TAG"    { default = "latest" }
-// Local cache directory for Buildx (relative to this HCL file)
-variable "LOCAL_CACHE_DIR" { default = ".buildx-cache" }
 
 // File locations (relative to this HCL file in containers/)
 variable "BASE_CONTEXT"      { default = "." }
@@ -29,11 +27,9 @@ target "base" {
   target     = "base"
   // Enable both local and registry-backed caches for local and CI builds
   cache-to = [
-    "type=local,dest=${LOCAL_CACHE_DIR},mode=max",
     "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache,mode=max",
   ]
   cache-from = [
-    "type=local,src=${LOCAL_CACHE_DIR}",
     "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache",
   ]
 }
@@ -48,11 +44,9 @@ target "common" {
   }
   // Use the same cache settings to ensure cross-target reuse
   cache-to = [
-    "type=local,dest=${LOCAL_CACHE_DIR},mode=max",
     "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache,mode=max",
   ]
   cache-from = [
-    "type=local,src=${LOCAL_CACHE_DIR}",
     "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache",
   ]
 }
@@ -68,13 +62,23 @@ target "desktop_nogpu" {
   tags = ["${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"]
   // Use both local cache (fast for local builds) and registry cache (useful in CI)
   cache-to = [
-    "type=local,dest=${LOCAL_CACHE_DIR},mode=max",
     "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache,mode=max",
   ]
   cache-from = [
-    "type=local,src=${LOCAL_CACHE_DIR}",
     "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache",
   ]
+}
+
+// CI target: load image into local Docker daemon
+target "desktop_nogpu_ci" {
+  inherits = ["desktop_nogpu"]
+  output   = ["type=docker"]
+}
+
+// Release target: push image to registry
+target "desktop_nogpu_release" {
+  inherits = ["desktop_nogpu"]
+  output   = ["type=registry"]
 }
 
 // User-specific config layer applied on top of desktop_nogpu

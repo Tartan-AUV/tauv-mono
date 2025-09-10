@@ -35,19 +35,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push (linux/amd64)
+      - name: Build image (linux/amd64) and load locally
         working-directory: containers
         env:
           IMAGE: ghcr.io/tartan-auv/desktop_nogpu
           SHA: ${{ github.sha }}
+
+        # Note: we override cache setting cuz the GH runner disk is too small to keep local cache
         run: |
           docker buildx bake \
             --allow=ssh \
-            --push \
             -f docker-bake.hcl \
             --set desktop_nogpu.platform=linux/amd64 \
             --set desktop_nogpu.tags=${IMAGE}:${SHA}-amd64 \
-            desktop_nogpu
+            desktop_nogpu_ci
 
       - name: Test colcon build (sim) in container
         env:
@@ -56,10 +57,19 @@ jobs:
         run: |
           mkdir -p .ros_build .ros_install .ros_log
           docker run --rm \
-            -v ${{ github.workspace }}/packages:/ros_ws/src \
-            -v ${{ github.workspace }}/.ros_build:/ros_ws/build \
-            -v ${{ github.workspace }}/.ros_install:/ros_ws/install \
-            -v ${{ github.workspace }}/.ros_log:/ros_ws/log \
+            -v ${{ github.workspace }}:/tauv-mono \
             ${IMAGE}:${SHA}-amd64 \
-            bash -lc "colcon build --event-handlers console_direct+"
+            bash -lc "cd /tauv-mono/ros_ws; source /opt/ros/jazzy/setup.bash; colcon build --event-handlers console_direct+"
 
+      - name: Run pre-commit (format-only) inside container
+        env:
+          IMAGE: ghcr.io/tartan-auv/desktop_nogpu
+          SHA: ${{ github.sha }}
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/tauv-mono \
+            ${IMAGE}:${SHA}-amd64 \
+            bash -lc "set -euo pipefail; \
+              cd /tauv-mono; \
+              pre-commit run -a clang-format; \
+              pre-commit run -a ruff-format"
