@@ -1,6 +1,5 @@
 # TAUV-MONO
-![build](https://github.com/Tartan-AUV/tauv-mono/actions/workflows/build.yaml/badge.svg)
-
+![build](https://github.com/Tartan-AUV/tauv-mono/actions/workflows/build-desktop-nogpu.yml/badge.svg)
 This is the monorepo for all Tartan-AUV vehicle code, tools, and infrastructure. 
 
 # Development / Sim Setup
