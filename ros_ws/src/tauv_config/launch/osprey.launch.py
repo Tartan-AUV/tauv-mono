@@ -31,9 +31,7 @@ def generate_launch_description() -> LaunchDescription:
     gnc_launch = tauv_config_share / "launch" / "osprey_gnc_debug.launch.py"
 
     # Include the original GNC stack as-is
-    gnc_stack = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(str(gnc_launch))
-    )
+    gnc_stack = IncludeLaunchDescription(PythonLaunchDescriptionSource(str(gnc_launch)))
 
     # RTVC node with the necessary topic remappings
     rtvc_node = Node(
@@ -53,7 +51,9 @@ def generate_launch_description() -> LaunchDescription:
         ],
     )
 
-    return LaunchDescription([
-        gnc_stack,
-        rtvc_node,
-    ])
+    return LaunchDescription(
+        [
+            gnc_stack,
+            rtvc_node,
+        ]
+    )

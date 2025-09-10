@@ -1,4 +1,5 @@
-import glob, os
+import glob
+import os
 
 # Current directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -17,12 +18,12 @@ file_test = open('data/test.txt', 'w')
 # Populate train.txt and test.txt
 counter = 1
 index_test = round(100 / percentage_test)
-for pathAndFilename in glob.iglob(os.path.join(current_dir, "*.jpg")): # check
+for pathAndFilename in glob.iglob(os.path.join(current_dir, "*.jpg")):  # check
     title, ext = os.path.splitext(os.path.basename(pathAndFilename))
 
     if counter == index_test:
         counter = 1
-        file_test.write("data/obj" + "/" + title + '.jpg' + "\n") # check
+        file_test.write("data/obj" + "/" + title + '.jpg' + "\n")  # check
     else:
-        file_train.write("data/obj" + "/" + title + '.jpg' + "\n") # check
+        file_train.write("data/obj" + "/" + title + '.jpg' + "\n")  # check
         counter = counter + 1

@@ -4,8 +4,7 @@ import os
 import shutil
 
 parser = argparse.ArgumentParser(
-    description='label correction',
-    formatter_class=argparse.RawDescriptionHelpFormatter
+    description='label correction', formatter_class=argparse.RawDescriptionHelpFormatter
 )
 
 parser.add_argument("input", help="path to input folder containing videos")
@@ -17,7 +16,7 @@ args = parser.parse_args()
 
 
 def fix_labels(data_fpath, new_fpath, data_classes_fpath, width, height):
-    data_classes_tmp = open(data_classes_fpath, "r").read().splitlines()
+    data_classes_tmp = open(data_classes_fpath).read().splitlines()
     data_classes = {}
 
     os.mkdir(new_fpath)
@@ -32,8 +31,9 @@ def fix_labels(data_fpath, new_fpath, data_classes_fpath, width, height):
     for file in os.listdir(data_fpath):
         if file.endswith(".txt"):
             print(file)
-            with codecs.open(f"{data_fpath}/{file}", 'r', encoding='utf-8',
-                             errors='ignore') as fdata:
+            with codecs.open(
+                f"{data_fpath}/{file}", 'r', encoding='utf-8', errors='ignore'
+            ) as fdata:
                 data = fdata.read().splitlines()
                 data_clean = []
 
@@ -47,7 +47,7 @@ def fix_labels(data_fpath, new_fpath, data_classes_fpath, width, height):
             try:
                 for obs in data_clean:
                     indv_data = obs.split(",")
-                    indv_data_coords = indv_data[:len(indv_data) - 1]
+                    indv_data_coords = indv_data[: len(indv_data) - 1]
 
                     x1, y1, x2, y2 = [float(x) for x in indv_data_coords]
 
@@ -65,8 +65,9 @@ def fix_labels(data_fpath, new_fpath, data_classes_fpath, width, height):
 
                 print(f"new_obss:{new_obss}")
 
-                with codecs.open(f"{new_fpath}/labels/{file}", 'w', encoding='utf-8',
-                                 errors='ignore') as new_fdata:
+                with codecs.open(
+                    f"{new_fpath}/labels/{file}", 'w', encoding='utf-8', errors='ignore'
+                ) as new_fdata:
                     for obs in range(len(new_obss)):
                         f_line = ""
                         for elem in new_obss[obs]:
@@ -91,8 +92,10 @@ def copy_images(data_fpath, new_fpath):
 if __name__ == "__main__":
     new_data_fpath = f"{args.input}-INVERSED"
 
-    labels_fpath = args.input # + "/labels"
-    fix_labels(labels_fpath, new_data_fpath, args.data_classes, float(args.width), float(args.height))
+    labels_fpath = args.input  # + "/labels"
+    fix_labels(
+        labels_fpath, new_data_fpath, args.data_classes, float(args.width), float(args.height)
+    )
 
-    images_fpath = args.input # + "/images"
+    images_fpath = args.input  # + "/images"
     copy_images(images_fpath, new_data_fpath)

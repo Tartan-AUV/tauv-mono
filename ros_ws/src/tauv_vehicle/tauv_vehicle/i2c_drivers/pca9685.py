@@ -1,15 +1,18 @@
 import re
 
+
 class PCA9685Exception(Exception):
     pass
 
-class Registers(object):
+
+class Registers:
     MODE_1 = 0x00
     MODE_2 = 0x01
     LED_STRIP_START = 0x06
     PRE_SCALE = 0xFE
 
-class Mode1(object):
+
+class Mode1:
     RESTART = 7
     EXTCLK = 6
     AI = 5
@@ -19,26 +22,29 @@ class Mode1(object):
     SUB3 = 1
     ALLCALL = 0
 
-class Mode2(object):
+
+class Mode2:
     INVRT = 4
     OCH = 3
     OUTDRV = 2
     OUTNE_1 = 1
     OUTNE_0 = 0
 
+
 def value_low(val):
     return val & 0xFF
+
 
 def value_high(val):
     return (val >> 8) & 0xFF
 
-class PCA9685(object):
 
+class PCA9685:
     ranges = dict(
-        pwm_frequency = (24, 1526),
-        led_number = (0, 15),
-        led_value = (0, 4095),
-        register_value = (0, 255),
+        pwm_frequency=(24, 1526),
+        led_number=(0, 15),
+        led_value=(0, 4095),
+        register_value=(0, 255),
     )
 
     def __init__(self, address, bus=None):

@@ -1,25 +1,25 @@
-import rclpy
-from rclpy.node import Node
-from rclpy.time import Time
 import asyncio
 import json
 import time
+
 import numpy as np
-from std_msgs.msg import String, Header
-from std_srvs.srv import Trigger
+import rclpy
+from rclpy.node import Node
+from rclpy.time import Time
+from std_msgs.msg import Header
 from tauv_msgs.msg import WaterlinkedDvlFrame
 
-class WaterlinkedDriver(Node):
 
+class WaterlinkedDriver(Node):
     JSON_PROTOCOL_VERSION = "json_v3.1"
-    
+
     # Float64 limits
     FLOAT64_MAX = np.finfo(np.float64).max
     FLOAT64_MIN = np.finfo(np.float64).min
-    
+
     # Reasonable threshold for covariance values (adjust as needed)
     COVARIANCE_WARNING_THRESHOLD = 1e6  # Warn when covariance exceeds this
-    
+
     def __init__(self):
         super().__init__("waterlinked_dvl")
         self.declare_parameter("speed_of_sound", 1481.0)
@@ -34,7 +34,7 @@ class WaterlinkedDriver(Node):
         self.reader = None
         self.writer = None
         self.awaiting_ack = False
-        
+
         # Track excessive covariance warnings
         self.excessive_covariance_count = 0
         self.last_covariance_warning_time = 0
@@ -65,20 +65,28 @@ class WaterlinkedDriver(Node):
             return
 
         config = {
-            "command":"set_config",
+            "command": "set_config",
             "parameters": {
-                "speed_of_sound": self.get_parameter("speed_of_sound").get_parameter_value().double_value,
+                "speed_of_sound": self.get_parameter("speed_of_sound")
+                .get_parameter_value()
+                .double_value,
                 "acoustic_enabled": True,
                 "dark_mode_enabled": False,
-                "mounting_rotation_offset": self.get_parameter("mounting_rotation_offset_deg").get_parameter_value().double_value,
+                "mounting_rotation_offset": self.get_parameter("mounting_rotation_offset_deg")
+                .get_parameter_value()
+                .double_value,
                 "range_mode": self.get_parameter("range_mode").get_parameter_value().string_value,
-                "periodic_cycling_enabled": self.get_parameter("periodic_cycling_enable").get_parameter_value().bool_value
-            }
+                "periodic_cycling_enabled": self.get_parameter("periodic_cycling_enable")
+                .get_parameter_value()
+                .bool_value,
+            },
         }
 
         config_json = json.dumps(config)
         response_timeout = self.get_parameter("response_timeout").get_parameter_value().double_value
-        connection_timeout = self.get_parameter("connection_timeout").get_parameter_value().double_value
+        connection_timeout = (
+            self.get_parameter("connection_timeout").get_parameter_value().double_value
+        )
 
         start_time = time.monotonic()
 
@@ -89,13 +97,15 @@ class WaterlinkedDriver(Node):
                 await self.writer.drain()
                 self.get_logger().info("Config sent, awaiting response...")
 
-                response_line = await asyncio.wait_for(self.reader.readline(), timeout=response_timeout)
+                response_line = await asyncio.wait_for(
+                    self.reader.readline(), timeout=response_timeout
+                )
                 response = response_line.decode('utf-8').strip()
                 self.awaiting_ack = False
 
                 try:
                     response_data = json.loads(response)
-                    if response_data.get("response_to") == "set_config" :
+                    if response_data.get("response_to") == "set_config":
                         if response_data.get("success") is True:
                             self.get_logger().info("Configuration upload successful.")
                             return
@@ -104,14 +114,12 @@ class WaterlinkedDriver(Node):
                 except json.JSONDecodeError:
                     self.get_logger().error("Failed to parse JSON response.")
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 self.get_logger().warn("Timeout waiting for config response, retrying...")
             except Exception as e:
                 self.get_logger().error(f"Error during config upload: {e}")
                 self.awaiting_ack = False
                 return
-
-            
 
         self.awaiting_ack = False
         self.get_logger().error("Failed to receive valid response within connection timeout.")
@@ -120,7 +128,7 @@ class WaterlinkedDriver(Node):
         if not self.reader:
             self.get_logger().error("Cannot listen for packets: not connected")
             return
-        
+
         while rclpy.ok():
             try:
                 line = await self.reader.readline()
@@ -140,15 +148,17 @@ class WaterlinkedDriver(Node):
 
             if packet.get("type") == "velocity":
                 msg = WaterlinkedDvlFrame()
-                
+
                 # Set header with timestamp converted from Unix microseconds
                 msg.header = Header()
                 msg.header.frame_id = "os/dvl"  # Set appropriate frame_id
                 # Convert Unix timestamp from microseconds to ROS2 time
                 unix_time_us = int(packet["time_of_validity"])
                 unix_time_sec = unix_time_us / 1_000_000.0  # Convert microseconds to seconds
-                msg.header.stamp = Time(seconds=int(unix_time_sec), nanoseconds=int((unix_time_sec % 1) * 1e9)).to_msg()
-                
+                msg.header.stamp = Time(
+                    seconds=int(unix_time_sec), nanoseconds=int((unix_time_sec % 1) * 1e9)
+                ).to_msg()
+
                 msg.time = float(packet["time"])
                 msg.vx = float(packet["vx"])
                 msg.vy = float(packet["vy"])
@@ -159,23 +169,23 @@ class WaterlinkedDriver(Node):
                 msg.status = int(packet["status"])
                 msg.time_of_validity = int(packet["time_of_validity"])
                 msg.time_of_transmission = int(packet["time_of_transmission"])
-                
+
                 # Process covariance matrix with overflow handling
                 covariance_matrix = packet["covariance"]
                 flat_cov = []
                 has_excessive_values = False
                 max_cov_value = 0
-                
+
                 for row in covariance_matrix:
                     for val in row:
                         # Track maximum absolute value
                         abs_val = abs(val) if not np.isinf(val) else float('inf')
                         max_cov_value = max(max_cov_value, abs_val)
-                        
+
                         # Check if value exceeds warning threshold
                         if abs_val > self.COVARIANCE_WARNING_THRESHOLD:
                             has_excessive_values = True
-                        
+
                         # Clamp to float64 range
                         if val > self.FLOAT64_MAX or np.isinf(val):
                             clamped_val = self.FLOAT64_MAX
@@ -187,9 +197,9 @@ class WaterlinkedDriver(Node):
                             self.get_logger().warn("NaN value detected in covariance matrix")
                         else:
                             clamped_val = float(val)
-                        
+
                         flat_cov.append(clamped_val)
-                
+
                 # Log warning for excessive covariance (rate-limited to once per second)
                 if has_excessive_values:
                     self.excessive_covariance_count += 1
@@ -201,7 +211,7 @@ class WaterlinkedDriver(Node):
                             f"Total occurrences: {self.excessive_covariance_count}"
                         )
                         self.last_covariance_warning_time = current_time
-                
+
                 msg.covariance = flat_cov
                 # Transducers (assumes fixed size of 4)
                 for i, t in enumerate(packet["transducers"]):
@@ -216,7 +226,6 @@ class WaterlinkedDriver(Node):
             self.get_logger().error(f"Failed to handle packet: {e}")
 
 
-
 def main(args=None):
     rclpy.init(args=args)
     node = WaterlinkedDriver()
@@ -225,7 +234,7 @@ def main(args=None):
         if not await node.connect():
             node.get_logger().error("Failed to establish connection. Exiting.")
             return
-        
+
         await node.upload_config()
 
         asyncio.create_task(node.listen_for_packets())
@@ -239,4 +248,3 @@ def main(args=None):
         asyncio.run(runner())
     finally:
         rclpy.shutdown()
-

@@ -1,16 +1,15 @@
 import rospy
-import numpy as np
-import cv2
-from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-import time
+from sensor_msgs.msg import Image
+
 
 class Rebroadcaster:
-
     def __init__(self):
         self._cv_bridge = CvBridge()
 
-        self._img_sub = rospy.Subscriber('/kf/vehicle/oakd_front/color/image_raw', Image, self._handle_image)
+        self._img_sub = rospy.Subscriber(
+            '/kf/vehicle/oakd_front/color/image_raw', Image, self._handle_image
+        )
         self._img_pub = rospy.Publisher('/kf/darknet_ros/image', Image, queue_size=10)
 
         # img = cv2.imread("/home/tauv/buoy-1_0_buoy_earth_2_buoy_earth_1_buoy_abydos_2_buoy_abydos_1_00180.png")
@@ -33,6 +32,7 @@ def main():
     print('starting')
     rospy.spin()
     print('stopped')
+
 
 if __name__ == "__main__":
     main()

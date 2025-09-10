@@ -1,4 +1,5 @@
 import asyncio
+
 import omni.replicator.core as rep
 
 SCENE_PRIM_PREFIX = "/Replicator/Ref_Xform/Ref"
@@ -20,7 +21,7 @@ with rep.new_layer():
     cam_params_annot1.attach([rp1])
 
     basic_writer = rep.BasicWriter(
-        output_dir=f"/home/theo/Documents/replicator_out/",
+        output_dir="/home/theo/Documents/replicator_out/",
         colorize_instance_segmentation=False,
         # camera_params=True,
     )

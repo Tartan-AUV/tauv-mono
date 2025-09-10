@@ -1,11 +1,10 @@
-import omni.replicator.core as rep
-import sys
 import asyncio
-import pathlib
 import glob
-import time
-import carb.settings
+import pathlib
+import sys
 import uuid
+
+import omni.replicator.core as rep
 
 # ~/.local/share/ov/pkg/code-2022.3.3/omni.code.sh --/omni/replicator/script=/home/theo/Documents/yolo_pose/replicator/randomize.py
 
@@ -41,13 +40,15 @@ SCENE_PRIM_PREFIX = "/Replicator/Ref_Xform/Ref"
 with rep.new_layer():
     scene = rep.create.from_usd(str(SCENES_DIR / "underwater_scene_1/underwater_scene_1.usd"))
 
-    rope_distractors = rep.create.from_usd(str(MODELS_DIR / "rope_distractors/usd/rope_distractors.usd"))
-    angle_distractors = rep.create.from_usd(str(MODELS_DIR / "angle_distractors/usd/angle_distractors.usd"))
+    rope_distractors = rep.create.from_usd(
+        str(MODELS_DIR / "rope_distractors/usd/rope_distractors.usd")
+    )
+    angle_distractors = rep.create.from_usd(
+        str(MODELS_DIR / "angle_distractors/usd/angle_distractors.usd")
+    )
 
     with rope_distractors:
-        rep.modify.pose(
-            scale=(0.1, 0.1, 0.1)
-        )
+        rep.modify.pose(scale=(0.1, 0.1, 0.1))
 
     for obj in objs:
         rep.create.from_usd(obj)
@@ -66,9 +67,9 @@ with rep.new_layer():
             rep.modify.pose(
                 rotation=rep.distribution.uniform((-180, -180, -180), (180, 180, 180)),
             )
-            rep.modify.attribute("texture:file", rep.distribution.choice(
-                dosch_underwater_hdris + misc_hdris
-            ))
+            rep.modify.attribute(
+                "texture:file", rep.distribution.choice(dosch_underwater_hdris + misc_hdris)
+            )
 
             rep.modify.attribute("intensity", rep.distribution.uniform(200, 250))
             rep.modify.attribute("exposure", rep.distribution.uniform(0, 5))
@@ -138,9 +139,7 @@ with rep.new_layer():
                 rotation=rep.distribution.uniform((-180, -180, -180), (180, 180, 180)),
             )
 
-            rep.modify.visibility(
-                rep.distribution.choice([True, False], weights=[0.2, 0.8])
-            )
+            rep.modify.visibility(rep.distribution.choice([True, False], weights=[0.2, 0.8]))
 
             rep.randomizer.color(
                 colors=rep.distribution.uniform((0, 0, 0), (1, 1, 1)),
@@ -160,7 +159,13 @@ with rep.new_layer():
         #         rep.distribution.choice([True, False], weights=[0.1, 0.9])
         #     )
 
-        samples = rep.get.prims(semantics=[("class", "sample_24_worm"), ("class", "sample_24_coral"), ("class", "sample_24_nautilus")])
+        samples = rep.get.prims(
+            semantics=[
+                ("class", "sample_24_worm"),
+                ("class", "sample_24_coral"),
+                ("class", "sample_24_nautilus"),
+            ]
+        )
 
         with samples:
             rep.modify.pose_camera_relative(
@@ -243,11 +248,11 @@ with rep.new_layer():
 
         with torpedo:
             rep.modify.pose_camera_relative(
-                camera = camera,
-                render_product = render_product,
-                horizontal_location = rep.distribution.uniform(-0.6, 0.6),
-                vertical_location = rep.distribution.uniform(-0.6, 0.6),
-                distance = rep.distribution.uniform(300, 1000),
+                camera=camera,
+                render_product=render_product,
+                horizontal_location=rep.distribution.uniform(-0.6, 0.6),
+                vertical_location=rep.distribution.uniform(-0.6, 0.6),
+                distance=rep.distribution.uniform(300, 1000),
             )
 
             rep.modify.pose(
@@ -295,20 +300,22 @@ with rep.new_layer():
 
         print("writing camera params!")
 
-        basic_writer.write({
-            "trigger_outputs": {"on_time": 0},
-            "camera_params": camera_params_data,
-        })
+        basic_writer.write(
+            {
+                "trigger_outputs": {"on_time": 0},
+                "camera_params": camera_params_data,
+            }
+        )
 
         print("wrote camera params")
 
         rep.settings.set_render_pathtraced(8)
 
         for i in range(NUM_FRAMES):
-            print(f"waiting...")
+            print("waiting...")
             sys.stdout.flush()
             await rep.orchestrator.step_async()
-            print(f"done waiting")
+            print("done waiting")
 
             rgb_data = rgb_annot.get_data()
             print(f"rgb_data: {rgb_data}")
@@ -322,12 +329,14 @@ with rep.new_layer():
             instance_seg_data = instance_seg_annot.get_data()
             print(f"instance_seg_data: {instance_seg_data}")
 
-            basic_writer.write({
-                "trigger_outputs": {"on_time": 0},
-                "rgb": rgb_data,
-                "bounding_box_2d_tight": bbox_data,
-                "bounding_box_3d": bbox3d_data,
-                "instance_segmentation": instance_seg_data,
-            })
+            basic_writer.write(
+                {
+                    "trigger_outputs": {"on_time": 0},
+                    "rgb": rgb_data,
+                    "bounding_box_2d_tight": bbox_data,
+                    "bounding_box_3d": bbox3d_data,
+                    "instance_segmentation": instance_seg_data,
+                }
+            )
 
     asyncio.ensure_future(run())

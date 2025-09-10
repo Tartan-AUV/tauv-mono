@@ -4,8 +4,7 @@ import os
 import shutil
 
 parser = argparse.ArgumentParser(
-    description='label correction',
-    formatter_class=argparse.RawDescriptionHelpFormatter
+    description='label correction', formatter_class=argparse.RawDescriptionHelpFormatter
 )
 
 parser.add_argument("input", help="path to input folder containing videos")
@@ -17,7 +16,7 @@ args = parser.parse_args()
 
 
 def fix_labels(data_fpath, new_fpath, data_classes_fpath, width, height):
-    data_classes_tmp = open(data_classes_fpath, "r").read().splitlines()
+    data_classes_tmp = open(data_classes_fpath).read().splitlines()
     data_classes = {}
 
     os.mkdir(new_fpath)
@@ -32,8 +31,9 @@ def fix_labels(data_fpath, new_fpath, data_classes_fpath, width, height):
     for file in os.listdir(data_fpath):
         if file.endswith(".txt"):
             print(f"file:{file}")
-            with codecs.open(f"{data_fpath}/{file}", 'r', encoding='utf-8',
-                             errors='ignore') as fdata:
+            with codecs.open(
+                f"{data_fpath}/{file}", 'r', encoding='utf-8', errors='ignore'
+            ) as fdata:
                 data = fdata.read().splitlines()
                 data_clean = []
 
@@ -66,11 +66,12 @@ def fix_labels(data_fpath, new_fpath, data_classes_fpath, width, height):
 
                 print(f"new_obss:{new_obss}")
 
-                with codecs.open(f"{new_fpath}/labels/{file}", 'w', encoding='utf-8',
-                                 errors='ignore') as new_fdata:
+                with codecs.open(
+                    f"{new_fpath}/labels/{file}", 'w', encoding='utf-8', errors='ignore'
+                ) as new_fdata:
                     for obs in range(len(new_obss)):
                         f_line = ""
-                        for (i, elem) in enumerate(new_obss[obs]):
+                        for i, elem in enumerate(new_obss[obs]):
                             f_line += str(elem)
                             if i != len(new_obss[obs]) - 1:
                                 f_line += ","

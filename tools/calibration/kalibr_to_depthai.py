@@ -1,8 +1,9 @@
-import json
-import yaml
-import numpy as np
-import cv2
 import argparse
+import json
+
+import cv2
+import numpy as np
+import yaml
 
 # Define mappings between Kalibr cameras and JSON IDs
 camera_id_map = {
@@ -11,27 +12,29 @@ camera_id_map = {
     "cam2": 2,
 }
 
+
 def load_yaml(filename):
-    with open(filename, 'r') as file:
+    with open(filename) as file:
         return yaml.safe_load(file)
 
+
 def load_json(filename):
-    with open(filename, 'r') as file:
+    with open(filename) as file:
         return json.load(file)
+
 
 def save_json(data, filename):
     with open(filename, 'w') as file:
         json.dump(data, file, indent=4)
 
+
 def convert_intrinsics(intrinsics):
-    return [
-        [intrinsics[0], 0, intrinsics[2]],
-        [0, intrinsics[1], intrinsics[3]],
-        [0, 0, 1]
-    ]
+    return [[intrinsics[0], 0, intrinsics[2]], [0, intrinsics[1], intrinsics[3]], [0, 0, 1]]
+
 
 def convert_distortion(distortion_coeffs):
     return distortion_coeffs[:5] + [0] * (14 - len(distortion_coeffs))
+
 
 def to_transformation_matrix(rotation_matrix, translation_vector):
     transformation_matrix = np.eye(4)
@@ -39,10 +42,12 @@ def to_transformation_matrix(rotation_matrix, translation_vector):
     transformation_matrix[:3, 3] = translation_vector
     return transformation_matrix
 
+
 def extract_extrinsics(transform):
     rotation_matrix = np.array([row[:3] for row in transform[:3]])
     translation_vector = np.array([row[3] for row in transform[:3]])
     return rotation_matrix, translation_vector
+
 
 def chain_extrinsics(yaml_data):
     # Dictionary to store the chained extrinsics with respect to cam0
@@ -68,6 +73,7 @@ def chain_extrinsics(yaml_data):
         chained_extrinsics[cam_id] = np.dot(prev_transform, rel_transform)
 
     return chained_extrinsics
+
 
 def update_camera_data(json_data, yaml_data, chained_extrinsics):
     for cam_name, cam_data in yaml_data.items():
@@ -97,6 +103,7 @@ def update_camera_data(json_data, yaml_data, chained_extrinsics):
             #         "z": translation_vector[2]
             #     }
 
+
 def compute_rectification(json_data):
     left_cam = json_data["cameraData"][1][1]
     right_cam = json_data["cameraData"][2][1]
@@ -113,13 +120,21 @@ def compute_rectification(json_data):
 
     # Compute rectification
     _, left_R, right_R, _, _, _, _ = cv2.stereoRectify(
-        left_intrinsics, left_distortion, right_intrinsics, right_distortion,
-        (left_cam["width"], left_cam["height"]), R, T, flags=cv2.CALIB_ZERO_DISPARITY, alpha=0
+        left_intrinsics,
+        left_distortion,
+        right_intrinsics,
+        right_distortion,
+        (left_cam["width"], left_cam["height"]),
+        R,
+        T,
+        flags=cv2.CALIB_ZERO_DISPARITY,
+        alpha=0,
     )
 
     # Update rectification matrices in the JSON data
     json_data["stereoRectificationData"]["rectifiedRotationLeft"] = left_R.tolist()
     json_data["stereoRectificationData"]["rectifiedRotationRight"] = right_R.tolist()
+
 
 def main(yaml_filename, json_filename, output_filename):
     yaml_data = load_yaml(yaml_filename)
@@ -138,6 +153,7 @@ def main(yaml_filename, json_filename, output_filename):
     save_json(json_data, output_filename)
     print(f"Updated JSON saved to {output_filename}")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("yaml_filename")
@@ -146,5 +162,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
     # Example usage:
     main(args.yaml_filename, args.json_filename, args.output_filename)
-
-

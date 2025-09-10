@@ -1,8 +1,10 @@
 import math
 
+
 # Helper for printing constexpr definitions
 def constexpr(name, value):
     print(f'constexpr double {name} = {value:.17g};')
+
 
 # PI and fractions
 constexpr("PI", math.pi)

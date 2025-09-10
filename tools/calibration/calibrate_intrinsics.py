@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+
 import cv2
 import numpy as np
 from tqdm import tqdm
@@ -7,7 +8,7 @@ from tqdm import tqdm
 parser = argparse.ArgumentParser(
     prog='Calibrate single camera intrinsics',
     description='Takes a folder of charuco images',
-    epilog=''
+    epilog='',
 )
 
 parser.add_argument('image_path', type=Path)
@@ -19,10 +20,12 @@ parser.add_argument('marker_size_mm', type=float)
 if __name__ == '__main__':
     args = parser.parse_args()
 
-    board = cv2.aruco.CharucoBoard((args.charuco_width, args.charuco_height),
-                                   args.square_size_mm,
-                                   args.marker_size_mm,
-                                   cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000))
+    board = cv2.aruco.CharucoBoard(
+        (args.charuco_width, args.charuco_height),
+        args.square_size_mm,
+        args.marker_size_mm,
+        cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_1000),
+    )
     board.setLegacyPattern(True)
 
     detector_params = cv2.aruco.DetectorParameters()
@@ -61,16 +64,14 @@ if __name__ == '__main__':
         cv2.imshow('image', image)
         cv2.waitKey(0)
 
-
     image_size = image.shape[:2]
-    camera_mat = np.zeros((3,3))
+    camera_mat = np.zeros((3, 3))
     dist_coeffs = np.zeros((14,))
 
     print('Calibrating intrinsics...')
-    (rep_error,
-     camera_mat,
-     dist_coeffs, _, _) = cv2.calibrateCamera(all_object_points, all_image_points, image_size,
-                                              camera_mat, dist_coeffs)
+    (rep_error, camera_mat, dist_coeffs, _, _) = cv2.calibrateCamera(
+        all_object_points, all_image_points, image_size, camera_mat, dist_coeffs
+    )
 
     print(f'Calibration complete, reprojection error = {rep_error}')
     print('\n\n\n INTRINSICS MATRIX:')

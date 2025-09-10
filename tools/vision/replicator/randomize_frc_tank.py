@@ -1,7 +1,6 @@
-import omni.replicator.core as rep
-import sys
 import asyncio
-import carb.settings
+
+import omni.replicator.core as rep
 
 # ~/.local/share/ov/pkg/code-2022.3.3/omni.code.sh --/omni/replicator/script=/home/theo/Documents/yolo_pose/replicator/randomize_frc_tank.py
 
@@ -13,7 +12,9 @@ SCENE_PRIM_PREFIX = "/Replicator/Ref_Xform/Ref"
 # carb.settings.get_settings().set("/omni/replicator/RTSubframes", 8)
 
 with rep.new_layer():
-    scene = rep.create.from_usd("/home/theo/Documents/yolo_pose/models/frc_tank_scene/frc_tank_scene.usd")
+    scene = rep.create.from_usd(
+        "/home/theo/Documents/yolo_pose/models/frc_tank_scene/frc_tank_scene.usd"
+    )
 
     camera = rep.create.camera(
         position=(0, 800, 0),
@@ -72,12 +73,17 @@ with rep.new_layer():
 
     def randomize_objects():
         print("creating objects")
-        objects = rep.randomizer.instantiate([
-            # "/home/theo/Documents/bin_24/usd/bin_24.usd",
-            "/home/theo/Documents/yolo_pose/models/samples_24/usd/worm.usd",
-            "/home/theo/Documents/yolo_pose/models/samples_24/usd/coral.usd",
-            "/home/theo/Documents/yolo_pose/models/samples_24/usd/nautilus.usd",
-        ], size=3, mode="reference", use_cache=True)
+        objects = rep.randomizer.instantiate(
+            [
+                # "/home/theo/Documents/bin_24/usd/bin_24.usd",
+                "/home/theo/Documents/yolo_pose/models/samples_24/usd/worm.usd",
+                "/home/theo/Documents/yolo_pose/models/samples_24/usd/coral.usd",
+                "/home/theo/Documents/yolo_pose/models/samples_24/usd/nautilus.usd",
+            ],
+            size=3,
+            mode="reference",
+            use_cache=True,
+        )
         print("created objects")
 
         with objects:
@@ -119,7 +125,7 @@ with rep.new_layer():
     camera_params_annot.attach([render_product])
 
     basic_writer = rep.BasicWriter(
-        output_dir=f"/home/theo/Documents/new_replicator_out/",
+        output_dir="/home/theo/Documents/new_replicator_out/",
         colorize_instance_segmentation=False,
     )
 
@@ -138,10 +144,12 @@ with rep.new_layer():
 
         print("writing camera params!")
 
-        basic_writer.write({
-            "trigger_outputs": {"on_time": 0},
-            "camera_params": camera_params_data,
-        })
+        basic_writer.write(
+            {
+                "trigger_outputs": {"on_time": 0},
+                "camera_params": camera_params_data,
+            }
+        )
 
         print("wrote camera params")
 

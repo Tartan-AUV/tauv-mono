@@ -11,12 +11,12 @@ RTVCNode::RTVCNode()
   imu_publisher_ = this->create_publisher<sensor_msgs::msg::Imu>("imu", 10);
   temperature_publisher_ = this->create_publisher<sensor_msgs::msg::Temperature>("temperature", 10);
   pressure_publisher_ = this->create_publisher<sensor_msgs::msg::FluidPressure>("pressure", 10);
-  esc_telemetry_publisher_ = this->create_publisher<tauv_msgs::msg::EscTelemetry>("esc_telemetry", 10);
+  esc_telemetry_publisher_ =
+      this->create_publisher<tauv_msgs::msg::EscTelemetry>("esc_telemetry", 10);
   depth_publisher_ = this->create_publisher<tauv_msgs::msg::DepthSensorFrame>("depth", 10);
-  thruster_setpoint_subscriber_ =
-      this->create_subscription<tauv_msgs::msg::ThrusterSetpoint>(
-          "thruster_setpoint", 10, 
-          std::bind(&RTVCNode::thruster_setpoint_callback, this, std::placeholders::_1));
+  thruster_setpoint_subscriber_ = this->create_subscription<tauv_msgs::msg::ThrusterSetpoint>(
+      "thruster_setpoint", 10,
+      std::bind(&RTVCNode::thruster_setpoint_callback, this, std::placeholders::_1));
 
   start_receive();
   start_receive_50hz();
@@ -33,33 +33,30 @@ RTVCNode::~RTVCNode() {
 }
 
 void RTVCNode::start_receive() {
-  socket_100_hz_.async_receive_from(
-      boost::asio::buffer(recv_buffer_), remote_endpoint_,
-      [this](boost::system::error_code ec, std::size_t bytes_recvd) {
-        packet_callback(ec, bytes_recvd);
-      });
+  socket_100_hz_.async_receive_from(boost::asio::buffer(recv_buffer_), remote_endpoint_,
+                                    [this](boost::system::error_code ec, std::size_t bytes_recvd) {
+                                      packet_callback(ec, bytes_recvd);
+                                    });
 }
 
 void RTVCNode::start_receive_50hz() {
-  socket_50_hz_.async_receive_from(
-      boost::asio::buffer(recv_buffer_50hz_), remote_endpoint_50hz_,
-      [this](boost::system::error_code ec, std::size_t bytes_recvd) {
-        packet_callback_50hz(ec, bytes_recvd);
-      });
+  socket_50_hz_.async_receive_from(boost::asio::buffer(recv_buffer_50hz_), remote_endpoint_50hz_,
+                                   [this](boost::system::error_code ec, std::size_t bytes_recvd) {
+                                     packet_callback_50hz(ec, bytes_recvd);
+                                   });
 }
 
 void RTVCNode::packet_callback(boost::system::error_code ec, std::size_t bytes_recvd) {
   if (!ec && bytes_recvd > 0) {
     auto fb_root = GetEth100HzMsg(recv_buffer_.data());
     if (!fb_root) {
-      RCLCPP_WARN(this->get_logger(),
-                  "Failed to parse Eth100HzMsg from buffer");
+      RCLCPP_WARN(this->get_logger(), "Failed to parse Eth100HzMsg from buffer");
       start_receive();  // Keep listening
       return;
     }
 
-    flatbuffers::Verifier verifier(
-        reinterpret_cast<const uint8_t *>(recv_buffer_.data()), bytes_recvd);
+    flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(recv_buffer_.data()),
+                                   bytes_recvd);
     if (!verifier.VerifyBuffer<Eth100HzMsg>(nullptr)) {
       RCLCPP_WARN(this->get_logger(), "FlatBuffer verification failed");
       start_receive();  // Keep listening
@@ -77,14 +74,13 @@ void RTVCNode::packet_callback_50hz(boost::system::error_code ec, std::size_t by
   if (!ec && bytes_recvd > 0) {
     auto fb_root = GetEth50HzESCMsg(recv_buffer_50hz_.data());
     if (!fb_root) {
-      RCLCPP_WARN(this->get_logger(),
-                  "Failed to parse Eth50HzESCMsg from buffer");
+      RCLCPP_WARN(this->get_logger(), "Failed to parse Eth50HzESCMsg from buffer");
       start_receive_50hz();  // Keep listening
       return;
     }
 
-    flatbuffers::Verifier verifier(
-        reinterpret_cast<const uint8_t *>(recv_buffer_50hz_.data()), bytes_recvd);
+    flatbuffers::Verifier verifier(reinterpret_cast<const uint8_t*>(recv_buffer_50hz_.data()),
+                                   bytes_recvd);
     if (!verifier.VerifyBuffer<Eth50HzESCMsg>(nullptr)) {
       RCLCPP_WARN(this->get_logger(), "FlatBuffer verification failed for 50Hz ESC msg");
       start_receive_50hz();  // Keep listening
@@ -98,26 +94,26 @@ void RTVCNode::packet_callback_50hz(boost::system::error_code ec, std::size_t by
   start_receive_50hz();  // Keep listening
 }
 
-void RTVCNode::parse_eth100_msg(const Eth100HzMsgT &msg) {
+void RTVCNode::parse_eth100_msg(const Eth100HzMsgT& msg) {
   // Use a reference instead of copying
-//   const auto &fb_imu_data = msg.imu_data;
+  //   const auto &fb_imu_data = msg.imu_data;
 
-//   for (const auto &fb_frame : fb_imu_data) {
-//     auto msgs = parse_xsens_fb(*fb_frame);
-//     if (msgs.imu_msg.has_value()) {
-//       msgs.imu_msg.value().header.stamp = this->get_clock()->now();
-//       this->imu_publisher_->publish(msgs.imu_msg.value());
-//     }
-//     if (msgs.temperature.has_value()) {
-//       msgs.temperature.value().header.stamp = this->get_clock()->now();
-//       this->temperature_publisher_->publish(msgs.temperature.value());
-//     }
-//     if (msgs.pressure.has_value()) {
-//       msgs.pressure.value().header.stamp = this->get_clock()->now();
-//       this->pressure_publisher_->publish(msgs.pressure.value());
-//     }
-//   }
-  
+  //   for (const auto &fb_frame : fb_imu_data) {
+  //     auto msgs = parse_xsens_fb(*fb_frame);
+  //     if (msgs.imu_msg.has_value()) {
+  //       msgs.imu_msg.value().header.stamp = this->get_clock()->now();
+  //       this->imu_publisher_->publish(msgs.imu_msg.value());
+  //     }
+  //     if (msgs.temperature.has_value()) {
+  //       msgs.temperature.value().header.stamp = this->get_clock()->now();
+  //       this->temperature_publisher_->publish(msgs.temperature.value());
+  //     }
+  //     if (msgs.pressure.has_value()) {
+  //       msgs.pressure.value().header.stamp = this->get_clock()->now();
+  //       this->pressure_publisher_->publish(msgs.pressure.value());
+  //     }
+  //   }
+
   // Process depth sensor data if available
   if (msg.depth_data) {
     tauv_msgs::msg::DepthSensorFrame depth_msg;
@@ -125,17 +121,17 @@ void RTVCNode::parse_eth100_msg(const Eth100HzMsgT &msg) {
     depth_msg.depth = msg.depth_data->depth;
     depth_msg.pressure = msg.depth_data->pressure;
     depth_msg.temperature = msg.depth_data->temperature;
-    
+
     depth_publisher_->publish(depth_msg);
   }
 }
 
-void RTVCNode::parse_eth50_msg(const Eth50HzESCMsgT &msg) {
+void RTVCNode::parse_eth50_msg(const Eth50HzESCMsgT& msg) {
   // Process each ESC frame in the message
-  for (const auto &fb_esc_frame : msg.esc_data) {
+  for (const auto& fb_esc_frame : msg.esc_data) {
     if (fb_esc_frame) {
       tauv_msgs::msg::EscTelemetry esc_msg;
-      
+
       // Fill in the ESC telemetry message
       esc_msg.id = fb_esc_frame->id;
       esc_msg.rpm = fb_esc_frame->rpm;
@@ -143,19 +139,18 @@ void RTVCNode::parse_eth50_msg(const Eth50HzESCMsgT &msg) {
       esc_msg.current = fb_esc_frame->current;
       esc_msg.temperature = fb_esc_frame->temperature;
       esc_msg.fault_code = fb_esc_frame->fault_code;
-      
+
       // Publish the ESC telemetry message
       this->esc_telemetry_publisher_->publish(esc_msg);
     }
   }
 }
 
-RTVCNode::XsensROSMessages RTVCNode::parse_xsens_fb(
-    const XsensIMUFrameT &fb_frame) {
+RTVCNode::XsensROSMessages RTVCNode::parse_xsens_fb(const XsensIMUFrameT& fb_frame) {
   XsensROSMessages output_msgs{};
 
-  if (fb_frame.sample_time_fine && fb_frame.orientation &&
-      fb_frame.rate_of_turn && fb_frame.free_acceleration) {
+  if (fb_frame.sample_time_fine && fb_frame.orientation && fb_frame.rate_of_turn &&
+      fb_frame.free_acceleration) {
     // Orientation
     sensor_msgs::msg::Imu imu_msg;
     imu_msg.orientation.w = fb_frame.orientation->w();
@@ -178,8 +173,8 @@ RTVCNode::XsensROSMessages RTVCNode::parse_xsens_fb(
     // Leave the header empty (timestamp and frame_id unset)
     // Covariance matrices can be left unset or initialized to identity/zero
     // if needed
-    std::fill(std::begin(imu_msg.orientation_covariance),
-              std::end(imu_msg.orientation_covariance), 0.0);
+    std::fill(std::begin(imu_msg.orientation_covariance), std::end(imu_msg.orientation_covariance),
+              0.0);
     std::fill(std::begin(imu_msg.angular_velocity_covariance),
               std::end(imu_msg.angular_velocity_covariance), 0.0);
     std::fill(std::begin(imu_msg.linear_acceleration_covariance),
@@ -204,7 +199,7 @@ RTVCNode::XsensROSMessages RTVCNode::parse_xsens_fb(
 void RTVCNode::thruster_setpoint_callback(const tauv_msgs::msg::ThrusterSetpoint::SharedPtr msg) {
   // Create the top-level Eth50HzTxMsg
   Eth50HzTxMsgT msg_obj;
-  
+
   auto thruster_command = std::make_unique<ThrusterCommandT>();
   thruster_command->enabled = std::vector<bool>(msg->enables.begin(), msg->enables.end());
   // Convert from rad/s to RPM: RPM = (rad/s) * 60 / (2π)
@@ -220,21 +215,18 @@ void RTVCNode::thruster_setpoint_callback(const tauv_msgs::msg::ThrusterSetpoint
   flatbuffers::FlatBufferBuilder builder;
   builder.Finish(Eth50HzTxMsg::Pack(builder, &msg_obj));
   auto buf = std::make_shared<std::vector<char>>(
-    reinterpret_cast<char*>(builder.GetBufferPointer()),
-    reinterpret_cast<char*>(builder.GetBufferPointer() + builder.GetSize())
-  );
+      reinterpret_cast<char*>(builder.GetBufferPointer()),
+      reinterpret_cast<char*>(builder.GetBufferPointer() + builder.GetSize()));
 
   // Ship it off over UDP (via asio strand
   io_context_.post([this, buf]() {
     boost::system::error_code ec;
     socket_50_hz_.send_to(boost::asio::buffer(*buf), send_endpoint_100hz_, 0, ec);
-    if (ec)
-      RCLCPP_WARN(this->get_logger(), "UDP send error: %s",
-                  ec.message().c_str());
+    if (ec) RCLCPP_WARN(this->get_logger(), "UDP send error: %s", ec.message().c_str());
   });
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<RTVCNode>();
   rclcpp::spin(node);
