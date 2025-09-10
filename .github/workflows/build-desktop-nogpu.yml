@@ -41,7 +41,6 @@ jobs:
           IMAGE: ghcr.io/tartan-auv/desktop_nogpu
           SHA: ${{ github.sha }}
 
-        # Note: we override cache setting cuz the GH runner disk is too small to keep local cache
         run: |
           docker buildx bake \
             --allow=ssh \

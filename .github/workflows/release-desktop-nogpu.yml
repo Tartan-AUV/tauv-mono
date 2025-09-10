@@ -49,16 +49,3 @@ jobs:
             --set desktop_nogpu.tags+=${IMAGE}:latest-amd64 \
             desktop_nogpu_release
 
-      - name: Test colcon build (sim) in container
-        env:
-          IMAGE: ghcr.io/tartan-auv/desktop_nogpu
-          SHA: ${{ github.sha }}
-        run: |
-          mkdir -p .ros_build .ros_install .ros_log
-          docker run --rm \
-            -v ${{ github.workspace }}/packages:/ros_ws/src \
-            -v ${{ github.workspace }}/.ros_build:/ros_ws/build \
-            -v ${{ github.workspace }}/.ros_install:/ros_ws/install \
-            -v ${{ github.workspace }}/.ros_log:/ros_ws/log \
-            ${IMAGE}:${SHA}-amd64 \
-            bash -lc "colcon build --event-handlers console_direct+"

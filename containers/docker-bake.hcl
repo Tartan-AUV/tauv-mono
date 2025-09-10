@@ -60,7 +60,6 @@ target "desktop_nogpu" {
     base = "target:common"
   }
   tags = ["${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"]
-  // Use both local cache (fast for local builds) and registry cache (useful in CI)
   cache-to = [
     "type=registry,ref=ghcr.io/tartan-auv/desktop_nogpu:buildcache,mode=max",
   ]

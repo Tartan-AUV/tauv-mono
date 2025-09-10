@@ -34,12 +34,22 @@ if ! docker buildx version >/dev/null 2>&1; then
   exit 1
 fi
 
+# Local cache directory for BuildKit (used in addition to registry cache)
+CACHE_DIR=".buildx-cache"
+
 # Invoke bake. We set build args on the desktop_nogpu_user target only.
 # The desktop_nogpu_user target is marked no-cache in docker-bake.hcl so it will always rebuild.
+# The bakefile doesn't use local cache, so we add it here.
 set -x
 exec docker buildx bake \
   --progress=auto \
   --file docker-bake.hcl \
+  --set base.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
+  --set base.cache-from+="type=local,src=${CACHE_DIR}" \
+  --set common.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
+  --set common.cache-from+="type=local,src=${CACHE_DIR}" \
+  --set desktop_nogpu.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
+  --set desktop_nogpu.cache-from+="type=local,src=${CACHE_DIR}" \
   --set desktop_nogpu_user.args.GIT_USER_NAME="${GIT_USER_NAME_VAL}" \
   --set desktop_nogpu_user.args.GIT_USER_EMAIL="${GIT_USER_EMAIL_VAL}" \
   desktop_nogpu_user

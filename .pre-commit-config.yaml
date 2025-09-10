@@ -46,4 +46,4 @@ repos:
         exclude: ^(firmware/|tools/)
 
 # Default to running on commit; users can run on-demand with --all-files if desired
-default_stages: [commit]
+default_stages: [pre-commit]
