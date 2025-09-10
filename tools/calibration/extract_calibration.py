@@ -1,6 +1,6 @@
-import depthai as dai
-
 import argparse
+
+import depthai as dai
 
 parser = argparse.ArgumentParser()
 parser.add_argument("ip")
@@ -13,4 +13,3 @@ dev = dai.Device(pipeline, dev_info)
 
 cal_data = dev.readCalibration()
 cal_data.eepromToJsonFile(args.output)
-

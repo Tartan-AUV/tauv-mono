@@ -13,29 +13,32 @@ This is a minimal timing-based commander for basic vehicle testing.
 
 from __future__ import annotations
 
-from enum import Enum
 import time
+from enum import Enum
 
 import rclpy
+from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from rclpy.publisher import Publisher
-
 from tauv_msgs.msg import ControllerCommand
-from geometry_msgs.msg import Twist
 
 # ---------------------------------------------------------------------------
 # State machine
 # ---------------------------------------------------------------------------
 
+
 class CommanderState(Enum):
     """States for the commander node."""
-    WAITING = "waiting"      # 0-20s: Don't publish anything
+
+    WAITING = "waiting"  # 0-20s: Don't publish anything
     PUBLISHING = "publishing"  # 20-40s: Publish fixed twist
-    STOPPED = "stopped"      # 40s+: Stop publishing
+    STOPPED = "stopped"  # 40s+: Stop publishing
+
 
 # ---------------------------------------------------------------------------
 # Commander node
 # ---------------------------------------------------------------------------
+
 
 class Commander(Node):
     """Simplified commander node with timed twist publishing."""
@@ -48,7 +51,7 @@ class Commander(Node):
         # ------------------------------------------------------------------
         self.start_time = time.time()
         self.state = CommanderState.WAITING
-        
+
         # Phase durations in seconds
         self.wait_duration = 1.0
         self.publish_duration = 20.0
@@ -58,9 +61,9 @@ class Commander(Node):
         # ------------------------------------------------------------------
         self.target_twist = Twist()
         # Set desired linear and angular velocities
-        self.target_twist.linear.x = 0.0   # 0.5 m/s forward
-        self.target_twist.linear.y = 0.0   # No sideways motion
-        self.target_twist.linear.z = 0.05   # 
+        self.target_twist.linear.x = 0.0  # 0.5 m/s forward
+        self.target_twist.linear.y = 0.0  # No sideways motion
+        self.target_twist.linear.z = 0.05  #
         self.target_twist.angular.x = 0.0  # No roll rate
         self.target_twist.angular.y = 0.0  # No pitch rate
         self.target_twist.angular.z = 0.0  # 0.2 rad/s yaw rate
@@ -120,18 +123,20 @@ class Commander(Node):
         cmd.header.stamp = self.get_clock().now().to_msg()
         cmd.header.frame_id = "body"  # Twist is in body frame
         cmd.target_twist = self.target_twist
-        
+
         self._cmd_pub.publish(cmd)
+
 
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     """Run the simplified commander node."""
     rclpy.init()
     commander = Commander()
-    
+
     try:
         rclpy.spin(commander)
     except KeyboardInterrupt:

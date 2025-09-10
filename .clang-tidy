@@ -1,0 +1,25 @@
+Checks: >
+  -*,
+  bugprone-*,
+  clang-analyzer-*,
+  modernize-*,
+  performance-*,
+  readability-*,
+  google-*,
+  cppcoreguidelines-*
+
+WarningsAsErrors: ''
+
+HeaderFilterRegex: '^(?!.*(?:^|/)firmware/).*'
+FormatStyle: none
+User: precommit
+
+CheckOptions:
+  - key:             readability-identifier-naming.VariableCase
+    value:           CamelCase
+  - key:             readability-identifier-naming.PrivateMemberPrefix
+    value:           ''
+  - key:             google-readability-braces-around-statements.ShortStatementLines
+    value:           '1'
+  - key:             modernize-use-nullptr.NullMacros
+    value:           'NULL'

@@ -1,6 +1,5 @@
-import glob
-import pathlib
 import argparse
+import pathlib
 import random
 import shutil
 
@@ -33,7 +32,9 @@ def run(name: str, in_dir: pathlib.Path, out_root_dir: pathlib.Path, batch_size:
         if zip:
             out_zip = out_root_dir / f"{name}_{batch_i}"
             print(f"Zipping to {out_zip}...")
-            shutil.make_archive(out_zip, "zip", root_dir=out_dir.parent, base_dir=f"{name}_{batch_i}")
+            shutil.make_archive(
+                out_zip, "zip", root_dir=out_dir.parent, base_dir=f"{name}_{batch_i}"
+            )
             print(f"Done zipping to {out_zip}")
 
         batch_i += 1

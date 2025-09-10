@@ -1,1 +1,0 @@
-/home/tauv/tauv-mono/build/tauv_msgs/rosidl_generator_c/tauv_msgs/msg/detail/target_thrust__struct.h

@@ -23,11 +23,10 @@ import cmd
 import math
 import threading
 import time
-from typing import Tuple
 
 import rclpy
-from rclpy.node import Node
 from geometry_msgs.msg import Pose
+from rclpy.node import Node
 from tauv_msgs.srv import Goto
 
 try:
@@ -38,7 +37,7 @@ except ImportError:
     pass
 
 
-def euler_to_quaternion(roll: float, pitch: float, yaw: float) -> Tuple[float, float, float, float]:
+def euler_to_quaternion(roll: float, pitch: float, yaw: float) -> tuple[float, float, float, float]:
     """Convert roll, pitch, yaw (radians) → quaternion (x, y, z, w)."""
     cy = math.cos(yaw * 0.5)
     sy = math.sin(yaw * 0.5)
@@ -69,7 +68,7 @@ class TeleopNode(Node):
     # Public helpers
     # ------------------------------------------------------------------
 
-    def send_goto(self, pose: Pose, velocity: float = 0.0) -> Tuple[bool, str]:
+    def send_goto(self, pose: Pose, velocity: float = 0.0) -> tuple[bool, str]:
         """Send a *Goto* request and wait for the response.
 
         Args:
@@ -100,7 +99,7 @@ class TeleopNode(Node):
 class TeleopCLI(cmd.Cmd):
     """Interactive command-line interface for vehicle teleoperation."""
 
-    intro = ('Teleop CLI – type "help" for available commands. ' 'Press Ctrl-D or type "exit" to quit.')
+    intro = 'Teleop CLI – type "help" for available commands. Press Ctrl-D or type "exit" to quit.'
     prompt = '(teleop) '
 
     def __init__(self, node: TeleopNode):

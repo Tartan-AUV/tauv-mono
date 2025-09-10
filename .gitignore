@@ -22,4 +22,9 @@
 .idea/
 
 ### Colcon Cache ###
-ros_artifacts/
+.ros_build/
+.ros_install/
+.ros_log/
+
+### Docker Buildx Cache ###
+containers/.buildx-cache/

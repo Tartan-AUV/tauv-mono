@@ -1,22 +1,19 @@
 #!/usr/bin/env python3
 
+import ctypes
 import time
 
-from arena_api.system import system
-from arena_api.buffer import *
-import arena_api
-
-import ctypes
-import numpy as np
 import cv2
-
+import numpy as np
 import rclpy
-from rclpy.node import Node
+import vpi
+from arena_api.buffer import *
+from arena_api.system import system
 from cv_bridge import CvBridge, CvBridgeError
-from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
+from rclpy.node import Node
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from sensor_msgs.msg import Image
 
-import vpi
 
 def create_devices_with_tries(logger):
     """
@@ -32,18 +29,17 @@ def create_devices_with_tries(logger):
         if not devices:
             logger.info(
                 f'Try {tries + 1} of {tries_max}: waiting for {sleep_time_secs} '
-                f'secs for a device to be connected!')
+                f'secs for a device to be connected!'
+            )
             for sec_count in range(sleep_time_secs):
                 time.sleep(1)
-                print(f'{sec_count + 1} seconds passed ',
-                      '.' * sec_count, end='\r')
+                print(f'{sec_count + 1} seconds passed ', '.' * sec_count, end='\r')
             tries += 1
         else:
             logger.info(f'Created {len(devices)} device(s)')
             return devices
     else:
-        raise Exception(f'No device found! Please connect a device and run '
-                        f'the example again.')
+        raise Exception('No device found! Please connect a device and run the example again.')
 
 
 def setup(device, binning_dims):
@@ -53,24 +49,45 @@ def setup(device, binning_dims):
         Mono 8 would has 1 channel, RGB8 has 3 channels
 
         device: the device (camera in this context)
-        binning_dims: the dimensions (height, width) of binning 
+        binning_dims: the dimensions (height, width) of binning
 
     """
     nodemap = device.nodemap
     print(nodemap)
-    nodes = nodemap.get_node(['Width', 'Height', 'PixelFormat',
-                              'AcquisitionFrameRateEnable', 'AcquisitionFrameRate',
-                              'TransmissionFrameRate', 'AcquisitionMode', 'DeviceStreamChannelPacketSize',
-                              'BinningHorizontal', 'BinningVertical', 'BinningSelector',
-                              'BinningHorizontalMode', 'BinningVerticalMode', 'TransportStreamProtocol',
-                              'TriggerNode', 'LineMode', 'TriggerMode', 'TriggerSelector', 'TriggerSource',
-                              'TriggerActivation', 'OffsetX', 'OffsetY'])
+    nodes = nodemap.get_node(
+        [
+            'Width',
+            'Height',
+            'PixelFormat',
+            'AcquisitionFrameRateEnable',
+            'AcquisitionFrameRate',
+            'TransmissionFrameRate',
+            'AcquisitionMode',
+            'DeviceStreamChannelPacketSize',
+            'BinningHorizontal',
+            'BinningVertical',
+            'BinningSelector',
+            'BinningHorizontalMode',
+            'BinningVerticalMode',
+            'TransportStreamProtocol',
+            'TriggerNode',
+            'LineMode',
+            'TriggerMode',
+            'TriggerSelector',
+            'TriggerSource',
+            'TriggerActivation',
+            'OffsetX',
+            'OffsetY',
+        ]
+    )
 
     # Stopping image stream
     device.stop_stream()
 
     # Set AcquisitionFrameRateEnable
-    assert nodes['AcquisitionFrameRateEnable'].is_writable, "AcquisitionFrameRateEnable not writable"
+    assert nodes['AcquisitionFrameRateEnable'].is_writable, (
+        "AcquisitionFrameRateEnable not writable"
+    )
     nodes['AcquisitionFrameRateEnable'].value = True
 
     # Set AcquisitionFrameRate
@@ -104,9 +121,13 @@ def setup(device, binning_dims):
     print("Did binning vertical")
 
     # Set DeviceStreamChannelPacketSize
-    assert nodes['DeviceStreamChannelPacketSize'].is_readable, "DeviceStreamChannelPacketSize not readable"
+    assert nodes['DeviceStreamChannelPacketSize'].is_readable, (
+        "DeviceStreamChannelPacketSize not readable"
+    )
     print(nodes['DeviceStreamChannelPacketSize'].value)
-    assert nodes['DeviceStreamChannelPacketSize'].is_writable, "DeviceStreamChannelPacketSize not writable"
+    assert nodes['DeviceStreamChannelPacketSize'].is_writable, (
+        "DeviceStreamChannelPacketSize not writable"
+    )
     nodes['DeviceStreamChannelPacketSize'].value = 9000
 
     # Set Height
@@ -147,17 +168,17 @@ def setup(device, binning_dims):
     tl_stream_nodemap['StreamPacketResendEnable'].value = True
 
     # Pulsing for Image Collection
-    if (not nodes['LineSelector'].is_writable):
+    if not nodes['LineSelector'].is_writable:
         raise Exception("LineSelector not writable")
-    if (not nodes['LineMode'].is_writable):
+    if not nodes['LineMode'].is_writable:
         raise Exception("LineMode not writable")
-    if (not nodes['TriggerMode'].is_writable):
+    if not nodes['TriggerMode'].is_writable:
         raise Exception("TriggerMode not writable")
-    if (not nodes['TriggerSelector'].is_writable):
+    if not nodes['TriggerSelector'].is_writable:
         raise Exception("TriggerSelector not writable")
-    if (not nodes['TriggerSource'].is_writable):
+    if not nodes['TriggerSource'].is_writable:
         raise Exception("TriggerSource not writable")
-    if (not nodes['TriggerActivation'].is_writable):
+    if not nodes['TriggerActivation'].is_writable:
         raise Exception("TriggerActivation not writable")
 
     nodes['LineSelector'] = 'Line0'
@@ -182,7 +203,6 @@ def get_device(desired_ip):
 
 
 class LucidDriver(Node):
-
     def __init__(self):
         super().__init__('lucid')
         self._bridge = CvBridge()
@@ -196,17 +216,27 @@ class LucidDriver(Node):
         self.camera_ip = self.get_parameter('camera_ip').get_parameter_value().string_value
         self.topic_name = self.get_parameter('topic_name').get_parameter_value().string_value
 
-        self.horizontal_binning = self.get_parameter('horizontal_binning').get_parameter_value().integer_value
-        self.vertical_binning = self.get_parameter('vertical_binning').get_parameter_value().integer_value
+        self.horizontal_binning = (
+            self.get_parameter('horizontal_binning').get_parameter_value().integer_value
+        )
+        self.vertical_binning = (
+            self.get_parameter('vertical_binning').get_parameter_value().integer_value
+        )
 
         qos_profile = QoSProfile(
             reliability=ReliabilityPolicy.BEST_EFFORT,
             durability=DurabilityPolicy.VOLATILE,
-            depth=10
+            depth=10,
         )
 
-        self._image_pub = self.create_publisher(Image, self.topic_name, qos_profile=qos_profile, )
-        self.get_logger().info(f"Lucid Node Initialized with Camera IP: {self.camera_ip} and Topic: {self.topic_name}")
+        self._image_pub = self.create_publisher(
+            Image,
+            self.topic_name,
+            qos_profile=qos_profile,
+        )
+        self.get_logger().info(
+            f"Lucid Node Initialized with Camera IP: {self.camera_ip} and Topic: {self.topic_name}"
+        )
 
     def callback(self):
         pass
@@ -236,16 +266,24 @@ class LucidDriver(Node):
                 item = buffer
                 buffer_bytes_per_pixel = 3
                 array = (ctypes.c_ubyte * num_channels * item.width * item.height).from_address(
-                    ctypes.addressof(item.pbytes))
-                cvframe = np.ndarray(buffer=array, dtype=np.uint8,
-                                     shape=(item.height, item.width, buffer_bytes_per_pixel))
+                    ctypes.addressof(item.pbytes)
+                )
+                cvframe = np.ndarray(
+                    buffer=array,
+                    dtype=np.uint8,
+                    shape=(item.height, item.width, buffer_bytes_per_pixel),
+                )
 
                 vpi_frame = vpi.asimage(cvframe)
 
                 with backend:
                     temp = vpi_frame.convert(vpi.Format.NV12_ER, backend=vpi.Backend.CUDA)
-                    temp = temp.rescale((vpi_frame.width // int(self.horizontal_binning),
-                                         vpi_frame.height // int(self.vertical_binning)))
+                    temp = temp.rescale(
+                        (
+                            vpi_frame.width // int(self.horizontal_binning),
+                            vpi_frame.height // int(self.vertical_binning),
+                        )
+                    )
                     output = temp.convert(vpi.Format.RGB8, backend=vpi.Backend.CUDA)
 
                 output_frame = output.cpu()
@@ -282,6 +320,7 @@ def main(args=None):
     node.start()
     rclpy.spin()
     # TODO: FIX THIS
+
 
 if __name__ == "__main__":
     main()

@@ -10,9 +10,9 @@
 #include <functional>
 #include <memory>
 #include <optional>
+#include <rclcpp/rclcpp.hpp>
 #include <thread>
 #include <vector>
-#include <rclcpp/rclcpp.hpp>
 
 #include "flatbuffers/flatbuffers.h"
 #include "geometry_msgs/msg/quaternion.hpp"
@@ -21,9 +21,9 @@
 #include "sensor_msgs/msg/imu.hpp"
 #include "sensor_msgs/msg/temperature.hpp"
 #include "std_msgs/msg/string.hpp"
-#include "tauv_msgs/msg/thruster_setpoint.hpp"
-#include "tauv_msgs/msg/esc_telemetry.hpp"
 #include "tauv_msgs/msg/depth_sensor_frame.hpp"
+#include "tauv_msgs/msg/esc_telemetry.hpp"
+#include "tauv_msgs/msg/thruster_setpoint.hpp"
 #include "tauv_vehicle/generated/eth_msg_jetson_rtvc_50_generated.h"
 #include "tauv_vehicle/generated/eth_msg_rtvc_jetson_100_generated.h"
 #include "tauv_vehicle/generated/eth_msg_rtvc_jetson_50_generated.h"
@@ -47,15 +47,15 @@ class RTVCNode : public rclcpp::Node {
   void start_receive_50hz();
   void packet_callback(boost::system::error_code ec, std::size_t bytes_recvd);
   void packet_callback_50hz(boost::system::error_code ec, std::size_t bytes_recvd);
-  void parse_eth100_msg(const Eth100HzMsgT &msg);
-  void parse_eth50_msg(const Eth50HzESCMsgT &msg);
-  static XsensROSMessages parse_xsens_fb(const XsensIMUFrameT &fb_frame);
+  void parse_eth100_msg(const Eth100HzMsgT& msg);
+  void parse_eth50_msg(const Eth50HzESCMsgT& msg);
+  static XsensROSMessages parse_xsens_fb(const XsensIMUFrameT& fb_frame);
   void thruster_setpoint_callback(const tauv_msgs::msg::ThrusterSetpoint::SharedPtr msg);
   void sendCallback();
 
   boost::asio::io_context io_context_;
-  udp::socket socket_100_hz_;     // For 100Hz messages
-  udp::socket socket_50_hz_;      // For both receiving and sending 50Hz messages
+  udp::socket socket_100_hz_;  // For 100Hz messages
+  udp::socket socket_50_hz_;   // For both receiving and sending 50Hz messages
   udp::endpoint remote_endpoint_;
   udp::endpoint remote_endpoint_50hz_;
   udp::endpoint send_endpoint_100hz_;
@@ -70,10 +70,10 @@ class RTVCNode : public rclcpp::Node {
   rclcpp::Publisher<tauv_msgs::msg::DepthSensorFrame>::SharedPtr depth_publisher_;
   rclcpp::Subscription<tauv_msgs::msg::ThrusterSetpoint>::SharedPtr thruster_setpoint_subscriber_;
   rclcpp::TimerBase::SharedPtr send_timer_;
-  
+
   // RPM command data
   std::vector<int16_t> rpms;
   std::vector<bool> enables;
 };
 
-#endif //RTVC_H
+#endif  // RTVC_H

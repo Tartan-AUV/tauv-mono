@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
+import threading
+
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile
 from std_srvs.srv import Trigger
 from tauv_msgs.msg import Depth, DepthSensorFrame
-from std_msgs.msg import Header
-import threading
+
 
 class DepthEstimatorNode(Node):
     def __init__(self):
@@ -18,7 +18,9 @@ class DepthEstimatorNode(Node):
         self.declare_parameter('gravity', 9.81)
         self.declare_parameter('variance', 1.0e-4)
 
-        self.surface_pressure = self.get_parameter('surface_pressure').get_parameter_value().double_value
+        self.surface_pressure = (
+            self.get_parameter('surface_pressure').get_parameter_value().double_value
+        )
         self.water_density = self.get_parameter('water_density').get_parameter_value().double_value
         self.gravity = self.get_parameter('gravity').get_parameter_value().double_value
         self.variance = self.get_parameter('variance').get_parameter_value().double_value
@@ -29,16 +31,9 @@ class DepthEstimatorNode(Node):
 
         self.depth_pub = self.create_publisher(Depth, 'depth', 10)
         self.depth_sub = self.create_subscription(
-            DepthSensorFrame,
-            'depth_sensor_frame',
-            self.depth_sensor_frame_callback,
-            10
+            DepthSensorFrame, 'depth_sensor_frame', self.depth_sensor_frame_callback, 10
         )
-        self.reset_srv = self.create_service(
-            Trigger,
-            'reset_depth',
-            self.handle_reset_service
-        )
+        self.reset_srv = self.create_service(Trigger, 'reset_depth', self.handle_reset_service)
 
     def depth_sensor_frame_callback(self, msg: DepthSensorFrame):
         # with self._reset_lock:
@@ -65,9 +60,10 @@ class DepthEstimatorNode(Node):
         response.message = 'Reset triggered'
         return response
 
+
 def main(args=None):
     rclpy.init(args=args)
     node = DepthEstimatorNode()
     rclpy.spin(node)
     node.destroy_node()
-    rclpy.shutdown() 
+    rclpy.shutdown()

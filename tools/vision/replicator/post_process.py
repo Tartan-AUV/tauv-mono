@@ -1,18 +1,16 @@
-import torch
-import torchvision.transforms.v2 as T
 import argparse
-import pathlib
 import glob
-import random
-from PIL import Image
-import re
 import json
-import numpy as np
-from typing import Dict
+import pathlib
+import random
+import re
 from functools import partial
 from multiprocessing import Pool
-import matplotlib.pyplot as plt
 
+import numpy as np
+import torch
+import torchvision.transforms.v2 as T
+from PIL import Image
 from tauv_vision.datasets.segmentation_dataset.segmentation_dataset import SegmentationSample
 
 
@@ -29,8 +27,14 @@ def parse_seg_value(s: str) -> (int, int, int, int):
     return [int(x) for x in s[1:-1].split(",")]
 
 
-def post_process(rgb_path: pathlib.Path, background_path: pathlib.Path,
-                 in_dir: pathlib.Path, background_dir: pathlib.Path, out_dir: pathlib.Path, class_names: Dict[str, int]):
+def post_process(
+    rgb_path: pathlib.Path,
+    background_path: pathlib.Path,
+    in_dir: pathlib.Path,
+    background_dir: pathlib.Path,
+    out_dir: pathlib.Path,
+    class_names: dict[str, int],
+):
     id = get_id(rgb_path)
 
     seg_path = (in_dir / f"instance_segmentation_{id}").with_suffix(".png")
@@ -53,13 +57,25 @@ def post_process(rgb_path: pathlib.Path, background_path: pathlib.Path,
     img_rgb_np = img_np[:, :, 0:3].astype(np.float32) / 255
     img_a_np = img_np[:, :, 3].astype(np.float32) / 255
 
-    background_lighting_np = np.array([np.mean(background_np[:, :, 0]), np.mean(background_np[:, :, 1]), np.mean(background_np[:, :, 2])]) + np.random.uniform(-0.05, 0.05, (3,))
+    background_lighting_np = np.array(
+        [
+            np.mean(background_np[:, :, 0]),
+            np.mean(background_np[:, :, 1]),
+            np.mean(background_np[:, :, 2]),
+        ]
+    ) + np.random.uniform(-0.05, 0.05, (3,))
     beta = np.random.uniform(0.1, 0.2)
 
     transmission_np = np.maximum(np.exp(-beta * depth_np), 0.1)
-    img_rgb_adj_np = np.expand_dims(transmission_np, 2) * img_rgb_np + np.expand_dims(1 - transmission_np, 2) * background_lighting_np
+    img_rgb_adj_np = (
+        np.expand_dims(transmission_np, 2) * img_rgb_np
+        + np.expand_dims(1 - transmission_np, 2) * background_lighting_np
+    )
 
-    composite_np = np.expand_dims(img_a_np, 2) * img_rgb_adj_np + np.expand_dims(1 - img_a_np, 2) * background_np
+    composite_np = (
+        np.expand_dims(img_a_np, 2) * img_rgb_adj_np
+        + np.expand_dims(1 - img_a_np, 2) * background_np
+    )
 
     composite_pil = Image.fromarray((composite_np * 255).astype(np.uint8), "RGB")
 
@@ -68,11 +84,11 @@ def post_process(rgb_path: pathlib.Path, background_path: pathlib.Path,
     w, h = img_pil.size
 
     bboxes = np.load(bbox_path)
-    with open(bbox_classification_path, "r") as fp:
+    with open(bbox_classification_path) as fp:
         bbox_classifications = json.load(fp)
-    with open(bbox_instance_path, "r") as fp:
+    with open(bbox_instance_path) as fp:
         bbox_instances = json.load(fp)
-    with open(seg_instance_path, "r") as fp:
+    with open(seg_instance_path) as fp:
         seg_instances = json.load(fp)
 
     n_detections = len(bboxes)
@@ -131,6 +147,7 @@ def post_process(rgb_path: pathlib.Path, background_path: pathlib.Path,
     out_id = id.zfill(8)
     sample.save(out_dir, out_id)
 
+
 def f(rgb_path, background_paths, in_dir, background_dir, out_dir, class_names):
     background_path = random.choice(background_paths)
     post_process(rgb_path, background_path, in_dir, background_dir, out_dir, class_names)
@@ -150,7 +167,14 @@ def run(in_dir: pathlib.Path, background_dir: pathlib.Path, out_dir: pathlib.Pat
     #     f(rgb_path, background_paths, in_dir, background_dir, out_dir, class_names)
 
     with Pool() as pool:
-        f_partial = partial(f, background_paths=background_paths, in_dir=in_dir, background_dir=background_dir, out_dir=out_dir, class_names=class_names)
+        f_partial = partial(
+            f,
+            background_paths=background_paths,
+            in_dir=in_dir,
+            background_dir=background_dir,
+            out_dir=out_dir,
+            class_names=class_names,
+        )
         pool.map(f_partial, rgb_paths)
 
 

@@ -1,20 +1,21 @@
-from typing import Tuple
-import random
-from math import pi, floor, sin, cos
+from math import cos, floor, pi, sin
 
+import cv2
+import kornia.augmentation as A
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import cv2
-import torchvision.transforms.v2 as tfs
-import matplotlib.pyplot as plt
-import kornia.augmentation as A
-
-from centernet.model.centernet import Centernet, initialize_weights, Truth
 from centernet.model.backbones.dla import DLABackbone
+from centernet.model.centernet import Centernet, Truth, initialize_weights
+from centernet.model.config import (
+    AngleConfig,
+    ModelConfig,
+    ObjectConfig,
+    ObjectConfigSet,
+    TrainConfig,
+)
 from centernet.model.loss import gaussian_splat, loss
-from centernet.model.config import ObjectConfig, ObjectConfigSet, AngleConfig, ModelConfig, TrainConfig
 
 torch.autograd.set_detect_anomaly(True)
 
@@ -34,7 +35,7 @@ train_config = TrainConfig(
     batch_size=24,
     n_batches=10000,
     loss_lambda_size=0.01,
-    loss_lambda_offset=0, # Not set up to train properly
+    loss_lambda_offset=0,  # Not set up to train properly
     loss_lambda_angle=0,
     loss_lambda_depth=0,
 )
@@ -61,14 +62,20 @@ object_config = ObjectConfigSet(
 )
 
 
-def get_batch(model_config: ModelConfig, train_config: TrainConfig) -> Tuple[torch.Tensor, Truth]:
-    heatmap = torch.zeros((train_config.batch_size, 1, model_config.out_h, model_config.out_w), dtype=torch.float32)
-    img = torch.zeros((train_config.batch_size, 3, model_config.in_h, model_config.in_w), dtype=torch.float32)
+def get_batch(model_config: ModelConfig, train_config: TrainConfig) -> tuple[torch.Tensor, Truth]:
+    heatmap = torch.zeros(
+        (train_config.batch_size, 1, model_config.out_h, model_config.out_w), dtype=torch.float32
+    )
+    img = torch.zeros(
+        (train_config.batch_size, 3, model_config.in_h, model_config.in_w), dtype=torch.float32
+    )
 
     valid = torch.ones((train_config.batch_size, 1), dtype=torch.bool)
     label = torch.zeros((train_config.batch_size, 1), dtype=torch.long)
 
-    center = ((model_config.in_h - 200) * torch.rand((train_config.batch_size, 1, 2)) + 100).to(torch.int)
+    center = ((model_config.in_h - 200) * torch.rand((train_config.batch_size, 1, 2)) + 100).to(
+        torch.int
+    )
 
     size = torch.zeros((train_config.batch_size, 1, 2), dtype=torch.float)
     size[:, :, 0] = 100 * torch.rand((train_config.batch_size, 1)) + 50
@@ -85,16 +92,17 @@ def get_batch(model_config: ModelConfig, train_config: TrainConfig) -> Tuple[tor
 
         thickness = floor(0.2 * (sample_h + sample_w) / 2)
 
-        rot_matrix = np.array([
-            [cos(sample_yaw), -sin(sample_yaw)],
-            [sin(sample_yaw), cos(sample_yaw)]
-        ])
-        corners = np.array([
-            [-sample_w / 2, -sample_h / 2],
-            [sample_w / 2, -sample_h / 2],
-            [sample_w / 2, sample_h / 2],
-            [-sample_w / 2, sample_h / 2]
-        ])
+        rot_matrix = np.array(
+            [[cos(sample_yaw), -sin(sample_yaw)], [sin(sample_yaw), cos(sample_yaw)]]
+        )
+        corners = np.array(
+            [
+                [-sample_w / 2, -sample_h / 2],
+                [sample_w / 2, -sample_h / 2],
+                [sample_w / 2, sample_h / 2],
+                [-sample_w / 2, sample_h / 2],
+            ]
+        )
 
         rotated_corners = (corners @ np.transpose(rot_matrix)) + np.array([[sample_x, sample_y]])
 
@@ -106,8 +114,10 @@ def get_batch(model_config: ModelConfig, train_config: TrainConfig) -> Tuple[tor
         sigma = 0.05 * (sample_h + sample_w) / 2
 
         heatmap[sample_i] = gaussian_splat(
-            model_config.out_h, model_config.out_w,
-            int(sample_y // model_config.downsample_ratio), int(sample_x // model_config.downsample_ratio),
+            model_config.out_h,
+            model_config.out_w,
+            int(sample_y // model_config.downsample_ratio),
+            int(sample_x // model_config.downsample_ratio),
             sigma,
         )
 
@@ -141,7 +151,7 @@ def main():
 
     color_transforms = A.AugmentationSequential(
         A.ColorJitter(hue=0.0, saturation=0.0, brightness=0.0),
-        A.Normalize(mean=(0.51, 0.48, 0.48), std=(0.29, 0.29, 0.29))
+        A.Normalize(mean=(0.51, 0.48, 0.48), std=(0.29, 0.29, 0.29)),
     )
 
     for batch_i in range(train_config.n_batches):

@@ -1,5 +1,8 @@
-from centernet.model.config import ObjectConfig, ObjectConfigSet, AngleConfig, ModelConfig, TrainConfig
 from math import pi
+
+from centernet.model.config import (
+    ModelConfig,
+)
 
 model_config = ModelConfig(
     in_h=360,

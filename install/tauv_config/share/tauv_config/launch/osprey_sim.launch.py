@@ -1,1 +1,0 @@
-/home/tauv/tauv-mono/ros_ws/src/tauv_config/launch/osprey_sim.launch.py

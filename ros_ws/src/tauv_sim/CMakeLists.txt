@@ -17,31 +17,7 @@ find_package(stonefish_ros2 REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(sim_adapter
-        src/tauv_sim/sim_adapter.cpp
-        include/tauv_sim/sim_adapter.hpp)
-
-target_include_directories(sim_adapter PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
-)
-
-target_compile_features(sim_adapter PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-
-ament_target_dependencies(
-  sim_adapter
-  "rclcpp"
-  "rclpy"
-  "std_msgs"
-  "tauv_msgs"
-  "nav_msgs"
-  "sensor_msgs"
-  "stonefish_ros2"
-)
-
-# Install executables
-install(TARGETS sim_adapter
-  DESTINATION lib/${PROJECT_NAME})
+# No C++ executables in this package anymore (adapter removed)
 
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}

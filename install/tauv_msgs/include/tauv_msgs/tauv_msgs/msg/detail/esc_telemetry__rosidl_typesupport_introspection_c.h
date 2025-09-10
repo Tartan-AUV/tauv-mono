@@ -1,1 +1,0 @@
-/home/tauv/tauv-mono/build/tauv_msgs/rosidl_typesupport_introspection_c/tauv_msgs/msg/detail/esc_telemetry__rosidl_typesupport_introspection_c.h

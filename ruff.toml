@@ -1,15 +1,26 @@
-[tool.ruff]
-line-length = 88
-target-version = "py310"  # Or py312 if you're using that
-fix = true
-lint.select = [
-  "F",    # Pyflakes (errors)
-  "E",    # pycodestyle (formatting)
-  "W",    # pycodestyle warnings
-  "I",    # isort
-  "UP",   # pyupgrade
-  "C90",  # mccabe (complexity)
-  "B",    # bugbear
-  "C4",   # comprehensions
+line-length = 100
+indent-width = 4
+target-version = "py312"
+
+[lint]
+select = [
+  "E",  # pycodestyle errors
+  "F",  # pyflakes
+  "I",  # isort
+  "B",  # flake8-bugbear
+  "UP", # pyupgrade
 ]
-exclude = ["build", "dist", ".venv"]
+ignore = []
+
+[format]
+quote-style = "preserve"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+
+[lint.isort]
+combine-as-imports = true
+
+[lint.per-file-ignores]
+# No checks in firmware/
+"firmware/**" = ["ALL"]

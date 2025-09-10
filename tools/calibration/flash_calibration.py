@@ -1,7 +1,7 @@
-import depthai as dai
-
 import argparse
 import json
+
+import depthai as dai
 
 parser = argparse.ArgumentParser()
 parser.add_argument('filename')
@@ -11,7 +11,7 @@ args = parser.parse_args()
 devinfo = dai.DeviceInfo(args.ip)
 pipeline = dai.Pipeline()
 device = dai.Device(pipeline, devinfo)
-with open(args.filename, 'r') as file:
+with open(args.filename) as file:
     cal_json = json.load(file)
 cal_handler = dai.CalibrationHandler.fromJson(cal_json)
 device.flashCalibration(cal_handler)

@@ -1,22 +1,17 @@
-import numpy as np
-import cv2
-from PIL import Image
-import random
-import torch.nn as nn
+import kornia
 import matplotlib.pyplot as plt
-from torchvision.models import feature_extraction
-import torch.nn.functional as F
-
+import numpy as np
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import torchvision
 import torchvision.transforms.v2 as v2
-import kornia
+from PIL import Image
 
 torch.autograd.set_detect_anomaly(True)
 
 
 class Model(nn.Module):
-
     def __init__(self):
         super().__init__()
 
@@ -27,7 +22,9 @@ class Model(nn.Module):
 
         self.vgg.add_module(str(i_layer), nn.Conv2d(512, 256, kernel_size=3, stride=1, padding=1))
         self.vgg.add_module(str(i_layer + 1), nn.ReLU())
-        self.vgg.add_module(str(i_layer + 2), nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=1))
+        self.vgg.add_module(
+            str(i_layer + 2), nn.Conv2d(256, 128, kernel_size=3, stride=1, padding=1)
+        )
         self.vgg.add_module(str(i_layer + 3), nn.ReLU())
 
         self.pre_upscale_layer = nn.Conv2d(128, 128, kernel_size=15, stride=1, padding=7)
@@ -56,9 +53,7 @@ def main():
         Image.open("../../img/000001.left.jpg"),
     ]
 
-    train_set = [
-        v2.ToTensor()(img) for img in pil_imgs
-    ]
+    train_set = [v2.ToTensor()(img) for img in pil_imgs]
 
     crop_transform = v2.Resize(size=(224, 224))
     normalize_transform = v2.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
@@ -90,14 +85,18 @@ def main():
                 width = img_np.shape[1]
                 height = img_np.shape[0]
 
-                old_points = np.array([
-                    [width // 4, height // 4],
-                    [3 * width // 4, height // 4],
-                    [3 * width // 4, 3 * height // 4],
-                    [width // 4, 3 * height // 4],
-                ])
+                old_points = np.array(
+                    [
+                        [width // 4, height // 4],
+                        [3 * width // 4, height // 4],
+                        [3 * width // 4, 3 * height // 4],
+                        [width // 4, 3 * height // 4],
+                    ]
+                )
 
-                new_points = old_points + np.random.randint(-warp_range, warp_range, size=old_points.shape)
+                new_points = old_points + np.random.randint(
+                    -warp_range, warp_range, size=old_points.shape
+                )
 
                 old_points = torch.Tensor(old_points).unsqueeze(0)
                 new_points = torch.Tensor(new_points).unsqueeze(0)
@@ -106,8 +105,14 @@ def main():
 
                 warps.append((old_points, new_points))
 
-                warp_imgs[warp_i] = kornia.geometry.warp_perspective(imgs[warp_i].unsqueeze(0), M, dsize=(imgs[warp_i].size(1), imgs[warp_i].size(2))).squeeze(0)
-                warp_masks[warp_i] = kornia.geometry.warp_perspective(masks[warp_i].unsqueeze(0), M, dsize=(masks[warp_i].size(1), masks[warp_i].size(2))).squeeze(0)
+                warp_imgs[warp_i] = kornia.geometry.warp_perspective(
+                    imgs[warp_i].unsqueeze(0), M, dsize=(imgs[warp_i].size(1), imgs[warp_i].size(2))
+                ).squeeze(0)
+                warp_masks[warp_i] = kornia.geometry.warp_perspective(
+                    masks[warp_i].unsqueeze(0),
+                    M,
+                    dsize=(masks[warp_i].size(1), masks[warp_i].size(2)),
+                ).squeeze(0)
 
             warp_imgs = normalize_transform(warp_imgs)
 
@@ -124,18 +129,39 @@ def main():
 
                 M = kornia.geometry.get_perspective_transform(new_points, old_points)
 
-                interest[warp_i] = kornia.geometry.warp_perspective(warp_interest[warp_i].unsqueeze(0), M, dsize=(warp_interest[warp_i].size(1), warp_interest[warp_i].size(2))).squeeze(0)
-                unwarp_masks[warp_i] = kornia.geometry.warp_perspective(warp_masks[warp_i].unsqueeze(0), M, dsize=(warp_masks[warp_i].size(1), warp_masks[warp_i].size(2))).squeeze(0)
+                interest[warp_i] = kornia.geometry.warp_perspective(
+                    warp_interest[warp_i].unsqueeze(0),
+                    M,
+                    dsize=(warp_interest[warp_i].size(1), warp_interest[warp_i].size(2)),
+                ).squeeze(0)
+                unwarp_masks[warp_i] = kornia.geometry.warp_perspective(
+                    warp_masks[warp_i].unsqueeze(0),
+                    M,
+                    dsize=(warp_masks[warp_i].size(1), warp_masks[warp_i].size(2)),
+                ).squeeze(0)
 
             plt.figure()
-            plt.imshow(torch.where(torch.isclose(unwarp_masks[0, 0], torch.ones_like(unwarp_masks[0, 0])), interest[0, 0].detach(), torch.nan))
+            plt.imshow(
+                torch.where(
+                    torch.isclose(unwarp_masks[0, 0], torch.ones_like(unwarp_masks[0, 0])),
+                    interest[0, 0].detach(),
+                    torch.nan,
+                )
+            )
             plt.figure()
-            plt.imshow(torch.where(torch.isclose(unwarp_masks[1, 0], torch.ones_like(unwarp_masks[1, 0])), interest[1, 0].detach(), torch.nan))
+            plt.imshow(
+                torch.where(
+                    torch.isclose(unwarp_masks[1, 0], torch.ones_like(unwarp_masks[1, 0])),
+                    interest[1, 0].detach(),
+                    torch.nan,
+                )
+            )
 
             loss_map = torch.where(
-                torch.isclose(unwarp_masks[0], torch.ones_like(unwarp_masks[0])) & torch.isclose(unwarp_masks[1], torch.ones_like(unwarp_masks[1])),
+                torch.isclose(unwarp_masks[0], torch.ones_like(unwarp_masks[0]))
+                & torch.isclose(unwarp_masks[1], torch.ones_like(unwarp_masks[1])),
                 F.mse_loss(interest[0], interest[1], reduction="none"),
-                torch.nan
+                torch.nan,
             )
 
             plt.figure()

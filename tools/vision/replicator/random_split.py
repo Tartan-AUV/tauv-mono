@@ -1,10 +1,10 @@
-import random
 import argparse
 import glob
 import pathlib
+import random
 import re
-from typing import Optional
 import shutil
+
 
 def get_ids(path: pathlib.Path) -> [str]:
     json_names = glob.glob("*.json", root_dir=path)
@@ -14,7 +14,7 @@ def get_ids(path: pathlib.Path) -> [str]:
     return ids
 
 
-def get_id(name: str) -> Optional[str]:
+def get_id(name: str) -> str | None:
     match = re.search(r"(\d+)\.json", name)
     if match:
         return match.group(1)
