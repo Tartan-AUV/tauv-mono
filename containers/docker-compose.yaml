@@ -11,6 +11,9 @@ services:
       - seccomp:unconfined   
     volumes:
       - ../:/tauv-mono
+      - ${SSH_AUTH_SOCK:-/run/host-services/ssh-auth.sock}:/ssh-agent
+    environment:
+      - SSH_AUTH_SOCK=/ssh-agent
     devices:
       - /dev:/dev
     command: /bin/sh -c "while sleep 1000; do :; done"
