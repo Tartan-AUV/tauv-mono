@@ -46,8 +46,6 @@ exec docker buildx bake \
   #--set common.cache-from+="type=local,src=${CACHE_DIR}" \
   --set osprey_orin.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
   #--set osprey_orin.cache-from+="type=local,src=${CACHE_DIR}" \
-  --set osprey_orin_user.args.GIT_USER_NAME="${GIT_USER_NAME_VAL}" \
-  --set osprey_orin_user.args.GIT_USER_EMAIL="${GIT_USER_EMAIL_VAL}" \
   --set osprey_orin_user.output=type=docker \
   --load \
   osprey_orin_user
