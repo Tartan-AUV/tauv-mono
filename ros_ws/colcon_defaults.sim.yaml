@@ -4,5 +4,4 @@ build:
     - tauv_sim
   symlink-install: true
   merge-install: true
-  cmake-args:
-    - -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
