@@ -1,0 +1,15 @@
+# ignore directories created by cmake
+ament_cmake_*/
+CMakeFiles/
+
+# ignore files created by cmake
+AMENT_IGNORE
+cmake_install.cmake
+CMakeCache.txt
+CTestConfiguration.ini
+CTestCustom.cmake
+CTestTestfile.cmake
+Makefile
+
+# ignore the built executible
+tauv_sim

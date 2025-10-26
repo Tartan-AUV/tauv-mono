@@ -57,18 +57,16 @@ RUN mkdir -p -m 0755 /etc/ssh \
     && touch /etc/ssh/ssh_known_hosts \
     && ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /etc/ssh/ssh_known_hosts
 
-# 7) Clone tauv-stonefish via SSH (requires BuildKit and --ssh)
-# Build with: docker build --ssh default -f containers/base_desktop/base_desktop.Dockerfile .
-RUN git clone https://github.com/Tartan-AUV/tauv-stonefish.git /opt/tauv-stonefish
+# 7) Install and build stonefish
+WORKDIR /
 
-WORKDIR /opt/tauv-stonefish
-
-# 8) Install tauv-stonefish
-RUN mkdir build \
+RUN git clone "https://github.com/patrykcieslak/stonefish.git" \
+    && cd stonefish \
+    && mkdir build \
     && cd build \
     && cmake .. \
-    && make -j6 \
-    && make install
+    && make -j4 \
+    && sudo make install
 
 WORKDIR /
 
