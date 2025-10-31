@@ -12,8 +12,10 @@ services:
     volumes:
       - ../:/tauv-mono
       - ${SSH_AUTH_SOCK:-/run/host-services/ssh-auth.sock}:/ssh-agent
+      - /tmp/X11-unix:/tmp/X11-unix:ro
     environment:
       - SSH_AUTH_SOCK=/ssh-agent
+      - DISPLAY=:0
     devices:
       - /dev:/dev
     command: /bin/sh -c "while sleep 1000; do :; done"

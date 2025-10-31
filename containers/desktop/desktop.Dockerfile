@@ -39,4 +39,5 @@ RUN mkdir -p /root/.git-hooks \
   && printf '%s\n' '#!/usr/bin/env sh' 'exec pre-commit run --hook-stage pre-commit "$@"' > /root/.git-hooks/pre-commit \
   && chmod +x /root/.git-hooks/pre-commit \
   && git config --global core.hooksPath /root/.git-hooks \
-  && git config --global --add safe.directory /tauv-mono
+  && git config --global --add safe.directory /tauv-mono \
+  && git config --global push.autoSetupRemote true
