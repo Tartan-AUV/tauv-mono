@@ -10,10 +10,20 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(Stonefish REQUIRED)
+
+include(FetchContent)
+FetchContent_Declare(
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+  GIT_TAG master
+)
+FetchContent_MakeAvailable(yaml-cpp)
 
 add_executable(tauv_sim 
   src/tauv_sim.cpp
@@ -27,6 +37,7 @@ target_include_directories(tauv_sim PRIVATE /usr/local/include/Stonefish)
 
 link_directories(/usr/local/lib)
 target_link_libraries(tauv_sim Stonefish::Stonefish)
+target_link_libraries(tauv_sim yaml-cpp::yaml-cpp)
 
 install(TARGETS
   tauv_sim
