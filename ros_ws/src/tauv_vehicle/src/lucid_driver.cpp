@@ -8,6 +8,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <iostream>
 
 // ROS2 includes
 #include "cv_bridge/cv_bridge.h"
@@ -58,10 +59,10 @@ class LucidDriver : public rclcpp::Node {
         vpi_scaled_nv12_(nullptr),
         vpi_output_(nullptr) {
     // Declare parameters
-    this->declare_parameter("camera_ip", "10.0.2.11");
+    this->declare_parameter("camera_ip", "10.0.1.11");
     this->declare_parameter("topic_name", "/image_raw");
-    this->declare_parameter("horizontal_binning", 2);
-    this->declare_parameter("vertical_binning", 2);
+    this->declare_parameter("horizontal_binning", 4);
+    this->declare_parameter("vertical_binning", 4);
     this->declare_parameter("vpi_backend", "cuda");  // Options: cuda, vic, cpu
 
     // Get parameters
@@ -134,7 +135,7 @@ class LucidDriver : public rclcpp::Node {
     std::vector<Arena::DeviceInfo> deviceInfos = system_->GetDevices();
 
     for (const auto& deviceInfo : deviceInfos) {
-      if (deviceInfo.IpAddressStr() == ip) {
+      if (std::string(const_cast<Arena::DeviceInfo&>(deviceInfo).IpAddressStr()) == ip) {
         RCLCPP_INFO(this->get_logger(), "Found device at IP: %s", ip.c_str());
         return system_->CreateDevice(deviceInfo);
       }
@@ -149,8 +150,8 @@ class LucidDriver : public rclcpp::Node {
       system_->UpdateDevices(100);
       deviceInfos = system_->GetDevices();
 
-      for (const auto& deviceInfo : deviceInfos) {
-        if (deviceInfo.IpAddressStr() == ip) {
+      for (auto& deviceInfo : deviceInfos) {
+        if (std::string(deviceInfo.IpAddressStr()) == ip) {
           RCLCPP_INFO(this->get_logger(), "Found device at IP: %s", ip.c_str());
           return system_->CreateDevice(deviceInfo);
         }
@@ -171,9 +172,13 @@ class LucidDriver : public rclcpp::Node {
       // Stream might not be running
     }
 
+    std::cout << "Configuring camera...\n";
+
     // Set Acquisition Frame Rate
     Arena::SetNodeValue<bool>(nodemap, "AcquisitionFrameRateEnable", true);
     Arena::SetNodeValue<double>(nodemap, "AcquisitionFrameRate", 10.0);
+
+    std::cout << "Set acquisition frmae rate...\n";
 
     // Set Acquisition Mode
     Arena::SetNodeValue<GenICam::gcstring>(nodemap, "AcquisitionMode", "Continuous");
@@ -184,8 +189,8 @@ class LucidDriver : public rclcpp::Node {
     Arena::SetNodeValue<GenICam::gcstring>(nodemap, "BinningVerticalMode", "Sum");
 
     // For now, set binning to 1 (no binning) as in the Python version
-    Arena::SetNodeValue<int64_t>(nodemap, "BinningHorizontal", 1);
-    Arena::SetNodeValue<int64_t>(nodemap, "BinningVertical", 1);
+    Arena::SetNodeValue<int64_t>(nodemap, "BinningHorizontal", 4);
+    Arena::SetNodeValue<int64_t>(nodemap, "BinningVertical", 4);
 
     // Set Device Stream Channel Packet Size
     try {
@@ -222,8 +227,8 @@ class LucidDriver : public rclcpp::Node {
 
   void configureTriggering(GenApi::INodeMap* nodemap) {
     try {
-      // Set Line0 as input for trigger
-      Arena::SetNodeValue<GenICam::gcstring>(nodemap, "LineSelector", "Line0");
+      // Set Line2 as input for trigger
+      Arena::SetNodeValue<GenICam::gcstring>(nodemap, "LineSelector", "Line2");
       Arena::SetNodeValue<GenICam::gcstring>(nodemap, "LineMode", "Input");
 
       // Configure trigger
@@ -297,10 +302,12 @@ class LucidDriver : public rclcpp::Node {
     size_t bytes_per_pixel = 3;  // RGB8
 
     // Get pointer to image data
-    uint8_t* data = static_cast<uint8_t*>(arena_image->GetData());
+    const uint8_t* data = static_cast<const uint8_t*>(arena_image->GetData());
 
     // Create OpenCV Mat from Arena image data (RGB format)
-    cv::Mat rgb_frame(height, width, CV_8UC3, data);
+    // Make a copy since cv::Mat constructor needs non-const data pointer
+    cv::Mat rgb_frame(height, width, CV_8UC3);
+    memcpy(rgb_frame.data, data, height * width * 3);
 
     // Convert RGB to BGR for OpenCV processing
     cv::Mat bgr_frame;

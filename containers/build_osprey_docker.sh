@@ -41,11 +41,11 @@ exec docker buildx bake \
   --progress=auto \
   --file osprey-docker-bake.hcl \
   --set base.secrets+=id=aws_credentials,src=/home/tauv/.aws/credentials \
-  --set base.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
+  --set base.cache-to="type=local,dest=${CACHE_DIR},mode=max" \
   #--set base.cache-from+="type=local,src=${CACHE_DIR}" \
-  --set common.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
+  --set common.cache-to="type=local,dest=${CACHE_DIR},mode=max" \
   #--set common.cache-from+="type=local,src=${CACHE_DIR}" \
-  --set osprey_orin.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
+  --set osprey_orin.cache-to="type=local,dest=${CACHE_DIR},mode=max" \
   #--set osprey_orin.cache-from+="type=local,src=${CACHE_DIR}" \
   --set osprey_orin_user.output=type=docker \
   --load \

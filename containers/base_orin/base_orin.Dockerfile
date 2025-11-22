@@ -137,3 +137,13 @@ RUN cd /opt/arena/ && \
     chmod +x Arena_SDK_ARM64.conf && \
     sh Arena_SDK_ARM64.conf && \
     rm /root/.aws/credentials
+
+RUN apt-get update && apt-get install -y \
+    libboost-all-dev && \
+    rm -rf /var/lib/apt/lists/*
+    
+# Build and install cv_bridge from source
+RUN mkdir -p /tmp/cv_bridge_build && cd /tmp/cv_bridge_build && \
+    git clone https://github.com/ros-perception/vision_opencv.git -b humble src/vision_opencv && \
+    bash -c 'source /opt/ros/humble/setup.bash && colcon build --packages-select cv_bridge --merge-install --install-base /opt/ros/humble' && \
+    rm -rf /tmp/cv_bridge_build
