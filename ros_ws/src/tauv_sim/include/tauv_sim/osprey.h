@@ -1,0 +1,37 @@
+#pragma once
+
+#include <core/FeatherstoneRobot.h>
+#include <entities/solids/Polyhedron.h>
+
+#include <string>
+
+#undef Max
+
+#include "tauv_sim/config.h"
+#include "tauv_sim/config_loader.h"
+#include "tauv_sim/pressure_sensor_bridge.h"
+
+class Osprey {
+   public:
+    Osprey(const std::string prefix,
+           const std::string& assets_path,
+           const std::string& hull_material,
+           const std::string& hull_look,
+           rclcpp::Node::SharedPtr node,
+           ConfigLoader& config_loader);
+    ~Osprey() = default;
+
+    sf::FeatherstoneRobot* get_stonefish_robot();
+
+    void on_step(const Context& ctx);
+
+   private:
+    std::string prefix_;
+    sf::Polyhedron* base_link_;
+    std::shared_ptr<sf::FeatherstoneRobot> construct_robot();
+
+    sf::FeatherstoneRobot* sf_robot_;
+    std::unique_ptr<PressureSensorBridge> pressure_sensor_bridge_;
+
+    sf::Matrix3 compute_principal_inertia_axes(const config::osprey::InertialBuoyancy& cfg);
+};

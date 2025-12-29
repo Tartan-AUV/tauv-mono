@@ -1,22 +1,52 @@
 FROM base AS desktop_nogpu
 
-# Install git, git-lfs
+ARG TARGETARCH
+ARG NVIM_VERSION=v0.11.5
+
+#Install git, git - lfs
 RUN apt-get update && apt-get install -y \
-    git git-lfs \
-    vim \
+    git \
+    git-lfs \
     less \
+    wl-clipboard \
+    ripgrep \
+    tmux \
+    locales \
+    unzip \
+    clangd \
   && rm -rf /var/lib/apt/lists/*
+
+# Set the locale
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen
+ENV LANG=en_US.UTF-8  
+ENV LANGUAGE=en_US:en  
+ENV LC_ALL=en_US.UTF-8  
 
 # Install pre-commit
 RUN python3 -m pip install --break-system-packages \
     pre-commit
 
 # Ensure interactive git commands open an editor inside the container
-ENV EDITOR=vim
-ENV VISUAL=vim
-ENV GIT_EDITOR=vim
+ENV EDITOR=nvim
+ENV VISUAL=nvim
+ENV GIT_EDITOR=nvim
 
-# New workspace layout: repository mounted at /tauv-mono, workspace in /tauv-mono/ros_ws
+# install neovim
+RUN set -eux; \
+    case "${TARGETARCH}" in \
+      amd64)  NVIM_ARCH="x86_64" ;; \
+      arm64)  NVIM_ARCH="arm64" ;; \
+      *) echo "Unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+    esac; \
+    curl -fsSL -o /tmp/nvim.tar.gz \
+      "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-${NVIM_ARCH}.tar.gz"; \
+    tar -C /opt -xzf /tmp/nvim.tar.gz; \
+    rm -f /tmp/nvim.tar.gz; \
+    ln -sf /opt/nvim-linux*/bin/nvim /usr/local/bin/nvim; \
+    nvim --version | head -n 2
+
+#New workspace layout: repository mounted at /tauv-mono, workspace in /tauv-mono/ros_ws
 ENV COLCON_DEFAULTS_FILE=/tauv-mono/ros_ws/colcon_defaults.sim.yaml
 
 WORKDIR /tauv-mono/ros_ws

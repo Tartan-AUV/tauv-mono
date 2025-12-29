@@ -8,17 +8,50 @@ services:
     cap_add:
       - SYS_PTRACE
     security_opt:
-      - seccomp:unconfined   
+      - seccomp:unconfined
+
     volumes:
       - ../:/tauv-mono
+      - ${HOME}/.config/nvim:/root/.config/nvim:Z
+      - ${HOME}/.tmux.conf:/root/.tmux.conf:Z
+
+      # SSH agent
       - ${SSH_AUTH_SOCK:-/run/host-services/ssh-auth.sock}:/ssh-agent
-      - /tmp/X11-unix:/tmp/X11-unix:ro
+
+      # X11 (fallback / legacy)
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+
+      # Wayland: mount the whole runtime dir (simplest, most compatible)
+      # NOTE: UID must match your host user (see the .env section below)
+      - /run/user/${UID}:/run/user/${UID}
+
+      # (Recommended) DBus session so portals + some toolkits work better on Wayland
+      # If this file doesn’t exist on your system, remove this line.
+      - /run/user/${UID}/bus:/run/user/${UID}/bus
+
     environment:
       - SSH_AUTH_SOCK=/ssh-agent
-      - DISPLAY=:0
+
+      # X11
+      - DISPLAY=${DISPLAY:-:0}
+
+      # Wayland
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
+      - XDG_RUNTIME_DIR=/run/user/${UID}
+
+      # Optional: help toolkits pick the right backend when both are available
+      - QT_QPA_PLATFORM=wayland;xcb
+      - GDK_BACKEND=wayland,x11
+      - SDL_VIDEODRIVER=wayland,x11
+
+      # DBus session (matches the mounted socket above)
+      - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/${UID}/bus
+
     devices:
       - /dev:/dev
+
     command: /bin/sh -c "while sleep 1000; do :; done"
+
 
   osprey-orin-user:
     image: ghcr.io/tartan-auv/osprey_orin_user:latest

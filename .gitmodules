@@ -1,0 +1,3 @@
+[submodule "ros_ws/src/tauv_sim/stonefish"]
+	path = ros_ws/src/tauv_sim/stonefish
+	url = https://github.com/patrykcieslak/stonefish.git

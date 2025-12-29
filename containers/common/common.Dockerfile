@@ -8,3 +8,9 @@ RUN apt-get update \
 RUN python3 -m pip install --no-cache-dir --break-system-packages \
     spatialmath-python \
     scipy
+
+# Codex never hurts
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs
+RUN npm install -g @openai/codex
+

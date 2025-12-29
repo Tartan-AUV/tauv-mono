@@ -48,8 +48,9 @@
       <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/type_description_interfaces/lib/python3.12/site-packages" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/unique_identifier_msgs/lib/python3.12/site-packages" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/ros_ws/install/visualization_msgs/lib/python3.12/site-packages" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/tools/.venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12 virtualenv at ~/dev/venv-tauv" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="uv (tools)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PyDocumentationSettings">

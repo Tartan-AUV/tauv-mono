@@ -1,0 +1,20 @@
+/tauv_sim:
+  ros__parameters:
+    osprey:
+      frames:
+        t_cad__body: [0.0, 0.0, 0.0]
+        rpy_cad__body: [0.0, 0.0, 0.0]
+        t_depth_B: [0.0, 0.0, 0.0]
+
+      inertial_buoyancy:
+        mass: 23.0
+        t_hull_com_C: [0.0, 0.0, 0.0]
+        t_hull_cob_C: [0.0, 0.0, 0.0]
+        hull_inertia_COM_C: [10.0, 0.0, 0.0,
+                             0.0, 10.0, 0.0,
+                             0.0, 0.0, 10.0]
+
+      sensors:
+        depth:
+          noise_std: 0.0
+          update_rate: 100.0

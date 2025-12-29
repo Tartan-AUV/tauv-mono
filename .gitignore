@@ -21,13 +21,9 @@
 ### IntelliJ ###
 .idea/
 
-### Colcon Cache ###
-.ros_build/
-.ros_install/
-.ros_log/
+# Compile commands
+compile_commands.json
 
-### Docker Buildx Cache ###
-containers/.buildx-cache/
 
 tools/CanTesting/pydronecan
 tools/CanTesting/venv
