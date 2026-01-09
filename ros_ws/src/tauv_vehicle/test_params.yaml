@@ -1,0 +1,22 @@
+# Example parameter file for testing the Lucid driver with new features
+# Usage: ros2 run tauv_vehicle lucid_driver --ros-args --params-file test_params.yaml
+
+lucid:
+  ros__parameters:
+    camera_ip: "10.0.2.11"
+    topic_name: "/image_raw"
+    horizontal_binning: 2
+    vertical_binning: 2
+    vertical_resolution: 1000
+    horizontal_resolution: 1000
+    
+    # New parameters:
+    # Set save_folder to save full-resolution debayered images
+    # Leave empty ("") to disable saving
+    save_folder: "/tmp/lucid_images"
+    
+    # Set publish_downsampling_factor to downsample before publishing
+    # 1 = no downsampling (full resolution)
+    # 2 = 1/2 resolution (1/4 total pixels)
+    # 4 = 1/4 resolution (1/16 total pixels)
+    publish_downsampling_factor: 2

@@ -1,4 +1,4 @@
 # ThrusterSetpoint.msg
 
-float64[8] omega_radps
-uint8[8] enables
+float64 throttle 
+uint8 enable
