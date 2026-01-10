@@ -31,3 +31,4 @@ containers/.buildx-cache/
 
 tools/CanTesting/pydronecan
 tools/CanTesting/venv
+tools/CanTesting/pydronecan
