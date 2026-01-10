@@ -19,3 +19,21 @@ services:
     devices:
       - /dev:/dev
     command: /bin/sh -c "while sleep 1000; do :; done"
+
+  osprey-orin-user:
+    image: ghcr.io/tartan-auv/osprey_orin_user:latest
+    network_mode: "host"
+    privileged: true
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    devices:
+      - /dev:/dev
+    volumes:
+      - /home/tauv/tauv-mono:/tauv-mono
+      - /home/tauv/data:/data
+      - /home/tauv/tauv_mono/ros_ws/install:/tauv-mono/ros_ws/install
+      - /home/tauv/tauv_mono/ros_ws/build:/tauv-mono/ros_ws/build
+      - /home/tauv/.bash_history:/root/.bash_history
+    command: /bin/sh -c "while sleep 1000; do :; done"
