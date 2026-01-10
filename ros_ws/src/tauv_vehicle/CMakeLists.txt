@@ -11,74 +11,103 @@ find_package(rclpy REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(tauv_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(vpi REQUIRED)
-find_package(OpenCV REQUIRED)
-find_package(cv_bridge REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
-
-# Check for OpenCV CUDA support
-find_package(OpenCV REQUIRED COMPONENTS core imgproc imgcodecs cudaimgproc cudawarping)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Add C++ executable for lucid_driver
-add_executable(lucid_driver src/lucid_driver.cpp)
+# Build flatbuffers
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fb/build)
+execute_process(COMMAND
+        ${CMAKE_COMMAND}
+        -DCMAKE_INSTALL_INCLUDEDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/include
+        -DCMAKE_INSTALL_BINDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/bin
+        -DCMAKE_INSTALL_LIBDIR=${CMAKE_CURRENT_BINARY_DIR}/fb/lib
+        -DFLATBUFFERS_BUILD_FLATLIB=NO
+        -DFLATBUFFERS_BUILD_TESTS=NO
+        -DFLATBUFFERS_USE_STD_SPAN=TRUE
+        ${CMAKE_CURRENT_SOURCE_DIR}/flatbuffers
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fb/build)
+execute_process(COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/fb/build --target install)
 
-target_include_directories(lucid_driver PRIVATE 
-            /opt/arena/ArenaSDK_Linux_ARM64/include/Arena
-            /opt/arena/ArenaSDK_Linux_ARM64/GenICam/library/CPP/include)
+# Set up schema compilation
+set(SCHEMA_DIR ${CMAKE_CURRENT_SOURCE_DIR}/schemas)
+set(GENERATED_INCLUDES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}/generated)
 
-ament_target_dependencies(lucid_driver
-  rclcpp
-  sensor_msgs
-  cv_bridge
-  OpenCV
-  vpi
-  Boost
+# Create directory if it doesn't exist
+file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
+
+
+# List all schema files
+set(SCHEMA_FILES
+        ${SCHEMA_DIR}/util.fbs
+        ${SCHEMA_DIR}/eth_msg_rtvc_jetson_100.fbs
+        ${SCHEMA_DIR}/eth_msg_rtvc_jetson_50.fbs
+        ${SCHEMA_DIR}/eth_msg_jetson_rtvc_50.fbs
+)
+# List expected output headers for dependency tracking
+set(GENERATED_HEADERS "")
+foreach (SCHEMA ${SCHEMA_FILES})
+    get_filename_component(SCHEMA_NAME ${SCHEMA} NAME_WE)
+    list(APPEND GENERATED_HEADERS "${GENERATED_INCLUDES_DIR}/${SCHEMA_NAME}_generated.h")
+endforeach ()
+#file(MAKE_DIRECTORY ${GENERATED_INCLUDES_DIR})
+message(${SCHEMA_FILES})
+add_custom_command(
+        OUTPUT ${GENERATED_HEADERS}
+        COMMAND ${CMAKE_CURRENT_BINARY_DIR}/fb/bin/flatc
+        --cpp
+        --cpp-std c++17
+        --gen-all
+        --gen-object-api
+        -I ${SCHEMA_DIR}
+        -o ${GENERATED_INCLUDES_DIR}
+        ${SCHEMA_FILES}
+        COMMENT "Generating FlatBuffers headers for all schemas"
+        VERBATIM
 )
 
-# Add Arena SDK library directories
-target_link_directories(lucid_driver PRIVATE
-  /opt/arena/ArenaSDK_Linux_ARM64/lib
-  /opt/arena/ArenaSDK_Linux_ARM64/GenICam/library/lib/Linux64_ARM
-  /opt/arena/ArenaSDK_Linux_ARM64/ffmpeg/lib
+add_custom_target(generate_flatbuffers_headers ALL DEPENDS ${GENERATED_HEADERS})
+
+# Executables
+add_executable(rtvc src/rtvc.cpp ${GENERATED_HEADERS})
+
+add_dependencies(rtvc generate_flatbuffers_headers)
+
+target_include_directories(rtvc PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
+        ${CMAKE_CURRENT_BINARY_DIR}/fb/include
+        ${Boost_INCLUDE_DIRS})
+
+target_compile_features(rtvc PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+
+ament_target_dependencies(
+        rtvc
+        "rclcpp"
+        "rclpy"
+        "std_msgs"
+        "tauv_msgs"
+        "sensor_msgs"
 )
 
-# Link Arena SDK libraries
-target_link_libraries(lucid_driver
-  arena
-  arenac
-  savec
-  save
-  lucidlog
-  gentl
-  GenApi_gcc54_v3_3_LUCID
-  GCBase_gcc54_v3_3_LUCID
-  Log_gcc54_v3_3_LUCID
-  MathParser_gcc54_v3_3_LUCID
-  NodeMapData_gcc54_v3_3_LUCID
-  XmlParser_gcc54_v3_3_LUCID
-  log4cpp_gcc54_v3_3_LUCID
-  vpi
-  opencv_core
-  opencv_imgproc
-  opencv_imgcodecs
-  opencv_cudaimgproc
-  opencv_cudawarping
-)
+target_link_libraries(rtvc ${Boost_LIBRARIES})
 
-# Install the executable
-install(TARGETS
-  lucid_driver
-  DESTINATION lib/${PROJECT_NAME}
+# Install executables
+install(TARGETS rtvc
+        DESTINATION lib/${PROJECT_NAME})
+
+# Install generated headers
+install(
+        DIRECTORY ${GENERATED_INCLUDES_DIR}/
+        DESTINATION include/${PROJECT_NAME}/generated
 )
 
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
         scripts/waterlinked_driver
+        scripts/lucid_driver
         scripts/thruster_controller
         scripts/depth_actuators_i2c
-        scripts/can_driver
         DESTINATION lib/${PROJECT_NAME}
 )
 

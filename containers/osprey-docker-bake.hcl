@@ -25,6 +25,13 @@ target "base" {
   context    = "${BASE_CONTEXT}"
   dockerfile = "${BASE_DOCKERFILE}"
   target     = "base"
+  // Enable both local and registry-backed caches for local and CI builds
+  cache-to = [
+    "type=registry,ref=ghcr.io/tartan-auv/osprey_orin:buildcache,mode=max",
+  ]
+  cache-from = [
+    "type=registry,ref=ghcr.io/tartan-auv/osprey_orin:buildcache",
+  ]
 }
 
 // Common layer, built FROM base via BuildKit context named "base"
@@ -35,6 +42,13 @@ target "common" {
   contexts = {
     base = "target:base"
   }
+  // Use the same cache settings to ensure cross-target reuse
+  cache-to = [
+    "type=registry,ref=ghcr.io/tartan-auv/osprey_orin:buildcache,mode=max",
+  ]
+  cache-from = [
+    "type=registry,ref=ghcr.io/tartan-auv/osprey_orin:buildcache",
+  ]
 }
 
 // Application layer for osprey_orin, built FROM common via BuildKit context named "base"
@@ -46,6 +60,12 @@ target "osprey_orin" {
     base = "target:common"
   }
   tags = ["${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"]
+  cache-to = [
+    "type=registry,ref=ghcr.io/tartan-auv/osprey_orin:buildcache,mode=max",
+  ]
+  cache-from = [
+    "type=registry,ref=ghcr.io/tartan-auv/osprey_orin:buildcache",
+  ]
 }
 
 // CI target: load image into local Docker daemon
