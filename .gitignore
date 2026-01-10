@@ -28,3 +28,6 @@
 
 ### Docker Buildx Cache ###
 containers/.buildx-cache/
+
+tools/CanTesting/pydronecan
+tools/CanTesting/venv
