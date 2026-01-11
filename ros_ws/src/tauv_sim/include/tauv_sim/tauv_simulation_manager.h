@@ -18,7 +18,7 @@ class TauvSimulationManager : public sf::SimulationManager {
 
     void BuildScenario() override;
 
-    void SimulationStepCompleted(sf::Scalar timeStep) override;
+    void SimulationStepCompleted(sf::Scalar time_step) override;
 
    private:
     rclcpp::executors::SingleThreadedExecutor executor_;

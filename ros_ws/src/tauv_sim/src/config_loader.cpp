@@ -40,7 +40,7 @@ osprey::Frames ConfigLoader::get_frames() {
 osprey::InertialBuoyancy ConfigLoader::get_inertial_buoyancy_params() {
     const auto ns = std::string{osprey::InertialBuoyancy::NS};
 
-    auto mass = get_scalar(ns, "mass");
+    auto mass = get_scalar<double>(ns, "mass");
     auto t_hull_com_C = get_vector3(ns, "t_hull_com_C");
     auto hull_inertia_COM_C = get_matrix3(ns, "hull_inertia_COM_C");
     auto t_hull_cob_C = get_vector3(ns, "t_hull_cob_C");
@@ -51,13 +51,52 @@ osprey::InertialBuoyancy ConfigLoader::get_inertial_buoyancy_params() {
 osprey::sensors::Depth ConfigLoader::get_depth_params() {
     const auto ns = std::string{osprey::sensors::Depth::NS};
 
-    double noise_std = get_scalar(ns, "noise_std");
-    double update_rate = get_scalar(ns, "update_rate");
+    double noise_std = get_scalar<double>(ns, "noise_std");
+    double update_rate = get_scalar<double>(ns, "update_rate");
 
     return {
         noise_std,
         update_rate,
     };
+}
+
+osprey::actuators::Thrusters ConfigLoader::get_thrusters() {
+    const auto ns = std::string{osprey::actuators::Thrusters::NS};
+    const auto n_thrusters = osprey::actuators::Thrusters::N_THRUSTERS;
+
+    osprey::actuators::Thrusters t;
+
+    t.v_bat = get_scalar<double>(ns, "v_bat");
+    t.deadband_low = get_scalar<double>(ns, "deadband_low");
+    t.deadband_high = get_scalar<double>(ns, "deadband_high");
+    t.J_msp = get_scalar<double>(ns, "J_msp");
+    t.K_v1 = get_scalar<double>(ns, "K_v1");
+    t.K_v2 = get_scalar<double>(ns, "K_v2");
+    t.K_t = get_scalar<double>(ns, "K_t");
+    t.R_m = get_scalar<double>(ns, "R_m");
+    t.K_F_fwd = get_scalar<double>(ns, "K_F_fwd");
+    t.K_F_rev = get_scalar<double>(ns, "K_F_rev");
+    t.telemetry_rate = get_scalar<double>(ns, "telemetry_rate");
+
+    auto right_handed_int = get_array<long, n_thrusters>(ns, "right_handed");
+    std::transform(right_handed_int.begin(),
+                   right_handed_int.end(),
+                   t.right_handed.begin(),
+                   [](long i) { return i != 0; });
+
+    auto esc_thruster_ids_int = get_array<long, n_thrusters>(ns, "esc_thruster_ids");
+    std::transform(esc_thruster_ids_int.begin(),
+                   esc_thruster_ids_int.end(),
+                   t.esc_thruster_ids.begin(),
+                   [](long i) { return static_cast<uint8_t>(i); });
+
+    for (int i = 0; i < n_thrusters; ++i) {
+        auto thruster_i_frame = "thruster_" + std::to_string(i);
+        auto cad_T_thruster_i = get_transform(ns, "cad", thruster_i_frame);
+        t.cad_T_thrusters[i] = cad_T_thruster_i;
+    }
+
+    return t;
 }
 
 std::pair<std::string, std::string> ConfigLoader::get_transform_name(const std::string& ns,
@@ -144,15 +183,15 @@ std::vector<double> ConfigLoader::get_vector(const std::string& ns, const std::s
     return v;
 }
 
-template <size_t N>
-std::array<double, N> ConfigLoader::get_array(const std::string& ns, const std::string& name) {
+template <typename T, size_t N>
+std::array<T, N> ConfigLoader::get_array(const std::string& ns, const std::string& name) {
     assert(std::isalnum(ns.back()));
 
     std::string qualified_name = ns + "." + name;
-    std::vector<double> v;
+    std::vector<T> v;
     v.reserve(N);
 
-    bool exists = node_->get_parameter(qualified_name, v);
+    bool exists = node_->get_parameter<std::vector<T>>(qualified_name, v);
 
     if (!exists) {
         throw std::runtime_error("Parameter does not exist: " + qualified_name);
@@ -161,14 +200,14 @@ std::array<double, N> ConfigLoader::get_array(const std::string& ns, const std::
         throw std::runtime_error("Size mismatch: " + qualified_name);
     }
 
-    auto a = std::array<double, N>{};
+    auto a = std::array<T, N>{};
     std::copy(v.begin(), v.end(), a.begin());
 
     return a;
 }
 
 sf::Matrix3 ConfigLoader::get_matrix3(const std::string& ns, const std::string& name) {
-    auto a = get_array<9>(ns, name);
+    auto a = get_array<double, 9>(ns, name);
     auto m = sf::Matrix3{
         a[0],
         a[1],
@@ -184,15 +223,16 @@ sf::Matrix3 ConfigLoader::get_matrix3(const std::string& ns, const std::string& 
 }
 
 sf::Vector3 ConfigLoader::get_vector3(const std::string& ns, const std::string& name) {
-    auto a = get_array<3>(ns, name);
+    auto a = get_array<double, 3>(ns, name);
     auto v = sf::Vector3{a[0], a[1], a[2]};
     return v;
 }
 
-double ConfigLoader::get_scalar(const std::string& ns, const std::string& name) {
+template <typename T>
+T ConfigLoader::get_scalar(const std::string& ns, const std::string& name) {
     assert(std::isalnum(ns.back()));
     std::string qualified_name = ns + "." + name;
-    double x;
+    T x;
     bool exists = node_->get_parameter(qualified_name, x);
     if (!exists) {
         throw std::runtime_error("Parameter does not exist: " + qualified_name);

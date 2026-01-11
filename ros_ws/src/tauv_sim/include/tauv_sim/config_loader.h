@@ -17,6 +17,8 @@ class ConfigLoader {
 
     config::osprey::sensors::Depth get_depth_params();
 
+    config::osprey::actuators::Thrusters get_thrusters();
+
    private:
     rclcpp::Node::SharedPtr node_;
 
@@ -32,8 +34,8 @@ class ConfigLoader {
 
     std::vector<double> get_vector(const std::string& ns, const std::string& name);
 
-    template <size_t N>
-    std::array<double, N> get_array(const std::string& ns, const std::string& name);
+    template <typename T, size_t N>
+    std::array<T, N> get_array(const std::string& ns, const std::string& name);
 
     sf::Matrix3 get_matrix3(const std::string& ns, const std::string& name);
 
@@ -43,5 +45,6 @@ class ConfigLoader {
                                 const std::string& to,
                                 const std::string& from);
 
-    double get_scalar(const std::string& ns, const std::string& name);
+    template <typename T>
+    T get_scalar(const std::string& ns, const std::string& name);
 };

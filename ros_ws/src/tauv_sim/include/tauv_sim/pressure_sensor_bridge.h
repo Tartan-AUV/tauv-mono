@@ -1,7 +1,6 @@
-#include <core/FeatherstoneRobot.h>
-#include <sensors/scalar/Pressure.h>
+#pragma once
 
-#include <optional>
+#include <sensors/scalar/Pressure.h>
 
 #include "tauv_msgs/msg/pressure.hpp"
 #include "tauv_sim/context.h"
