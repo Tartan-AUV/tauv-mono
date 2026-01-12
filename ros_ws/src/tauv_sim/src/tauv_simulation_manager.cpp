@@ -8,13 +8,13 @@
 #include "tauv_sim/registry.h"
 
 TauvSimulationManager::TauvSimulationManager(std::string assets_path, float step_per_second)
-    : SimulationManager(step_per_second),
-      node_(std::make_shared<rclcpp::Node>("tauv_sim")),
-      config_loader_(node_),
-      assets_path(std::move(assets_path) + "/") {
-    auto options = node_->get_node_options();
+    : SimulationManager(step_per_second), assets_path(std::move(assets_path) + "/") {
+    rclcpp::NodeOptions options;
     options.allow_undeclared_parameters(true);
     options.automatically_declare_parameters_from_overrides(true);
+
+    node_ = std::make_shared<rclcpp::Node>("tauv_sim", options);
+    config_loader_ = std::make_shared<ConfigLoader>(node_);
 
     executor_.add_node(node_);
 }

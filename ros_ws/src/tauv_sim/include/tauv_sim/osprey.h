@@ -17,7 +17,7 @@ class Osprey {
     Osprey(const std::string prefix,
            const std::string& assets_path,
            rclcpp::Node::SharedPtr node,
-           ConfigLoader& config_loader);
+           std::shared_ptr<ConfigLoader> config_loader);
     ~Osprey() = default;
 
     sf::FeatherstoneRobot* get_stonefish_robot();
@@ -33,6 +33,8 @@ class Osprey {
     std::unique_ptr<PressureSensorBridge> pressure_sensor_bridge_;
 
     std::array<std::unique_ptr<ThrusterBridge>, 8> thruster_bridges_;
+    std::array<std::shared_ptr<rclcpp::Subscription<tauv_msgs::msg::ThrusterSetpoint>>, 8>
+        thruster_setpoint_subs_{};
 
     sf::Matrix3 compute_principal_inertia_axes(const config::osprey::InertialBuoyancy& cfg);
 };

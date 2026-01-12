@@ -24,7 +24,7 @@ class TauvSimulationManager : public sf::SimulationManager {
     rclcpp::executors::SingleThreadedExecutor executor_;
     rclcpp::Node::SharedPtr node_;
 
-    ConfigLoader config_loader_;
+    std::shared_ptr<ConfigLoader> config_loader_;
 
     std::unique_ptr<Osprey> robot_ = nullptr;
     const std::string assets_path;

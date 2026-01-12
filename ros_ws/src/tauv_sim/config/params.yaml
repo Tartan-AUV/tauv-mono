@@ -4,7 +4,7 @@
       frames:
         t_cad__body: [0.0, 0.0, 0.0]
         rpy_cad__body: [0.0, 0.0, 0.0]
-        t_depth_B: [0.0, 0.0, 0.0]
+        t_depth_B: [0.0, 0.0, -0.5]
 
       inertial_buoyancy:
         mass: 23.0
@@ -18,3 +18,44 @@
         depth:
           noise_std: 0.0
           update_rate: 100.0
+
+      actuators:
+        thrusters:
+          v_bat: 16.0
+          deadband_low: -33.0
+          deadband_high: 33.0
+          J_msp: 0.0
+          K_v1: 0.02473
+          K_v2: 5.14e-05
+          K_t: 1.0
+          R_m: 1.0
+          K_F_fwd: 0.0003727
+          K_F_rev: 0.0002963
+          telemetry_rate: 50.0
+          # Right-handed thrusters: FLH, FRH, BLV, FRV
+          right_handed: [1, 0, 1, 0, 0, 0, 1, 1]
+          esc_thruster_ids: [0, 1, 2, 3, 4, 5, 6, 7]
+
+          t_cad__thruster_0: [-0.215, 0.237, 0.079]
+          rpy_cad__thruster_0: [0.0, 0.0, -135.0]
+
+          t_cad__thruster_1: [-0.246, 0.094, -0.006]
+          rpy_cad__thruster_1: [0.0, -90.0, 0.0]
+
+          t_cad__thruster_2: [-0.246, -0.094, -0.006]
+          rpy_cad__thruster_2: [0.0, -90.0, 0.0]
+
+          t_cad__thruster_3: [-0.215, -0.237, 0.079]
+          rpy_cad__thruster_3: [0.0, 0.0, 135.0]
+
+          t_cad__thruster_4: [0.215, -0.237, 0.079]
+          rpy_cad__thruster_4: [0.0, 0.0, 45.0]
+
+          t_cad__thruster_5: [0.246, -0.094, -0.006]
+          rpy_cad__thruster_5: [0.0, -90.0, 0.0]
+
+          t_cad__thruster_6: [0.246, 0.094, -0.006]
+          rpy_cad__thruster_6: [0.0, -90.0, 0.0]
+
+          t_cad__thruster_7: [0.215, 0.237, 0.079]
+          rpy_cad__thruster_7: [0.0, 0.0, -45.0]

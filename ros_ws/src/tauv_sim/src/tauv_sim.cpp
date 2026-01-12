@@ -12,6 +12,8 @@ int main(int argc, char** argv) {
     (void)argc;
     (void)argv;
 
+    // std::getchar();
+
     rclcpp::init(argc, argv);
 
     const auto share_path = ament_index_cpp::get_package_share_directory("tauv_sim");
@@ -19,6 +21,8 @@ int main(int argc, char** argv) {
 
     sf::RenderSettings s;
     sf::HelperSettings h;
+    h.showActuators = true;
+    h.showSensors = true;
     TauvSimulationManager manager(assets_path, 100.0f);
 
     sf::GraphicalSimulationApp app("TAUV Simulator", assets_path, s, h, &manager);
