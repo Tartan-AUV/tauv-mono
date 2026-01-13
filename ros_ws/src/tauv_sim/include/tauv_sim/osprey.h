@@ -3,14 +3,20 @@
 #include <core/FeatherstoneRobot.h>
 #include <entities/solids/Polyhedron.h>
 
+#include <array>
+#include <memory>
 #include <string>
 
 #undef Max
+
+#include <rclcpp/node.hpp>
+#include <rclcpp/subscription.hpp>
 
 #include "tauv_sim/config.h"
 #include "tauv_sim/config_loader.h"
 #include "tauv_sim/pressure_sensor_bridge.h"
 #include "tauv_sim/thruster_bridge.h"
+#include "tauv_msgs/msg/thruster_setpoint.hpp"
 
 class Osprey {
    public:
@@ -35,6 +41,9 @@ class Osprey {
     std::array<std::unique_ptr<ThrusterBridge>, 8> thruster_bridges_;
     std::array<std::shared_ptr<rclcpp::Subscription<tauv_msgs::msg::ThrusterSetpoint>>, 8>
         thruster_setpoint_subs_{};
+
+    // Configuration
+    config::osprey::actuators::Thrusters thruster_config_;
 
     sf::Matrix3 compute_principal_inertia_axes(const config::osprey::InertialBuoyancy& cfg);
 };

@@ -27,10 +27,10 @@ Osprey::Osprey(const std::string prefix,
     auto body_T_cad = frames.cad_T_body.inverse();
     base_link_ = new sf::Polyhedron(links::OSPREY_BASE,
                                     sf::PhysicsSettings(),
-                                    assets_path + "/osprey/osprey.obj",
+                                    assets_path + "/osprey/hull.obj",
                                     1.0F,
                                     body_T_cad,
-                                    assets_path + "/osprey/osprey.obj",
+                                    assets_path + "/osprey/hull.obj",
                                     1.0F,
                                     body_T_cad,
                                     materials::ALUMINUM.name,
@@ -57,18 +57,20 @@ Osprey::Osprey(const std::string prefix,
 
     /* Actuators */
     /** Thrusters **/
-    auto thruster_config = config_loader->get_thrusters();
+    thruster_config_ = config_loader->get_thrusters();
 
     auto prop_physics = sf::PhysicsSettings{};
 
-    auto rotor_dynamics = std::make_shared<sf::Bessa>(thruster_config.J_msp,
-                                                      thruster_config.K_v1,
-                                                      thruster_config.K_v2,
-                                                      thruster_config.K_t,
-                                                      thruster_config.R_m);
+    // TODO: should be using Bessa model, but we don't have rotor inertia rn
+    // auto rotor_dynamics = std::make_shared<sf::Bessa>(thruster_config_.J_msp,
+    //                                                   thruster_config_.K_v1,
+    //                                                   thruster_config_.K_v2,
+    //                                                   thruster_config_.K_t,
+    //                                                   thruster_config_.R_m);
+    auto rotor_dynamics = std::make_shared<sf::ZeroOrder>();
 
-    auto thrust_model = std::make_shared<sf::DeadbandThrust>(thruster_config.K_F_rev,
-                                                             thruster_config.K_F_fwd,
+    auto thrust_model = std::make_shared<sf::DeadbandThrust>(thruster_config_.K_F_rev,
+                                                             thruster_config_.K_F_fwd,
                                                              0.0F,
                                                              0.0F);
 
@@ -86,15 +88,15 @@ Osprey::Osprey(const std::string prefix,
                                          rotor_dynamics,
                                          thrust_model,
                                          0.1F,
-                                         thruster_config.right_handed[i],
-                                         thruster_config.v_bat,
+                                         thruster_config_.right_handed[i],
+                                         thruster_config_.v_bat,
                                          false,
                                          true};
 
-        auto body_T_thruster = body_T_cad * thruster_config.cad_T_thrusters[i];
+        auto body_T_thruster = body_T_cad * thruster_config_.cad_T_thrusters[i];
         sf_robot_->AddLinkActuator(thruster,
                                    links::OSPREY_BASE,
-                                   sf::Transform{sf::IQ(), sf::Vector3{0.0, 1.0, 0.0}});
+                                   body_T_thruster);
 
         auto setpoint_topic_name =
             prefix_ + "/actuators/thruster_" + std::to_string(i) + "/setpoint";
@@ -105,8 +107,9 @@ Osprey::Osprey(const std::string prefix,
         thruster_bridges_[i] =
             std::make_unique<ThrusterBridge>(thruster,
                                              pub,
-                                             thruster_config.telemetry_rate,
-                                             thruster_config.esc_thruster_ids[i]);
+                                             thruster_config_.telemetry_rate,
+                                             thruster_config_.esc_thruster_ids[i],
+                                             thruster_config_);
 
         thruster_setpoint_subs_[i] = node->create_subscription<
             tauv_msgs::msg::ThrusterSetpoint>(setpoint_topic_name,

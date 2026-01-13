@@ -5,15 +5,29 @@ constexpr double RADPS_TO_RPM = 60.0 / (2.0 * M_PI);
 ThrusterBridge::ThrusterBridge(sf::Thruster* thruster,
                                rclcpp::Publisher<tauv_msgs::msg::EscTelemetry>::SharedPtr pub,
                                double telemetry_rate,
-                               uint8_t thruster_esc_id)
+                               uint8_t thruster_esc_id,
+                               const config::osprey::actuators::Thrusters &cfg)
     : thruster_(thruster),
       pub_(pub),
       period_ns_(std::chrono::nanoseconds(static_cast<long>(std::round(1e9 / telemetry_rate)))),
-      thruster_esc_id_(thruster_esc_id) {}
+      thruster_esc_id_(thruster_esc_id),
+    c_(cfg){}
 
 void ThrusterBridge::callback(tauv_msgs::msg::ThrusterSetpoint msg) {
     double throttle = msg.enable != 0 ? msg.throttle : 0.0;
-    thruster_->setSetpoint(throttle);
+
+    assert(c_.K_t == 1.0);
+    assert(c_.R_m == 1.0);
+    assert(c_.J_msp == 0.0);
+
+    // TODO: Ideally we should be using rotor inertia and the full Bessa model
+    double V_eff = c_.v_bat * std::abs(throttle);
+    double omega = (-c_.K_v1 + std::sqrt(c_.K_v1 * c_.K_v1 + 4.0 * c_.K_v2 * V_eff)) / (2.0 * c_.K_v2);
+
+    if (throttle < 0.0)
+        omega *= -1.0;
+
+    thruster_->setSetpoint(omega);
 }
 
 void ThrusterBridge::on_step(const Context& ctx) {
