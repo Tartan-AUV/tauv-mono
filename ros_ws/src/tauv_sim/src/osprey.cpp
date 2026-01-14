@@ -7,8 +7,10 @@
 #include <entities/Entity.h>
 #include <entities/SolidEntity.h>
 #include <entities/solids/Polyhedron.h>
+#include <sensors/scalar/IMU.h>
 
 #include <Eigen/Dense>
+#include <sensor_msgs/msg/imu.hpp>
 
 #include "tauv_sim/config.h"
 #include "tauv_sim/registry.h"
@@ -68,6 +70,17 @@ Osprey::Osprey(const std::string prefix,
 
     sf::Transform body_T_depth = sf::Transform{sf::I3(), frames.t_depth_B};
     sf_robot_->AddLinkSensor(depth_sensor, links::OSPREY_BASE, body_T_depth);
+
+    auto imu_params = config_loader->get_imu_params();
+    auto imu_sensor = new sf::IMU("imu", imu_params.update_rate);
+    imu_sensor->setRange(imu_params.angular_velocity_range, imu_params.linear_acceleration_range);
+    imu_sensor->setNoise(imu_params.angle_std,
+                         imu_params.angular_velocity_std,
+                         imu_params.yaw_angle_drift,
+                         imu_params.linear_acceleration_std);
+
+    sf::Transform body_T_imu = body_T_cad * frames.cad_T_imu;
+    sf_robot_->AddLinkSensor(imu_sensor, links::OSPREY_BASE, body_T_imu);
 
     /* Actuators */
     /** Thrusters **/
@@ -133,14 +146,17 @@ Osprey::Osprey(const std::string prefix,
     // Add publishers
     auto pressure_pub =
         node->create_publisher<tauv_msgs::msg::Pressure>(prefix_ + "/sensors/pressure", 10);
+    auto imu_pub = node->create_publisher<sensor_msgs::msg::Imu>(prefix_ + "/sensors/imu", 10);
 
     // Initialize bridges
     pressure_sensor_bridge_ =
         std::make_unique<PressureSensorBridge>(depth_sensor, pressure_pub, "pressure_link");
+    imu_bridge_ = std::make_unique<ImuBridge>(imu_sensor, imu_pub, "imu_link", imu_params);
 }
 
 void Osprey::on_step(const Context& ctx) {
     pressure_sensor_bridge_->on_step(ctx);
+    imu_bridge_->on_step(ctx);
     for (auto& bridge : thruster_bridges_) {
         if (bridge) {
             bridge->on_step(ctx);

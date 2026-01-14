@@ -13,6 +13,7 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(tauv_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
 
 set(build_stonefish_from_source ${TAUV_SIM_USE_VENDORED_STONEFISH})
@@ -46,6 +47,7 @@ add_executable(tauv_sim
         src/tauv_simulation_manager.cpp
         src/osprey.cpp
         src/pressure_sensor_bridge.cpp
+        src/imu_bridge.cpp
         src/context.cpp
         src/config_loader.cpp
         src/util.cpp
@@ -60,6 +62,7 @@ ament_target_dependencies(tauv_sim
         ament_index_cpp
         rclcpp
         tauv_msgs
+        sensor_msgs
 )
 
 target_link_libraries(tauv_sim

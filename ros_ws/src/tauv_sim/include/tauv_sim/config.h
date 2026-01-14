@@ -27,6 +27,9 @@ struct Frames {
     // Depth sensor in the body frame
     // TODO: express in CAD frame
     sf::Vector3 t_depth_B;
+
+    // Transform from the IMU frame into the CAD frame
+    sf::Transform cad_T_imu;
 };
 
 struct InertialBuoyancy {
@@ -55,6 +58,18 @@ struct Depth {
 
     double noise_std;
     double update_rate;
+};
+
+struct Imu {
+    static constexpr std::string_view NS = "osprey.sensors.imu";
+
+    double update_rate;
+    sf::Vector3 angle_std;
+    sf::Vector3 angular_velocity_std;
+    double yaw_angle_drift;
+    sf::Vector3 linear_acceleration_std;
+    sf::Vector3 angular_velocity_range;
+    sf::Vector3 linear_acceleration_range;
 };
 
 }  // namespace sensors

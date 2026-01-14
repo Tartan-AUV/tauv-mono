@@ -19,8 +19,9 @@ osprey::Frames ConfigLoader::get_frames() {
 
     auto cad_T_body = get_transform(ns, "cad", "body", false);
     auto t_depth_B = get_vector3(ns, "t_depth_B");
+    auto cad_T_imu = get_transform(ns, "cad", "imu");
 
-    return {cad_T_body, t_depth_B};
+    return {cad_T_body, t_depth_B, cad_T_imu};
 }
 
 osprey::InertialBuoyancy ConfigLoader::get_inertial_buoyancy_params() {
@@ -46,6 +47,26 @@ osprey::sensors::Depth ConfigLoader::get_depth_params() {
         noise_std,
         update_rate,
     };
+}
+
+osprey::sensors::Imu ConfigLoader::get_imu_params() {
+    const auto ns = std::string{osprey::sensors::Imu::NS};
+
+    auto angle_std = get_vector3(ns, "angle_std");
+    auto angular_velocity_std = get_vector3(ns, "angular_velocity_std");
+    auto linear_acceleration_std = get_vector3(ns, "linear_acceleration_std");
+    double yaw_angle_drift = get_scalar<double>(ns, "yaw_angle_drift");
+    auto angular_velocity_range = get_vector3(ns, "angular_velocity_range");
+    auto linear_acceleration_range = get_vector3(ns, "linear_acceleration_range");
+    double update_rate = get_scalar<double>(ns, "update_rate");
+
+    return {update_rate,
+            angle_std,
+            angular_velocity_std,
+            yaw_angle_drift,
+            linear_acceleration_std,
+            angular_velocity_range,
+            linear_acceleration_range};
 }
 
 osprey::actuators::Thrusters ConfigLoader::get_thrusters() {

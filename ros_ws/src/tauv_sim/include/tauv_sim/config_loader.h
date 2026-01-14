@@ -16,6 +16,7 @@ class ConfigLoader {
     config::osprey::InertialBuoyancy get_inertial_buoyancy_params();
 
     config::osprey::sensors::Depth get_depth_params();
+    config::osprey::sensors::Imu get_imu_params();
 
     config::osprey::actuators::Thrusters get_thrusters();
 
