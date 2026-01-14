@@ -84,6 +84,7 @@ struct FisheyeCamera {
 
     double update_rate;
     double horizontal_fov_deg;
+    double exposure;
     std::array<uint32_t, 2> resolution;
     bool display_on_screen;
     std::array<uint32_t, 2> screen_offset;

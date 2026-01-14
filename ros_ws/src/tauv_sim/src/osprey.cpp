@@ -31,7 +31,7 @@ Osprey::Osprey(const std::string prefix,
 
     sf::PhysicsSettings base_physics;
     // Use the low-res physics mesh to estimate drag and added mass
-    base_physics.estimateHydrodynamics = true;
+    base_physics.estimateHydrodynamics = false;
     // Instead of relying the mesh for CoB and Volume, use values from config
     base_physics.useCustomVolume = true;
     base_physics.useCustomCB = true;
@@ -73,6 +73,8 @@ Osprey::Osprey(const std::string prefix,
     thruster_config_ = config_loader->get_thrusters();
 
     auto prop_physics = sf::PhysicsSettings{};
+    prop_physics.mode = sf::PhysicsMode::DISABLED;
+    prop_physics.estimateHydrodynamics = false;
 
     // TODO: should be using Bessa model, but we don't have rotor inertia rn
     // auto rotor_dynamics = std::make_shared<sf::Bessa>(thruster_config_.J_msp,

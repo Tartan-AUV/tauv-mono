@@ -20,9 +20,9 @@ osprey::Frames ConfigLoader::get_frames() {
 
     auto cad_T_body = get_transform(ns, "cad", "body", false);
     auto t_depth_B = get_vector3(ns, "t_depth_B");
-    auto cad_T_imu = get_transform(ns, "cad", "imu");
-    auto cad_T_cam0 = get_transform(ns, "cad", "cam0");
-    auto cad_T_cam1 = get_transform(ns, "cad", "cam1");
+    auto cad_T_imu = get_transform(ns, "cad", "imu", false);
+    auto cad_T_cam0 = get_transform(ns, "cad", "cam0", false);
+    auto cad_T_cam1 = get_transform(ns, "cad", "cam1", false);
 
     return {cad_T_body, t_depth_B, cad_T_imu, cad_T_cam0, cad_T_cam1};
 }
@@ -99,6 +99,7 @@ ConfigLoader::get_fisheye_cameras() {
         cameras[i] = {
             get_scalar<double>(ns, "update_rate"),
             get_scalar<double>(ns, "horizontal_fov_deg"),
+            get_scalar<double>(ns, "exposure"),
             {to_u32_positive(resolution[0], ns + ".resolution[0]"),
              to_u32_positive(resolution[1], ns + ".resolution[1]")},
             get_scalar<bool>(ns, "display_on_screen"),

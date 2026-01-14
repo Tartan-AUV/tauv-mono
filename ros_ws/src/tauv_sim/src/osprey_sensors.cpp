@@ -50,6 +50,7 @@ OspreySensors::OspreySensors(std::string prefix,
                                                               cam_cfg.resolution[1],
                                                               cam_cfg.horizontal_fov_deg,
                                                               cam_cfg.update_rate);
+            cameras_[i]->setExposure(cam_cfg.exposure);
             cameras_[i]->setDisplayOnScreen(cam_cfg.display_on_screen,
                                             cam_cfg.screen_offset[0],
                                             cam_cfg.screen_offset[1],
