@@ -12,3 +12,19 @@ axes aligned with principal axes of inertia, such that the inertia matrix is dia
 - Single link for the main hull
 - Overriding both inertial and buyancy properties
 
+## Kinematic mode
+
+Run `tauv_sim` with `--kinematic path/to/trajectory.yaml` to play back a predefined body pose
+trajectory without physics or thruster control. Trajectories are specified as a list of
+keyframes:
+
+```yaml
+playback_mode: repeat  # onetime|repeat|boomerang (optional, defaults to onetime)
+keyframes:
+  - t: 0.0
+    position: [0.0, 0.0, -1.0]
+    quaternion: [0.0, 0.0, 0.0, 1.0]  # [x, y, z, w]
+  - t: 5.0
+    position: [2.0, 0.0, -1.0]
+    quaternion: [0.0, 0.0, 0.0, 1.0]
+```

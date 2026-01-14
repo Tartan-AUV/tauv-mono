@@ -15,6 +15,7 @@ find_package(rclcpp REQUIRED)
 find_package(tauv_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 set(build_stonefish_from_source ${TAUV_SIM_USE_VENDORED_STONEFISH})
 if (build_stonefish_from_source AND NOT EXISTS "${STONEFISH_SOURCE_DIR}/CMakeLists.txt")
@@ -52,6 +53,9 @@ add_executable(tauv_sim
         src/config_loader.cpp
         src/util.cpp
         src/thruster_bridge.cpp
+        src/trajectory_loader.cpp
+        src/osprey_sensors.cpp
+        src/kinematic_osprey.cpp
 )
 target_include_directories(tauv_sim PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -67,7 +71,8 @@ ament_target_dependencies(tauv_sim
 
 target_link_libraries(tauv_sim
         Stonefish::Stonefish
-        Eigen3::Eigen)
+        Eigen3::Eigen
+        yaml-cpp)
 
 install(TARGETS
         tauv_sim

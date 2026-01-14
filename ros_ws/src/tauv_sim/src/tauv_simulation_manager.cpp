@@ -6,9 +6,14 @@
 #include <cmath>
 
 #include "tauv_sim/registry.h"
+#include "tauv_sim/trajectory_loader.h"
 
-TauvSimulationManager::TauvSimulationManager(std::string assets_path, float step_per_second)
-    : SimulationManager(step_per_second), assets_path(std::move(assets_path) + "/") {
+TauvSimulationManager::TauvSimulationManager(std::string assets_path,
+                                             float step_per_second,
+                                             std::optional<std::string> kinematic_trajectory_path)
+    : SimulationManager(step_per_second),
+      assets_path(std::move(assets_path) + "/"),
+      kinematic_trajectory_path_(std::move(kinematic_trajectory_path)) {
     rclcpp::NodeOptions options;
     options.allow_undeclared_parameters(true);
     options.automatically_declare_parameters_from_overrides(true);
@@ -48,10 +53,19 @@ void TauvSimulationManager::BuildScenario() {
                              materials::POOL.name);
     AddStaticEntity(pool_, sf::Transform(sf::Quaternion(0.0, M_PI, 0.0)));
 
-    robot_ = std::make_unique<Osprey>("os", assets_path, node_, config_loader_);
-
-    auto world_T_body_initial = config_loader_->get_initial_pose().world_T_body_initial;
-    AddRobot(robot_->get_stonefish_robot(), world_T_body_initial);
+    if (kinematic_trajectory_path_) {
+        auto trajectory_spec = trajectory::load_from_yaml(*kinematic_trajectory_path_);
+        kinematic_robot_ = std::make_unique<KinematicOsprey>("os",
+                                                             assets_path,
+                                                             node_,
+                                                             config_loader_,
+                                                             trajectory_spec);
+        kinematic_robot_->add_to_simulation(this);
+    } else {
+        robot_ = std::make_unique<Osprey>("os", assets_path, node_, config_loader_);
+        auto world_T_body_initial = config_loader_->get_initial_pose().world_T_body_initial;
+        AddRobot(robot_->get_stonefish_robot(), world_T_body_initial);
+    }
 
     std::cout << "Done building scenario!\n";
 }
@@ -64,5 +78,9 @@ void TauvSimulationManager::SimulationStepCompleted(sf::Scalar time_step) {
     executor_.spin_some();
 
     // Publish available sensor date and propagate control inputs into teh into the stonefish model
-    robot_->on_step(ctx_);
+    if (kinematic_robot_) {
+        kinematic_robot_->on_step(ctx_);
+    } else if (robot_) {
+        robot_->on_step(ctx_);
+    }
 }

@@ -15,8 +15,8 @@
 #include "tauv_msgs/msg/thruster_setpoint.hpp"
 #include "tauv_sim/config.h"
 #include "tauv_sim/config_loader.h"
-#include "tauv_sim/imu_bridge.h"
-#include "tauv_sim/pressure_sensor_bridge.h"
+#include "tauv_sim/context.h"
+#include "tauv_sim/osprey_sensors.h"
 #include "tauv_sim/thruster_bridge.h"
 
 class Osprey {
@@ -37,8 +37,7 @@ class Osprey {
     std::shared_ptr<sf::FeatherstoneRobot> construct_robot();
 
     sf::FeatherstoneRobot* sf_robot_;
-    std::unique_ptr<PressureSensorBridge> pressure_sensor_bridge_;
-    std::unique_ptr<ImuBridge> imu_bridge_;
+    std::unique_ptr<OspreySensors> sensors_;
 
     std::array<std::unique_ptr<ThrusterBridge>, 8> thruster_bridges_;
     std::array<std::shared_ptr<rclcpp::Subscription<tauv_msgs::msg::ThrusterSetpoint>>, 8>
