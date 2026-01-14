@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Stonefish/StonefishCommon.h>
+#include <StonefishCommon.h>
 
 #include <Eigen/Dense>
 

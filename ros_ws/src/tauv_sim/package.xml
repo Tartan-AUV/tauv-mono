@@ -8,6 +8,12 @@
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>ament_index_cpp</depend>
+  <depend>Eigen3</depend>
+  <depend>libfreetype6-dev</depend>
+  <depend>libgl-dev</depend>
+  <depend>libomp-dev</depend>
+  <depend>libsdl2-dev</depend>
   <depend>rclcpp</depend>
   <depend>tauv_msgs</depend>
 

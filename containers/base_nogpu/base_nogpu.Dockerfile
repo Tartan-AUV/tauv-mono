@@ -57,17 +57,6 @@ RUN mkdir -p -m 0755 /etc/ssh \
     && touch /etc/ssh/ssh_known_hosts \
     && ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /etc/ssh/ssh_known_hosts
 
-# 7) Install and build stonefish
-WORKDIR /
-
-RUN git clone "https://github.com/patrykcieslak/stonefish.git" \
-    && cd stonefish \
-    && mkdir build \
-    && cd build \
-    && cmake .. \
-    && make -j4 \
-    && sudo make install
-
 WORKDIR /
 
 CMD ["bash"]

@@ -14,6 +14,7 @@ services:
       - ../:/tauv-mono
       - ${HOME}/.config/nvim:/root/.config/nvim:Z
       - ${HOME}/.tmux.conf:/root/.tmux.conf:Z
+      - ${HOME}/.codex:/root/.codex:Z
 
       # SSH agent
       - ${SSH_AUTH_SOCK:-/run/host-services/ssh-auth.sock}:/ssh-agent
@@ -21,12 +22,11 @@ services:
       # X11 (fallback / legacy)
       - /tmp/.X11-unix:/tmp/.X11-unix:ro
 
-      # Wayland: mount the whole runtime dir (simplest, most compatible)
+      # Wayland: mount the whole runtime dir
       # NOTE: UID must match your host user (see the .env section below)
       - /run/user/${UID}:/run/user/${UID}
 
       # (Recommended) DBus session so portals + some toolkits work better on Wayland
-      # If this file doesn’t exist on your system, remove this line.
       - /run/user/${UID}/bus:/run/user/${UID}/bus
 
     environment:

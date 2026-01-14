@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Stonefish/core/SimulationManager.h>
+#include <core/SimulationManager.h>
 #include <entities/statics/Obstacle.h>
 
 #undef Max

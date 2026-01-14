@@ -12,8 +12,6 @@ int main(int argc, char** argv) {
     (void)argc;
     (void)argv;
 
-    // std::getchar();
-
     rclcpp::init(argc, argv);
 
     const auto share_path = ament_index_cpp::get_package_share_directory("tauv_sim");
