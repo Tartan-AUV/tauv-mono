@@ -9,6 +9,8 @@ class ConfigLoader {
    public:
     explicit ConfigLoader(rclcpp::Node::SharedPtr node) : node_(std::move(node)) {}
 
+    config::world::InitialPose get_initial_pose();
+
     config::osprey::Frames get_frames();
 
     config::osprey::InertialBuoyancy get_inertial_buoyancy_params();

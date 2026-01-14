@@ -1,5 +1,11 @@
 /tauv_sim:
   ros__parameters:
+    world_T_body_initial:
+      t_world__body_initial: [0.0, 0.0, -1.0]
+      world_R_body_initial: [0.0, 1.0, 0.0,
+                             1.0, 0.0, 0.0,
+                             0.0, 0.0, -1.0]
+
     osprey:
       frames:
         t_cad__body: [0.0, 0.0, 0.0]
@@ -10,9 +16,10 @@
         t_depth_B: [0.0, 0.0, -0.5]
 
       inertial_buoyancy:
-        mass: 23.0
-        t_hull_com_C: [0.0, 0.0, 0.0]
-        t_hull_cob_C: [0.0, 0.0, 0.0]
+        mass: 26.0
+        volume: 0.027349
+        t_hull_com_C: [0.0, 0.0, 0.04]
+        t_hull_cob_C: [0.0000, 0.0205, 0.0570]
         hull_inertia_COM_C: [10.0, 0.0, 0.0,
                              0.0, 10.0, 0.0,
                              0.0, 0.0, 10.0]

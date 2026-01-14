@@ -50,7 +50,8 @@ void TauvSimulationManager::BuildScenario() {
 
     robot_ = std::make_unique<Osprey>("os", assets_path, node_, config_loader_);
 
-    AddRobot(robot_->get_stonefish_robot(), sf::I4());
+    auto world_T_body_initial = config_loader_->get_initial_pose().world_T_body_initial;
+    AddRobot(robot_->get_stonefish_robot(), world_T_body_initial);
 
     std::cout << "Done building scenario!\n";
 }

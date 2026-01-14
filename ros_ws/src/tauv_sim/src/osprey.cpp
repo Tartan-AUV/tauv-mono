@@ -26,10 +26,19 @@ Osprey::Osprey(const std::string prefix,
     auto frames = config_loader->get_frames();
     auto body_T_cad = frames.cad_T_body.inverse();
 
-    std::cout << "body_R_cad " << sf_to_eigen_matrix(body_T_cad.getBasis()) << std::endl;
+    auto inertial_buoyancy_params = config_loader->get_inertial_buoyancy_params();
 
     sf::PhysicsSettings base_physics;
-    base_physics.estimateHydrodynamics = false;
+    // Use the low-res physics mesh to estimate drag and added mass
+    base_physics.estimateHydrodynamics = true;
+    // Instead of relying the mesh for CoB and Volume, use values from config
+    base_physics.useCustomVolume = true;
+    base_physics.useCustomCB = true;
+
+    auto t_hull_cob_B = body_T_cad * inertial_buoyancy_params.t_hull_cob_C;
+    base_physics.customCB = t_hull_cob_B;
+
+    base_physics.customVolume = inertial_buoyancy_params.volume;
 
     base_link_ = new sf::Polyhedron(links::OSPREY_BASE,
                                     base_physics,
@@ -42,7 +51,6 @@ Osprey::Osprey(const std::string prefix,
                                     materials::ALUMINUM.name,
                                     looks::OSPREY_RED_HULL.name);
 
-    auto inertial_buoyancy_params = config_loader->get_inertial_buoyancy_params();
     auto body_R_cad = sf::Matrix3{frames.cad_T_body.getRotation().inverse()};
     auto [body_T_CG, I_CG] = get_sf_inertia(inertial_buoyancy_params, body_R_cad);
 

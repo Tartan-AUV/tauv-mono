@@ -6,7 +6,15 @@
 
 namespace config {
 
-namespace world {}
+namespace world {
+
+struct InitialPose {
+    static constexpr std::string_view NS = "world_T_body_initial";
+
+    sf::Transform world_T_body_initial;
+};
+
+}  // namespace world
 
 namespace osprey {
 
@@ -26,6 +34,9 @@ struct InertialBuoyancy {
 
     // Mass of the hull in kg
     double mass;
+
+    // Volume of the hull in m^3
+    double volume;
 
     // Center of mass of the hull expressed in the CAD frame
     sf::Vector3 t_hull_com_C;

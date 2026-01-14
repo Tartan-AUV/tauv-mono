@@ -7,6 +7,13 @@
 
 using namespace config;
 
+config::world::InitialPose ConfigLoader::get_initial_pose() {
+    const auto ns = std::string{config::world::InitialPose::NS};
+    auto world_T_body_initial = get_transform(ns, "world", "body_initial", false);
+
+    return {world_T_body_initial};
+}
+
 osprey::Frames ConfigLoader::get_frames() {
     const auto ns = std::string{osprey::Frames::NS};
 
@@ -19,12 +26,14 @@ osprey::Frames ConfigLoader::get_frames() {
 osprey::InertialBuoyancy ConfigLoader::get_inertial_buoyancy_params() {
     const auto ns = std::string{osprey::InertialBuoyancy::NS};
 
-    auto mass = get_scalar<double>(ns, "mass");
-    auto t_hull_com_C = get_vector3(ns, "t_hull_com_C");
-    auto hull_inertia_COM_C = get_matrix3(ns, "hull_inertia_COM_C");
-    auto t_hull_cob_C = get_vector3(ns, "t_hull_cob_C");
+    osprey::InertialBuoyancy c;
+    c.mass = get_scalar<double>(ns, "mass");
+    c.volume = get_scalar<double>(ns, "volume");
+    c.t_hull_com_C = get_vector3(ns, "t_hull_com_C");
+    c.hull_inertia_COM_C = get_matrix3(ns, "hull_inertia_COM_C");
+    c.t_hull_cob_C = get_vector3(ns, "t_hull_cob_C");
 
-    return {mass, t_hull_com_C, hull_inertia_COM_C, t_hull_cob_C};
+    return c;
 }
 
 osprey::sensors::Depth ConfigLoader::get_depth_params() {
@@ -118,7 +127,6 @@ sf::Transform ConfigLoader::get_transform(const std::string& ns,
 
     auto raw_rotation = get_matrix3(ns, rotation_name);
     Eigen::Matrix3d R = sf_to_eigen_matrix(raw_rotation);
-    std::cout << R << std::endl;
     Eigen::JacobiSVD svd(R, Eigen::ComputeFullU | Eigen::ComputeFullV);
     auto U = svd.matrixU();
     auto Vt = svd.matrixV().transpose();
@@ -128,9 +136,7 @@ sf::Transform ConfigLoader::get_transform(const std::string& ns,
         R_orthonormal = U * Vt;
     }
 
-    std::cout << R_orthonormal << std::endl;
     Eigen::Quaterniond q(R_orthonormal);
-    std::cout << q << std::endl;
     return sf::Transform{sf::Quaternion{q.x(), q.y(), q.z(), q.w()}, t};
 }
 
