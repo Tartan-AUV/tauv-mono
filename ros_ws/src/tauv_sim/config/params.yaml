@@ -3,7 +3,10 @@
     osprey:
       frames:
         t_cad__body: [0.0, 0.0, 0.0]
-        rpy_cad__body: [0.0, 0.0, 0.0]
+        # cad: ENU, body: NED
+        cad_R_body: [0.0, 1.0, 0.0,
+                     1.0, 0.0, 0.0,
+                     0.0, 0.0, -1.0]
         t_depth_B: [0.0, 0.0, -0.5]
 
       inertial_buoyancy:

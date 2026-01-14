@@ -25,12 +25,18 @@ Osprey::Osprey(const std::string prefix,
 
     auto frames = config_loader->get_frames();
     auto body_T_cad = frames.cad_T_body.inverse();
+
+    std::cout << "body_R_cad " << sf_to_eigen_matrix(body_T_cad.getBasis()) << std::endl;
+
+    sf::PhysicsSettings base_physics;
+    base_physics.estimateHydrodynamics = false;
+
     base_link_ = new sf::Polyhedron(links::OSPREY_BASE,
-                                    sf::PhysicsSettings(),
-                                    assets_path + "/osprey/hull.obj",
+                                    base_physics,
+                                    assets_path + "osprey/hull_visual.stl",
                                     1.0F,
                                     body_T_cad,
-                                    assets_path + "/osprey/hull.obj",
+                                    assets_path + "osprey/hull_physical.stl",
                                     1.0F,
                                     body_T_cad,
                                     materials::ALUMINUM.name,
@@ -94,9 +100,7 @@ Osprey::Osprey(const std::string prefix,
                                          true};
 
         auto body_T_thruster = body_T_cad * thruster_config_.cad_T_thrusters[i];
-        sf_robot_->AddLinkActuator(thruster,
-                                   links::OSPREY_BASE,
-                                   body_T_thruster);
+        sf_robot_->AddLinkActuator(thruster, links::OSPREY_BASE, body_T_thruster);
 
         auto setpoint_topic_name =
             prefix_ + "/actuators/thruster_" + std::to_string(i) + "/setpoint";
