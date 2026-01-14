@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <rclcpp/rclcpp.hpp>
 #include <utility>
 
@@ -17,6 +18,9 @@ class ConfigLoader {
 
     config::osprey::sensors::Depth get_depth_params();
     config::osprey::sensors::Imu get_imu_params();
+    std::array<config::osprey::sensors::FisheyeCamera,
+               config::osprey::sensors::FisheyeCamera::N_CAMERAS>
+    get_fisheye_cameras();
 
     config::osprey::actuators::Thrusters get_thrusters();
 

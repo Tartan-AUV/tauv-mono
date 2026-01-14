@@ -56,6 +56,7 @@ add_executable(tauv_sim
         src/trajectory_loader.cpp
         src/osprey_sensors.cpp
         src/kinematic_osprey.cpp
+        src/fisheye_camera_bridge.cpp
 )
 target_include_directories(tauv_sim PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

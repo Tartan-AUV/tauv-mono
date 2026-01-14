@@ -24,7 +24,8 @@ class Osprey {
     Osprey(const std::string prefix,
            const std::string& assets_path,
            rclcpp::Node::SharedPtr node,
-           std::shared_ptr<ConfigLoader> config_loader);
+           std::shared_ptr<ConfigLoader> config_loader,
+           bool enable_cameras = true);
     ~Osprey() = default;
 
     sf::FeatherstoneRobot* get_stonefish_robot();

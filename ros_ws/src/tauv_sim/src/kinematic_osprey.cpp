@@ -9,7 +9,8 @@ KinematicOsprey::KinematicOsprey(std::string prefix,
                                  const std::string& assets_path,
                                  rclcpp::Node::SharedPtr node,
                                  std::shared_ptr<ConfigLoader> config_loader,
-                                 const trajectory::Spec& trajectory_spec)
+                                 const trajectory::Spec& trajectory_spec,
+                                 bool enable_cameras)
     : prefix_(std::move(prefix)) {
     auto frames = config_loader->get_frames();
     const sf::Transform body_T_cad = frames.cad_T_body.inverse();
@@ -31,7 +32,12 @@ KinematicOsprey::KinematicOsprey(std::string prefix,
 
     animated_body_->Update(0.0F);
 
-    sensors_ = std::make_unique<OspreySensors>(prefix_, node, config_loader, frames, body_T_cad);
+    sensors_ = std::make_unique<OspreySensors>(prefix_,
+                                               node,
+                                               config_loader,
+                                               frames,
+                                               body_T_cad,
+                                               enable_cameras);
 }
 
 void KinematicOsprey::add_to_simulation(sf::SimulationManager* sim_manager) {

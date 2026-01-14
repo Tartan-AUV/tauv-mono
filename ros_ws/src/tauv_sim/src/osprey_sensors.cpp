@@ -5,16 +5,20 @@
 #include <entities/AnimatedEntity.h>
 #include <entities/FeatherstoneEntity.h>
 
+#include <sensor_msgs/msg/image.hpp>
+
 OspreySensors::OspreySensors(std::string prefix,
                              rclcpp::Node::SharedPtr node,
                              std::shared_ptr<ConfigLoader> config_loader,
                              const config::osprey::Frames& frames,
-                             const sf::Transform& body_T_cad)
+                             const sf::Transform& body_T_cad,
+                             bool enable_cameras)
     : prefix_(std::move(prefix)),
       node_(std::move(node)),
       config_loader_(std::move(config_loader)),
       frames_(frames),
-      body_T_cad_(body_T_cad) {
+      body_T_cad_(body_T_cad),
+      cameras_enabled_(enable_cameras) {
     const auto depth_params = config_loader_->get_depth_params();
     pressure_sensor_ = std::make_unique<sf::Pressure>("pressure_sensor", depth_params.update_rate);
     pressure_sensor_->setNoise(depth_params.noise_std);
@@ -36,6 +40,37 @@ OspreySensors::OspreySensors(std::string prefix,
                                                               pressure_pub,
                                                               "pressure_link");
     imu_bridge_ = std::make_unique<ImuBridge>(imu_sensor_.get(), imu_pub, "imu_link", imu_params);
+
+    if (cameras_enabled_) {
+        auto camera_params = config_loader_->get_fisheye_cameras();
+        for (size_t i = 0; i < camera_params.size(); ++i) {
+            const auto& cam_cfg = camera_params[i];
+            cameras_[i] = std::make_unique<sf::FisheyeCamera>("fisheye_" + std::to_string(i),
+                                                              cam_cfg.resolution[0],
+                                                              cam_cfg.resolution[1],
+                                                              cam_cfg.horizontal_fov_deg,
+                                                              cam_cfg.update_rate);
+            cameras_[i]->setDisplayOnScreen(cam_cfg.display_on_screen,
+                                            cam_cfg.screen_offset[0],
+                                            cam_cfg.screen_offset[1],
+                                            static_cast<float>(cam_cfg.screen_scale));
+
+            auto image_pub =
+                node_->create_publisher<sensor_msgs::msg::Image>(prefix_ + "/sensors/cam" +
+                                                                     std::to_string(i) +
+                                                                     "/image_raw",
+                                                                 10);
+            camera_bridges_[i] =
+                std::make_unique<FisheyeCameraBridge>(cameras_[i].get(),
+                                                      image_pub,
+                                                      "cam" + std::to_string(i) + "_optical");
+            cameras_[i]->InstallNewDataHandler([this, i](sf::FisheyeCamera* cam) {
+                if (camera_bridges_[i]) {
+                    camera_bridges_[i]->handle_frame(cam);
+                }
+            });
+        }
+    }
 }
 
 void OspreySensors::attach_to_robot(sf::FeatherstoneRobot* robot) {
@@ -45,6 +80,13 @@ void OspreySensors::attach_to_robot(sf::FeatherstoneRobot* robot) {
 
     robot->AddLinkSensor(pressure_sensor_.get(), links::OSPREY_BASE, body_T_depth());
     robot->AddLinkSensor(imu_sensor_.get(), links::OSPREY_BASE, body_T_imu());
+    if (cameras_enabled_) {
+        for (size_t i = 0; i < cameras_.size(); ++i) {
+            if (cameras_[i]) {
+                robot->AddVisionSensor(cameras_[i].get(), links::OSPREY_BASE, body_T_cam(i));
+            }
+        }
+    }
 }
 
 void OspreySensors::attach_to_animated(sf::AnimatedEntity* entity,
@@ -58,6 +100,16 @@ void OspreySensors::attach_to_animated(sf::AnimatedEntity* entity,
 
     sim_manager->AddSensor(pressure_sensor_.get());
     sim_manager->AddSensor(imu_sensor_.get());
+
+    if (cameras_enabled_) {
+        for (size_t i = 0; i < cameras_.size(); ++i) {
+            if (!cameras_[i]) {
+                continue;
+            }
+            cameras_[i]->AttachToSolid(entity, body_T_cam(i));
+            sim_manager->AddSensor(cameras_[i].get());
+        }
+    }
 }
 
 void OspreySensors::on_step(const Context& ctx) {
@@ -67,6 +119,13 @@ void OspreySensors::on_step(const Context& ctx) {
     if (imu_bridge_) {
         imu_bridge_->on_step(ctx);
     }
+    if (cameras_enabled_) {
+        for (auto& bridge : camera_bridges_) {
+            if (bridge) {
+                bridge->on_step(ctx);
+            }
+        }
+    }
 }
 
 sf::Transform OspreySensors::body_T_depth() const {
@@ -74,3 +133,10 @@ sf::Transform OspreySensors::body_T_depth() const {
 }
 
 sf::Transform OspreySensors::body_T_imu() const { return body_T_cad_ * frames_.cad_T_imu; }
+
+sf::Transform OspreySensors::body_T_cam(size_t idx) const {
+    if (idx == 0) {
+        return body_T_cad_ * frames_.cad_T_cam0;
+    }
+    return body_T_cad_ * frames_.cad_T_cam1;
+}

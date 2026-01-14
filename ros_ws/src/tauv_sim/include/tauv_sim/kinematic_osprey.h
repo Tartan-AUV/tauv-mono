@@ -23,7 +23,8 @@ class KinematicOsprey {
                     const std::string& assets_path,
                     rclcpp::Node::SharedPtr node,
                     std::shared_ptr<ConfigLoader> config_loader,
-                    const trajectory::Spec& trajectory_spec);
+                    const trajectory::Spec& trajectory_spec,
+                    bool enable_cameras = true);
 
     void add_to_simulation(sf::SimulationManager* sim_manager);
     void on_step(const Context& ctx);

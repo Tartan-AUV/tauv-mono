@@ -17,6 +17,7 @@ namespace {
 struct ParsedArgs {
     std::vector<std::string> ros_args;
     std::optional<std::string> kinematic_trajectory_path;
+    bool enable_cameras{true};
 };
 
 ParsedArgs parse_args(int argc, char** argv) {
@@ -29,6 +30,11 @@ ParsedArgs parse_args(int argc, char** argv) {
             }
             result.kinematic_trajectory_path = std::string(argv[i + 1]);
             ++i;
+            continue;
+        }
+
+        if (arg == "--no-cameras" || arg == "--headless") {
+            result.enable_cameras = false;
             continue;
         }
 
@@ -65,7 +71,10 @@ int main(int argc, char** argv) {
     sf::HelperSettings h;
     h.showActuators = true;
     h.showSensors = true;
-    TauvSimulationManager manager(assets_path, 100.0f, parsed.kinematic_trajectory_path);
+    TauvSimulationManager manager(assets_path,
+                                  100.0f,
+                                  parsed.kinematic_trajectory_path,
+                                  parsed.enable_cameras);
 
     sf::GraphicalSimulationApp app("TAUV Simulator", assets_path, s, h, &manager);
     app.Run();

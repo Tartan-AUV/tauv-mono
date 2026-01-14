@@ -2,6 +2,8 @@
 
 #include <StonefishCommon.h>
 
+#include <array>
+#include <cstdint>
 #include <string_view>
 
 namespace config {
@@ -30,6 +32,10 @@ struct Frames {
 
     // Transform from the IMU frame into the CAD frame
     sf::Transform cad_T_imu;
+
+    // Transforms from the camera frames into the CAD frame
+    sf::Transform cad_T_cam0;
+    sf::Transform cad_T_cam1;
 };
 
 struct InertialBuoyancy {
@@ -70,6 +76,18 @@ struct Imu {
     sf::Vector3 linear_acceleration_std;
     sf::Vector3 angular_velocity_range;
     sf::Vector3 linear_acceleration_range;
+};
+
+struct FisheyeCamera {
+    static constexpr std::string_view NS = "osprey.sensors.cameras";
+    static constexpr size_t N_CAMERAS = 2;
+
+    double update_rate;
+    double horizontal_fov_deg;
+    std::array<uint32_t, 2> resolution;
+    bool display_on_screen;
+    std::array<uint32_t, 2> screen_offset;
+    double screen_scale;
 };
 
 }  // namespace sensors

@@ -18,7 +18,8 @@ class TauvSimulationManager : public sf::SimulationManager {
    public:
     TauvSimulationManager(std::string assets_path,
                           float step_per_second,
-                          std::optional<std::string> kinematic_trajectory_path = std::nullopt);
+                          std::optional<std::string> kinematic_trajectory_path = std::nullopt,
+                          bool enable_cameras = true);
 
     void BuildScenario() override;
 
@@ -36,4 +37,5 @@ class TauvSimulationManager : public sf::SimulationManager {
     sf::Obstacle* pool_ = nullptr;
     Context ctx_;
     std::optional<std::string> kinematic_trajectory_path_;
+    bool enable_cameras_;
 };

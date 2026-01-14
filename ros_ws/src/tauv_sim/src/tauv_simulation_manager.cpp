@@ -10,10 +10,12 @@
 
 TauvSimulationManager::TauvSimulationManager(std::string assets_path,
                                              float step_per_second,
-                                             std::optional<std::string> kinematic_trajectory_path)
+                                             std::optional<std::string> kinematic_trajectory_path,
+                                             bool enable_cameras)
     : SimulationManager(step_per_second),
       assets_path(std::move(assets_path) + "/"),
-      kinematic_trajectory_path_(std::move(kinematic_trajectory_path)) {
+      kinematic_trajectory_path_(std::move(kinematic_trajectory_path)),
+      enable_cameras_(enable_cameras) {
     rclcpp::NodeOptions options;
     options.allow_undeclared_parameters(true);
     options.automatically_declare_parameters_from_overrides(true);
@@ -59,10 +61,12 @@ void TauvSimulationManager::BuildScenario() {
                                                              assets_path,
                                                              node_,
                                                              config_loader_,
-                                                             trajectory_spec);
+                                                             trajectory_spec,
+                                                             enable_cameras_);
         kinematic_robot_->add_to_simulation(this);
     } else {
-        robot_ = std::make_unique<Osprey>("os", assets_path, node_, config_loader_);
+        robot_ =
+            std::make_unique<Osprey>("os", assets_path, node_, config_loader_, enable_cameras_);
         auto world_T_body_initial = config_loader_->get_initial_pose().world_T_body_initial;
         AddRobot(robot_->get_stonefish_robot(), world_T_body_initial);
     }

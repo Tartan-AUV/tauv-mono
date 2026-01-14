@@ -16,6 +16,10 @@
         t_depth_B: [0.0, 0.0, -0.5]
         t_cad__imu: [0.0, 0.0, 0.0]
         rpy_cad__imu: [0.0, 0.0, 0.0]
+        t_cad__cam0: [0.0, 0.06, -0.5]
+        rpy_cad__cam0: [0.0, 0.0, 0.0]
+        t_cad__cam1: [0.0, -0.06, -0.5]
+        rpy_cad__cam1: [0.0, 0.0, 0.0]
 
       inertial_buoyancy:
         mass: 26.0
@@ -38,6 +42,21 @@
           linear_acceleration_std: [0.0, 0.0, 0.0]
           angular_velocity_range: [10.0, 10.0, 10.0]
           linear_acceleration_range: [20.0, 20.0, 20.0]
+        cameras:
+          cam0:
+            update_rate: 30.0
+            horizontal_fov_deg: 150.0
+            resolution: [960, 960]
+            display_on_screen: true
+            screen_offset: [0, 0]
+            screen_scale: 0.25
+          cam1:
+            update_rate: 30.0
+            horizontal_fov_deg: 120.0
+            resolution: [960, 960]
+            display_on_screen: false
+            screen_offset: [980, 0]
+            screen_scale: 0.25
 
       actuators:
         thrusters:

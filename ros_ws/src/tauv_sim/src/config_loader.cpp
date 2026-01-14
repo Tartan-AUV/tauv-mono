@@ -2,6 +2,7 @@
 
 #include <Eigen/Dense>
 #include <cassert>
+#include <stdexcept>
 
 #include "tauv_sim/util.h"
 
@@ -20,8 +21,10 @@ osprey::Frames ConfigLoader::get_frames() {
     auto cad_T_body = get_transform(ns, "cad", "body", false);
     auto t_depth_B = get_vector3(ns, "t_depth_B");
     auto cad_T_imu = get_transform(ns, "cad", "imu");
+    auto cad_T_cam0 = get_transform(ns, "cad", "cam0");
+    auto cad_T_cam1 = get_transform(ns, "cad", "cam1");
 
-    return {cad_T_body, t_depth_B, cad_T_imu};
+    return {cad_T_body, t_depth_B, cad_T_imu, cad_T_cam0, cad_T_cam1};
 }
 
 osprey::InertialBuoyancy ConfigLoader::get_inertial_buoyancy_params() {
@@ -67,6 +70,45 @@ osprey::sensors::Imu ConfigLoader::get_imu_params() {
             linear_acceleration_std,
             angular_velocity_range,
             linear_acceleration_range};
+}
+
+std::array<osprey::sensors::FisheyeCamera, osprey::sensors::FisheyeCamera::N_CAMERAS>
+ConfigLoader::get_fisheye_cameras() {
+    const auto base_ns = std::string{osprey::sensors::FisheyeCamera::NS};
+    std::array<osprey::sensors::FisheyeCamera, osprey::sensors::FisheyeCamera::N_CAMERAS> cameras{};
+
+    auto to_u32_positive = [](long v, const std::string& name) -> uint32_t {
+        if (v <= 0) {
+            throw std::runtime_error("Expected positive value for " + name);
+        }
+        return static_cast<uint32_t>(v);
+    };
+
+    auto to_u32_nonnegative = [](long v, const std::string& name) -> uint32_t {
+        if (v < 0) {
+            throw std::runtime_error("Expected non-negative value for " + name);
+        }
+        return static_cast<uint32_t>(v);
+    };
+
+    for (size_t i = 0; i < osprey::sensors::FisheyeCamera::N_CAMERAS; ++i) {
+        auto ns = base_ns + ".cam" + std::to_string(i);
+        auto resolution = get_array<long, 2>(ns, "resolution");
+        auto screen_offset = get_array<long, 2>(ns, "screen_offset");
+
+        cameras[i] = {
+            get_scalar<double>(ns, "update_rate"),
+            get_scalar<double>(ns, "horizontal_fov_deg"),
+            {to_u32_positive(resolution[0], ns + ".resolution[0]"),
+             to_u32_positive(resolution[1], ns + ".resolution[1]")},
+            get_scalar<bool>(ns, "display_on_screen"),
+            {to_u32_nonnegative(screen_offset[0], ns + ".screen_offset[0]"),
+             to_u32_nonnegative(screen_offset[1], ns + ".screen_offset[1]")},
+            get_scalar<double>(ns, "screen_scale"),
+        };
+    }
+
+    return cameras;
 }
 
 osprey::actuators::Thrusters ConfigLoader::get_thrusters() {

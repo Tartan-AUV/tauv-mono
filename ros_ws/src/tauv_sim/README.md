@@ -28,3 +28,6 @@ keyframes:
     position: [2.0, 0.0, -1.0]
     quaternion: [0.0, 0.0, 0.0, 1.0]
 ```
+
+Pass `--no-cameras` (or `--headless`) to skip creating the fisheye camera sensors and their ROS
+publishers when running in headless or non-visual modes.

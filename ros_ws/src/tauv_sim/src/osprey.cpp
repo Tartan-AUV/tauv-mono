@@ -19,7 +19,8 @@ using namespace config::osprey;
 Osprey::Osprey(const std::string prefix,
                const std::string& assets_path,
                rclcpp::Node::SharedPtr node,
-               std::shared_ptr<ConfigLoader> config_loader)
+               std::shared_ptr<ConfigLoader> config_loader,
+               bool enable_cameras)
     : prefix_(prefix) {
     sf_robot_ = new sf::FeatherstoneRobot("osprey");
 
@@ -59,7 +60,12 @@ Osprey::Osprey(const std::string prefix,
     sf_robot_->DefineLinks(base_link_);
     sf_robot_->BuildKinematicStructure();
 
-    sensors_ = std::make_unique<OspreySensors>(prefix_, node, config_loader, frames, body_T_cad);
+    sensors_ = std::make_unique<OspreySensors>(prefix_,
+                                               node,
+                                               config_loader,
+                                               frames,
+                                               body_T_cad,
+                                               enable_cameras);
     sensors_->attach_to_robot(sf_robot_);
 
     /* Actuators */
