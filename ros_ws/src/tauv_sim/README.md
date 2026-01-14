@@ -16,17 +16,17 @@ axes aligned with principal axes of inertia, such that the inertia matrix is dia
 
 Run `tauv_sim` with `--kinematic path/to/trajectory.yaml` to play back a predefined body pose
 trajectory without physics or thruster control. Trajectories are specified as a list of
-keyframes:
+keyframes in a NED world frame (same origin as the ENU world frame):
 
 ```yaml
 playback_mode: repeat  # onetime|repeat|boomerang (optional, defaults to onetime)
 keyframes:
   - t: 0.0
-    position: [0.0, 0.0, -1.0]
-    quaternion: [0.0, 0.0, 0.0, 1.0]  # [x, y, z, w]
+    position: [0.0, 0.0, 1.0]
+    rpy: [0.0, 0.0, 0.0]  # degrees, roll/pitch/yaw in NED
   - t: 5.0
-    position: [2.0, 0.0, -1.0]
-    quaternion: [0.0, 0.0, 0.0, 1.0]
+    position: [2.0, 0.0, 1.0]
+    rpy: [0.0, 0.0, 0.0]
 ```
 
 Pass `--no-cameras` (or `--headless`) to skip creating the fisheye camera sensors and their ROS

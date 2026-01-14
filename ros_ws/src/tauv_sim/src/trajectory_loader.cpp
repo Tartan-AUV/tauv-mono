@@ -2,6 +2,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <Eigen/Dense>
 #include <array>
 #include <cmath>
 #include <stdexcept>
@@ -37,27 +38,30 @@ sf::Vector3 to_vector3(const YAML::Node& node) {
     return sf::Vector3{node[0].as<double>(), node[1].as<double>(), node[2].as<double>()};
 }
 
-sf::Quaternion to_quaternion(const YAML::Node& node) {
-    if (!node.IsSequence() || node.size() != 4) {
-        throw std::runtime_error("quaternion must be a 4-element list [x, y, z, w]");
+Eigen::Matrix3d rpy_to_matrix(const YAML::Node& node) {
+    if (!node.IsSequence() || node.size() != 3) {
+        throw std::runtime_error("rpy must be a 3-element list [roll, pitch, yaw]");
     }
 
-    const std::array<double, 4> q{node[0].as<double>(),
-                                  node[1].as<double>(),
-                                  node[2].as<double>(),
-                                  node[3].as<double>()};
-
-    const double norm = std::sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
-    if (norm < 1e-9) {
-        throw std::runtime_error("quaternion has near-zero norm");
+    const std::array<double, 3> rpy{node[0].as<double>(),
+                                    node[1].as<double>(),
+                                    node[2].as<double>()};
+    for (auto v : rpy) {
+        if (!(-180.0 < v && v <= 180.0)) {
+            throw std::runtime_error("Invalid RPY angle (expected degrees in (-180, 180])");
+        }
     }
 
-    return sf::Quaternion{
-        static_cast<sf::Scalar>(q[0] / norm),
-        static_cast<sf::Scalar>(q[1] / norm),
-        static_cast<sf::Scalar>(q[2] / norm),
-        static_cast<sf::Scalar>(q[3] / norm),
-    };
+    const auto Rx = Eigen::AngleAxisd{rpy[0] * M_PI / 180.0, Eigen::Vector3d::UnitX()};
+    const auto Ry = Eigen::AngleAxisd{rpy[1] * M_PI / 180.0, Eigen::Vector3d::UnitY()};
+    const auto Rz = Eigen::AngleAxisd{rpy[2] * M_PI / 180.0, Eigen::Vector3d::UnitZ()};
+
+    return (Rz * Ry * Rx).toRotationMatrix();
+}
+
+sf::Quaternion to_quaternion(const Eigen::Matrix3d& R) {
+    Eigen::Quaterniond q(R);
+    return sf::Quaternion{q.x(), q.y(), q.z(), q.w()};
 }
 
 sf::KeyPoint parse_keypoint(const YAML::Node& node) {
@@ -67,13 +71,21 @@ sf::KeyPoint parse_keypoint(const YAML::Node& node) {
     if (!node["position"]) {
         throw std::runtime_error("keyframe is missing required field 'position'");
     }
-    if (!node["quaternion"]) {
-        throw std::runtime_error("keyframe is missing required field 'quaternion'");
+    if (!node["rpy"]) {
+        throw std::runtime_error("keyframe is missing required field 'rpy'");
     }
 
     sf::KeyPoint keypoint;
     keypoint.t = node["t"].as<double>();
-    keypoint.T = sf::Transform{to_quaternion(node["quaternion"]), to_vector3(node["position"])};
+    const auto position_ned = to_vector3(node["position"]);
+    const sf::Vector3 position_enu{position_ned.y(), position_ned.x(), -position_ned.z()};
+
+    const Eigen::Matrix3d ned_R_body = rpy_to_matrix(node["rpy"]);
+    const Eigen::Matrix3d enu_R_ned =
+        (Eigen::Matrix3d() << 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -1.0).finished();
+    const Eigen::Matrix3d enu_R_body = enu_R_ned * ned_R_body;
+
+    keypoint.T = sf::Transform{to_quaternion(enu_R_body), position_enu};
     return keypoint;
 }
 
