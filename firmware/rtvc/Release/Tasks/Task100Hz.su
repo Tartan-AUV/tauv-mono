@@ -1,6 +1,0 @@
-../Util/Logging.hpp:65:20:void __tcf_0()	0	static
-../Tasks/Task100Hz.hpp:32:7:TAUV::Task100Hz::~Task100Hz()	8	static
-../Tasks/Task100Hz.hpp:32:7:virtual TAUV::Task100Hz::~Task100Hz()	8	static
-../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	8	static
-../Tasks/Task100Hz.cpp:19:6:bool TAUV::Task100Hz::init(std::unique_ptr<Resources>)	16	static
-../Tasks/Task100Hz.cpp:52:6:virtual void TAUV::Task100Hz::run()	8	static

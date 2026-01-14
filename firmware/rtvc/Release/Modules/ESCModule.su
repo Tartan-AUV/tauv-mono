@@ -1,6 +1,0 @@
-../Modules/ESCModule.hpp:30:15:virtual const char* TAUV::ESCModule::getName() const	0	static
-../Modules/ESCModule.hpp:31:9:virtual float TAUV::ESCModule::getFrequency() const	0	static
-../Util/Logging.hpp:65:20:void __tcf_0()	0	static
-../Modules/ESCModule.cpp:98:17:virtual TAUV::ModuleRunResult TAUV::ESCModule::run()	32	static
-../Util/Logging.hpp:64:19:static TAUV::Logging& TAUV::Logging::getInstance()	8	static
-../Modules/ESCModule.cpp:18:19:TAUV::ModuleInitResult TAUV::ESCModule::init(const std::array<__UART_HandleTypeDef*, 2>&)	64	static

@@ -2,22 +2,22 @@ repos:
   - repo: local
     hooks:
       - id: clang-format
-        name: C/C++ clang-format (Google)
+        name: C/C++ clang-format
         entry: clang-format
         args: ["-i"]
         language: system
         types_or: [c, c++]
         files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)$
         exclude: ^(firmware/|tools/)
-
-      - id: clang-tidy
-        name: C/C++ clang-tidy
-        entry: clang-tidy
-        args: ["-quiet", "-p", "/tauv-mono/ros_ws/build"]
-        language: system
-        types_or: [c, c++]
-        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)$
-        exclude: ^(firmware/|tools/)
+#       TODO: This just hangs, fix
+#      - id: clang-tidy
+#        name: C/C++ clang-tidy
+#        entry: clang-tidy
+#        args: ["-p", "/tauv-mono/ros_ws/build"]
+#        language: system
+#        types_or: [c, c++]
+#        files: \.(c|cc|cpp|cxx|h|hh|hpp|hxx)$
+#        exclude: ^(firmware/|tools/|ros_ws/src/tauv_sim/stonefish)
 
       - id: ruff-format
         name: Python ruff format

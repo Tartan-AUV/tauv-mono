@@ -31,21 +31,12 @@ if ! docker buildx version >/dev/null 2>&1; then
   exit 1
 fi
 
-# Local cache directory for BuildKit (used in addition to registry cache)
-CACHE_DIR=".buildx-cache"
-
 # Invoke bake. We set build args on the osprey_orin_user target only.
 # The osprey_orin_user target is marked no-cache in docker-bake.hcl so it will always rebuild.
 set -x
 exec docker buildx bake \
   --progress=auto \
   --file osprey-docker-bake.hcl \
-  --set base.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
-  #--set base.cache-from+="type=local,src=${CACHE_DIR}" \
-  --set common.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
-  #--set common.cache-from+="type=local,src=${CACHE_DIR}" \
-  --set osprey_orin.cache-to+="type=local,dest=${CACHE_DIR},mode=max" \
-  #--set osprey_orin.cache-from+="type=local,src=${CACHE_DIR}" \
   --set osprey_orin_user.output=type=docker \
   --load \
   osprey_orin_user

@@ -6,8 +6,21 @@
   <component name="CMakePythonSetting">
     <option name="pythonIntegrationState" value="YES" />
   </component>
-  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$/packages/tauv_stonefish_ros2">
+  <component name="CompDBSettings">
+    <option name="linkedExternalProjectsSettings">
+      <CompDBProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/ros_ws" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/ros_ws" />
+          </set>
+        </option>
+      </CompDBProjectSettings>
+    </option>
+  </component>
+  <component name="CompDBWorkspace" PROJECT_DIR="$PROJECT_DIR$/ros_ws">
     <contentRoot DIR="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 virtualenv at ~/dev/venv-tauv" project-jdk-type="Python SDK" />
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="uv (tools)" project-jdk-type="Python SDK" />
 </project>

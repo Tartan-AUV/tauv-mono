@@ -1,7 +1,11 @@
 build:
   packages-skip:
     - tauv_vehicle
-    - tauv_sim
   symlink-install: true
   merge-install: true
-
+  cmake-args:
+    - "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+    - "-G Ninja"
+    - "-DCMAKE_BUILD_TYPE=Debug"
+  event-handlers:
+    - "console_cohesion+"

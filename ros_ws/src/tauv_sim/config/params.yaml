@@ -1,0 +1,108 @@
+/tauv_sim:
+  ros__parameters:
+    world_T_body_initial:
+      t_world__body_initial: [2.0, 2.0, -1.0]
+      world_R_body_initial: [0.0, 1.0, 0.0,
+                             1.0, 0.0, 0.0,
+                             0.0, 0.0, -1.0]
+
+    osprey:
+      frames:
+        t_cad__body: [0.0, 0.0, 0.0]
+        # cad: ENU, body: NED
+        cad_R_body: [0.0, 1.0, 0.0,
+                     1.0, 0.0, 0.0,
+                     0.0, 0.0, -1.0]
+        t_depth_B: [0.0, 0.0, -0.5]
+        t_cad__imu: [0.0, 0.0, 0.0]
+        cad_R_imu: [0.0, 1.0, 0.0,
+                     1.0, 0.0, 0.0,
+                     0.0, 0.0, -1.0]
+        t_cad__cam0: [2.0, 0.00, +1.0]
+        cad_R_cam0: [1.0, 0.0, 0.0,
+                     0.0, 0.0, 1.0,
+                     0.0, -1.0, 0.0]
+        t_cad__cam1: [-2.0, 0.00, -1.0]
+        cad_R_cam1: [1.0, 0.0, 0.0,
+                     0.0, 0.0, 1.0,
+                     0.0, -1.0, 0.0]
+
+      inertial_buoyancy:
+        mass: 26.0
+        volume: 0.027349
+        t_hull_com_C: [0.0, 0.0, 0.04]
+        t_hull_cob_C: [0.0000, 0.0205, 0.0570]
+        hull_inertia_COM_C: [10.0, 0.0, 0.0,
+                             0.0, 10.0, 0.0,
+                             0.0, 0.0, 10.0]
+
+      sensors:
+        depth:
+          noise_std: 0.0
+          update_rate: 100.0
+        imu:
+          update_rate: 200.0
+          angle_std: [0.0, 0.0, 0.0]
+          angular_velocity_std: [0.0, 0.0, 0.0]
+          yaw_angle_drift: 0.0
+          linear_acceleration_std: [0.0, 0.0, 0.0]
+          angular_velocity_range: [10.0, 10.0, 10.0]
+          linear_acceleration_range: [20.0, 20.0, 20.0]
+        cameras:
+          cam0:
+            update_rate: 10.0
+            horizontal_fov_deg: 150.0
+            exposure: 1.0e-4
+            resolution: [960, 960]
+            display_on_screen: true
+            screen_offset: [0, 0]
+            screen_scale: 0.25
+          cam1:
+            update_rate: 10.0
+            horizontal_fov_deg: 150.0
+            exposure: 1.0e-4
+            resolution: [960, 960]
+            display_on_screen: false
+            screen_offset: [300, 0]
+            screen_scale: 0.25
+
+      actuators:
+        thrusters:
+          v_bat: 16.0
+          deadband_low: -33.0
+          deadband_high: 33.0
+          J_msp: 0.0
+          K_v1: 0.02473
+          K_v2: 5.14e-05
+          K_t: 1.0
+          R_m: 1.0
+          K_F_fwd: 0.0003727
+          K_F_rev: 0.0002963
+          telemetry_rate: 50.0
+          # Right-handed thrusters: FLH, FRH, BLV, FRV
+          right_handed: [1, 0, 1, 0, 0, 0, 1, 1]
+          esc_thruster_ids: [0, 1, 2, 3, 4, 5, 6, 7]
+
+          t_cad__thruster_0: [-0.215, 0.237, 0.079]
+          rpy_cad__thruster_0: [0.0, 0.0, -135.0]
+
+          t_cad__thruster_1: [-0.246, 0.094, -0.006]
+          rpy_cad__thruster_1: [0.0, -90.0, 0.0]
+
+          t_cad__thruster_2: [-0.246, -0.094, -0.006]
+          rpy_cad__thruster_2: [0.0, -90.0, 0.0]
+
+          t_cad__thruster_3: [-0.215, -0.237, 0.079]
+          rpy_cad__thruster_3: [0.0, 0.0, 135.0]
+
+          t_cad__thruster_4: [0.215, -0.237, 0.079]
+          rpy_cad__thruster_4: [0.0, 0.0, 45.0]
+
+          t_cad__thruster_5: [0.246, -0.094, -0.006]
+          rpy_cad__thruster_5: [0.0, -90.0, 0.0]
+
+          t_cad__thruster_6: [0.246, 0.094, -0.006]
+          rpy_cad__thruster_6: [0.0, -90.0, 0.0]
+
+          t_cad__thruster_7: [0.215, 0.237, 0.079]
+          rpy_cad__thruster_7: [0.0, 0.0, -45.0]

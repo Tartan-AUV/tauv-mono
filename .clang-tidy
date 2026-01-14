@@ -5,7 +5,9 @@ Checks: >
   modernize-*,
   performance-*,
   readability-*,
-  google-*,
+  google-build-namespaces,
+  google-global-name-in-headers,
+  readability-identifier-naming,
   cppcoreguidelines-*
 
 WarningsAsErrors: ''
@@ -14,12 +16,42 @@ HeaderFilterRegex: '^(?!.*(?:^|/)firmware/).*'
 FormatStyle: none
 User: precommit
 
+
 CheckOptions:
-  - key:             readability-identifier-naming.VariableCase
-    value:           CamelCase
-  - key:             readability-identifier-naming.PrivateMemberPrefix
-    value:           ''
-  - key:             google-readability-braces-around-statements.ShortStatementLines
-    value:           '1'
-  - key:             modernize-use-nullptr.NullMacros
-    value:           'NULL'
+  # ---- Types ----
+  - { key: readability-identifier-naming.NamespaceCase,           value: lower_case }
+  - { key: readability-identifier-naming.ClassCase,               value: CamelCase }
+  - { key: readability-identifier-naming.StructCase,              value: CamelCase }
+  - { key: readability-identifier-naming.UnionCase,               value: CamelCase }
+  - { key: readability-identifier-naming.EnumCase,                value: CamelCase }
+  - { key: readability-identifier-naming.TypedefCase,             value: CamelCase }
+  - { key: readability-identifier-naming.TypeAliasCase,           value: CamelCase }
+
+  # ---- Functions / Methods ----
+  - { key: readability-identifier-naming.FunctionCase,            value: lower_case }
+  - { key: readability-identifier-naming.MethodCase,              value: CamelCase }
+  - { key: readability-identifier-naming.PrivateMethodCase,       value: CamelCase }
+  - { key: readability-identifier-naming.ProtectedMethodCase,     value: CamelCase }
+
+  # ---- Variables ----
+  - { key: readability-identifier-naming.VariableCase,            value: lower_case }
+  - { key: readability-identifier-naming.ConstantCase,            value: lower_case }
+  - { key: readability-identifier-naming.ParameterCase,           value: lower_case }
+  - { key: readability-identifier-naming.LocalVariableCase,       value: lower_case }
+  - { key: readability-identifier-naming.GlobalVariableCase,      value: lower_case }
+  - { key: readability-identifier-naming.StaticVariableCase,      value: lower_case }
+
+  # ---- Members (Google: trailing underscore) ----
+  - { key: readability-identifier-naming.MemberCase,              value: lower_case }
+  - { key: readability-identifier-naming.MemberSuffix,            value: "_" }
+  - { key: readability-identifier-naming.PrivateMemberSuffix,     value: "_" }
+  - { key: readability-identifier-naming.ProtectedMemberSuffix,   value: "_" }
+
+  # ---- Constexprs ----
+  - { key: readability-identifier-naming.GlobalConstexprVariableCase,   value: UPPER_CASE }
+
+  # ---- Enums ----
+  - { key: readability-identifier-naming.EnumConstantCase,        value: CamelCase }
+
+  # ---- Macros ----
+  - { key: readability-identifier-naming.MacroDefinitionCase,     value: UPPER_CASE }
