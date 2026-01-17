@@ -28,6 +28,17 @@ target "common" {
   }
 }
 
+target "common_rosx" {
+  context    = "."
+  dockerfile = "${COMMON_DOCKERFILE}"
+  target     = "common_rosx"
+  contexts = {
+    base = "target:base"
+  }
+  tags = ["${REGISTRY}/common_rosx:latest"]
+  output = ["type=docker"]
+}
+
 target "desktop_nogpu" {
   context    = "."
   dockerfile = "${APP_DOCKERFILE}"
