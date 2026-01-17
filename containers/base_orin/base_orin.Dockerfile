@@ -115,6 +115,8 @@ RUN mkdir -p /tmp/ros2_humble/src
 
 WORKDIR /tmp/ros2_humble
 
+ENV ROS_DISTRO humble
+
 RUN apt-get update && \
     vcs import --input https://raw.githubusercontent.com/ros2/ros2/humble/ros2.repos src && \
     rosdep init && \

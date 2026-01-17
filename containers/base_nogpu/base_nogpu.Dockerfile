@@ -1,49 +1,89 @@
 #+ syntax=docker/dockerfile:1.7
-FROM ubuntu:noble AS base
+FROM ubuntu:jammy AS base
 
-# Base desktop image for development on Ubuntu 24.04 (noble).
-# Installs ROS 2 Jazzy from the official APT repository.
+# Base desktop image for development on Ubuntu 22.04 (jammy).
+# Mirrors base_orin with CPU-only dependencies.
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# 1) Prerequisites and universe repo
-# - Keep the set minimal; avoid pulling extra recommends.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        git \
-        git-lfs \
-        openssh-client \
-        build-essential \
-        cmake \
-        ninja-build \
-        pkg-config \
-        curl \
-        gnupg2 \
-        lsb-release \
-        ca-certificates \
-        software-properties-common \
-    && add-apt-repository universe \
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    libopenblas-dev \
+    wget \
     && rm -rf /var/lib/apt/lists/*
 
-# 2) ROS 2 APT repo + key (Jazzy for noble)
-RUN set -eux; \
-    curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
-      -o /usr/share/keyrings/ros-archive-keyring.gpg; \
-    echo "deb [signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) main" \
-      > /etc/apt/sources.list.d/ros2.list
-
-# 3) Install ROS 2 Jazzy (desktop) and common dev tools
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        ros-jazzy-desktop \
-        ros-dev-tools \
+# Install OpenCV build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    openssh-client \
+    libgtk-3-dev \
+    pkg-config \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev \
+    python3-dev \
+    python3-numpy \
+    libtbb2 \
+    libtbb-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libv4l-dev \
+    v4l-utils \
+    qv4l2 \
+    curl \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# 4) Convenience: source ROS in default bash environment
-ENV ROS_DISTRO=jazzy
-RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
+# Build and install OpenCV 4.12.0 (CPU-only)
+RUN mkdir -p /tmp/opencv_build && cd /tmp/opencv_build && \
+    curl -L https://github.com/opencv/opencv/archive/4.12.0.zip -o opencv-4.12.0.zip && \
+    curl -L https://github.com/opencv/opencv_contrib/archive/4.12.0.zip -o opencv_contrib-4.12.0.zip && \
+    unzip opencv-4.12.0.zip && \
+    unzip opencv_contrib-4.12.0.zip && \
+    rm opencv-4.12.0.zip opencv_contrib-4.12.0.zip && \
+    cd opencv-4.12.0 && \
+    mkdir release && \
+    cd release && \
+    cmake -D WITH_CUDA=OFF \
+          -D WITH_CUDNN=OFF \
+          -D OPENCV_GENERATE_PKGCONFIG=ON \
+          -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-4.12.0/modules \
+          -D WITH_GSTREAMER=ON \
+          -D WITH_LIBV4L=ON \
+          -D BUILD_opencv_python3=ON \
+          -D BUILD_TESTS=OFF \
+          -D BUILD_PERF_TESTS=OFF \
+          -D BUILD_EXAMPLES=OFF \
+          -D CMAKE_BUILD_TYPE=RELEASE \
+          -D CMAKE_INSTALL_PREFIX=/usr/local \
+          .. && \
+    make -j$(nproc) && \
+    make install && \
+    cd / && \
+    rm -rf /tmp/opencv_build
 
-# 5) Install dependencies for Stonefish
+# Set OpenCV environment variables
+ENV LD_LIBRARY_PATH=/usr/local/lib
+ENV PYTHONPATH=/usr/local/lib/python3.10/site-packages/
+
+# Allow pip global installs
+RUN pip config set global.break-system-packages true
+
+# Install PyTorch CPU wheel
+RUN python3 -m pip install --upgrade pip; \
+    python3 -m pip install numpy=='1.26.1'; \
+    python3 -m pip install --no-cache --index-url https://download.pytorch.org/whl/cpu torch==2.5.0
+
+ENV TZ="America/New_York"
+ENV DEBIAN_FRONTEND="noninteractive"
+
+# Install dependencies for Stonefish
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libgl1-mesa-dev \
@@ -51,11 +91,6 @@ RUN apt-get update \
         libsdl2-dev \
         libfreetype6-dev \
     && rm -rf /var/lib/apt/lists/*
-
-# 6) Pre-populate known_hosts to avoid interactive host key prompts
-RUN mkdir -p -m 0755 /etc/ssh \
-    && touch /etc/ssh/ssh_known_hosts \
-    && ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> /etc/ssh/ssh_known_hosts
 
 WORKDIR /
 

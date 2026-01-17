@@ -71,3 +71,27 @@ RUN mkdir -p /root/.git-hooks \
   && git config --global core.hooksPath /root/.git-hooks \
   && git config --global --add safe.directory /tauv-mono \
   && git config --global push.autoSetupRemote true
+
+RUN cat <<'EOF' > /etc/profile.d/ros2_foxglove.sh
+#!/usr/bin/env bash
+
+if [ -f /opt/ros/humble/setup.bash ]; then
+  source /opt/ros/humble/setup.bash
+fi
+
+case "$-" in
+  *i*) ;;
+  *) return 0 ;;
+esac
+
+if [ -z "${FOXGLOVE_BRIDGE_DISABLE:-}" ] && command -v ros2 >/dev/null 2>&1; then
+  if ros2 pkg prefix foxglove_bridge >/dev/null 2>&1; then
+    if [ ! -f /tmp/foxglove_bridge.started ]; then
+      touch /tmp/foxglove_bridge.started
+      ros2 run foxglove_bridge foxglove_bridge >/tmp/foxglove_bridge.log 2>&1 &
+    fi
+  fi
+fi
+EOF
+
+RUN chmod +x /etc/profile.d/ros2_foxglove.sh

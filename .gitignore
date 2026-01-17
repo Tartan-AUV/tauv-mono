@@ -27,3 +27,6 @@ compile_commands.json
 
 tools/CanTesting/pydronecan
 tools/CanTesting/venv
+
+# Container build cache
+containers/.buildx-cache

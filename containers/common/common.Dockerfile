@@ -1,3 +1,4 @@
+#+ syntax=docker/dockerfile:1.7
 FROM base AS common
 
 # Ensure pip is available for Python package installs
@@ -9,8 +10,73 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages \
     spatialmath-python \
     scipy
 
+# Build and install ROS 2 Humble (ros_core + rviz + rqt) into /opt/ros/humble
+ENV ROS_DISTRO=humble
+
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    && add-apt-repository universe \
+    && apt-get update && apt-get install -y curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') && \
+    curl -L -o /tmp/ros2-apt-source.deb "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo ${UBUNTU_CODENAME:-${VERSION_CODENAME}})_all.deb" && \
+    dpkg -i /tmp/ros2-apt-source.deb
+
+RUN apt-get update && apt-get install -y \
+    python3-flake8-docstrings \
+    python3-pytest-cov \
+    ros-dev-tools \
+    python3-rosinstall-generator \
+    python3-flake8-blind-except \
+    python3-flake8-builtins \
+    python3-flake8-class-newline \
+    python3-flake8-comprehensions \
+    python3-flake8-deprecated \
+    python3-flake8-import-order \
+    python3-flake8-quotes \
+    python3-pytest-repeat \
+    python3-pytest-rerunfailures && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /tmp/ros2_humble/src
+
+WORKDIR /tmp/ros2_humble
+
+RUN rosinstall_generator ros_core rviz2 rqt rqt_common_plugins --rosdistro ${ROS_DISTRO} --deps --tar > /tmp/ros2_humble/ros2-minimal.rosinstall && \
+    vcs import src < /tmp/ros2_humble/ros2-minimal.rosinstall && \
+    rosdep init || true && \
+    rosdep update && \
+    apt-get update && \
+    rosdep install --from-paths src --ignore-src -y --rosdistro ${ROS_DISTRO} --os=ubuntu:jammy --skip-keys "opencv rti-connext-dds-6.0.1" && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN colcon build --merge-install --install-base /opt/ros/humble --packages-up-to ros_core rviz2 rqt rqt_common_plugins && \
+    rm -rf /var/lib/apt/lists/* /tmp/ros2_humble /tmp/ros2-apt-source.deb
+
+RUN apt-get update && apt-get install -y \
+    libboost-all-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Build and install cv_bridge from source
+RUN mkdir -p /tmp/cv_bridge_build && cd /tmp/cv_bridge_build && \
+    git clone https://github.com/ros-perception/vision_opencv.git -b humble src/vision_opencv && \
+    bash -c 'source /opt/ros/humble/setup.bash && colcon build --packages-select cv_bridge --merge-install --install-base /opt/ros/humble' && \
+    rm -rf /tmp/cv_bridge_build
+
+WORKDIR /
+
+# Build and install foxglove_bridge into /opt/ros/humble
+RUN --mount=type=ssh \
+    mkdir -p /root/.ssh /tmp/foxglove_ws/src && \
+    chmod 700 /root/.ssh && \
+    ssh-keyscan github.com >> /root/.ssh/known_hosts && \
+    git clone https://github.com/foxglove/foxglove-sdk.git /tmp/foxglove_ws/src/foxglove-sdk && \
+    git clone git@github.com:foxglove/rosx_introspection.git /tmp/foxglove_ws/src/rosx_introspection && \
+    bash -c 'source /opt/ros/humble/setup.bash && colcon build --merge-install --install-base /opt/ros/humble --base-paths /tmp/foxglove_ws/src/foxglove-sdk/ros/src /tmp/foxglove_ws/src/rosx_introspection --packages-up-to foxglove_bridge' && \
+    rm -rf /tmp/foxglove_ws /root/.ssh
+
 # Codex never hurts
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs
 RUN npm install -g @openai/codex
-
