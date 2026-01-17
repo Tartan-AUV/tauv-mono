@@ -43,12 +43,12 @@ RUN mkdir -p /tmp/ros2_humble/src
 
 WORKDIR /tmp/ros2_humble
 
-RUN rosinstall_generator ros_core rviz2 rqt rqt_common_plugins --rosdistro ${ROS_DISTRO} --deps --tar > /tmp/ros2_humble/ros2-minimal.rosinstall && \
+RUN rosinstall_generator ros_core rosidl_default_generators rosidl_default_runtime rosidl_generator_py rviz2 rqt rqt_common_plugins --rosdistro ${ROS_DISTRO} --deps --tar > /tmp/ros2_humble/ros2-minimal.rosinstall && \
     vcs import src < /tmp/ros2_humble/ros2-minimal.rosinstall && \
     rosdep init || true && \
     rosdep update && \
     apt-get update && \
-    rosdep install --from-paths src --ignore-src -y --rosdistro ${ROS_DISTRO} --os=ubuntu:jammy --skip-keys "opencv rti-connext-dds-6.0.1" && \
+    rosdep install --from-paths src --ignore-src -y --rosdistro ${ROS_DISTRO} --os=ubuntu:jammy --skip-keys "libopencv-contrib-dev libopencv-dev libopencv-imgproc-dev rti-connext-dds-6.0.1" && \
     rm -rf /var/lib/apt/lists/*
 
 RUN colcon build --merge-install --install-base /opt/ros/humble --packages-up-to ros_core rviz2 rqt rqt_common_plugins && \
@@ -58,6 +58,15 @@ RUN apt-get update && apt-get install -y \
     libboost-all-dev && \
     rm -rf /var/lib/apt/lists/*
 
+# Build and install common_interfaces (message targets) into /opt/ros/humble
+RUN mkdir -p /tmp/ros2_msgs_ws/src && \
+    rosinstall_generator common_interfaces --rosdistro ${ROS_DISTRO} --deps --tar > /tmp/ros2_msgs_ws/ros2-msgs.rosinstall && \
+    vcs import /tmp/ros2_msgs_ws/src < /tmp/ros2_msgs_ws/ros2-msgs.rosinstall && \
+    apt-get update && \
+    rosdep install --from-paths /tmp/ros2_msgs_ws/src --ignore-src -y --rosdistro ${ROS_DISTRO} --os=ubuntu:jammy --skip-keys "libopencv-contrib-dev libopencv-dev libopencv-imgproc-dev rti-connext-dds-6.0.1" && \
+    bash -c 'source /opt/ros/humble/setup.bash && colcon build --merge-install --install-base /opt/ros/humble --packages-up-to common_interfaces --base-paths /tmp/ros2_msgs_ws/src' && \
+    rm -rf /tmp/ros2_msgs_ws /var/lib/apt/lists/*
+
 # Build and install cv_bridge from source
 RUN mkdir -p /tmp/cv_bridge_build && cd /tmp/cv_bridge_build && \
     git clone https://github.com/ros-perception/vision_opencv.git -b humble src/vision_opencv && \
@@ -66,15 +75,22 @@ RUN mkdir -p /tmp/cv_bridge_build && cd /tmp/cv_bridge_build && \
 
 WORKDIR /
 
+# Build and install rosx_introspection into /opt/ros/humble
+RUN mkdir -p /tmp/rosx_ws/src && \
+    git clone https://github.com/facontidavide/rosx_introspection.git /tmp/rosx_ws/src/rosx_introspection && \
+    apt-get update && \
+    bash -c 'source /opt/ros/humble/setup.bash && rosdep install --from-paths /tmp/rosx_ws/src --ignore-src -y --rosdistro ${ROS_DISTRO} --os=ubuntu:jammy --skip-keys "libopencv-contrib-dev libopencv-dev libopencv-imgproc-dev"' && \
+    bash -c 'source /opt/ros/humble/setup.bash && colcon build --merge-install --install-base /opt/ros/humble --base-paths /tmp/rosx_ws/src' && \
+    rm -rf /tmp/rosx_ws /var/lib/apt/lists/*
+
 # Build and install foxglove_bridge into /opt/ros/humble
-RUN --mount=type=ssh \
-    mkdir -p /root/.ssh /tmp/foxglove_ws/src && \
-    chmod 700 /root/.ssh && \
-    ssh-keyscan github.com >> /root/.ssh/known_hosts && \
+RUN mkdir -p /tmp/foxglove_ws/src && \
     git clone https://github.com/foxglove/foxglove-sdk.git /tmp/foxglove_ws/src/foxglove-sdk && \
-    git clone git@github.com:foxglove/rosx_introspection.git /tmp/foxglove_ws/src/rosx_introspection && \
-    bash -c 'source /opt/ros/humble/setup.bash && colcon build --merge-install --install-base /opt/ros/humble --base-paths /tmp/foxglove_ws/src/foxglove-sdk/ros/src /tmp/foxglove_ws/src/rosx_introspection --packages-up-to foxglove_bridge' && \
-    rm -rf /tmp/foxglove_ws /root/.ssh
+    apt-get update && \
+    bash -c 'source /opt/ros/humble/setup.bash && rosdep install --from-paths /tmp/foxglove_ws/src --ignore-src -y --rosdistro ${ROS_DISTRO} --os=ubuntu:jammy --skip-keys "libopencv-contrib-dev libopencv-dev libopencv-imgproc-dev"' && \
+    bash -c 'source /opt/ros/humble/setup.bash && colcon build --merge-install --install-base /opt/ros/humble --base-paths /tmp/foxglove_ws/src/foxglove-sdk/ros/src --packages-up-to foxglove_bridge --cmake-args -DBUILD_TESTING=OFF' && \
+    rm -rf /tmp/foxglove_ws /var/lib/apt/lists/*
+
 
 # Codex never hurts
 RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \

@@ -26,7 +26,6 @@ target "common" {
   contexts = {
     base = "target:base"
   }
-  ssh = ["default"]
 }
 
 target "desktop_nogpu" {

@@ -42,7 +42,6 @@ CACHE_DIR=".buildx-cache"
 # The bakefile doesn't use local cache, so we add it here.
 set -x
 exec docker buildx bake \
-  --allow=ssh \
   --progress=auto \
   --file docker-bake.hcl \
   --set base.cache-to+="type=local,dest=${CACHE_DIR}/base,mode=max" \
