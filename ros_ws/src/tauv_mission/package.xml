@@ -7,9 +7,13 @@
   <license>MIT</license>
 
   <!-- Build tool -->
-  <buildtool_depend>ament_python</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake_python</buildtool_depend>
 
   <!-- Runtime dependencies -->
+  <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
+
   <exec_depend>rclpy</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>tauv_msgs</exec_depend>
@@ -20,6 +24,6 @@
   <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <build_type>ament_python</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

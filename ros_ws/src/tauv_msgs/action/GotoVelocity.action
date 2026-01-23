@@ -1,6 +1,8 @@
 # Goal definition
-geometry_msgs/Pose target_pose  # Target pose in odom frame
-float32 velocity                # Desired velocity in m/s
+geometry_msgs/Pose target_pose         # Target pose in odom frame
+float32 velocity                       # Desired velocity in m/s
+geometry_msgs/Point position_tolerance # Allowed distance away from target_pose position in all axes
+float32 angular_tolerance               # Allowed difference in radians between final orientation and orientation in target_pose
 ---
 # Result definition
 bool success                    # Whether the goto was completed
