@@ -17,7 +17,6 @@ void PressureSensorBridge::on_step(const Context& ctx) {
         pressure_msg.avg_window = 0.0F;
         pressure_msg.header.frame_id = frame_id_;
         pressure_msg.header.stamp = ctx.get_ros_time();
-
         pub_->publish(pressure_msg);
     }
 }

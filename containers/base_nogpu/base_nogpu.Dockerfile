@@ -36,6 +36,7 @@ RUN set -eux; \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         ros-jazzy-desktop \
+        ros-jazzy-robot-localization \
         ros-dev-tools \
     && rm -rf /var/lib/apt/lists/*
 
