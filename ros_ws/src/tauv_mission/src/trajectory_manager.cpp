@@ -2,13 +2,14 @@
 
 using Pose = geometry_msgs::msg::Pose;
 using Point = geometry_msgs::msg::Point;
+using Quaternion = geometry_msgs::msg::Quaternion;
 using GotoVelocity = tauv_msgs::action::GotoVelocity;
 using GotoVelocityGoalHandle = rclcpp_action::ClientGoalHandle<tauv_msgs::action::GotoVelocity>;
 
 TrajectoryManagerNode::TrajectoryManagerNode() : Node("trajectory_manager"), trajectorySetpoints() {
     actionClient = rclcpp_action::create_client<GotoVelocity>(
         this,
-        "TrajectoryManagerClient"
+        "TrajectoryManager"
     );
 }
 
@@ -139,11 +140,38 @@ int main(int argc, char** argv){
     
     std::thread testThread([&node]() {
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        Pose test{};
-        node.get()->addSetpoint(test, 10.0f);
+        Pose test1{};
+        test1.position.set__x(3);
+        Pose test2{};
+        test2.position.set__y(3);
+        test2.set__orientation(angleAxis(0, 0, 1, M_PI/2));
+        Pose test3{};
+        test3.position.set__z(3);
+        node.get()->addSetpoint(test1, 10.0f);
+        node.get()->addSetpoint(test2, 10.0f);
+        node.get()->addSetpoint(test3, 10.0f);
     });
 
     rclcpp::spin(node);
     rclcpp::shutdown();
     return 0;
+}
+
+Quaternion angleAxis(float ax, float ay, float az, float angle){
+    float length = sqrt(ax*ax + ay*ay + az*az);
+    float ux = (ax / length);
+    float uy = (ay / length);
+    float uz = (az / length);
+
+    Quaternion result{};
+    result.set__x(ux * sin(angle/2));
+    result.set__y(uy * sin(angle/2));
+    result.set__z(uz * sin(angle/2));
+    result.set__w(cos(angle/2));
+
+    return result;
+}
+
+Quaternion angleAxis(Point axis, float angle){
+    return angleAxis(axis.x, axis.y, axis.z, angle);
 }

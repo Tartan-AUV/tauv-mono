@@ -12,6 +12,7 @@ option(TAUV_SIM_USE_VENDORED_STONEFISH "Build Stonefish from the bundled submodu
 find_package(ament_cmake REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(tauv_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -57,6 +58,7 @@ add_executable(tauv_sim
         src/osprey_sensors.cpp
         src/kinematic_osprey.cpp
         src/fisheye_camera_bridge.cpp
+        src/trajectory_test_osprey.cpp
 )
 target_include_directories(tauv_sim PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -66,6 +68,7 @@ target_compile_features(tauv_sim PUBLIC c_std_99 cxx_std_20)  # Require C99 and 
 ament_target_dependencies(tauv_sim
         ament_index_cpp
         rclcpp
+        rclcpp_action
         tauv_msgs
         sensor_msgs
 )

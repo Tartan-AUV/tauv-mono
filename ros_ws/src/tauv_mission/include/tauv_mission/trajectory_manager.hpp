@@ -41,3 +41,5 @@ class TrajectoryManagerNode : public rclcpp::Node{
 };
 
 int main(int argc, char** argv);
+geometry_msgs::msg::Quaternion angleAxis(float ax, float ay, float az, float angle);
+geometry_msgs::msg::Quaternion angleAxis(geometry_msgs::msg::Point axis, float angle);
