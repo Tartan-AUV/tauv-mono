@@ -30,6 +30,9 @@ struct Frames {
     // TODO: express in CAD frame
     sf::Vector3 t_depth_B;
 
+    // Transform from the DVL frame into the CAD frame
+    sf::Transform cad_T_dvl;
+
     // Transform from the IMU frame into the CAD frame
     sf::Transform cad_T_imu;
 
@@ -76,6 +79,15 @@ struct Imu {
     sf::Vector3 linear_acceleration_std;
     sf::Vector3 angular_velocity_range;
     sf::Vector3 linear_acceleration_range;
+};
+
+struct Dvl {
+    static constexpr std::string_view NS = "osprey.sensors.dvl";
+
+    double update_rate;
+    double linear_velocity_percent_noise;
+    double linear_velocity_stddev_noise;
+    sf::Vector3 linear_velocity_range;
 };
 
 struct FisheyeCamera {

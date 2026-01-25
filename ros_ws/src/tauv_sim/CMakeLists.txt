@@ -52,6 +52,7 @@ add_executable(tauv_sim
         src/osprey.cpp
         src/pressure_sensor_bridge.cpp
         src/imu_bridge.cpp
+        src/dvl_bridge.cpp
         src/context.cpp
         src/config_loader.cpp
         src/util.cpp

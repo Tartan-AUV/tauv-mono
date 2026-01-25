@@ -18,6 +18,7 @@ class ConfigLoader {
 
     config::osprey::sensors::Depth get_depth_params();
     config::osprey::sensors::Imu get_imu_params();
+    config::osprey::sensors::Dvl get_dvl_params();
     std::array<config::osprey::sensors::FisheyeCamera,
                config::osprey::sensors::FisheyeCamera::N_CAMERAS>
     get_fisheye_cameras();

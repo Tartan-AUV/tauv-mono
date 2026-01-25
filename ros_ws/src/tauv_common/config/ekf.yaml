@@ -4,7 +4,7 @@ ekf_filter_node:
         # The frequency, in Hz, at which the filter will output a position estimate. Note that the filter will not begin
         # computation until it receives at least one message from one of the inputs. It will then run continuously at the
         # frequency specified here, regardless of whether it receives more measurements. Defaults to 30 if unspecified.
-        frequency: 30.0
+        frequency: 100.0
 
         # The period, in seconds, after which we consider a sensor to have timed out. In this event, we carry out a predict
         # cycle on the EKF without correcting it. This parameter can be thought of as the minimum frequency with which the
@@ -181,10 +181,10 @@ ekf_filter_node:
         control_config: [true, true, true, true, true, true]
 
         # Places limits on how large the acceleration term will be. Should match your robot's kinematics.
-        acceleration_limits: [1.3, 0.0, 0.0, 0.0, 0.0, 3.4]
+        acceleration_limits: [1.3, 1.3, 1.3, 3.4, 3.4, 3.4]
 
         # Acceleration and deceleration limits are not always the same for robots.
-        deceleration_limits: [1.3, 0.0, 0.0, 0.0, 0.0, 4.5]
+        deceleration_limits: [1.3, 1.3, 1.3, 4.5, 4.5, 4.5]
 
         # If your robot cannot instantaneously reach its acceleration limit, the permitted change can be controlled with these
         # gains

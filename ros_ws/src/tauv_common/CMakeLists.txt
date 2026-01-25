@@ -8,7 +8,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(tauv_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 
 add_executable(depth_converter
@@ -21,7 +21,7 @@ target_compile_features(depth_converter PUBLIC c_std_99 cxx_std_20)  # Require C
 
 ament_target_dependencies(depth_converter
         rclcpp
-        tauv_msgs
+        sensor_msgs
         nav_msgs
 )
 

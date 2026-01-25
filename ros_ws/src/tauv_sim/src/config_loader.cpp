@@ -20,11 +20,12 @@ osprey::Frames ConfigLoader::get_frames() {
 
     auto cad_T_body = get_transform(ns, "cad", "body", false);
     auto t_depth_B = get_vector3(ns, "t_depth_B");
+    auto cad_T_dvl = get_transform(ns, "cad", "dvl", false);
     auto cad_T_imu = get_transform(ns, "cad", "imu", false);
     auto cad_T_cam0 = get_transform(ns, "cad", "cam0", false);
     auto cad_T_cam1 = get_transform(ns, "cad", "cam1", false);
 
-    return {cad_T_body, t_depth_B, cad_T_imu, cad_T_cam0, cad_T_cam1};
+    return {cad_T_body, t_depth_B, cad_T_dvl, cad_T_imu, cad_T_cam0, cad_T_cam1};
 }
 
 osprey::InertialBuoyancy ConfigLoader::get_inertial_buoyancy_params() {
@@ -70,6 +71,20 @@ osprey::sensors::Imu ConfigLoader::get_imu_params() {
             linear_acceleration_std,
             angular_velocity_range,
             linear_acceleration_range};
+}
+
+osprey::sensors::Dvl ConfigLoader::get_dvl_params() {
+    const auto ns = std::string{osprey::sensors::Dvl::NS};
+
+    auto linear_velocity_percent_noise = get_scalar<double>(ns, "linear_velocity_percent_noise");
+    auto linear_velocity_stddev_noise = get_scalar<double>(ns, "linear_velocity_stddev_noise");
+    auto linear_velocity_range = get_vector3(ns, "linear_velocity_range");
+    double update_rate = get_scalar<double>(ns, "update_rate");
+
+    return {update_rate,
+            linear_velocity_percent_noise,
+            linear_velocity_stddev_noise,
+            linear_velocity_range};
 }
 
 std::array<osprey::sensors::FisheyeCamera, osprey::sensors::FisheyeCamera::N_CAMERAS>
