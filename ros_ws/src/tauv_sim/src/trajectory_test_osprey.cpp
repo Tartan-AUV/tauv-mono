@@ -121,9 +121,39 @@ void TrajectoryTestOsprey::execute(const std::shared_ptr<GotoVelocityGoalHandle>
     sf::Transform newTransform = sf::Transform(sfNextOrientation, sfNextPosition);
     goToNewKeypoint(newTransform);
 
+    auto feedback = std::make_shared<GotoVelocity::Feedback>();
+
     // wait until we get there
     while(rclcpp::ok && !withinCurrentTolerance()){
+        // Give feedback to mission planning
+        sf::Transform currentTransform = animated_body_->getCGTransform();
+        sf::Vector3 currentPosition = currentTransform.getOrigin();
 
+        float xDiff = currentPosition.x() - currentTargetPose.position.x;
+        float yDiff = currentPosition.y() - currentTargetPose.position.y;
+        float zDiff = currentPosition.z() - currentTargetPose.position.z;
+        float distanceRemaining = sqrt(xDiff*xDiff + yDiff*yDiff + zDiff*zDiff);
+        
+        Pose currentPose;
+        currentPose.position.set__x(currentPosition.x());
+        currentPose.position.set__y(currentPosition.y());
+        currentPose.position.set__z(currentPosition.z());
+
+        sf::Quaternion sfOrientation;
+        currentTransform.getBasis().getRotation(sfOrientation);
+
+        currentPose.orientation.set__w(sfOrientation.w());
+        currentPose.orientation.set__x(sfOrientation.x());
+        currentPose.orientation.set__y(sfOrientation.y());
+        currentPose.orientation.set__z(sfOrientation.z());
+
+        float currentVelocity = animated_body_->getLinearVelocity().length();
+
+        feedback->current_pose = currentPose;
+        feedback->current_velocity = currentVelocity;
+        feedback->distance_remaining = distanceRemaining;
+
+        goal_handle->publish_feedback(feedback);
     }
 
     auto result = std::make_shared<GotoVelocity::Result>();

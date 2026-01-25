@@ -33,6 +33,7 @@ class TrajectoryManagerNode : public rclcpp::Node{
         std::deque<Setpoint> trajectorySetpoints; //always tries to reach the front item
         std::mutex trajectorySetpointsMutex; // prevents corruption of trajectorySetpoints, locks in functions which modify trajectorySetpoint's contents
         rclcpp_action::Client<tauv_msgs::action::GotoVelocity>::SharedPtr actionClient;
+        rclcpp::TimerBase::SharedPtr retryTimer;
 
         void sendSetpoint();
         void goalResponseCallback(const rclcpp_action::ClientGoalHandle<tauv_msgs::action::GotoVelocity>::SharedPtr& goalHandle);

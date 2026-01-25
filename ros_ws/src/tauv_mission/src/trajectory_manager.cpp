@@ -62,7 +62,13 @@ void TrajectoryManagerNode::sendSetpoint(){
     }
 
     if(!actionClient->wait_for_action_server(std::chrono::milliseconds{100L})) {
-        RCLCPP_ERROR(this->get_logger(), "Action server not available");
+        RCLCPP_ERROR(this->get_logger(), "Action server not available. Trying again in 750ms");
+        retryTimer = this->create_wall_timer(
+        std::chrono::seconds(2),
+        [this]() {
+            retryTimer->cancel();
+            this->sendSetpoint(); 
+        });
         return;
     }
 
