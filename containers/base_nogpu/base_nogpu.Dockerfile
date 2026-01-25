@@ -53,6 +53,14 @@ RUN apt-get update \
         libfreetype6-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# 5.5) Python stuff for data and visualization (pandas + matplotlib)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3 \
+        python3-pandas \
+        python3-matplotlib \
+    && rm -rf /var/lib/apt/lists/*
+
 # 6) Pre-populate known_hosts to avoid interactive host key prompts
 RUN mkdir -p -m 0755 /etc/ssh \
     && touch /etc/ssh/ssh_known_hosts \
