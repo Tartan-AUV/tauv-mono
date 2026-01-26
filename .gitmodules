@@ -10,3 +10,9 @@
 [submodule "ros_ws/src/tauv_common"]
 	path = ros_ws/src/tauv_common
 	url = https://github.com/Tartan-AUV/tauv-core.git
+[submodule "ros_ws/src/tauv_msgs"]
+	path = ros_ws/src/tauv_msgs
+	url = https://github.com/Tartan-AUV/tauv-messages.git
+[submodule "ros_ws/src/tauv_core"]
+	path = ros_ws/src/tauv_core
+	url = https://github.com/Tartan-AUV/tauv-core.git
