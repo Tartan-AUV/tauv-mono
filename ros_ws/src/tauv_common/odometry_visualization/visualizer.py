@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Load your CSV
-df = pd.read_csv("./formatted_csvs/sim_2026.01.24_20.51.41.csv")
+df = pd.read_csv("./formatted_csvs/sim_2026.01.26_03.09.26.csv")
 
 # ---- Trajectory plot ----
 plt.figure(figsize=(6, 6))

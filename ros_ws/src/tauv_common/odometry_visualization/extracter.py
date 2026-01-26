@@ -6,7 +6,7 @@ from nav_msgs.msg import Odometry
 from rclpy.serialization import deserialize_message
 from rosbag2_py import ConverterOptions, SequentialReader, StorageOptions
 
-bag_name = "sim_2026.01.24_20.51.41"
+bag_name = "sim_2026.01.26_03.09.26"
 
 bag_path = "./rosbags/" + bag_name
 csv_path = "./formatted_csvs/" + bag_name + ".csv"

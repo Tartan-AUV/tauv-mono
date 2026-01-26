@@ -38,9 +38,8 @@ OspreySensors::OspreySensors(std::string prefix,
     dvl_sensor_ = std::make_unique<sf::DVL>("dvl",
                                             7,
                                             true,
-                                            dvl_params.update_rate);  // Stonefish uses NED so I
-                                                                      // think true is correct?
-    dvl_sensor_->setRange(dvl_params.linear_velocity_range, 0, 10);
+                                            dvl_params.update_rate);  // Stonefish uses NED so I think true is correct?
+    dvl_sensor_->setRange(dvl_params.linear_velocity_range, 1, 5);
     dvl_sensor_->setNoise(dvl_params.linear_velocity_percent_noise,
                           dvl_params.linear_velocity_stddev_noise,
                           0,
@@ -135,6 +134,7 @@ void OspreySensors::attach_to_robot(sf::FeatherstoneRobot* robot) {
 
     robot->AddLinkSensor(pressure_sensor_.get(), links::OSPREY_BASE, body_T_depth());
     robot->AddLinkSensor(imu_sensor_.get(), links::OSPREY_BASE, body_T_imu());
+    robot->AddLinkSensor(dvl_sensor_.get(), links::OSPREY_BASE, body_T_dvl());
     if (cameras_enabled_) {
         for (size_t i = 0; i < cameras_.size(); ++i) {
             if (cameras_[i]) {
@@ -152,9 +152,11 @@ void OspreySensors::attach_to_animated(sf::AnimatedEntity* entity,
 
     pressure_sensor_->AttachToSolid(entity, body_T_depth());
     imu_sensor_->AttachToSolid(entity, body_T_imu());
+    dvl_sensor_->AttachToSolid(entity, body_T_dvl());
 
     sim_manager->AddSensor(pressure_sensor_.get());
     sim_manager->AddSensor(imu_sensor_.get());
+    sim_manager->AddSensor(dvl_sensor_.get());
 
     if (cameras_enabled_) {
         for (size_t i = 0; i < cameras_.size(); ++i) {
@@ -173,6 +175,9 @@ void OspreySensors::on_step(const Context& ctx) {
     }
     if (imu_bridge_) {
         imu_bridge_->on_step(ctx);
+    }
+    if (dvl_bridge_) {
+        dvl_bridge_->on_step(ctx);
     }
     if (cameras_enabled_) {
         for (auto& bridge : camera_bridges_) {

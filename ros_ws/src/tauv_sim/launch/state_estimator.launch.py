@@ -45,6 +45,12 @@ def generate_launch_description():
                 output="screen",
             ),
             Node(
+                package="tauv_common",
+                executable="dvl_converter",
+                name="dvl_converter",
+                output="screen",
+            ),
+            Node(
                 package="robot_localization",
                 executable="ekf_node",
                 name="ekf_filter_node",

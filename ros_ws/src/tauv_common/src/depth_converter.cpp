@@ -25,8 +25,8 @@ void DepthConverter::pressureCallback(const sensor_msgs::msg::FluidPressure::Sha
     odom.pose.pose.position.z = z;
     odom.pose.pose.orientation.w = 1.0;
 
-    odom.pose.covariance.fill(1000);
-    odom.twist.covariance.fill(1000);
+    odom.pose.covariance.fill(1e6);
+    odom.twist.covariance.fill(1e6);
 
     odom.pose.covariance[14] = msg->variance;  // Z position variance
 

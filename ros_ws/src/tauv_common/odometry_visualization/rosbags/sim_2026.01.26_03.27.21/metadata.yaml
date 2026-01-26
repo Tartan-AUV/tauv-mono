@@ -2,10 +2,10 @@ rosbag2_bagfile_information:
   version: 9
   storage_identifier: mcap
   duration:
-    nanoseconds: 34633331832
+    nanoseconds: 0
   starting_time:
-    nanoseconds_since_epoch: 1769287905314012224
-  message_count: 1040
+    nanoseconds_since_epoch: 9223372036854775807
+  message_count: 0
   topics_with_message_count:
     - topic_metadata:
         name: /odometry/filtered
@@ -28,17 +28,17 @@ rosbag2_bagfile_information:
               nsec: 854775807
             avoid_ros_namespace_conventions: false
         type_description_hash: RIHS01_3cc97dc7fb7502f8714462c526d369e35b603cfc34d946e3f2eda2766dfec6e0
-      message_count: 1040
+      message_count: 0
   compression_format: ""
   compression_mode: ""
   relative_file_paths:
-    - sim_2026.01.24_20.51.41_0.mcap
+    - sim_2026.01.26_03.27.21_0.mcap
   files:
-    - path: sim_2026.01.24_20.51.41_0.mcap
+    - path: sim_2026.01.26_03.27.21_0.mcap
       starting_time:
-        nanoseconds_since_epoch: 1769287905314012224
+        nanoseconds_since_epoch: 9223372036854775807
       duration:
-        nanoseconds: 34633331832
-      message_count: 1040
+        nanoseconds: 0
+      message_count: 0
   custom_data: ~
   ros_distro: jazzy
