@@ -4,3 +4,6 @@
 [submodule "ros_ws/src/tauv_sim"]
 	path = ros_ws/src/tauv_sim
 	url = https://github.com/Tartan-AUV/tauv-sim.git
+[submodule "ros_ws/src/tauv_drivers"]
+	path = ros_ws/src/tauv_drivers
+	url = https://github.com/Tartan-AUV/tauv-drivers.git
