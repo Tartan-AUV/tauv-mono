@@ -7,3 +7,6 @@
 [submodule "ros_ws/src/tauv_drivers"]
 	path = ros_ws/src/tauv_drivers
 	url = https://github.com/Tartan-AUV/tauv-drivers.git
+[submodule "ros_ws/src/tauv_common"]
+	path = ros_ws/src/tauv_common
+	url = https://github.com/Tartan-AUV/tauv-core.git
