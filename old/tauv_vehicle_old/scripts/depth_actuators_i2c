@@ -1,6 +1,0 @@
-#!/usr/bin/env python3
-
-from tauv_vehicle import depth_actuators_i2c
-
-if __name__ == "__main__":
-    depth_actuators_i2c.main()
