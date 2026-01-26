@@ -1,5 +1,6 @@
 build:
   packages-skip:
+    - tauv_drivers
   symlink-install: true
   merge-install: true
   cmake-args:
