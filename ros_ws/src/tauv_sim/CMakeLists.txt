@@ -16,6 +16,9 @@ find_package(tauv_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(geometry_msgs REQUIRED)
 
 set(build_stonefish_from_source ${TAUV_SIM_USE_VENDORED_STONEFISH})
 if (build_stonefish_from_source AND NOT EXISTS "${STONEFISH_SOURCE_DIR}/CMakeLists.txt")
@@ -49,6 +52,7 @@ add_executable(tauv_sim
         src/osprey.cpp
         src/pressure_sensor_bridge.cpp
         src/imu_bridge.cpp
+        src/dvl_bridge.cpp
         src/context.cpp
         src/config_loader.cpp
         src/util.cpp
@@ -68,6 +72,9 @@ ament_target_dependencies(tauv_sim
         rclcpp
         tauv_msgs
         sensor_msgs
+        tf2
+        tf2_ros
+        geometry_msgs
 )
 
 target_link_libraries(tauv_sim

@@ -16,6 +16,7 @@
 
 #include "tauv_sim/config_loader.h"
 #include "tauv_sim/context.h"
+#include "tauv_sim/dvl_bridge.h"
 #include "tauv_sim/fisheye_camera_bridge.h"
 #include "tauv_sim/imu_bridge.h"
 #include "tauv_sim/pressure_sensor_bridge.h"
@@ -41,6 +42,7 @@ class OspreySensors {
    private:
     sf::Transform body_T_depth() const;
     sf::Transform body_T_imu() const;
+    sf::Transform body_T_dvl() const;
     sf::Transform body_T_cam(size_t idx) const;
 
     std::string prefix_;
@@ -52,12 +54,14 @@ class OspreySensors {
 
     std::unique_ptr<sf::Pressure> pressure_sensor_;
     std::unique_ptr<sf::IMU> imu_sensor_;
+    std::unique_ptr<sf::DVL> dvl_sensor_;
     std::array<std::unique_ptr<sf::FisheyeCamera>,
                config::osprey::sensors::FisheyeCamera::N_CAMERAS>
         cameras_;
 
     std::unique_ptr<PressureSensorBridge> pressure_bridge_;
     std::unique_ptr<ImuBridge> imu_bridge_;
+    std::unique_ptr<DvlBridge> dvl_bridge_;
     std::array<std::unique_ptr<FisheyeCameraBridge>,
                config::osprey::sensors::FisheyeCamera::N_CAMERAS>
         camera_bridges_;

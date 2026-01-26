@@ -55,6 +55,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // Can't just use init(argc, argv) because we don't want to pass our custom args to ROS (e.g. --kinematic)
     std::vector<char*> ros_argv;
     ros_argv.reserve(parsed.ros_args.size() + 1);
     ros_argv.push_back(argv[0]);

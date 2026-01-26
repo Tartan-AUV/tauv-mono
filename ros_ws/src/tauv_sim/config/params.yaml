@@ -14,15 +14,19 @@
                      1.0, 0.0, 0.0,
                      0.0, 0.0, -1.0]
         t_depth_B: [0.0, 0.0, -0.5]
+        t_cad__dvl: [0.0, 0.0, 0.0] # Update with actual translation
+        cad_R_dvl: [0.0, 1.0, 0.0,
+                     1.0, 0.0, 0.0,
+                     0.0, 0.0, -1.0]
         t_cad__imu: [0.0, 0.0, 0.0]
         cad_R_imu: [0.0, 1.0, 0.0,
                      1.0, 0.0, 0.0,
                      0.0, 0.0, -1.0]
-        t_cad__cam0: [2.0, 0.00, +1.0]
+        t_cad__cam0: [0.159, 0.233, -0.152]
         cad_R_cam0: [1.0, 0.0, 0.0,
                      0.0, 0.0, 1.0,
                      0.0, -1.0, 0.0]
-        t_cad__cam1: [-2.0, 0.00, -1.0]
+        t_cad__cam1: [-0.159, 0.233, -0.152]
         cad_R_cam1: [1.0, 0.0, 0.0,
                      0.0, 0.0, 1.0,
                      0.0, -1.0, 0.0]
@@ -48,6 +52,11 @@
           linear_acceleration_std: [0.0, 0.0, 0.0]
           angular_velocity_range: [10.0, 10.0, 10.0]
           linear_acceleration_range: [20.0, 20.0, 20.0]
+        dvl:
+          update_rate: 10.0
+          linear_velocity_percent_noise: 0.0
+          linear_velocity_stddev_noise: 0.0
+          linear_velocity_range: [10.0, 10.0, 10.0]
         cameras:
           cam0:
             update_rate: 10.0

@@ -81,7 +81,7 @@ void TauvSimulationManager::SimulationStepCompleted(sf::Scalar time_step) {
     // Spin the ROS node
     executor_.spin_some();
 
-    // Publish available sensor date and propagate control inputs into teh into the stonefish model
+    // Publish available sensor date and propagate control inputs into the stonefish model
     if (kinematic_robot_) {
         kinematic_robot_->on_step(ctx_);
     } else if (robot_) {
