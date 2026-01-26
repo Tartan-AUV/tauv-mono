@@ -1,0 +1,27 @@
+include "util.fbs";
+
+namespace TAUV_FB;
+
+table Eth100HzMsg {
+    imu_data:[XsensIMUFrame];
+    depth_data:DepthSensorFrame;
+}
+
+table XsensIMUFrame {
+  sample_time_fine:uint32;
+  packet_counter:uint32;
+  orientation:Quat;
+  rate_of_turn:Vec3;
+  free_acceleration:Vec3;
+  pressure:float;
+  temperature:float;
+}
+
+table DepthSensorFrame {
+  pressure: float;
+  depth: float;
+  temperature: float;
+}
+
+root_type Eth100HzMsg;
+
