@@ -1,22 +1,22 @@
 FROM base AS common
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        ros-jazzy-robot-localization \
+# System dependencies only
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-robot-localization \
+    python3-pip \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
-# Ensure pip is available for Python package installs
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3-pip \
-    && rm -rf /var/lib/apt/lists/*
+# Create virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        python3-pandas \
-        python3-matplotlib \
-    && rm -rf /var/lib/apt/lists/*
+# Upgrade pip tooling (optional but recommended)
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# PLEASE FIX THIS AT SOME POINT??
-RUN python3 -m pip install --no-cache-dir --break-system-packages \
-    spatialmath-python \
-    scipy
+# All Python packages live in the venv
+RUN pip install --no-cache-dir \
+    pandas \
+    matplotlib \
+    scipy \
+    spatialmath-python
