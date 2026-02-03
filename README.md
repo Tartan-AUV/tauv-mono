@@ -1,53 +1,83 @@
 # TAUV-MONO
-![build](https://github.com/Tartan-AUV/tauv-mono/actions/workflows/build-desktop-nogpu.yml/badge.svg)
 
 This is the monorepo for all Tartan-AUV vehicle code, tools, and infrastructure. 
 
-# Development / Sim Setup
-TODO
+## Development Environment Setup
 
-# Conventions
-We use NED for most things. (If you see ENU somewhere, flag it since we should update all code to be consistent with the NED frame system)
-![NED Frame](https://www.researchgate.net/publication/324590547/figure/fig3/AS:616757832200198@1524057934794/Body-frame-and-NED-frame-representation-of-linear-velocities-u-v-w-forces-X-Y-Z.png)
+Follow these instructions to set up the development environment and simulator on a fresh machine.
 
-TODO: move this somewhere else
+### 1. Environment Setup
+* **Create a Virtual Machine:** Install the newest version of Ubuntu.
+    * *Disk Space:* **30GB** minimum (**40GB** recommended).
+* **Enable OpenSSH:** Ensure you can access the VM remotely.
+* **Install GUI:** Install XFCE (a lightweight GUI) to display the simulator later:
+    ```bash
+    sudo apt update
+    sudo apt install xfce4
+    ```
+* **Connect via SSH:**
+    1. Find the IP address of the VM:
+       ```bash
+       ip a
+       ```
+    2. Use this IP address to SSH into the machine for the remaining steps.
+
+### 2. Install Dependencies
+**Docker Engine**
+1.  Install the Docker Engine following the official guide: [Install Docker on Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
+2.  (Optional) Add your user to the docker group to run docker without `sudo`:
+    ```bash
+    sudo usermod -aG docker $USER
+    ```
+3.  Authenticate with the GitHub Container Registry:
+    ```bash
+    docker login ghcr.io
+    ```
+
+**Git Configuration**
+1.  Configure global Git settings:
+    ```bash
+    git config --global user.name "Your Name"
+    git config --global user.email "your.email@example.com"
+    ```
+2.  Set up your SSH key with GitHub to allow for authentication during cloning.
+
+### 3. Installation & Build
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/Tartan-AUV/tauv-mono.git
+    ```
+
+2.  **Build the Docker container:**
+    ```bash
+    cd tauv-mono/containers
+    ./build_desktop_docker.sh
+	docker compose up -d tauv-desktop
+    ```
+
+3. **Attach to the container:**
+	Using the `Dev Containers` extension on VSCode, you should be able to attach to the container.
+	* Your VSCode may complain about unsafe repositories. This is simply because our code is segmented into submodules, and you can just mark everything as safe.
+
+4.  **Build the ROS 2 Workspace:**
+    Once inside the container, build the workspace and source the setup script:
+    ```bash
+    colcon build --symlink-install
+    source install/setup.bash
+    ```
+The development environment has now been built.
+
+
+### 5. Useful Commands/Tips
+**Docker**
+* *To be added*
+
+**ROS**
+* *To be added*
 
 # ROS Packages
 
 ## Dependencies
 
-ROS Package dependencies MUST be acyclic. Therefore, only create new ros packages when you really want to encapsulate something that does not need to be tightly coupled to the rest of the system.
-
-Current dependency tree:
-
-```
-tauv_mission
-- tauv_common
-- tauv_vehicle
-	- tauv_common
-```
-
-TODO: is this even accurate..?
-
 ## Package list
-Each package contains a more detailed readme in their folder.
-
-### tauv_common
-This package is the common shared nodes between all the other packages. Most other packages will depend on tauv_common, but tauv_common should not depend on any other tauv packages with the exception of tauv_config.
-Core frameworks like watchdogs, exceptions, thruster managers, and things like that live in common. In addition, reusable navigation, controls, state estimation, planning, etc code should live here. Common perception code should live here, such as object detection, point cloud registration, and things that can be reused.
-
-### tauv_mission
-This is where mission code lives. Mission code is defined as code that is specific to a single mission. For example, code to navigate dice, hit buoys, pick up garlic, or go through the gate is mission-specific. If it is specific to a single competition element, it belongs in here.
-In addition to mission-code, the mission package also contains system-wide launchfiles, such as system.launch.
-
-### tauv_vehicle
-This is where driver code lives. Abstracts the vehicle from the mission. This package is designed to mirror the behavior of the simulator, but with real hardware. Things like thruster drivers, sensor drivers, etc should live here. Vehicle-specific hardware launchfiles live here as well.
-
-### tauv_config
-this folder contains one package for each vehicle as well as a tauv_config package that simply declares dependencies on the other packages. Packages relying on vehicle configuration info should depend on the tauv_config package, and use the model_name arg when determining paths to configuration files. Vehicle_description packages contain URDFs, config yamls, thruster allocation matrices (TAMs), meshes for gazebo, and other vehicle-specific info.
-
-### tauv_gui
-This is the package for the operator interface. ROS Multimaster is used to connect the gui to the sub. Both platforms need to be running avahi for this to work, and you need to run the setup script in the gui package before launching it.
-
-### uuv-simulator
-This folder contains all of the simulator packages and gazebo plugins necessary to simulate the vehicle. UUV-Simulator depends on the vehicle_description packages to describe gazebo meshes and URDFs including hydrodynamics information.
+Each package *will* contain a more detailed readme in their folder
