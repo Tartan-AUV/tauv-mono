@@ -1,7 +1,7 @@
 FROM nvcr.io/nvidia/l4t-jetpack:r36.4.0 AS base
 
 # set debian non-interactive mode
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 
 RUN apt-get update && apt-get install -y \
@@ -75,9 +75,8 @@ RUN mkdir -p /tmp/opencv_build && cd /tmp/opencv_build && \
     rm -rf /tmp/opencv_build
 
 # Set OpenCV environment variables
-ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-ENV PYTHONPATH=/usr/local/lib/python3.10/site-packages/:$PYTHONPATH
-
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+ENV PYTHONPATH="/usr/local/lib/python3.10/site-packages/:${PYTHONPATH}"
 # Install PyTorch from NVIDIA wheel
 RUN python3 -m pip install --upgrade pip; python3 -m pip install numpy=='1.26.1'; python3 -m pip install --no-cache https://developer.download.nvidia.com/compute/redist/jp/v61/pytorch/torch-2.5.0a0+872d972e41.nv24.08.17622132-cp310-cp310-linux_aarch64.whl
 
@@ -115,6 +114,7 @@ RUN mkdir -p /tmp/ros2_humble/src
 
 WORKDIR /tmp/ros2_humble
 
+#ROSDEP MASTER KEYS EXCLUDE OPENCV-  python path cuda cv 
 RUN apt-get update && \
     vcs import --input https://raw.githubusercontent.com/ros2/ros2/humble/ros2.repos src && \
     rosdep init && \
@@ -142,7 +142,13 @@ RUN cd /opt/arena/ && \
 RUN apt-get update && apt-get install -y \
     libboost-all-dev && \
     rm -rf /var/lib/apt/lists/*
-    
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+	ros-humble-nmea-msgs \
+	ros-humble-mavros-msgs \
+    && rm -rf /var/lib/apt/lists/*
+
 # Build and install cv_bridge from source
 RUN mkdir -p /tmp/cv_bridge_build && cd /tmp/cv_bridge_build && \
     git clone https://github.com/ros-perception/vision_opencv.git -b humble src/vision_opencv && \
