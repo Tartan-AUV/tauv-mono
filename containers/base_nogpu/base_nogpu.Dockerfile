@@ -15,6 +15,7 @@ RUN apt-get update \
         openssh-client \
         build-essential \
         cmake \
+        ninja-build \
         pkg-config \
         curl \
         gnupg2 \
@@ -39,8 +40,8 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # 4) Convenience: source ROS in default bash environment
-# This is stupid
 ENV ROS_DISTRO=humble
+ENV ROS_VERSION=2
 RUN echo "source /opt/ros/humble/setup.bash" >> /etc/bash.bashrc
 
 # 5) Install dependencies for Stonefish

@@ -1,21 +1,60 @@
 FROM base AS common
 
-# System dependencies only
+# -----------------------------
+# System dependencies
+# -----------------------------
+# Add Toolchain PPA for GCC 13
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-humble-robot-localization \
-    python3-pip \
-    python3-venv \
+        software-properties-common \
+    && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        # ROS packages
+        ros-humble-robot-localization \
+        # Python
+        python3-pip \
+        python3-venv \
+        # C++ build tools (GCC 11 and 13)
+        gcc-11 \
+        g++-11 \
+        gcc-13 \
+        g++-13 \
+        libstdc++-13-dev \
+        make \
+        cmake \
     && rm -rf /var/lib/apt/lists/*
 
-# Create virtual environment
+# -----------------------------
+# Set GCC 13 as default
+# -----------------------------
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 10 \
+    && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 20 \
+    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 10 \
+    && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 20
+
+ENV CC=gcc-13
+ENV CXX=g++-13
+
+# -----------------------------
+# Python virtual environment
+# -----------------------------
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Upgrade pip tooling (optional but recommended)
+# Upgrade pip, setuptools, wheel
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
-# All Python packages live in the venv
+# -----------------------------
+# Python packages (ROS build + runtime)
+# -----------------------------
 RUN pip install --no-cache-dir \
+    catkin_pkg \
+    empy==3.3.4 \
+    lark==1.1.1 \
+    pyyaml \
+    numpy \
+    pyparsing==2.4.7 \
+    rosdistro \
     pandas \
     matplotlib \
     scipy \
