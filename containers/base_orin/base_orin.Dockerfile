@@ -147,6 +147,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
 	ros-humble-nmea-msgs \
 	ros-humble-mavros-msgs \
+    python3-smbus2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Build and install cv_bridge from source
