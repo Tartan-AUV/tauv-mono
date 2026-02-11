@@ -6,7 +6,7 @@
 *.d
 *.a
 *.DS_Store
-
+*.venv
 ### VisualStudioCode ###
 .vscode/
 !.vscode/settings.json

@@ -70,6 +70,6 @@ target "osprey_orin_user" {
     base = "target:osprey_orin"
   }
   tags = ["${REGISTRY}/osprey_orin_user:${IMAGE_TAG}"]
-  no-cache = true
+  no-cache = false
   output = ["type=docker"] 
 }
