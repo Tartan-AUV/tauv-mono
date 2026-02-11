@@ -147,7 +147,6 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
 	ros-humble-nmea-msgs \
 	ros-humble-mavros-msgs \
-	ros-humble-foxglove-bridge \
     python3-smbus2 \
     && rm -rf /var/lib/apt/lists/*
 
