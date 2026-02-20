@@ -8,6 +8,8 @@ import time
 import sys
 import select
 import dronecan
+import pandas as pd
+import numpy as np
 
 # =============================================================================
 # CONFIGURATION
@@ -16,12 +18,41 @@ import dronecan
 INTERFACE = 'can1'
 NODE_ID = 12
 BITRATE = 1000000
-ESC_COUNT = 5
+ESC_COUNT = 8
 
 COMMAND_RATE_HZ = 50
 DNA_DB_PATH = "./dronecan_dna.db"
 DISCOVERY_TIME = 5.0  # seconds to discover nodes
 
+SWEEP_MAX = 1.0              # max throttle for sweep (0.0 to 1.0)
+THRUSTINDEX = 2
+THRUSTID = 104
+NUM_SWEEPS = 3
+SWEEP_STEPS = 200      
+SWEEP_STEP_DURATION = 1.3  # seconds to hold each step
+SETTLE_TIME = 0.15       # seconds to wait before recording at each step
+DATA_FILE = 'thruster_sweep.csv'
+
+
+LONG_HELP = """
+Commands:
+    arm                 - Arm the ESCs (enable motor output)    
+    disarm              - Disarm the ESCs (disable motor output)
+    stop                - Set all throttles to 0
+    t <idx> <val>       - Set throttle of ESC at index (0 to
+                            ESC_COUNT-1) to value (-1.0 to 1.0) 
+    tr <val>           - Set all throttles to value (-1.0 to 1.0)
+    ta <v0> <v1> ...    - Set all throttles to specified
+                            values (-1.0 to 1.0)        
+    telem              - Print latest telemetry from all nodes
+    hz <rate>          - Set command rate in Hz (default 50)
+    nodes               - List discovered nodes and ESCs
+    restart [node_id]  - Restart a node by ID, or all ESCs if
+                            no ID given
+    sweep <esc_index> <count> - Start a sweep test on the specified ESC index (0 to ESC_COUNT-1)
+    quit                - Exit the program
+""" 
+HELP_TEXT = "Commands: arm, disarm, stop, t <idx> <val>, tr <val>, ta <v0-vN>, telem, hz <rate>, nodes, restart [node_id], sweep <esc_index> <count>, quit"
 # =============================================================================
 
 
@@ -186,6 +217,118 @@ class ESCController:
                 print(f"  Node {node_id}: (info pending)")
         print(f"Nanodrive ESCs: {self.nanodrive_escs}")
 
+    def _wait_for_rpm_zero(self):
+        print("  Waiting for RPM to reach 0...")
+        self.stop_all()
+        wait_start = time.time()
+        while True:
+            if THRUSTID in self.telemetry and self.telemetry[THRUSTID]['rpm'] == 0:
+                break
+            time.sleep(0.1)
+        print(f"  RPM is 0 after {time.time() - wait_start:.1f}s")
+        time.sleep(1)
+
+    def _sweep(self, esc_index,SWEEP_MAX=SWEEP_MAX,SWEEP_STEPS=SWEEP_STEPS):
+        # 0 -> max, then 0 -> -max
+        halves = [
+            np.linspace(0, SWEEP_MAX, SWEEP_STEPS // 2),
+            np.linspace(0, -SWEEP_MAX, SWEEP_STEPS // 2),
+        ]
+        buffer = []
+
+        print(f"\nStarting sweep on ESC index {esc_index}")
+        print(f"{SWEEP_STEPS} steps x {SWEEP_STEP_DURATION}s = {SWEEP_STEPS * SWEEP_STEP_DURATION:.0f}s total")
+
+        if not self.armed:
+            print("Arming for sweep...")
+            self.arm()
+
+        for half_idx, gains in enumerate(halves):
+            if half_idx == 1:
+                print("  Waiting for RPM to reach 0 before negative sweep...")
+                self.set_throttle(esc_index, 0.0)
+                time.sleep(SETTLE_TIME)
+                while True:
+                    if THRUSTID in self.telemetry and self.telemetry[THRUSTID]['rpm'] == 0:
+                        break
+                    time.sleep(0.1)
+                print("  RPM is 0, starting negative sweep...")
+                time.sleep(1)
+
+            for gain in gains:
+                self.set_throttle(esc_index, gain)
+                step_start = time.time()
+                step_samples = []
+
+                while time.time() - step_start < SWEEP_STEP_DURATION:
+                    if THRUSTID in self.telemetry:
+                        t = self.telemetry[THRUSTID]
+                        step_samples.append({
+                            'esc_index': esc_index,
+                            'gain':      int(gain * 8191),
+                            'timestamp': t['timestamp'],
+                            'rpm':       t['rpm'],
+                            'voltage':   t['voltage'],
+                            'current':   t['current'],
+                            'power_pct': t['power_rating_pct'],
+                            'is_last':   0,
+                        })
+                    time.sleep(0.01)
+
+                if step_samples:
+                    step_samples[-1]['is_last'] = 1
+                    buffer.extend(step_samples)
+
+                if THRUSTID in self.telemetry:
+                    t = self.telemetry[THRUSTID]
+                    print(f"  gain={gain:+.2f}  rpm={t['rpm']:6d}  V={t['voltage']:.2f}  T={t['temperature_c']:.2f}  A={t['current']:.2f} samples={len(step_samples)}")
+                    if t['voltage'] <= 14.0:
+                        print("  WARNING: voltage low, stopping sweep")
+                        break
+                else:
+                    print(f"  gain={gain:+.2f}  no telemetry")
+
+        self.set_throttle(esc_index, 0.0)
+
+        import pandas as pd
+        df = pd.DataFrame(buffer)
+        df = df.drop_duplicates(subset=['timestamp'])
+
+        try:
+            existing = pd.read_csv(DATA_FILE)
+            df = pd.concat([existing, df], ignore_index=True)
+        except FileNotFoundError:
+            pass
+        df.to_csv(DATA_FILE, index=False)
+        print(f"\nSweep done. Saved {len(df)} points to {DATA_FILE}\n> ", end='')
+        sys.stdout.flush()
+
+    def _sweep_full(self, esc_index, count):
+        steps_phase1 = max(4, int(SWEEP_STEPS * (SWEEP_MAX * 0.6) / SWEEP_MAX))
+        steps_phase2 = SWEEP_STEPS
+
+        step_time = SWEEP_STEP_DURATION + SETTLE_TIME
+        phase1_time = steps_phase1 * step_time
+        phase2_time = steps_phase2 * step_time
+        total_time = (phase1_time + phase2_time) * count
+        print(f"\nFull sweep: {count} run(s), each ~{phase1_time + phase2_time:.0f}s = ~{total_time:.0f}s total (excludes RPM-zero waits)")
+        print(f"Phase 1: {steps_phase1} steps, Phase 2: {steps_phase2} steps")
+
+        for i in range(count):
+            self._wait_for_rpm_zero()
+            print(f"\n--- Run {i+1}/{count} ---")
+
+            print(f"Phase 1: sweep -{SWEEP_MAX*0.6:.2f} to {SWEEP_MAX*0.6:.2f}  (~{phase1_time:.0f}s)")
+            self._sweep(esc_index, SWEEP_MAX=SWEEP_MAX*0.6, SWEEP_STEPS=steps_phase1)
+
+            self._wait_for_rpm_zero()
+
+            print(f"Phase 2: sweep -{SWEEP_MAX:.2f} to {SWEEP_MAX:.2f}  (~{phase2_time:.0f}s)")
+            self._sweep(esc_index, SWEEP_MAX=SWEEP_MAX, SWEEP_STEPS=steps_phase2)
+
+            
+
+        print(f"\nAll {count} runs complete.") 
     def handle_command(self, cmd):
         """Process a CLI command. Returns True to continue, False to quit."""
         cmd = cmd.strip()
@@ -217,7 +360,24 @@ class ESCController:
                 print(f"Throttle[{idx}] = {val}")
             except ValueError:
                 print("Usage: t <index> <value>")
-        
+        elif parts[0] == 'sweep' and len(parts) == 3:
+            try:
+                idx = int(parts[1])
+                count = int(parts[2])
+                import threading
+                t = threading.Thread(target=self._sweep_full, args=(idx,count,), daemon=True)
+                t.start()
+            except ValueError:
+                print("Usage: sweep <esc_index> <count>")
+        elif parts[0] == 'tr':
+            try:
+                val = int(parts[1])
+                self.set_all_throttles([val]*ESC_COUNT)
+                print(f"Throttle[{idx}] = {val}")
+            except ValueError:
+                print("Usage: tr <value>")
+
+
         elif parts[0] == 'ta':
             try:
                 vals = [float(x) for x in parts[1:]]
@@ -263,7 +423,7 @@ class ESCController:
                 print("Usage: restart [node_id]")
         
         else:
-            print("Commands: arm, disarm, stop, t <idx> <val>, ta <v0-v4>, telem, hz <rate>, nodes, restart [node_id], quit")
+            print(HELP_TEXT)
         
         return True
 
@@ -288,7 +448,7 @@ class ESCController:
                     discovery_done = True
                     print(f"\nDiscovery complete. Found {len(self.nanodrive_escs)} ESCs: {self.nanodrive_escs}")
                     print(f"Running at {self.command_rate_hz}Hz")
-                    print("Commands: arm, disarm, stop, t <idx> <val>, ta <v0-v4>, telem, hz <rate>, nodes, restart [node_id], quit")
+                    print(HELP_TEXT)
                     print()
                     sys.stdout.write("> ")
                     sys.stdout.flush()
