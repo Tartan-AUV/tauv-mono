@@ -23,7 +23,9 @@
 
 # Compile commands
 compile_commands.json
-
+*.venv
+ros_ws/bags
+tools/CanTesting/thruster_sweep.csv
 
 tools/CanTesting/pydronecan
 tools/CanTesting/venv
