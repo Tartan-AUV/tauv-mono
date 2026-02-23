@@ -116,7 +116,7 @@ class ESCParamManager:
 
     def _on_node_status(self, event):
         node_id = event.transfer.source_node_id
-        if node_id not in self.discovered_nodes and 100 <= node_id <= 112:
+        if node_id not in self.discovered_nodes and 99 <= node_id <= 100:
             self.discovered_nodes[node_id] = None
             print(f"Found node {node_id}")
             self._request_node_info(node_id)

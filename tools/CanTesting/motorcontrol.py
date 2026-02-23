@@ -115,7 +115,6 @@ class ESCController:
         }
         
         
-        self.on_telemetry(node_id, self.telemetry[node_id])
 
     def _on_node_status(self, event):
         msg = event.message
@@ -371,9 +370,10 @@ class ESCController:
                 print("Usage: sweep <esc_index> <count>")
         elif parts[0] == 'tr':
             try:
-                val = int(parts[1])
+                val = float(parts[1])
+                
                 self.set_all_throttles([val]*ESC_COUNT)
-                print(f"Throttle[{idx}] = {val}")
+                
             except ValueError:
                 print("Usage: tr <value>")
 
