@@ -8,7 +8,12 @@ Follow these instructions to set up the development environment and simulator on
 
 ### 1. Environment Setup
 * **Create a Virtual Machine:** Install the newest version of Ubuntu.
+* **Download VMware Fusion 13** Go to VMware.com, Create a broadcom account, Fusion and Workstation
     * *Disk Space:* **30GB** minimum (**40GB** recommended).
+    * Click the wrench icon and increase size, then run
+      ```
+      sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+      ```
 * **Enable OpenSSH:** Ensure you can access the VM remotely.
 * **Install GUI:** Install XFCE (a lightweight GUI) to display the simulator later:
     ```bash
@@ -33,6 +38,9 @@ Follow these instructions to set up the development environment and simulator on
     ```bash
     docker login ghcr.io
     ```
+    * Username is github, password is github key
+    * Settings -> developer settings -> personal access tokens -> tokens (classic).
+    * Turn on repo, write:packages, user, 
 
 **Git Configuration**
 1.  Configure global Git settings:
@@ -56,7 +64,7 @@ Follow these instructions to set up the development environment and simulator on
     ```
 
 3. **Attach to the container:**
-	Using the `Dev Containers` extension on VSCode, you should be able to attach to the container.
+	Using the `Dev Containers` extension on VSCode, you should be able to attach to the container. Dev Containers: Attach to Running Container
 	* Your VSCode may complain about unsafe repositories. This is simply because our code is segmented into submodules, and you can just mark everything as safe.
     * Can also use `docker exec -it [Container Name] bash` to attach 
 
@@ -66,6 +74,10 @@ Follow these instructions to set up the development environment and simulator on
     colcon build --symlink-install
     source install/setup.bash
     ```
+    * if it freezes it might have run out of memory, run this:
+      ```
+      colcon build --symlink-install --parallel-workers 1
+      ```
 The development environment has now been built.
 
 
