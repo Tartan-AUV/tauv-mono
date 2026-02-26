@@ -7,18 +7,23 @@ This is the monorepo for all Tartan-AUV vehicle code, tools, and infrastructure.
 Follow these instructions to set up the development environment and simulator on a fresh machine.
 
 ### 1. Environment Setup
+* **Download VMware Fusion 13** Go to VMware.com and download Fusion and Workstation in the VMWare products. You will need to create a broadcom account. Download VMware fusion 13
 * **Create a Virtual Machine:** Install the newest version of Ubuntu.
-* **Download VMware Fusion 13** Go to VMware.com, Create a broadcom account, Fusion and Workstation
     * *Disk Space:* **30GB** minimum (**40GB** recommended).
-    * Click the wrench icon and increase size, then run
+    * Click the wrench icon in VMware fusion and increase size, then run
       ```
       sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
+      sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
       ```
 * **Enable OpenSSH:** Ensure you can access the VM remotely.
 * **Install GUI:** Install XFCE (a lightweight GUI) to display the simulator later:
     ```bash
     sudo apt update
     sudo apt install xfce4
+    ```
+    * If it says failed to log in after installing xfce4. Press Ctrl+Alt+F3 to open and run:
+    ```
+    sudo apt-get install plasma-desktop
     ```
 * **Connect via SSH:**
     1. Find the IP address of the VM:
@@ -38,9 +43,9 @@ Follow these instructions to set up the development environment and simulator on
     ```bash
     docker login ghcr.io
     ```
-    * Username is github, password is github key
+    * Username is your github username, password is github key
     * Settings -> developer settings -> personal access tokens -> tokens (classic).
-    * Turn on repo, write:packages, user, 
+    * Turn on repo, write:packages, user, delete:packages, admin:ssh_signing_key
 
 **Git Configuration**
 1.  Configure global Git settings:
@@ -74,10 +79,12 @@ Follow these instructions to set up the development environment and simulator on
     colcon build --symlink-install
     source install/setup.bash
     ```
-    * if it freezes it might have run out of memory, run this:
+    * Recommended **8GB** of memory.
+    * If it freezes while building it might have run out of memory, run this:
       ```
       colcon build --symlink-install --parallel-workers 1
       ```
+      The --parallel-workers flag restricts building to one package at a time. 
 The development environment has now been built.
 
 
