@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y --no-install-recommends \
         # ROS packages
         ros-humble-robot-localization \
+        ros-humble-rosbag2-storage-mcap \
         # Python
         python3-pip \
         python3-venv \
