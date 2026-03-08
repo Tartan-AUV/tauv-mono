@@ -28,7 +28,9 @@ Follow these instructions to set up the development environment and simulator on
 2.  (Optional) Add your user to the docker group to run docker without `sudo`:
     ```bash
     sudo usermod -aG docker $USER
+    newgrp docker
     ```
+    > `newgrp docker` activates the group in your current shell so you don't need to log out and back in.
 3.  Authenticate with the GitHub Container Registry:
     ```bash
     docker login ghcr.io

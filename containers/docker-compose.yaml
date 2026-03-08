@@ -50,7 +50,7 @@ services:
     devices:
       - /dev:/dev
 
-    command: /bin/sh -c "while sleep 1000; do :; done"
+    command: /bin/sh -c "rm -f /tauv-mono/ros_ws/src/tauv_drivers/COLCON_IGNORE; touch /tauv-mono/ros_ws/src/tauv_drivers/COLCON_IGNORE && trap 'rm -f /tauv-mono/ros_ws/src/tauv_drivers/COLCON_IGNORE' EXIT TERM INT && while sleep 1000; do :; done"
 
 
   osprey-orin-user:
@@ -67,4 +67,4 @@ services:
       - /home/tauv/tauv-mono:/tauv-mono
       - /home/tauv/data:/data
       - /home/tauv/.bash_history:/root/.bash_history
-    command: /bin/sh -c "while sleep 1000; do :; done"
+    command: /bin/sh -c "rm -f /tauv-mono/ros_ws/src/tauv_sim/COLCON_IGNORE; touch /tauv-mono/ros_ws/src/tauv_sim/COLCON_IGNORE && trap 'rm -f /tauv-mono/ros_ws/src/tauv_sim/COLCON_IGNORE' EXIT TERM INT && while sleep 1000; do :; done"
