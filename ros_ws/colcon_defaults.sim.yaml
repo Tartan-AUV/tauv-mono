@@ -1,6 +1,10 @@
 build:
   packages-skip:
-    - tauv_drivers
+    - dvl_a50
+    - tauv_depth
+    - tauv_dronecan
+    - tauv_launch
+    - xsens_mti_ros2_driver
   symlink-install: true
   merge-install: true
   cmake-args:
