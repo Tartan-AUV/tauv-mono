@@ -12,12 +12,16 @@ services:
 
     volumes:
       - ../:/tauv-mono
+
+      # Atharv's SSD Mount
+      - /mnt/hgfs/peely:/mnt/peely
+
       - ${HOME}/.config/nvim:/root/.config/nvim:Z
       - ${HOME}/.tmux.conf:/root/.tmux.conf:Z
       - ${HOME}/.codex:/root/.codex:Z
 
       # SSH agent
-      - ${SSH_AUTH_SOCK:-/run/host-services/ssh-auth.sock}:/ssh-agent
+      - ~/.ssh/ssh_auth_sock:/ssh-agent
 
       # X11 (fallback / legacy)
       - /tmp/.X11-unix:/tmp/.X11-unix:ro

@@ -4,11 +4,24 @@ FROM base AS common
 # System dependencies
 # -----------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    software-properties-common \
-    make \
-    cmake \
-    python3-pip \
-    python3-venv \
+        software-properties-common \
+    && add-apt-repository -y ppa:ubuntu-toolchain-r/test \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        # ROS packages
+        ros-humble-robot-localization \
+        ros-humble-rosbag2-storage-mcap \
+        # Python
+        python3-pip \
+        python3-venv \
+        # C++ build tools (GCC 11 and 13)
+        gcc-11 \
+        g++-11 \
+        gcc-13 \
+        g++-13 \
+        libstdc++-13-dev \
+        make \
+        cmake \
     && rm -rf /var/lib/apt/lists/*
 
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
