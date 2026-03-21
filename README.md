@@ -21,10 +21,6 @@ Follow these instructions to set up the development environment and simulator on
     sudo apt update
     sudo apt install xfce4
     ```
-    * If it says failed to log in after installing xfce4. Press Ctrl+Alt+F3 to open and run:
-    ```
-    sudo apt-get install plasma-desktop
-    ```
 * **Connect via SSH:**
     1. Find the IP address of the VM:
        ```bash
@@ -43,7 +39,7 @@ Follow these instructions to set up the development environment and simulator on
     ```bash
     docker login ghcr.io
     ```
-    * Username is your github username, password is github key
+    * Username is your github username, password is your github key
     * Settings -> developer settings -> personal access tokens -> tokens (classic).
     * Turn on repo, write:packages, user, delete:packages, admin:ssh_signing_key
 
