@@ -88,6 +88,34 @@ Follow these instructions to set up the development environment and simulator on
 The development environment has now been built.
 
 
+### 4. Running the Simulator
+```bash
+ros2 launch tauv_sim desktop_sim.launch.py
+```
+Stonefish opens a GUI window — X11 access must be granted first. Add this to your `~/.bashrc` so it runs on every login:
+```bash
+xhost +local:
+```
+
+#### NVIDIA GPU (machine-specific)
+If your machine has an NVIDIA GPU, the simulator will crash/lag without GPU passthrough. Two changes are needed:
+
+1. In `containers/docker-compose.yaml`, under `tauv-desktop`, add:
+   ```yaml
+   runtime: nvidia
+   environment:
+     - NVIDIA_VISIBLE_DEVICES=all
+     - NVIDIA_DRIVER_CAPABILITIES=all
+   ```
+   > These lines are already present on green's machine and marked with `# NOTE (green)` comments — do not commit them for general use.
+
+2. Install the NVIDIA Container Toolkit on the host if not already present:
+   ```bash
+   sudo apt install nvidia-container-toolkit
+   sudo nvidia-ctk runtime configure --runtime=docker
+   sudo systemctl restart docker
+   ```
+
 ### 5. Useful Commands/Tips
 **Docker**
 * *To be added*
