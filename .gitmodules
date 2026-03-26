@@ -13,3 +13,6 @@
 [submodule "ros_ws/src/tauv_core"]
 	path = ros_ws/src/tauv_core
 	url = https://github.com/Tartan-AUV/tauv-core.git
+[submodule "ros_ws/src/tauv_autonomy"]
+	path = ros_ws/src/tauv_autonomy
+	url = git@github.com:Tartan-AUV/tauv-autonomy.git

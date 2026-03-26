@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path // \"\"' | { read -r f; pkg=\"\"; case \"$f\" in */tauv_sim/*) pkg=\"tauv_sim\";; */tauv_autonomy/*) pkg=\"tauv_autonomy\";; */tauv_drivers/*) pkg=\"tauv_drivers\";; */tauv_msgs/*) pkg=\"tauv_msgs\";; */tauv_core/*) pkg=\"tauv_core\";; esac; if [ -n \"$pkg\" ]; then claude_md=\"ros_ws/src/$pkg/CLAUDE.md\"; echo \"{\\\"hookSpecificOutput\\\": {\\\"hookEventName\\\": \\\"PostToolUse\\\", \\\"additionalContext\\\": \\\"You just edited a file in $pkg. Read $claude_md if you haven't yet this session, and update it if the change affects architecture, build steps, conventions, or key file roles.\\\"}}\"; fi; } 2>/dev/null || true",
+            "statusMessage": "Checking CLAUDE.md..."
+          }
+        ]
+      }
+    ]
+  }
+}

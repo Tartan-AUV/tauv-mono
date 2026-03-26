@@ -5,6 +5,9 @@ services:
     image: ghcr.io/tartan-auv/desktop_nogpu_user:latest
     network_mode: "host"
     privileged: true
+    # NOTE (green): runtime + NVIDIA env vars below are specific to green's local machine
+    # (NVIDIA GPU). Remove these if running on a machine without an NVIDIA GPU.
+    runtime: nvidia
     cap_add:
       - SYS_PTRACE
     security_opt:
@@ -35,6 +38,9 @@ services:
 
     environment:
       - SSH_AUTH_SOCK=/ssh-agent
+      # NOTE (green): specific to green's local machine, remove if no NVIDIA GPU
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
 
       # X11
       - DISPLAY=${DISPLAY:-:0}
@@ -62,6 +68,7 @@ services:
     network_mode: "host"
     privileged: true
     runtime: nvidia
+    working_dir: /tauv-mono/ros_ws
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
@@ -71,4 +78,4 @@ services:
       - /home/tauv/tauv-mono:/tauv-mono
       - /home/tauv/data:/data
       - /home/tauv/.bash_history:/root/.bash_history
-    command: /bin/sh -c "while sleep 1000; do :; done"
+    command: /bin/sh -c "echo 'source /tauv-mono/ros_ws/install/setup.bash' >> ~/.bashrc && while sleep 1000; do :; done"
