@@ -7,7 +7,7 @@ services:
     privileged: true
     # NOTE (green): runtime + NVIDIA env vars below are specific to green's local machine
     # (NVIDIA GPU). Remove these if running on a machine without an NVIDIA GPU.
-    runtime: nvidia
+    # runtime: nvidia
     cap_add:
       - SYS_PTRACE
     security_opt:
@@ -39,8 +39,8 @@ services:
     environment:
       - SSH_AUTH_SOCK=/ssh-agent
       # NOTE (green): specific to green's local machine, remove if no NVIDIA GPU
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
+      # - NVIDIA_VISIBLE_DEVICES=all
+      # - NVIDIA_DRIVER_CAPABILITIES=all
 
       # X11
       - DISPLAY=${DISPLAY:-:0}
