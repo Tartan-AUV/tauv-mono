@@ -1,0 +1,118 @@
+# Trajectory setpoints for tauv_mission/trajectory_manager
+#
+# Fields per setpoint:
+#   Position  (meters, world/odom frame):  x, y, z
+#   Orientation (radians, ZYX convention): roll, pitch, yaw
+#   Linear velocity  (m/s):               vx, vy, vz
+#   Angular velocity (rad/s):             wx, wy, wz
+#   Tolerances (optional — defaults used if omitted):
+#     position_tolerance (meters)
+#     angular_tolerance  (radians)
+
+setpoints:
+  - x: 0.5
+    y: 0.0
+    z: -1.5
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    vx: 0.0
+    vy: 0.0
+    vz: 0.0
+    wx: 0.0
+    wy: 0.0
+    wz: 0.0
+    position_tolerance: 0.2
+    angular_tolerance: 0.2618  # pi/12
+  
+  - x: 5
+    y: 0.0
+    z: -1.5
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    vx: 0.0
+    vy: 0.0
+    vz: 0.0
+    wx: 0.0
+    wy: 0.0
+    wz: 0.0
+    position_tolerance: 0.2
+    angular_tolerance: 0.2618  # pi/12
+
+
+  - x: 12
+    y: 1
+    z: -1.5
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    vx: 0.0
+    vy: 0.0
+    vz: 0.0
+    wx: 0.0
+    wy: 0.0
+    wz: 0.0
+    position_tolerance: 0.2
+    angular_tolerance: 0.2618  # pi/12
+
+  - x: 12
+    y: -1
+    z: -1.5
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    vx: 0.0
+    vy: 0.0
+    vz: 0.0
+    wx: 0.0
+    wy: 0.0
+    wz: 0.0
+    position_tolerance: 0.2
+    angular_tolerance: 0.2618  # pi/12
+    
+  - x: 5
+    y: -1
+    z: -1.5
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    vx: 0.0
+    vy: 0.0
+    vz: 0.0
+    wx: 0.0
+    wy: 0.0
+    wz: 0.0
+    position_tolerance: 0
+    angular_tolerance: 0.2618  # pi/12
+  
+  - x: 5
+    y: 0.0
+    z: -1.5
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    vx: 0.0
+    vy: 0.0
+    vz: 0.0
+    wx: 0.0
+    wy: 0.0
+    wz: 0.0
+    position_tolerance: 0
+    angular_tolerance: 0.2618  # pi/12
+
+
+  - x: 0.5
+    y: 0.0
+    z: -1.5
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0
+    vx: 0.0
+    vy: 0.0
+    vz: 0.0
+    wx: 0.0
+    wy: 0.0
+    wz: 0.0
+    position_tolerance: 0
+    angular_tolerance: 0.2618  # pi/12

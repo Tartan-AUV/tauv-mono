@@ -158,3 +158,6 @@ RUN mkdir -p /tmp/cv_bridge_build && cd /tmp/cv_bridge_build && \
 
 #DroneCAN
 RUN python3 -m pip install dronecan=="1.0.27" pyserial transform3d
+
+#Depthai
+RUN python3 -m pip install "numpy<2.0.0" \ depthai
