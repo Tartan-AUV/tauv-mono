@@ -161,3 +161,10 @@ RUN python3 -m pip install dronecan=="1.0.27" pyserial transform3d
 
 #Depthai
 RUN python3 -m pip install "numpy<2.0.0" \ depthai
+
+#RTAB-map and pointcloud stuff
+RUN apt-get update \
+    && apt install -y --no-install-recommends ros-humble-rtabmap-ros
+
+RUN apt-get update \ 
+    && apt install -y --no-install-recommends ros-humble-depth-image-proc
