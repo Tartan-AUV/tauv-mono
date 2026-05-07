@@ -9,9 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
         # ROS packages
-        ros-humble-robot-localization \
+        # ros-humble-robot-localization \ # Moved to local so we can edit
         ros-humble-rosbag2-storage-mcap \
-        # ros-humble-foxglove-bridge \
+        ros-humble-foxglove-bridge \
         # Python
         python3-pip \
         python3-venv \
@@ -69,15 +69,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         python3-colcon-common-extensions \
     && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /opt/foxglove_ws/src \
-    && cd /opt/foxglove_ws/src \
-    && git clone --depth 1 https://github.com/foxglove/foxglove-sdk.git \
-    && cd /opt/foxglove_ws \
-    && apt-get update \
-    && rosdep init || true \
-    && rosdep update \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro humble \
-    && rm -rf /var/lib/apt/lists/* \
-    && /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release"
+# RUN mkdir -p /opt/foxglove_ws/src \
+#     && cd /opt/foxglove_ws/src \
+#     && git clone --depth 1 https://github.com/foxglove/foxglove-sdk.git \
+#     && cd /opt/foxglove_ws \
+#     && apt-get update \
+#     && rosdep init || true \
+#     && rosdep update \
+#     && rosdep install -y --from-paths src --ignore-src --rosdistro humble \
+#     && rm -rf /var/lib/apt/lists/* \
+#     && /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release"
 
-RUN echo "source /opt/foxglove_ws/install/setup.bash" >> ~/.bashrc
+# RUN echo "source /opt/foxglove_ws/install/setup.bash" >> ~/.bashrc
