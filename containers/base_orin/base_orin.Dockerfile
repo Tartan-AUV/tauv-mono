@@ -157,14 +157,57 @@ RUN mkdir -p /tmp/cv_bridge_build && cd /tmp/cv_bridge_build && \
     rm -rf /tmp/cv_bridge_build
 
 #DroneCAN
-RUN python3 -m pip install dronecan=="1.0.27" pyserial transform3d
+RUN python3 -m pip install dronecan=="1.0.27" pyserial transform3d python-can=="4.3.1"
 
 #Depthai
 RUN python3 -m pip install "numpy<2.0.0" \ depthai
 
-#RTAB-map and pointcloud stuff
+#RTAB-map and dephai ros drivers
 RUN apt-get update \
-    && apt install -y --no-install-recommends ros-humble-rtabmap-ros
+    && apt install -y --no-install-recommends \
+    ros-humble-rtabmap-ros \
+    && ldconfig
+
+RUN apt install -y --no-install-recommends ros2-testing-apt-source \
+    && apt update \
+    && apt install -y --no-install-recommends ros-humble-depthai-ros-v3 \
+    # ensure depthai launchers can actually find the shared library
+    && echo "/opt/ros/humble/lib/aarch64-linux-gnu" > /etc/ld.so.conf.d/depthai.conf \
+    && ldconfig
 
 RUN apt-get update \ 
     && apt install -y --no-install-recommends ros-humble-depth-image-proc
+
+# -----------------------------
+# torchvision + Ultralytics (CUDA)
+# -----------------------------
+# torchvision has no CUDA aarch64 wheel on PyPI, so it is built against the
+# NVIDIA torch wheel above. v0.20.x is the release that pairs with torch 2.5.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libjpeg-dev zlib1g-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m pip install --no-cache-dir ninja
+
+RUN git clone --branch v0.20.0 --depth 1 https://github.com/pytorch/vision /tmp/torchvision && \
+    cd /tmp/torchvision && \
+    FORCE_CUDA=1 \
+    BUILD_VERSION=0.20.0 \
+    TORCH_CUDA_ARCH_LIST="8.7" \
+    MAX_JOBS=12 \
+    python3 -m pip install --no-cache-dir --no-build-isolation . && \
+    rm -rf /tmp/torchvision
+
+# --no-deps is load-bearing: ultralytics' dependency list names torch,
+# torchvision and opencv-python, and letting pip resolve those would pull the
+# CPU-only PyPI torch over the NVIDIA CUDA wheel and the PyPI opencv-python
+# wheel over the CUDA OpenCV built above. Its remaining deps are listed by hand.
+RUN python3 -m pip install --no-cache-dir --no-deps ultralytics ultralytics-thop && \
+    python3 -m pip install --no-cache-dir \
+      "numpy==1.26.1" \
+      matplotlib pandas pillow psutil py-cpuinfo pyyaml requests scipy
+
+# Ultralytics writes settings/fonts on import; give it a writable dir
+# it from phoning home on every run.
+ENV YOLO_CONFIG_DIR=/tmp/ultralytics
+ENV YOLO_OFFLINE=1

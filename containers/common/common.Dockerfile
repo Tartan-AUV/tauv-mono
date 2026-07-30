@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         # ros-humble-robot-localization \ # Moved to local so we can edit
         ros-humble-rosbag2-storage-mcap \
         ros-humble-foxglove-bridge \
+        # something idk
+        libgeographic-dev \
         # Python
         python3-pip \
         python3-venv \
@@ -81,3 +83,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 #     && /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release"
 
 # RUN echo "source /opt/foxglove_ws/install/setup.bash" >> ~/.bashrc
+
+# -----------------------------
+# Vision: lightweight Kalman filtering (bannerTask)
+# -----------------------------
+RUN /usr/bin/python3 -m pip install --no-cache-dir filterpy

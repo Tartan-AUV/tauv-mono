@@ -78,4 +78,4 @@ services:
       - /home/tauv/tauv-mono:/tauv-mono
       - /home/tauv/data:/data
       - /home/tauv/.bash_history:/root/.bash_history
-    command: /bin/sh -c "echo 'source /tauv-mono/ros_ws/install/setup.bash' >> ~/.bashrc && while sleep 1000; do :; done"
+    command: /bin/sh -c "grep -qxF 'source /tauv-mono/ros_ws/install/setup.bash' ~/.bashrc || echo 'source /tauv-mono/ros_ws/install/setup.bash' >> ~/.bashrc && sleep infinity"
