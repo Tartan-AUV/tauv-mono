@@ -36,3 +36,9 @@ tools/CanTesting/venv
 # Core dumps
 ros_ws/core
 core
+
+# Run recordings
+videos/
+
+__pycache__/
+*.pyc
