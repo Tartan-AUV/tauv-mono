@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         # ros-humble-robot-localization \ # Moved to local so we can edit
         ros-humble-rosbag2-storage-mcap \
         ros-humble-foxglove-bridge \
+        ros-humble-diagnostic-updater \
+        ros-humble-geographic-msgs \
         # something idk
         libgeographic-dev \
         # Python
