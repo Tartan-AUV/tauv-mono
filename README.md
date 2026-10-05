@@ -86,7 +86,7 @@ The development environment has now been built.
 
 ### 4. Running the Simulator
 ```bash
-ros2 launch tauv_sim desktop_sim.launch.py
+ros2 launch tauv_sim main.py
 ```
 Stonefish opens a GUI window — X11 access must be granted first. Add this to your `~/.bashrc` so it runs on every login:
 ```bash
