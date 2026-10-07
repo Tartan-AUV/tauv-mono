@@ -1,0 +1,56 @@
+# Only things that are true for everyone live here.
+# GPU settings    -> compose.gpu.yaml
+# Personal mounts -> compose.override.yaml (gitignored; copy compose.override.example.yaml)
+#
+# Services sit behind profiles so a bare `docker compose up` doesn't start both:
+#   docker compose up -d desktop
+#   docker compose exec desktop bash
+
+name: tauv
+
+services:
+  desktop:
+    image: ghcr.io/tartan-auv/tauv-desktop:${TAG:-latest}
+    profiles: [desktop]
+    network_mode: host
+    init: true
+    stdin_open: true
+    tty: true
+    cap_add:
+      - SYS_PTRACE            # gdb / debuggers
+    security_opt:
+      - seccomp:unconfined    # gdb / debuggers
+    working_dir: /tauv-mono/ros_ws
+    environment:
+      - SSH_AUTH_SOCK=/ssh-agent
+      - DISPLAY=${DISPLAY:-:0}
+    volumes:
+      - ../:/tauv-mono
+      # Git identity comes from the host, so there is no per-user image layer.
+      - ${HOME}/.gitconfig:/home/tauv/.gitconfig:ro
+      # SSH agent forwarding (falls back to a harmless empty mount if no agent is running)
+      - ${SSH_AUTH_SOCK:-/dev/null}:/ssh-agent
+      # GUI apps (RViz, etc.) over X11; works on Wayland desktops through XWayland
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+    command: sleep infinity
+
+  orin:
+    image: ghcr.io/tartan-auv/tauv-orin:${TAG:-latest}
+    profiles: [orin]
+    network_mode: host
+    privileged: true
+    runtime: nvidia
+    init: true
+    stdin_open: true
+    tty: true
+    working_dir: /tauv-mono/ros_ws
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    devices:
+      - /dev:/dev             # sensors / serial / USB, including hot-plugged ones
+    volumes:
+      - ../:/tauv-mono
+      - ${DATA_DIR:-/home/tauv/data}:/data
+      - ${HOME}/.gitconfig:/home/tauv/.gitconfig:ro
+    command: sleep infinity

@@ -1,58 +1,64 @@
-// docker-bake.hcl: Compose images in phases via Buildx contexts
+// docker-bake.hcl
+//
+//   docker buildx bake desktop          # build the desktop image into your local Docker
+//   docker buildx bake orin             # build the Orin image (arm64) into local Docker
+//   docker buildx bake --print desktop  # show the resolved config without building
+//
+// Release targets (used by CI) push to the registry instead:
+//   TAG=$(git rev-parse --short HEAD) docker buildx bake desktop-release orin-release
+
+variable "REGISTRY" { default = "ghcr.io/tartan-auv" }
+variable "TAG"      { default = "latest" }
+
+// Container user IDs. The justfile sets these from `id -u` / `id -g`.
+variable "HOST_UID" { default = "1000" }
+variable "HOST_GID" { default = "1000" }
 
 group "default" {
-  targets = ["desktop_nogpu_user"]
+  targets = ["desktop", "orin"]
 }
 
-variable "REGISTRY"     { default = "ghcr.io/tartan-auv" }
-variable "IMAGE_NAME"   { default = "desktop_nogpu" }
-variable "IMAGE_TAG"    { default = "latest" }
-
-variable "BASE_CONTEXT"      { default = "." }
-variable "BASE_DOCKERFILE"   { default = "base_nogpu/base_nogpu.Dockerfile" }
-variable "COMMON_DOCKERFILE" { default = "common/common.Dockerfile" }
-variable "APP_DOCKERFILE"    { default = "desktop/desktop.Dockerfile" }
-variable "USERCFG_DOCKERFILE" { default = "user_config/user_config.Dockerfile" }
-
-target "base" {
-  context    = "${BASE_CONTEXT}"
-  dockerfile = "${BASE_DOCKERFILE}"
-  target     = "base"
-}
-
-target "common" {
+target "_common" {
   context    = "."
-  dockerfile = "${COMMON_DOCKERFILE}"
-  contexts = {
-    base = "target:base"
+  dockerfile = "Dockerfile"
+  args = {
+    HOST_UID = HOST_UID
+    HOST_GID = HOST_GID
   }
 }
 
-target "desktop_nogpu" {
-  context    = "."
-  dockerfile = "${APP_DOCKERFILE}"
-  contexts = {
-    base = "target:common"
-  }
-  tags = ["${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"]
-}
-
-target "desktop_nogpu_ci" {
-  inherits = ["desktop_nogpu"]
+target "desktop" {
+  inherits = ["_common"]
+  target   = "desktop"
+  tags     = ["${REGISTRY}/tauv-desktop:${TAG}"]
   output   = ["type=docker"]
 }
 
-target "desktop_nogpu_release" {
-  inherits = ["desktop_nogpu"]
-  output   = ["type=registry"]
+target "orin" {
+  inherits  = ["_common"]
+  target    = "orin"
+  platforms = ["linux/arm64"]
+  args = {
+    BASE_IMAGE = "nvcr.io/nvidia/l4t-jetpack:r36.4.0"
+    HOST_UID   = HOST_UID
+    HOST_GID   = HOST_GID
+  }
+  tags   = ["${REGISTRY}/tauv-orin:${TAG}"]
+  output = ["type=docker"]
 }
 
-target "desktop_nogpu_user" {
-  context    = "."
-  dockerfile = "${USERCFG_DOCKERFILE}"
-  contexts = {
-    base = "target:desktop_nogpu"
-  }
-  tags = ["${REGISTRY}/desktop_nogpu_user:${IMAGE_TAG}"]
-  no-cache = true
+// ---- CI / release ----
+
+target "desktop-release" {
+  inherits   = ["desktop"]
+  output     = ["type=registry"]
+  cache-from = ["type=registry,ref=${REGISTRY}/tauv-desktop:buildcache"]
+  cache-to   = ["type=registry,ref=${REGISTRY}/tauv-desktop:buildcache,mode=max"]
+}
+
+target "orin-release" {
+  inherits   = ["orin"]
+  output     = ["type=registry"]
+  cache-from = ["type=registry,ref=${REGISTRY}/tauv-orin:buildcache"]
+  cache-to   = ["type=registry,ref=${REGISTRY}/tauv-orin:buildcache,mode=max"]
 }

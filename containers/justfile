@@ -1,0 +1,34 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+# Used for the container user at build time, so files in your repo stay owned by you.
+export HOST_UID := `id -u`
+export HOST_GID := `id -g`
+
+default:
+    @just --list
+
+# Build an image locally: `just build desktop` or `just build orin`
+build target="desktop":
+    docker buildx bake {{target}}
+
+# Pull the prebuilt image from the registry (skips building)
+pull service="desktop":
+    docker compose --profile {{service}} pull {{service}}
+
+# Start a container in the background: `just up desktop` or `just up orin`
+up service="desktop":
+    [ -e "$HOME/.gitconfig" ] || touch "$HOME/.gitconfig"
+    if [ "{{service}}" = "desktop" ]; then xhost +SI:localuser:"$(id -un)" >/dev/null 2>&1 || true; fi
+    docker compose up -d {{service}}
+
+# Open a shell in a running container
+shell service="desktop":
+    docker compose exec {{service}} bash
+
+# Stop and remove containers
+down:
+    docker compose --profile desktop --profile orin down
+
+# Push images to the registry (CI normally does this; needs `docker login ghcr.io`)
+push:
+    docker buildx bake desktop-release orin-release

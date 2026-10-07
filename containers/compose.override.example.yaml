@@ -1,0 +1,25 @@
+# Personal, machine-specific settings. Copy to compose.override.yaml (gitignored):
+#   cp compose.override.example.yaml compose.override.yaml
+# Delete anything you don't want. Compose loads compose.override.yaml automatically
+# unless COMPOSE_FILE is set in .env, in which case list it there too.
+
+services:
+  desktop:
+    volumes:
+      # Editor / terminal config
+      - ${HOME}/.config/nvim:/home/tauv/.config/nvim
+      - ${HOME}/.tmux.conf:/home/tauv/.tmux.conf
+
+      # Extra data mount (e.g. an external SSD or VM shared folder)
+      # - /path/on/host:/mnt/data
+
+      # Native Wayland instead of XWayland
+      # - ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY:-wayland-0}:${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY:-wayland-0}
+    # environment:
+    #   - WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0}
+    #   - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+    #   - QT_QPA_PLATFORM=wayland;xcb
+
+  orin:
+    volumes:
+      - ${HOME}/.bash_history:/home/tauv/.bash_history

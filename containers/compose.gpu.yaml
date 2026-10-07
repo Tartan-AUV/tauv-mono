@@ -1,0 +1,10 @@
+# Optional: NVIDIA GPU access for the desktop container.
+# Enable by adding this file to COMPOSE_FILE in your .env (see .env.example).
+# Requires the NVIDIA Container Toolkit on the host.
+
+services:
+  desktop:
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all

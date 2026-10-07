@@ -1,8 +1,5 @@
 install/
 build/
 log/
-.cache/
-bags/
 
-__pycache__/
-*.pyc
+bags/

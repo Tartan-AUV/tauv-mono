@@ -1,0 +1,15 @@
+build:
+  packages-skip:
+    - dvl_a50
+    - dvl_msgs
+    - tauv_depth
+    - tauv_dronecan
+    - tauv_kvh
+    - tauv_repackagers
+    - tauv_servo
+    - tauv_vision
+    - tauv_watchdogs
+    - xsens_mti_ros2_driver
+  symlink-install: true
+  cmake-args:
+    - "-DCMAKE_BUILD_TYPE=Release"
