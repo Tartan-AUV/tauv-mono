@@ -42,8 +42,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         curl \
         git \
         git-lfs \
-        gnupg2 \
-        ninja-build \
         python3-pip \
         sudo
 
@@ -59,6 +57,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
         ros-dev-tools \
         ros-humble-ros-base \
+        # robot_localization packages
+        ros-humble-angles \
+        ros-humble-geographic-msgs \
+        ros-humble-diagnostic-updater \
+        libgeographic-dev \
+        libboost-dev \
     && rosdep init
 
 # --- Shell setup: source ROS, and the workspace overlay if it has been built ---
@@ -97,6 +101,12 @@ CMD ["bash"]
 # =============================================================================
 FROM base AS orin
 
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+        # xsens_mti_ros2_driver
+        ros-humble-nmea-msgs \
+        ros-humble-mavros-msgs
 # orin-only packages go here (torch wheel, sensor drivers, ...)
 
 ENV COLCON_DEFAULTS_FILE=/tauv-mono/ros_ws/colcon_defaults.orin.yaml

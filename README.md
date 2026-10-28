@@ -122,7 +122,7 @@ If your machine has an NVIDIA GPU, the simulator will crash/lag without GPU pass
 ## Jetson Setup
 
 ### 1. Connection
-* SSH Via Tailscale or connecting to router direclty(we only have 3 seats total on tailnet unfortunately)
+* SSH Via Tailscale or connecting to router directly
 ### 2. Build and Run the Container
 1. Ensure you are in tauv-mono/containers and run `./build_osprey_docker.sh`
     * only needs to be done if a modification has been made to the dockerfiles 
