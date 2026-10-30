@@ -45,6 +45,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         python3-pip \
         sudo
 
+# -----------------------------
+# Lightweight Python packages
+# -----------------------------
+RUN pip install --no-cache-dir \
+    filterpy
+
 # --- ROS 2 apt repository ---
 RUN curl -fsSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
         -o /usr/share/keyrings/ros-archive-keyring.gpg \
@@ -56,18 +62,21 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
         ros-dev-tools \
-        ros-humble-ros-base \
+        ros-$ROS_DISTRO-ros-base \
         # robot_localization packages
-        ros-humble-angles \
-        ros-humble-geographic-msgs \
-        ros-humble-diagnostic-updater \
+        ros-$ROS_DISTRO-angles \
+        ros-$ROS_DISTRO-geographic-msgs \
+        ros-$ROS_DISTRO-diagnostic-updater \
         libgeographic-dev \
         libboost-dev \
+        # Foxglove
+        ros-$ROS_DISTRO-foxglove-bridge \
     && rosdep init
+
 
 # --- Shell setup: source ROS, and the workspace overlay if it has been built ---
 RUN printf '%s\n' \
-        'source /opt/ros/humble/setup.bash' \
+        'source /opt/ros/$ROS_DISTRO/setup.bash' \
         'if [ -f /tauv-mono/ros_ws/install/setup.bash ]; then source /tauv-mono/ros_ws/install/setup.bash; fi' \
         >> /etc/bash.bashrc
 
@@ -86,8 +95,16 @@ FROM base AS desktop
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
-        ros-humble-desktop
+        ros-$ROS_DISTRO-desktop
 # desktop-only packages go here (desktopulator deps, clang tools, pre-commit, ...)
+
+# CPU-only torch, decently small. If you want to use an NVIDIA GPU, drop the --index-url
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install torch torchvision \
+        --index-url https://download.pytorch.org/whl/cpu
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install ultralytics
 
 ENV COLCON_DEFAULTS_FILE=/tauv-mono/ros_ws/colcon_defaults.desktop.yaml
 
@@ -101,12 +118,38 @@ CMD ["bash"]
 # =============================================================================
 FROM base AS orin
 
+# torch/torchvision: NVIDIA's Jetson builds (CUDA-enabled). VERY HEAVY
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install torch torchvision \
+        --index-url https://pypi.jetson-ai-lab.io/jp6/cu126
+
+# Ultralytics, also decently heavy, installed here under orin to make sure we use jetson torch
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install ultralytics "numpy<2"
+
+# --- Runtime deps of NVIDIA's Jetson torch wheels (jp6/cu126) ---
+# Neither ships in JetPack r36.4:
+#   libopenblas-dev    -> libopenblas.so.0
+#   libcudss0-cuda-12  -> libcudss.so.0, from NVIDIA's Jetson CUDA repo. Must be the 0.x series:
+#                         the repo's default `cudss` is now 1.x (libcudss.so.1), which torch won't load.
+# cuDSS installs into a versioned subdir, so register it with the dynamic linker.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    curl -fsSLO https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.1-1_all.deb \
+    && dpkg -i cuda-keyring_1.1-1_all.deb \
+    && rm cuda-keyring_1.1-1_all.deb \
+    && apt-get update && apt-get install -y --no-install-recommends \
+        libopenblas-dev \
+        libcudss0-cuda-12 \
+    && echo /usr/lib/aarch64-linux-gnu/libcudss/12 > /etc/ld.so.conf.d/cudss.conf \
+    && ldconfig
+
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
         # xsens_mti_ros2_driver
-        ros-humble-nmea-msgs \
-        ros-humble-mavros-msgs
+        ros-$ROS_DISTRO-nmea-msgs \
+        ros-$ROS_DISTRO-mavros-msgs
 # orin-only packages go here (torch wheel, sensor drivers, ...)
 
 ENV COLCON_DEFAULTS_FILE=/tauv-mono/ros_ws/colcon_defaults.orin.yaml
