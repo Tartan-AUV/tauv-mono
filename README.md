@@ -1,141 +1,63 @@
 # TAUV-MONO
 
-This is the monorepo for all Tartan-AUV vehicle code, tools, and infrastructure. 
+The monorepo for all Tartan-AUV vehicle code, tools, and infrastructure. The vehicle software is a ROS 2 Humble workspace that runs in Docker, both on laptops/VMs (with the Stonefish simulator) and on the sub's Jetson Orin.
 
-## Development Environment Setup(for sim and testing without the sub)
+## Where to start
 
-Follow these instructions to set up the development environment and simulator on a fresh machine.
+| I want to... | Go to |
+|---|---|
+| Set up a dev environment and run the simulator | [docs/sim.md](docs/sim.md) |
+| Look up common Docker / colcon / ROS 2 commands | [docs/commands.md](docs/commands.md) |
+| Understand the Docker images, compose files, or add a dependency | [containers/README.md](containers/README.md) |
+| Work on the Jetson Orin (vehicle) | [containers/README.md](containers/README.md) (use the `orin` service) |
+| Learn about a ROS package | the `README.md` in that package's folder (see below) |
 
-### 1. Environment Setup
-* **Download VMware Fusion 13** Go to VMware.com and download Fusion and Workstation in the VMWare products. You will need to create a broadcom account. Download VMware fusion 13
-* **Create a Virtual Machine:** Install the newest version of Ubuntu.
-    * *Disk Space:* **30GB** minimum (**40GB** recommended).
-    * Click the wrench icon in VMware fusion and increase size, then run
-      ```
-      sudo lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
-      sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
-      ```
-* **Enable OpenSSH:** Ensure you can access the VM remotely.
-* **Install GUI:** Install XFCE (a lightweight GUI) to display the simulator later:
-    ```bash
-    sudo apt update
-    sudo apt install xfce4
-    ```
-* **Connect via SSH:**
-    1. Find the IP address of the VM:
-       ```bash
-       ip a
-       ```
-    2. Use this IP address to SSH into the machine for the remaining steps.
+New to the project? Read [docs/sim.md](docs/sim.md) first, then keep [docs/commands.md](docs/commands.md) handy.
 
-### 2. Install Dependencies
-**Docker Engine**
-1.  Install the Docker Engine following the official guide: [Install Docker on Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
-2.  (Optional) Add your user to the docker group to run docker without `sudo`:
-    ```bash
-    sudo usermod -aG docker $USER
-    ```
-3.  Authenticate with the GitHub Container Registry:
-    ```bash
-    docker login ghcr.io
-    ```
-    * Username is your github username, password is your github key
-    * Settings -> developer settings -> personal access tokens -> tokens (classic).
-    * Turn on repo, write:packages, user, delete:packages, admin:ssh_signing_key
+## Repository layout
 
-**Git Configuration**
-1.  Configure global Git settings:
-    ```bash
-    git config --global user.name "Your Name"
-    git config --global user.email "your.email@example.com"
-    ```
-2.  Set up your SSH key with GitHub to allow for authentication during cloning.
-
-### 3. Installation & Build
-1.  **Clone the repository:** 
-    ```bash
-    git clone --recurse-submodules https://github.com/Tartan-AUV/tauv-mono.git
-    ```
-
-2.  **Build the Docker container:**
-    ```bash
-    cd tauv-mono/containers
-    ./build_desktop_docker.sh
-	docker compose up -d tauv-desktop
-    ```
-
-3. **Attach to the container:**
-	Using the `Dev Containers` extension on VSCode, you should be able to attach to the container. Dev Containers: Attach to Running Container
-	* Your VSCode may complain about unsafe repositories. This is simply because our code is segmented into submodules, and you can just mark everything as safe.
-    * Can also use `docker exec -it [Container Name] bash` to attach 
-
-4.  **Build the ROS 2 Workspace:**
-    Once inside the container, build the workspace and source the setup script **make sure you are in ros_ws folder** :
-    ```bash
-    colcon build --symlink-install
-    source install/setup.bash
-    ```
-    * Recommended **8GB** of memory.
-    * If it freezes while building it might have run out of memory, run this:
-      ```
-      colcon build --symlink-install --parallel-workers 1
-      ```
-      The --parallel-workers flag restricts building to one package at a time. 
-The development environment has now been built.
-
-
-### 4. Running the Simulator
-```bash
-ros2 launch tauv_sim main.launch.py
 ```
-Stonefish opens a GUI window — X11 access must be granted first. Add this to your `~/.bashrc` so it runs on every login:
-```bash
-xhost +local:
+containers/   Dockerfile, compose files, and justfile for the desktop and Orin images
+docs/         Setup guides and command references
+ros_ws/       ROS 2 workspace (colcon builds from here)
+  src/        ROS packages, most of them git submodules (see below)
+tools/        Standalone scripts and utilities (calibration, CAN testing, vision labeling, thrusters, ...)
 ```
 
-#### NVIDIA GPU (machine-specific)
-If your machine has an NVIDIA GPU, the simulator will crash/lag without GPU passthrough. Two changes are needed:
+The ROS packages in `ros_ws/src` are git submodules, so clone with `--recurse-submodules` (or run `git submodule update --init --recursive`).
 
-1. In `containers/docker-compose.yaml`, under `tauv-desktop`, add:
-   ```yaml
-   runtime: nvidia
-   environment:
-     - NVIDIA_VISIBLE_DEVICES=all
-     - NVIDIA_DRIVER_CAPABILITIES=all
-   ```
-   > These lines are already present on green's machine and marked with `# NOTE (green)` comments — do not commit them for general use.
+| Folder | Contents |
+|---|---|
+| `tauv_core` | Launch files, message definitions, state estimation, watchdogs |
+| `tauv_autonomy` | Controller, trajectory generation, mission logic |
+| `tauv_drivers` | Hardware drivers (DVL, DroneCAN, KVH, Xsens, servos, depth, ...) |
+| `tauv_vision` | Vision and perception nodes |
+| `tauv_sim` | Stonefish simulator, worlds, and vehicle models |
 
-2. Install the NVIDIA Container Toolkit on the host if not already present:
+Each package has, or should have, its own `README.md` with details. See also [ros_ws/README.md](ros_ws/README.md) for workspace conventions.
+
+## Contributing
+
+Most changes touch a single submodule, so most work happens in that submodule's repo, not in `tauv-mono`.
+
+**Typical change (one submodule)**
+1. In the submodule (e.g. `ros_ws/src/tauv_sim`), create a feature branch. Don't create a branch in `tauv-mono`.
+2. Implement the feature and open a pull request into that submodule's `develop` branch.
+3. Once it's merged, update the submodule pointer in `tauv-mono` and commit it directly to `develop`:
    ```bash
-   sudo apt install nvidia-container-toolkit
-   sudo nvidia-ctk runtime configure --runtime=docker
-   sudo systemctl restart docker
+   cd ros_ws/src/<submodule>
+   git checkout develop && git pull
+   cd ../../..
+   git add ros_ws/src/<submodule>
+   git commit -m "Update <submodule> pointer"
    ```
 
-### 5. Useful Commands/Tips
-**Docker**
-* *To be added*
+**Larger change (branch `tauv-mono`)**
 
-**ROS**
-* *To be added*
+Create a branch in `tauv-mono` and open a PR into its `develop` only when the work:
+- edits more than one submodule, or
+- is a larger feature that also changes things owned by `tauv-mono` itself, such as the `Dockerfile`, compose files, or docs.
 
-## Jetson Setup
+In that case, still merge each submodule's changes into its own `develop` first, then include the pointer updates in the `tauv-mono` PR.
 
-### 1. Connection
-* SSH Via Tailscale or connecting to router directly
-### 2. Build and Run the Container
-1. Ensure you are in tauv-mono/containers and run `./build_osprey_docker.sh`
-    * only needs to be done if a modification has been made to the dockerfiles 
-2. Run The container 
-    * If it is not running already `docker compose up -d osprey-orin-user'
-    * Attach to it by `docker exec -it [Container name] bash`
-3. ROS Stuff 
-    * Will be in the `ros_ws` folder
-
-
-# ROS Packages
-
-## Dependencies
-
-## Package list
-Each package *will* contain a more detailed readme in their folder
+New dependencies go in the `Dockerfile`, not in a container you set up by hand. See [containers/README.md](containers/README.md#adding-a-dependency).
